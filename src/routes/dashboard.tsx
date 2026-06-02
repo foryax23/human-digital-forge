@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { RequireAuth } from "@/components/auth/RequireAuth";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dashboard")({
