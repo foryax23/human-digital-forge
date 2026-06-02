@@ -38,13 +38,20 @@ export function SiteHeader() {
 
         <div className="hidden items-center gap-3 lg:flex">
           <LanguageToggle />
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/login">Login</Link>
-          </Button>
+          {user ? (
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/dashboard">Dashboard</Link>
+            </Button>
+          ) : (
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/login">Login</Link>
+            </Button>
+          )}
           <Button asChild size="sm">
             <Link to="/contact">Start a project</Link>
           </Button>
         </div>
+
 
         {/* Mobile */}
         <div className="flex items-center gap-2 lg:hidden">
