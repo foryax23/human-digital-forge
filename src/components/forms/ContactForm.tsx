@@ -139,7 +139,8 @@ export function ContactForm() {
         </Label>
       </div>
 
-      <Button type="submit" size="lg">
+      <Button type="submit" size="lg" disabled={submitting}>
+        {submitting && <Loader2 className="animate-spin" />}
         Send enquiry
       </Button>
       <p className="text-sm text-muted-foreground">
