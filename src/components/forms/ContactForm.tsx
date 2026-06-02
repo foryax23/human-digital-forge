@@ -18,11 +18,31 @@ import {
 
 export function ContactForm() {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // UI only — no submission wired in this phase.
-    setSubmitted(true);
+    const form = new FormData(event.currentTarget);
+    setSubmitting(true);
+    try {
+      await submitContactEnquiry({
+        data: {
+          fullName: String(form.get("fullName") || "").trim(),
+          email: String(form.get("email") || "").trim(),
+          clientType: String(form.get("clientType") || "") || null,
+          service: String(form.get("service") || "") || null,
+          description: String(form.get("description") || "").trim(),
+          budget: String(form.get("budget") || "").trim() || null,
+          timeline: String(form.get("timeline") || "").trim() || null,
+        },
+      });
+      setSubmitted(true);
+    } catch (error) {
+      console.error("[contact] submit failed", error);
+      toast.error("Something went wrong sending your enquiry. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (submitted) {
@@ -30,8 +50,8 @@ export function ContactForm() {
       <div className="rounded-2xl border border-teal/30 bg-teal/5 p-8 text-center">
         <h2 className="text-2xl">Thank you</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          This is a design preview, so nothing was sent yet. We will review your request and respond
-          with the clearest next step once submissions are connected.
+          Your enquiry has been received. We will review your request and respond with the clearest
+          next step.
         </p>
         <Button variant="outline" className="mt-6" onClick={() => setSubmitted(false)}>
           Send another
@@ -39,6 +59,7 @@ export function ContactForm() {
       </div>
     );
   }
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
