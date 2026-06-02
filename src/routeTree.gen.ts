@@ -13,6 +13,7 @@ import { Route as WebsitesRouteImport } from './routes/websites'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as DigitalProductsRouteImport } from './routes/digital-products'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ConsultancyRouteImport } from './routes/consultancy'
 import { Route as AiAutomationRouteImport } from './routes/ai-automation'
 import { Route as IndexRouteImport } from './routes/index'
@@ -37,6 +38,11 @@ const DigitalProductsRoute = DigitalProductsRouteImport.update({
   path: '/digital-products',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConsultancyRoute = ConsultancyRouteImport.update({
   id: '/consultancy',
   path: '/consultancy',
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
+  '/contact': typeof ContactRoute
   '/digital-products': typeof DigitalProductsRoute
   '/portfolio': typeof PortfolioRoute
   '/services': typeof ServicesRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
+  '/contact': typeof ContactRoute
   '/digital-products': typeof DigitalProductsRoute
   '/portfolio': typeof PortfolioRoute
   '/services': typeof ServicesRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
+  '/contact': typeof ContactRoute
   '/digital-products': typeof DigitalProductsRoute
   '/portfolio': typeof PortfolioRoute
   '/services': typeof ServicesRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-automation'
     | '/consultancy'
+    | '/contact'
     | '/digital-products'
     | '/portfolio'
     | '/services'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-automation'
     | '/consultancy'
+    | '/contact'
     | '/digital-products'
     | '/portfolio'
     | '/services'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/ai-automation'
     | '/consultancy'
+    | '/contact'
     | '/digital-products'
     | '/portfolio'
     | '/services'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiAutomationRoute: typeof AiAutomationRoute
   ConsultancyRoute: typeof ConsultancyRoute
+  ContactRoute: typeof ContactRoute
   DigitalProductsRoute: typeof DigitalProductsRoute
   PortfolioRoute: typeof PortfolioRoute
   ServicesRoute: typeof ServicesRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DigitalProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/consultancy': {
       id: '/consultancy'
       path: '/consultancy'
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiAutomationRoute: AiAutomationRoute,
   ConsultancyRoute: ConsultancyRoute,
+  ContactRoute: ContactRoute,
   DigitalProductsRoute: DigitalProductsRoute,
   PortfolioRoute: PortfolioRoute,
   ServicesRoute: ServicesRoute,
@@ -187,3 +208,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
