@@ -83,12 +83,13 @@ export function SiteHeader() {
               </nav>
               <div className="mt-6 flex flex-col gap-3">
                 <Button asChild variant="outline" onClick={() => setOpen(false)}>
-                  <Link to="/login">Login</Link>
+                  <Link to={user ? "/dashboard" : "/login"}>{user ? "Dashboard" : "Login"}</Link>
                 </Button>
                 <Button asChild onClick={() => setOpen(false)}>
                   <Link to="/contact">Start a project</Link>
                 </Button>
               </div>
+
             </SheetContent>
           </Sheet>
         </div>
