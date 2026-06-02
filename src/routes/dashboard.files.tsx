@@ -65,6 +65,26 @@ function FilesPage() {
   useEffect(() => {
     if (!user) return;
     void loadFiles();
+
+    const channel = supabase
+      .channel(`project_files:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "project_files",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          void loadFiles();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
