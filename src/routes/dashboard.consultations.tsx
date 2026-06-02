@@ -1,9 +1,22 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { CalendarCheck, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/dashboard/consultations")({
@@ -35,28 +48,116 @@ function ConsultationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [preferred, setPreferred] = useState("");
+  const [notes, setNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function loadItems() {
+    setLoading(true);
+    const { data, error: err } = await supabase
+      .from("consultations")
+      .select("id, title, scheduled_at, status, notes")
+      .order("scheduled_at", { ascending: true });
+    if (err) {
+      console.error("[consultations] load failed", err);
+      setError("We couldn't load your consultations. Please refresh to try again.");
+    } else {
+      setError(null);
+      setItems((data as ConsultationItem[]) ?? []);
+    }
+    setLoading(false);
+  }
+
   useEffect(() => {
     if (!user) return;
-    let active = true;
-    (async () => {
-      setLoading(true);
-      const { data, error: err } = await supabase
-        .from("consultations")
-        .select("id, title, scheduled_at, status, notes")
-        .order("scheduled_at", { ascending: true });
-      if (!active) return;
-      if (err) {
-        console.error("[consultations] load failed", err);
-        setError("We couldn't load your consultations. Please refresh to try again.");
-      } else {
-        setItems((data as ConsultationItem[]) ?? []);
-      }
-      setLoading(false);
-    })();
-    return () => {
-      active = false;
-    };
+    void loadItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  async function handleBook(event: React.FormEvent) {
+    event.preventDefault();
+    if (!user || !title.trim()) return;
+    setSubmitting(true);
+    try {
+      const { error: err } = await supabase.from("consultations").insert({
+        user_id: user.id,
+        title: title.trim(),
+        scheduled_at: preferred ? new Date(preferred).toISOString() : null,
+        notes: notes.trim() || null,
+        status: "requested",
+      });
+      if (err) throw err;
+      toast.success("Consultation requested. We'll confirm a time soon.");
+      setOpen(false);
+      setTitle("");
+      setPreferred("");
+      setNotes("");
+      await loadItems();
+    } catch (err) {
+      console.error("[consultations] booking failed", err);
+      toast.error("We couldn't book that session. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const bookButton = (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>Book a session</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <form onSubmit={handleBook}>
+          <DialogHeader>
+            <DialogTitle>Book a consultation</DialogTitle>
+            <DialogDescription>
+              Tell us what you'd like to talk through and a time that suits you. We'll confirm the
+              details.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="c-title">What's it about?</Label>
+              <Input
+                id="c-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. AI automation strategy"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="c-time">Preferred date &amp; time</Label>
+              <Input
+                id="c-time"
+                type="datetime-local"
+                value={preferred}
+                onChange={(e) => setPreferred(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="c-notes">Anything to share beforehand?</Label>
+              <Textarea
+                id="c-notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Goals, questions, context…"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter className="mt-6">
+            <Button type="submit" disabled={submitting || !title.trim()}>
+              {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+              Request session
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -67,9 +168,7 @@ function ConsultationsPage() {
             Your booked one-to-one sessions with the Vortex Hub team.
           </p>
         </div>
-        <Button asChild variant="outline">
-          <Link to="/consultancy">Book a session</Link>
-        </Button>
+        {bookButton}
       </div>
 
       {loading && (
@@ -93,9 +192,7 @@ function ConsultationsPage() {
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             Book a session to talk through your goals and map out the best next steps.
           </p>
-          <Button asChild className="mt-6">
-            <Link to="/consultancy">Book a consultation</Link>
-          </Button>
+          <div className="mt-6 flex justify-center">{bookButton}</div>
         </div>
       )}
 
