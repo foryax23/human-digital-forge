@@ -23,6 +23,8 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ConsultancyRouteImport } from './routes/consultancy'
 import { Route as AiAutomationRouteImport } from './routes/ai-automation'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardNewRequestRouteImport } from './routes/dashboard.new-request'
 
 const WebsitesRoute = WebsitesRouteImport.update({
   id: '/websites',
@@ -94,13 +96,23 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardNewRequestRoute = DashboardNewRequestRouteImport.update({
+  id: '/new-request',
+  path: '/new-request',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/digital-products': typeof DigitalProductsRoute
   '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
@@ -110,13 +122,14 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/websites': typeof WebsitesRoute
+  '/dashboard/new-request': typeof DashboardNewRequestRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
   '/digital-products': typeof DigitalProductsRoute
   '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
@@ -126,6 +139,8 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/websites': typeof WebsitesRoute
+  '/dashboard/new-request': typeof DashboardNewRequestRoute
+  '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -133,7 +148,7 @@ export interface FileRoutesById {
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
-  '/dashboard': typeof DashboardRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/digital-products': typeof DigitalProductsRoute
   '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
@@ -143,6 +158,8 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/websites': typeof WebsitesRoute
+  '/dashboard/new-request': typeof DashboardNewRequestRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,13 +178,14 @@ export interface FileRouteTypes {
     | '/services'
     | '/terms'
     | '/websites'
+    | '/dashboard/new-request'
+    | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/ai-automation'
     | '/consultancy'
     | '/contact'
-    | '/dashboard'
     | '/digital-products'
     | '/login'
     | '/portfolio'
@@ -177,6 +195,8 @@ export interface FileRouteTypes {
     | '/services'
     | '/terms'
     | '/websites'
+    | '/dashboard/new-request'
+    | '/dashboard'
   id:
     | '__root__'
     | '/'
@@ -193,6 +213,8 @@ export interface FileRouteTypes {
     | '/services'
     | '/terms'
     | '/websites'
+    | '/dashboard/new-request'
+    | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -200,7 +222,7 @@ export interface RootRouteChildren {
   AiAutomationRoute: typeof AiAutomationRoute
   ConsultancyRoute: typeof ConsultancyRoute
   ContactRoute: typeof ContactRoute
-  DashboardRoute: typeof DashboardRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   DigitalProductsRoute: typeof DigitalProductsRoute
   LoginRoute: typeof LoginRoute
   PortfolioRoute: typeof PortfolioRoute
@@ -312,15 +334,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/new-request': {
+      id: '/dashboard/new-request'
+      path: '/new-request'
+      fullPath: '/dashboard/new-request'
+      preLoaderRoute: typeof DashboardNewRequestRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
+
+interface DashboardRouteChildren {
+  DashboardNewRequestRoute: typeof DashboardNewRequestRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardNewRequestRoute: DashboardNewRequestRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiAutomationRoute: AiAutomationRoute,
   ConsultancyRoute: ConsultancyRoute,
   ContactRoute: ContactRoute,
-  DashboardRoute: DashboardRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   DigitalProductsRoute: DigitalProductsRoute,
   LoginRoute: LoginRoute,
   PortfolioRoute: PortfolioRoute,
