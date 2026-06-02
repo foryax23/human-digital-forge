@@ -22,18 +22,26 @@ import { cn } from "@/lib/utils";
 type NavItem = {
   label: string;
   icon: typeof LayoutGrid;
-  to?: "/dashboard" | "/dashboard/new-request";
+  to:
+    | "/dashboard"
+    | "/dashboard/new-request"
+    | "/dashboard/projects"
+    | "/dashboard/messages"
+    | "/dashboard/files"
+    | "/dashboard/consultations"
+    | "/dashboard/billing"
+    | "/dashboard/settings";
 };
 
 const navItems: NavItem[] = [
   { label: "Overview", icon: LayoutGrid, to: "/dashboard" },
   { label: "New Request", icon: FilePlus2, to: "/dashboard/new-request" },
-  { label: "My Projects", icon: FolderKanban },
-  { label: "Messages", icon: MessagesSquare },
-  { label: "Files", icon: Files },
-  { label: "Consultations", icon: CalendarCheck },
-  { label: "Billing", icon: CreditCard },
-  { label: "Settings", icon: Settings },
+  { label: "My Projects", icon: FolderKanban, to: "/dashboard/projects" },
+  { label: "Messages", icon: MessagesSquare, to: "/dashboard/messages" },
+  { label: "Files", icon: Files, to: "/dashboard/files" },
+  { label: "Consultations", icon: CalendarCheck, to: "/dashboard/consultations" },
+  { label: "Billing", icon: CreditCard, to: "/dashboard/billing" },
+  { label: "Settings", icon: Settings, to: "/dashboard/settings" },
 ];
 
 function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: () => void }) {
