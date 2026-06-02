@@ -104,5 +104,26 @@ export function useDashboardData(userId: string | undefined) {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (!userId) return;
+
+    const tables = ["projects", "consultations", "project_files", "messages"] as const;
+    const channel = supabase.channel(`dashboard:${userId}`);
+    for (const table of tables) {
+      channel.on(
+        "postgres_changes",
+        { event: "*", schema: "public", table, filter: `user_id=eq.${userId}` },
+        () => {
+          void load();
+        },
+      );
+    }
+    channel.subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [userId, load]);
+
   return { data, loading, error, reload: load };
 }

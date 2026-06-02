@@ -51,6 +51,29 @@ function MessagesPage() {
   useEffect(() => {
     if (!user) return;
     void loadMessages();
+
+    const channel = supabase
+      .channel(`messages:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const incoming = payload.new as MessageRow;
+          setMessages((prev) =>
+            prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming],
+          );
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
