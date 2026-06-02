@@ -17,6 +17,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DigitalProductsRouteImport } from './routes/digital-products'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ConsultancyRouteImport } from './routes/consultancy'
 import { Route as AiAutomationRouteImport } from './routes/ai-automation'
@@ -62,6 +63,11 @@ const DigitalProductsRoute = DigitalProductsRouteImport.update({
   path: '/digital-products',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRoute
   '/digital-products': typeof DigitalProductsRoute
   '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRoute
   '/digital-products': typeof DigitalProductsRoute
   '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRoute
   '/digital-products': typeof DigitalProductsRoute
   '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/ai-automation'
     | '/consultancy'
     | '/contact'
+    | '/dashboard'
     | '/digital-products'
     | '/login'
     | '/portfolio'
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/ai-automation'
     | '/consultancy'
     | '/contact'
+    | '/dashboard'
     | '/digital-products'
     | '/login'
     | '/portfolio'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/ai-automation'
     | '/consultancy'
     | '/contact'
+    | '/dashboard'
     | '/digital-products'
     | '/login'
     | '/portfolio'
@@ -176,6 +188,7 @@ export interface RootRouteChildren {
   AiAutomationRoute: typeof AiAutomationRoute
   ConsultancyRoute: typeof ConsultancyRoute
   ContactRoute: typeof ContactRoute
+  DashboardRoute: typeof DashboardRoute
   DigitalProductsRoute: typeof DigitalProductsRoute
   LoginRoute: typeof LoginRoute
   PortfolioRoute: typeof PortfolioRoute
@@ -244,6 +257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DigitalProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -280,6 +300,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiAutomationRoute: AiAutomationRoute,
   ConsultancyRoute: ConsultancyRoute,
   ContactRoute: ContactRoute,
+  DashboardRoute: DashboardRoute,
   DigitalProductsRoute: DigitalProductsRoute,
   LoginRoute: LoginRoute,
   PortfolioRoute: PortfolioRoute,
@@ -292,3 +313,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
