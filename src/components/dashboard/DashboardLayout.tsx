@@ -50,34 +50,22 @@ function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: 
   return (
     <nav className="flex flex-1 flex-col gap-1" aria-label="Dashboard">
       {navItems.map((item) => {
-        const active = item.to ? pathname === item.to : false;
-        const classes = cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
-          active
-            ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-            : "text-sidebar-foreground hover:bg-sidebar-accent/60",
-        );
-
-        if (item.to) {
-          return (
-            <Link key={item.label} to={item.to} onClick={onNavigate} className={classes}>
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          );
-        }
-
+        const active = pathname === item.to;
         return (
-          <button
+          <Link
             key={item.label}
-            type="button"
+            to={item.to}
             onClick={onNavigate}
-            className={cn(classes, "cursor-not-allowed opacity-60")}
-            title="Coming soon"
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+              active
+                ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                : "text-sidebar-foreground hover:bg-sidebar-accent/60",
+            )}
           >
             <item.icon className="h-4 w-4" />
             {item.label}
-          </button>
+          </Link>
         );
       })}
       <button
