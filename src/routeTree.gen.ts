@@ -24,6 +24,7 @@ import { Route as ConsultancyRouteImport } from './routes/consultancy'
 import { Route as AiAutomationRouteImport } from './routes/ai-automation'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardNewRequestRouteImport } from './routes/dashboard.new-request'
 
 const WebsitesRoute = WebsitesRouteImport.update({
   id: '/websites',
@@ -100,6 +101,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardNewRequestRoute = DashboardNewRequestRouteImport.update({
+  id: '/new-request',
+  path: '/new-request',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/websites': typeof WebsitesRoute
+  '/dashboard/new-request': typeof DashboardNewRequestRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/websites': typeof WebsitesRoute
+  '/dashboard/new-request': typeof DashboardNewRequestRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/websites': typeof WebsitesRoute
+  '/dashboard/new-request': typeof DashboardNewRequestRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/terms'
     | '/websites'
+    | '/dashboard/new-request'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/terms'
     | '/websites'
+    | '/dashboard/new-request'
     | '/dashboard'
   id:
     | '__root__'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/terms'
     | '/websites'
+    | '/dashboard/new-request'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -329,14 +341,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/new-request': {
+      id: '/dashboard/new-request'
+      path: '/new-request'
+      fullPath: '/dashboard/new-request'
+      preLoaderRoute: typeof DashboardNewRequestRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
 interface DashboardRouteChildren {
+  DashboardNewRequestRoute: typeof DashboardNewRequestRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardNewRequestRoute: DashboardNewRequestRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
