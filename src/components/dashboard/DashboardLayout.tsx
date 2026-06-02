@@ -30,7 +30,7 @@ const navItems = [
   { label: "Settings", icon: Settings },
 ];
 
-function NavList({ onNavigate }: { onNavigate?: () => void }) {
+function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: () => void }) {
   return (
     <nav className="flex flex-1 flex-col gap-1" aria-label="Dashboard">
       {navItems.map((item) => (
@@ -49,14 +49,17 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
           {item.label}
         </button>
       ))}
-      <Link
-        to="/login"
-        onClick={onNavigate}
-        className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-sidebar-foreground hover:bg-sidebar-accent/60"
+      <button
+        type="button"
+        onClick={() => {
+          onNavigate?.();
+          onLogout();
+        }}
+        className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-sidebar-foreground hover:bg-sidebar-accent/60"
       >
         <LogOut className="h-4 w-4" />
         Log out
-      </Link>
+      </button>
     </nav>
   );
 }
