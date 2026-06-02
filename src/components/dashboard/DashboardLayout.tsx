@@ -77,13 +77,29 @@ function SidebarBrand() {
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const { profile, user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const displayName = profile?.full_name || user?.email?.split("@")[0] || "Client";
+  const initials = displayName
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
+  async function handleLogout() {
+    await signOut();
+    navigate({ to: "/login" });
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-6 bg-sidebar p-4 lg:flex">
         <SidebarBrand />
-        <NavList />
+        <NavList onLogout={handleLogout} />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -100,7 +116,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <SheetTitle className="sr-only">Dashboard navigation</SheetTitle>
                 <div className="flex h-full flex-col gap-6">
                   <SidebarBrand />
-                  <NavList onNavigate={() => setOpen(false)} />
+                  <NavList onNavigate={() => setOpen(false)} onLogout={handleLogout} />
                 </div>
               </SheetContent>
             </Sheet>
@@ -112,11 +128,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <Bell />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
             </Button>
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
-              EL
+            <span
+              className="grid h-9 w-9 place-items-center rounded-full bg-primary/15 text-sm font-semibold text-primary"
+              title={displayName}
+            >
+              {initials || "VH"}
             </span>
           </div>
         </header>
+
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
