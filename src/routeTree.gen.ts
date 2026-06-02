@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WebsitesRouteImport } from './routes/websites'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as DigitalProductsRouteImport } from './routes/digital-products'
 import { Route as ConsultancyRouteImport } from './routes/consultancy'
 import { Route as AiAutomationRouteImport } from './routes/ai-automation'
@@ -24,6 +25,11 @@ const WebsitesRoute = WebsitesRouteImport.update({
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DigitalProductsRoute = DigitalProductsRouteImport.update({
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
   '/digital-products': typeof DigitalProductsRoute
+  '/portfolio': typeof PortfolioRoute
   '/services': typeof ServicesRoute
   '/websites': typeof WebsitesRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
   '/digital-products': typeof DigitalProductsRoute
+  '/portfolio': typeof PortfolioRoute
   '/services': typeof ServicesRoute
   '/websites': typeof WebsitesRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
   '/digital-products': typeof DigitalProductsRoute
+  '/portfolio': typeof PortfolioRoute
   '/services': typeof ServicesRoute
   '/websites': typeof WebsitesRoute
 }
@@ -79,6 +88,7 @@ export interface FileRouteTypes {
     | '/ai-automation'
     | '/consultancy'
     | '/digital-products'
+    | '/portfolio'
     | '/services'
     | '/websites'
   fileRoutesByTo: FileRoutesByTo
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/ai-automation'
     | '/consultancy'
     | '/digital-products'
+    | '/portfolio'
     | '/services'
     | '/websites'
   id:
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/ai-automation'
     | '/consultancy'
     | '/digital-products'
+    | '/portfolio'
     | '/services'
     | '/websites'
   fileRoutesById: FileRoutesById
@@ -104,6 +116,7 @@ export interface RootRouteChildren {
   AiAutomationRoute: typeof AiAutomationRoute
   ConsultancyRoute: typeof ConsultancyRoute
   DigitalProductsRoute: typeof DigitalProductsRoute
+  PortfolioRoute: typeof PortfolioRoute
   ServicesRoute: typeof ServicesRoute
   WebsitesRoute: typeof WebsitesRoute
 }
@@ -122,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/digital-products': {
@@ -160,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiAutomationRoute: AiAutomationRoute,
   ConsultancyRoute: ConsultancyRoute,
   DigitalProductsRoute: DigitalProductsRoute,
+  PortfolioRoute: PortfolioRoute,
   ServicesRoute: ServicesRoute,
   WebsitesRoute: WebsitesRoute,
 }
