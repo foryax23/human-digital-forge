@@ -12,9 +12,11 @@ import {
 } from "@/components/ui/sheet";
 import { navLinks, Wordmark } from "./nav-data";
 import { LanguageToggle } from "./LanguageToggle";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
@@ -36,13 +38,20 @@ export function SiteHeader() {
 
         <div className="hidden items-center gap-3 lg:flex">
           <LanguageToggle />
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/login">Login</Link>
-          </Button>
+          {user ? (
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/dashboard">Dashboard</Link>
+            </Button>
+          ) : (
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/login">Login</Link>
+            </Button>
+          )}
           <Button asChild size="sm">
             <Link to="/contact">Start a project</Link>
           </Button>
         </div>
+
 
         {/* Mobile */}
         <div className="flex items-center gap-2 lg:hidden">
@@ -74,12 +83,13 @@ export function SiteHeader() {
               </nav>
               <div className="mt-6 flex flex-col gap-3">
                 <Button asChild variant="outline" onClick={() => setOpen(false)}>
-                  <Link to="/login">Login</Link>
+                  <Link to={user ? "/dashboard" : "/login"}>{user ? "Dashboard" : "Login"}</Link>
                 </Button>
                 <Button asChild onClick={() => setOpen(false)}>
                   <Link to="/contact">Start a project</Link>
                 </Button>
               </div>
+
             </SheetContent>
           </Sheet>
         </div>

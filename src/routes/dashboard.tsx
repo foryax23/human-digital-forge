@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { RequireAuth } from "@/components/auth/RequireAuth";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dashboard")({
@@ -68,10 +70,31 @@ function ProjectTimeline() {
 
 function DashboardPage() {
   return (
+    <RequireAuth>
+      <DashboardContent />
+    </RequireAuth>
+  );
+}
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+function DashboardContent() {
+  const { profile, user } = useAuth();
+  const firstName = (profile?.full_name || user?.email?.split("@")[0] || "there").split(" ")[0];
+
+  return (
     <DashboardLayout>
       <div className="mx-auto max-w-6xl">
-        <h1 className="text-3xl">Good afternoon, Elena.</h1>
+        <h1 className="text-3xl">
+          {getGreeting()}, {firstName}.
+        </h1>
         <p className="mt-1 text-muted-foreground">Here is what is happening with your projects.</p>
+
 
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {/* Active project */}
