@@ -14,6 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      consultations: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          scheduled_at: string | null
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          scheduled_at?: string | null
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          scheduled_at?: string | null
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      contact_enquiries: {
+        Row: {
+          budget: string | null
+          client_type: string | null
+          created_at: string
+          description: string
+          email: string
+          full_name: string
+          id: string
+          service: string | null
+          timeline: string | null
+        }
+        Insert: {
+          budget?: string | null
+          client_type?: string | null
+          created_at?: string
+          description: string
+          email: string
+          full_name: string
+          id?: string
+          service?: string | null
+          timeline?: string | null
+        }
+        Update: {
+          budget?: string | null
+          client_type?: string | null
+          created_at?: string
+          description?: string
+          email?: string
+          full_name?: string
+          id?: string
+          service?: string | null
+          timeline?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          project_id: string | null
+          read: boolean
+          sender: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          read?: boolean
+          sender?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          project_id?: string | null
+          read?: boolean
+          sender?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -44,6 +148,92 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      project_files: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_path: string | null
+          id: string
+          name: string
+          project_id: string | null
+          size_bytes: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          name: string
+          project_id?: string | null
+          size_bytes?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_path?: string | null
+          id?: string
+          name?: string
+          project_id?: string | null
+          size_bytes?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          budget: string | null
+          created_at: string
+          current_step: number
+          description: string | null
+          id: string
+          next_action: string | null
+          service_type: string | null
+          status: string
+          timeline: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget?: string | null
+          created_at?: string
+          current_step?: number
+          description?: string | null
+          id?: string
+          next_action?: string | null
+          service_type?: string | null
+          status?: string
+          timeline?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget?: string | null
+          created_at?: string
+          current_step?: number
+          description?: string | null
+          id?: string
+          next_action?: string | null
+          service_type?: string | null
+          status?: string
+          timeline?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
