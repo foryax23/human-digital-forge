@@ -27,6 +27,8 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardProjectsRouteImport } from './routes/dashboard.projects'
 import { Route as DashboardNewRequestRouteImport } from './routes/dashboard.new-request'
 import { Route as DashboardMessagesRouteImport } from './routes/dashboard.messages'
+import { Route as DashboardFilesRouteImport } from './routes/dashboard.files'
+import { Route as DashboardConsultationsRouteImport } from './routes/dashboard.consultations'
 
 const WebsitesRoute = WebsitesRouteImport.update({
   id: '/websites',
@@ -118,6 +120,16 @@ const DashboardMessagesRoute = DashboardMessagesRouteImport.update({
   path: '/messages',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardFilesRoute = DashboardFilesRouteImport.update({
+  id: '/files',
+  path: '/files',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardConsultationsRoute = DashboardConsultationsRouteImport.update({
+  id: '/consultations',
+  path: '/consultations',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -134,6 +146,8 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/websites': typeof WebsitesRoute
+  '/dashboard/consultations': typeof DashboardConsultationsRoute
+  '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/new-request': typeof DashboardNewRequestRoute
   '/dashboard/projects': typeof DashboardProjectsRoute
@@ -153,6 +167,8 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/websites': typeof WebsitesRoute
+  '/dashboard/consultations': typeof DashboardConsultationsRoute
+  '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/new-request': typeof DashboardNewRequestRoute
   '/dashboard/projects': typeof DashboardProjectsRoute
@@ -174,6 +190,8 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/websites': typeof WebsitesRoute
+  '/dashboard/consultations': typeof DashboardConsultationsRoute
+  '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/new-request': typeof DashboardNewRequestRoute
   '/dashboard/projects': typeof DashboardProjectsRoute
@@ -196,6 +214,8 @@ export interface FileRouteTypes {
     | '/services'
     | '/terms'
     | '/websites'
+    | '/dashboard/consultations'
+    | '/dashboard/files'
     | '/dashboard/messages'
     | '/dashboard/new-request'
     | '/dashboard/projects'
@@ -215,6 +235,8 @@ export interface FileRouteTypes {
     | '/services'
     | '/terms'
     | '/websites'
+    | '/dashboard/consultations'
+    | '/dashboard/files'
     | '/dashboard/messages'
     | '/dashboard/new-request'
     | '/dashboard/projects'
@@ -235,6 +257,8 @@ export interface FileRouteTypes {
     | '/services'
     | '/terms'
     | '/websites'
+    | '/dashboard/consultations'
+    | '/dashboard/files'
     | '/dashboard/messages'
     | '/dashboard/new-request'
     | '/dashboard/projects'
@@ -386,10 +410,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardMessagesRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/files': {
+      id: '/dashboard/files'
+      path: '/files'
+      fullPath: '/dashboard/files'
+      preLoaderRoute: typeof DashboardFilesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/consultations': {
+      id: '/dashboard/consultations'
+      path: '/consultations'
+      fullPath: '/dashboard/consultations'
+      preLoaderRoute: typeof DashboardConsultationsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
 interface DashboardRouteChildren {
+  DashboardConsultationsRoute: typeof DashboardConsultationsRoute
+  DashboardFilesRoute: typeof DashboardFilesRoute
   DashboardMessagesRoute: typeof DashboardMessagesRoute
   DashboardNewRequestRoute: typeof DashboardNewRequestRoute
   DashboardProjectsRoute: typeof DashboardProjectsRoute
@@ -397,6 +437,8 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardConsultationsRoute: DashboardConsultationsRoute,
+  DashboardFilesRoute: DashboardFilesRoute,
   DashboardMessagesRoute: DashboardMessagesRoute,
   DashboardNewRequestRoute: DashboardNewRequestRoute,
   DashboardProjectsRoute: DashboardProjectsRoute,
