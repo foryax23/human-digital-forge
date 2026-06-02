@@ -14,6 +14,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as DigitalProductsRouteImport } from './routes/digital-products'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ConsultancyRouteImport } from './routes/consultancy'
@@ -43,6 +44,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PortfolioRoute = PortfolioRouteImport.update({
   id: '/portfolio',
   path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DigitalProductsRoute = DigitalProductsRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
   '/digital-products': typeof DigitalProductsRoute
+  '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
   '/digital-products': typeof DigitalProductsRoute
+  '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
   '/digital-products': typeof DigitalProductsRoute
+  '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/consultancy'
     | '/contact'
     | '/digital-products'
+    | '/login'
     | '/portfolio'
     | '/privacy'
     | '/services'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/consultancy'
     | '/contact'
     | '/digital-products'
+    | '/login'
     | '/portfolio'
     | '/privacy'
     | '/services'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/consultancy'
     | '/contact'
     | '/digital-products'
+    | '/login'
     | '/portfolio'
     | '/privacy'
     | '/services'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   ConsultancyRoute: typeof ConsultancyRoute
   ContactRoute: typeof ContactRoute
   DigitalProductsRoute: typeof DigitalProductsRoute
+  LoginRoute: typeof LoginRoute
   PortfolioRoute: typeof PortfolioRoute
   PrivacyRoute: typeof PrivacyRoute
   ServicesRoute: typeof ServicesRoute
@@ -195,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/portfolio'
       fullPath: '/portfolio'
       preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/digital-products': {
@@ -241,6 +261,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConsultancyRoute: ConsultancyRoute,
   ContactRoute: ContactRoute,
   DigitalProductsRoute: DigitalProductsRoute,
+  LoginRoute: LoginRoute,
   PortfolioRoute: PortfolioRoute,
   PrivacyRoute: PrivacyRoute,
   ServicesRoute: ServicesRoute,
@@ -250,3 +271,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
