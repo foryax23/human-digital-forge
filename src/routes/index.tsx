@@ -10,6 +10,7 @@ import { PortfolioPreview } from "@/components/home/PortfolioPreview";
 import { ConsultationSection } from "@/components/home/ConsultationSection";
 import { TrustSection } from "@/components/home/TrustSection";
 import { FinalCTA } from "@/components/home/FinalCTA";
+import { CustomCursor } from "@/components/cinematic/CustomCursor";
 
 const title = "Vortex Hub | Digital Products, Websites and AI Consultancy";
 const description =
