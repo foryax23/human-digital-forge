@@ -1,5 +1,5 @@
 import { useMemo, useRef } from "react";
-import { Canvas, useFrame, type ThreeElements } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 function Particles() {
@@ -24,10 +24,7 @@ function Particles() {
     p.rotation.z = THREE.MathUtils.lerp(p.rotation.z, state.pointer.x * 0.12, 0.04);
   });
 
-  const args = useMemo(
-    () => [positions, 3] as [Float32Array, number],
-    [positions],
-  );
+  const args = useMemo(() => [positions, 3] as [Float32Array, number], [positions]);
 
   return (
     <points ref={ref}>
@@ -46,7 +43,7 @@ function Particles() {
   );
 }
 
-function GlowKnot(props: ThreeElements["mesh"]) {
+function GlowKnot() {
   const ref = useRef<THREE.Mesh>(null);
 
   useFrame((state, delta) => {
@@ -58,7 +55,7 @@ function GlowKnot(props: ThreeElements["mesh"]) {
   });
 
   return (
-    <mesh ref={ref} {...props}>
+    <mesh ref={ref} scale={1.7} position={[3, 0.4, -1]}>
       <torusKnotGeometry args={[1, 0.26, 180, 32]} />
       <meshStandardMaterial
         color="#4f46e5"
@@ -83,7 +80,7 @@ export default function HeroCanvas() {
       <pointLight position={[6, 4, 6]} intensity={40} color="#7c75ff" />
       <pointLight position={[-6, -3, 2]} intensity={25} color="#3b9eae" />
       <Particles />
-      <GlowKnot scale={1.7} position={[3, 0.4, -1]} />
+      <GlowKnot />
     </Canvas>
   );
 }

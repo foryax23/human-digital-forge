@@ -1,6 +1,18 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Component, Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 
 const HeroCanvas = lazy(() => import("./HeroCanvas"));
+
+/** Keeps a WebGL load/runtime failure from crashing the whole homepage. */
+class CanvasBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    if (this.state.failed) return null;
+    return this.props.children;
+  }
+}
 
 /**
  * Client-only wrapper for the WebGL hero. The Three.js scene is lazy-loaded
@@ -11,13 +23,9 @@ export function HeroBackground() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const fine = window.matchMedia("(pointer: fine)").matches;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    // Skip the heavy 3D scene on reduced-motion preference.
     if (reduce) return;
-    // Allow the canvas everywhere, but keep it lightweight on touch.
     setReady(true);
-    void fine;
   }, []);
 
   return (
@@ -25,9 +33,11 @@ export function HeroBackground() {
       {/* Static gradient fallback — always rendered as a base layer */}
       <div className="absolute inset-0 bg-aurora opacity-70" aria-hidden />
       {ready && (
-        <Suspense fallback={null}>
-          <HeroCanvas />
-        </Suspense>
+        <CanvasBoundary>
+          <Suspense fallback={null}>
+            <HeroCanvas />
+          </Suspense>
+        </CanvasBoundary>
       )}
     </div>
   );
