@@ -1,95 +1,48 @@
+# Cinematic Homepage Redesign — Vortex Hub
 
-# Vortex Hub — Phase 1 Build Plan
+A full reimagining of the landing page (`/` only) into a dark, premium, "next-gen agency" experience. Same content and messaging, dramatically elevated presentation. Scope is the homepage and the design tokens that power it — other pages keep their current look this round.
 
-A polished, clickable front-end prototype. No backend, auth, payments, booking, or file uploads in this phase — all data is mock/static. Built on the existing TanStack Start + Tailwind v4 stack.
+## Design direction
 
-## Visual design choices
+- **Mood:** Deep Ink + Indigo — near-black navy base (`#0a0a1a`), layered indigo (`#1e1e5a` / `#4f46e5`), with the existing teal kept as a secondary glow accent.
+- **Type:** Keep Instrument Serif for big editorial headlines, Inter for UI/body. Headlines go larger, tighter, more cinematic.
+- **Feel:** Dark, glowing, depth-rich. Living gradients, soft bloom, glass panels, generous negative space, confident motion. High motion intensity (level 5) with full `prefers-reduced-motion` fallbacks.
 
-**Palette** (mapped to semantic tokens in `src/styles.css`, all in oklch):
-- Ink navy `#0D1117` (dark backgrounds / primary)
-- Warm off-white `#F7F5F0` (light sections / background)
-- Soft white `#F5F5F2` (text on dark)
-- Charcoal `#15181D` (text on light)
-- Indigo `#5147E5` (main accent / primary buttons)
-- Blue-teal `#3B9EAE` (secondary accent)
-- Warm grey `#DDD8D0` (borders)
+## Effects to include
 
-A single gentle indigo→teal gradient reserved for small highlights (button, icon, one hero detail). No neon, no glassmorphism, restrained motion with reduced-motion support.
+1. **3D / WebGL hero** — an interactive animated background (floating geometry / particle field reacting subtly to the pointer) behind a strong headline + CTAs.
+2. **Scroll-driven animations** — each section reveals, parallaxes, and pins as you scroll; numbers/process steps animate into view.
+3. **Animated gradients & glow** — slow-moving aurora gradient backdrops and soft glow halos behind key elements.
+4. **Magnetic / interactive cursor** — custom cursor with magnetic pull on buttons and links (auto-disabled on touch devices).
 
-**Typography:**
-- Headings: Instrument Serif (editorial, confident) via Google Fonts
-- Body / UI: Inter
+## Section-by-section plan
 
-**Buttons:** Primary = filled indigo, white text, medium radius ("Start a project"). Secondary = bordered/transparent ("Book a consultation"). Implemented as `button.tsx` variants.
-
-**Cards:** Minimal — title, short paragraph, small icon, one link, gentle hover.
-
-## Pages created (routes)
-
-Public (TanStack file-based routes in `src/routes/`):
-- `/` — fully designed homepage (all 10 sections, exact copy)
-- `/services`, `/digital-products`, `/websites`, `/ai-automation`, `/consultancy`, `/portfolio`, `/contact` — polished, consistent page structures with the provided initial copy
-- `/login`, `/register` — fully designed UI-only auth pages
-- `/privacy`, `/terms` — placeholder legal pages
-- `/dashboard` — full visual client dashboard with mock data
-
-Each route gets its own `head()` metadata (title, description, og:title/description). Homepage uses the suggested SEO title/description.
-
-## Component structure
+Reusing the existing copy from each component, redesigned:
 
 ```text
-src/components/
-  layout/
-    SiteHeader.tsx        sticky nav, EN/RO selector, mobile drawer (Sheet)
-    SiteFooter.tsx        nav + legal links + language + email
-    LanguageToggle.tsx    EN/RO (UI only, structure ready for i18n)
-  home/
-    Hero.tsx              + HeroVisual.tsx (project card, consultation, file, workflow line)
-    ServicesIntro.tsx     3 service cards
-    AudienceSection.tsx   Individuals / Businesses split
-    ProcessSteps.tsx      5 numbered steps
-    AISpotlight.tsx       dark section + 4 use-case cards
-    PortfolioPreview.tsx  4 "Example Project" cards
-    ConsultationSection.tsx 3 session cards + booking placeholder
-    TrustSection.tsx      4 trust points + reserved feedback area
-    FinalCTA.tsx
-  shared/
-    ServiceCard.tsx, SectionHeading.tsx, PageHero.tsx, FeatureCard.tsx
-  dashboard/
-    DashboardLayout.tsx   sidebar + top header (greeting, notifications, account)
-    DashboardSidebar.tsx  Overview, New Request, My Projects, Messages, Files,
-                          Consultations, Billing, Settings, Log out
-    ActiveProjectCard.tsx, ConsultationCard.tsx, RecentFileCard.tsx,
-    MessageCard.tsx, ProjectTimeline.tsx (6-step tracker at "Client review")
-  forms/
-    ContactForm.tsx       all specified fields, consent checkbox, file placeholder
-    AuthForm.tsx          shared login/register fields
+Hero            WebGL/particle background, oversized headline, magnetic CTAs,
+                floating glass "workflow" cards drifting with parallax
+ServicesIntro   3 glass service cards with glow borders + hover tilt, staggered reveal
+AudienceSection Split "Individuals / Businesses" with animated divider + parallax
+ProcessSteps    Cinematic 5-step timeline that draws/illuminates on scroll
+AISpotlight     Dark feature band with animated beam connecting use-case cards
+PortfolioPreview Project cards with hover bloom + scroll parallax
+ConsultationSection  Glass session cards, glowing "book" CTA
+TrustSection    Animated counters / trust points fading up in sequence
+FinalCTA        Full-bleed gradient finale with magnetic primary CTA
 ```
 
-Reused shadcn/ui primitives already in the project: button, card, input, label, textarea, select, checkbox, sheet, separator, avatar, badge, progress, dropdown-menu.
+The header/footer get a darker, glassier treatment so the page reads as one cohesive cinematic surface.
 
-## Content & data
+## Technical approach
 
-- All copy used verbatim from the brief (hero, services, process, AI spotlight, dashboard greeting "Good afternoon, Elena…", etc.).
-- Portfolio and dashboard use clearly-labeled mock data ("Example Project"); no fake client names, logos, testimonials, or fake analytics charts.
-- Dashboard is a workspace feel, not a finance dashboard. The 6-step timeline highlights "Client review".
+- **Color system:** Add a dark cinematic theme to `src/styles.css` (new oklch tokens for the ink base, indigo layers, glow/teal accents, gradient + shadow tokens). The homepage renders on this dark surface; tokens stay semantic so no hard-coded colors land in components.
+- **Animation library:** Add `motion` (Framer Motion) for scroll reveals, parallax (`useScroll`/`useTransform`), and staggered entrances.
+- **WebGL hero:** Add `three`, `@react-three/fiber`, and `@react-three/drei`. The 3D canvas is a client-only, lazy-loaded component with a static gradient fallback for SSR/reduced-motion so it never blocks first paint or break the build.
+- **Magnetic cursor:** A custom React hook + overlay component (no extra dependency), pointer-driven, disabled when `pointer: coarse` or reduced-motion is set.
+- **New components:** A `src/components/home/` rebuild plus small shared primitives (`MagneticButton`, `GlowCard`, `Reveal`, `HeroCanvas`, `AnimatedGradient`, `CustomCursor`). The homepage route (`src/routes/index.tsx`) is rewired to the new sections; SEO `head()` metadata is preserved.
+- **Performance & a11y:** WebGL and heavy motion lazy-load and respect `prefers-reduced-motion`; semantic HTML, single H1, alt text, and keyboard focus states are kept intact.
 
-## Imagery
+## Out of scope this round
 
-Generate a small number of tasteful, realistic assets (no robots/holograms): the hero interface composition is built as real DOM (project request card, consultation card, file delivery card, workflow line) rather than a stock image. Portfolio preview cards use clean abstract/placeholder visuals. Generated assets saved to `src/assets/` and imported.
-
-## Accessibility & responsive
-
-- Mobile drawer nav, large tap targets, visible focus states, proper form labels, strong contrast, `prefers-reduced-motion` respected. Desktop / tablet / mobile layouts for every page and the dashboard sidebar→drawer.
-
-## Explicitly NOT in this phase
-
-No Lovable Cloud / Supabase, no authentication wiring, no payments, no booking integration, no live file uploads, no working contact submission. Buttons and forms are visual; the architecture leaves clean seams (auth pages, dashboard, contact form, booking placeholders) for later backend connection.
-
-## Assumptions
-
-1. Romanian (RO) is structural only this phase — EN is the live content; the language toggle is present but doesn't translate yet.
-2. `/dashboard` is publicly reachable in this prototype (no auth guard yet) so it can be demoed.
-3. Forms validate basic input client-side but don't submit anywhere.
-4. Fonts loaded via Google Fonts (Instrument Serif + Inter).
-5. `/services` acts as an overview linking to the three detailed category pages.
+Other routes (services, websites, AI, consultancy, portfolio, contact, auth, dashboard) and any backend/data changes — homepage only, as requested. The new tokens and primitives are built so the same treatment can extend to those pages later.
