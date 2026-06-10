@@ -1,63 +1,50 @@
 import { Link } from "@tanstack/react-router";
-import { CheckCircle2, FileText, CalendarCheck, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Rocket, CalendarCheck, Users } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import { HeroBackground } from "@/components/cinematic/HeroBackground";
+import { WorkflowShowcase } from "@/components/home/WorkflowShowcase";
 import { useI18n } from "@/i18n";
 import heroBg from "@/assets/home/hero-bg.jpg";
 
-function FloatingWorkflow() {
-  const { t } = useI18n();
+/** Glowing saturn-style planet glyph used in the partner badge. */
+function PlanetGlyph() {
   return (
-    <div className="relative animate-float-slow">
-      <div
+    <span className="relative grid h-12 w-12 place-items-center">
+      <span
         aria-hidden
-        className="absolute -inset-6 rounded-[2rem] bg-gradient-brand opacity-25 blur-3xl animate-glow-pulse"
+        className="absolute inset-0 rounded-full bg-gradient-brand opacity-40 blur-md animate-glow-pulse"
       />
-      <div className="relative rounded-2xl border border-border glass-panel p-5 glow-soft">
-        <div className="rounded-xl border border-border bg-background/40 p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {t("Project request", "Cerere de proiect")}
-            </span>
-            <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-medium text-primary">
-              {t("Proposal in preparation", "Propunere în pregătire")}
-            </span>
-          </div>
-          <h3 className="mt-3 font-sans text-base font-semibold">{t("Website for local business", "Site web pentru afacere locală")}</h3>
-          <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-            <div className="h-full w-2/5 rounded-full bg-gradient-brand" />
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <div className="rounded-xl border border-border bg-background/40 p-4">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-teal/20 text-teal">
-              <CalendarCheck className="h-4 w-4" />
-            </span>
-            <p className="mt-3 text-sm font-medium">{t("Consultation", "Consultanță")}</p>
-            <p className="text-xs text-muted-foreground">{t("14 June, 10:30", "14 iunie, 10:30")}</p>
-          </div>
-
-          <div className="rounded-xl border border-border bg-background/40 p-4">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary/15 text-primary">
-              <FileText className="h-4 w-4" />
-            </span>
-            <p className="mt-3 truncate text-sm font-medium">{t("Brand presentation.pdf", "Prezentare brand.pdf")}</p>
-            <p className="text-xs text-muted-foreground">{t("Delivered", "Livrat")}</p>
-          </div>
-        </div>
-
-        <div className="mt-4 flex items-center gap-2 rounded-xl border border-dashed border-border bg-background/30 px-4 py-3">
-          <CheckCircle2 className="h-4 w-4 text-teal" />
-          <span className="text-xs text-muted-foreground">
-            {t("Request → Proposal → Delivery, in one calm workflow", "Cerere → Propunere → Livrare, într-un flux clar")}
-          </span>
-        </div>
-      </div>
-    </div>
+      <svg viewBox="0 0 48 48" className="relative h-11 w-11" aria-hidden>
+        <defs>
+          <radialGradient id="planetBody" cx="40%" cy="35%" r="70%">
+            <stop offset="0%" stopColor="oklch(0.78 0.12 280)" />
+            <stop offset="55%" stopColor="oklch(0.585 0.225 277)" />
+            <stop offset="100%" stopColor="oklch(0.4 0.18 290)" />
+          </radialGradient>
+          <linearGradient id="planetRing" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="oklch(0.74 0.11 200)" />
+            <stop offset="100%" stopColor="oklch(0.585 0.225 277)" />
+          </linearGradient>
+        </defs>
+        <circle cx="24" cy="24" r="9" fill="url(#planetBody)" />
+        <ellipse
+          cx="24"
+          cy="24"
+          rx="18"
+          ry="6.5"
+          fill="none"
+          stroke="url(#planetRing)"
+          strokeWidth="1.6"
+          transform="rotate(-22 24 24)"
+        />
+        <circle cx="11" cy="14" r="0.9" fill="oklch(0.9 0.05 270)" />
+        <circle cx="38" cy="34" r="0.8" fill="oklch(0.85 0.08 200)" />
+        <circle cx="36" cy="11" r="0.7" fill="oklch(0.9 0.05 270)" />
+      </svg>
+    </span>
   );
 }
 
@@ -90,13 +77,20 @@ export function Hero() {
 
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-24 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-32">
         <motion.div variants={container} initial="hidden" animate="show">
-          <motion.span
+          <motion.div
             variants={item}
-            className="inline-flex items-center gap-2 rounded-full border border-border glass-panel px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary"
+            className="inline-flex items-center gap-3 rounded-full border border-border glass-panel py-2 pl-2 pr-5"
           >
-            <Sparkles className="h-3.5 w-3.5" />
-            {t("Digital services & AI consultancy", "Servicii digitale & consultanță AI")}
-          </motion.span>
+            <PlanetGlyph />
+            <span className="flex flex-col leading-tight">
+              <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-primary">
+                {t("Your digital partner", "Partenerul tău digital")}
+              </span>
+              <span className="text-sm font-semibold">
+                {t("Strategy • Design • Automation", "Strategie • Design • Automatizare")}
+              </span>
+            </span>
+          </motion.div>
 
           <motion.h1
             variants={item}
@@ -118,8 +112,9 @@ export function Hero() {
 
           <motion.div variants={item} className="mt-9 flex flex-wrap gap-4">
             <Magnetic>
-              <Button asChild size="lg" className="glow-soft">
+              <Button asChild size="lg" className="bg-gradient-brand text-primary-foreground glow-soft hover:opacity-90">
                 <Link to="/contact">
+                  <Rocket />
                   {t("Start a project", "Începe un proiect")}
                   <ArrowRight />
                 </Link>
@@ -132,12 +127,16 @@ export function Hero() {
                 variant="outline"
                 className="border-border glass-panel hover:bg-accent"
               >
-                <Link to="/consultancy">{t("Book a consultation", "Programează o consultanță")}</Link>
+                <Link to="/consultancy">
+                  <CalendarCheck />
+                  {t("Book a consultation", "Programează o consultanță")}
+                </Link>
               </Button>
             </Magnetic>
           </motion.div>
 
-          <motion.p variants={item} className="mt-7 text-sm text-muted-foreground">
+          <motion.p variants={item} className="mt-7 flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-4 w-4 shrink-0" />
             {t(
               "Clear communication. Secure delivery. Human support from idea to completion.",
               "Comunicare clară. Livrare sigură. Sprijin uman de la idee până la finalizare.",
@@ -150,7 +149,7 @@ export function Hero() {
           animate={reduce ? undefined : { opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
         >
-          <FloatingWorkflow />
+          <WorkflowShowcase />
         </motion.div>
       </div>
     </section>
