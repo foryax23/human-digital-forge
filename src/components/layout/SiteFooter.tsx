@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import { LanguageToggle } from "./LanguageToggle";
 import { useI18n } from "@/i18n";
+import { openCookieSettings } from "@/components/cookies/cookie-consent";
 
 const footerNav = [
   { en: "Services", ro: "Servicii", to: "/services" },
