@@ -6,27 +6,30 @@ import { SectionHeading } from "@/components/shared/SectionHeading";
 import { GlowCard } from "@/components/cinematic/GlowCard";
 import { Reveal } from "@/components/cinematic/Reveal";
 import { Magnetic } from "@/components/cinematic/Magnetic";
+import { useI18n } from "@/i18n";
 import consultationImg from "@/assets/home/consultation.jpg";
 
-const sessions = [
-  {
-    icon: Lightbulb,
-    title: "Digital Idea Session",
-    description: "For individuals or early project ideas.",
-  },
-  {
-    icon: LayoutTemplate,
-    title: "Website Planning Session",
-    description: "For clients preparing a new website or redesign.",
-  },
-  {
-    icon: Workflow,
-    title: "AI Workflow Review",
-    description: "For businesses exploring practical automation.",
-  },
-];
-
 export function ConsultationSection() {
+  const { t } = useI18n();
+
+  const sessions = [
+    {
+      icon: Lightbulb,
+      title: t("Digital Idea Session", "Sesiune de idei digitale"),
+      description: t("For individuals or early project ideas.", "Pentru persoane sau idei de proiecte la început de drum."),
+    },
+    {
+      icon: LayoutTemplate,
+      title: t("Website Planning Session", "Sesiune de planificare site web"),
+      description: t("For clients preparing a new website or redesign.", "Pentru clienții care pregătesc un site nou sau o reproiectare."),
+    },
+    {
+      icon: Workflow,
+      title: t("AI Workflow Review", "Analiză flux de lucru AI"),
+      description: t("For businesses exploring practical automation.", "Pentru companiile care explorează automatizarea practică."),
+    },
+  ];
+
   return (
     <section className="relative overflow-hidden">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-25" />
@@ -35,9 +38,12 @@ export function ConsultationSection() {
           <Reveal>
             <div>
               <SectionHeading
-                eyebrow="Talk it through"
-                title="Not sure what you need yet?"
-                description="Book a one-to-one conversation to discuss your idea, website, digital product or possible AI workflow. You will receive clear advice on the next practical step."
+                eyebrow={t("Talk it through", "Hai să discutăm")}
+                title={t("Not sure what you need yet?", "Încă nu ești sigur de ce ai nevoie?")}
+                description={t(
+                  "Book a one-to-one conversation to discuss your idea, website, digital product or possible AI workflow. You will receive clear advice on the next practical step.",
+                  "Programează o discuție individuală despre ideea, site-ul, produsul digital sau posibilul flux AI. Vei primi sfaturi clare despre următorul pas practic.",
+                )}
               />
               <div className="mt-8 flex flex-wrap gap-4">
                 <Magnetic>
