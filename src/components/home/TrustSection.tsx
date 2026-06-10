@@ -1,19 +1,19 @@
-import { FileCheck2, Lock, ShieldCheck, UserCheck } from "lucide-react";
-
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { GlowCard } from "@/components/cinematic/GlowCard";
 import { Reveal } from "@/components/cinematic/Reveal";
+import { ProposalIcon, PrivacyIcon, DeliveryIcon, ReviewIcon } from "@/components/cinematic/TrustIcons";
 import { useI18n } from "@/i18n";
 
 export function TrustSection() {
   const { t } = useI18n();
 
   const points = [
-    { icon: FileCheck2, label: t("Clear proposals before work begins.", "Propuneri clare înainte de începerea lucrului.") },
-    { icon: Lock, label: t("Private project communication.", "Comunicare privată pe proiect.") },
-    { icon: ShieldCheck, label: t("Secure file delivery.", "Livrare sigură a fișierelor.") },
-    { icon: UserCheck, label: t("Human review throughout the process.", "Verificare umană pe tot parcursul procesului.") },
+    { icon: ProposalIcon, label: t("Clear proposals before work begins.", "Propuneri clare înainte de începerea lucrului.") },
+    { icon: PrivacyIcon, label: t("Private project communication.", "Comunicare privată pe proiect.") },
+    { icon: DeliveryIcon, label: t("Secure file delivery.", "Livrare sigură a fișierelor.") },
+    { icon: ReviewIcon, label: t("Human review throughout the process.", "Verificare umană pe tot parcursul procesului.") },
   ];
+
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
@@ -29,8 +29,8 @@ export function TrustSection() {
           <Reveal key={point.label} delay={i * 0.1}>
             <GlowCard className="h-full">
               <div className="p-7 text-center">
-                <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-teal/20 text-teal glow-teal">
-                  <point.icon className="h-5 w-5" />
+                <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-teal/15 text-teal glow-teal">
+                  <point.icon className="h-9 w-9" />
                 </span>
                 <p className="mt-4 text-sm font-medium">{point.label}</p>
               </div>
