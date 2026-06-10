@@ -5,22 +5,9 @@ import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { GlowCard } from "@/components/cinematic/GlowCard";
 import { Reveal } from "@/components/cinematic/Reveal";
+import { useI18n } from "@/i18n";
 import individualsImg from "@/assets/home/audience-individuals.jpg";
 import businessImg from "@/assets/home/audience-business.jpg";
-
-const individuals = [
-  "Professional documents and presentations.",
-  "Personal portfolio websites.",
-  "Posters and visual projects.",
-  "One-to-one AI guidance.",
-];
-
-const businesses = [
-  "Business websites and landing pages.",
-  "Marketing and design materials.",
-  "AI workflow planning.",
-  "Digital process consultancy.",
-];
 
 function AudienceColumn({
   title,
