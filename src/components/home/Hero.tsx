@@ -5,7 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import { HeroBackground } from "@/components/cinematic/HeroBackground";
-import { WorkflowShowcase } from "@/components/home/WorkflowShowcase";
+import { AutomationCore } from "@/components/home/AutomationCore";
 import { useI18n } from "@/i18n";
 import heroBg from "@/assets/home/hero-bg.jpg";
 
