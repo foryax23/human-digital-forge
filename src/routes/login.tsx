@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoogleButton, AuthDivider } from "@/components/auth/GoogleButton";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/i18n";
 
 const title = "Login | Vortex Hub";
 const description = "Access your Vortex Hub projects, messages and completed deliveries.";
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const { redirect } = Route.useSearch();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -43,7 +45,7 @@ function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast.error(error.message || "Could not log in. Check your details.");
+      toast.error(error.message || t("Could not log in. Check your details.", "Nu s-a putut autentifica. Verificați datele introduse."));
       return;
     }
     navigate({ to: redirect });
@@ -57,31 +59,31 @@ function LoginPage() {
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message || "Could not send reset email.");
+      toast.error(error.message || t("Could not send reset email.", "Nu s-a putut trimite emailul de resetare."));
       return;
     }
-    toast.success("Check your inbox for a password reset link.");
+    toast.success(t("Check your inbox for a password reset link.", "Verificați căsuța de email pentru linkul de resetare a parolei."));
     setMode("login");
   }
 
   if (mode === "forgot") {
     return (
       <AuthLayout
-        heading="Reset your password."
-        intro="Enter your email and we'll send you a secure reset link."
+        heading={t("Reset your password.", "Resetează parola.")}
+        intro={t("Enter your email and we'll send you a secure reset link.", "Introduceți emailul și vă vom trimite un link securizat de resetare.")}
         footer={
           <button
             type="button"
             onClick={() => setMode("login")}
             className="text-primary underline-offset-4 hover:underline"
           >
-            Back to login
+            {t("Back to login", "Înapoi la autentificare")}
           </button>
         }
       >
         <form className="space-y-5" onSubmit={handleForgot}>
           <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
+            <Label htmlFor="email">{t("Email address", "Adresă de email")}</Label>
             <Input
               id="email"
               type="email"
@@ -93,7 +95,7 @@ function LoginPage() {
           </div>
           <Button type="submit" className="w-full" size="lg" disabled={loading}>
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Send reset link
+            {t("Send reset link", "Trimite linkul de resetare")}
           </Button>
         </form>
       </AuthLayout>
@@ -102,13 +104,14 @@ function LoginPage() {
 
   return (
     <AuthLayout
-      heading="Welcome back to Vortex Hub."
-      intro="Access your projects, messages and completed deliveries."
+      heading={t("Welcome back to Vortex Hub.", "Bine ai revenit la Vortex Hub.")}
+      intro={t("Access your projects, messages and completed deliveries.", "Accesează proiectele, mesajele și livrările finalizate.")}
       footer={
         <span>
-          New here?{" "}
+          {t("New here?", "Ești nou?")}
+          {" "}
           <Link to="/register" className="text-primary underline-offset-4 hover:underline">
-            Create an account
+            {t("Create an account", "Creează cont")}
           </Link>
         </span>
       }
@@ -117,7 +120,7 @@ function LoginPage() {
       <AuthDivider />
       <form className="space-y-5" onSubmit={handleLogin}>
         <div className="space-y-2">
-          <Label htmlFor="email">Email address</Label>
+          <Label htmlFor="email">{t("Email address", "Adresă de email")}</Label>
           <Input
             id="email"
             type="email"
@@ -129,13 +132,13 @@ function LoginPage() {
         </div>
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("Password", "Parolă")}</Label>
             <button
               type="button"
               onClick={() => setMode("forgot")}
               className="text-xs text-primary hover:underline"
             >
-              Forgot password
+              {t("Forgot password", "Ai uitat parola?")}
             </button>
           </div>
           <Input
@@ -149,7 +152,7 @@ function LoginPage() {
         </div>
         <Button type="submit" className="w-full" size="lg" disabled={loading}>
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          Log in
+          {t("Log in", "Conectează-te")}
         </Button>
       </form>
     </AuthLayout>

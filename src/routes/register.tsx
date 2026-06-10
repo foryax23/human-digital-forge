@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { GoogleButton, AuthDivider } from "@/components/auth/GoogleButton";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/i18n";
 
 const title = "Create account | Vortex Hub";
 const description = "Create a Vortex Hub client account to submit projects and track progress.";
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/register")({
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,35 +62,36 @@ function RegisterPage() {
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message || "Could not create your account.");
+      toast.error(error.message || t("Could not create your account.", "Nu s-a putut crea contul tău."));
       return;
     }
     if (data.session) {
       navigate({ to: "/dashboard" });
     } else {
-      toast.success("Account created. Please check your email to confirm, then log in.");
+      toast.success(t("Account created. Please check your email to confirm, then log in.", "Cont creat. Verificați emailul pentru confirmare, apoi autentificați-vă."));
       navigate({ to: "/login" });
     }
   }
 
   return (
     <AuthLayout
-      heading="Create your client account."
-      intro="Submit projects, track progress and securely receive completed work."
+      heading={t("Create your client account.", "Creează-ți contul de client.")}
+      intro={t("Submit projects, track progress and securely receive completed work.", "Trimite proiecte, urmărește progresul și primește lucrările finalizate în siguranță.")}
       footer={
         <span>
-          Already have an account?{" "}
+          {t("Already have an account?", "Ai deja cont?")}
+          {" "}
           <Link to="/login" className="text-primary underline-offset-4 hover:underline">
-            Log in
+            {t("Log in", "Conectează-te")}
           </Link>
         </span>
       }
     >
-      <GoogleButton label="Sign up with Google" />
+      <GoogleButton label={t("Sign up with Google", "Înregistrare cu Google")} />
       <AuthDivider />
       <form className="space-y-5" onSubmit={handleSubmit}>
         <div className="space-y-2">
-          <Label htmlFor="fullName">Full name</Label>
+          <Label htmlFor="fullName">{t("Full name", "Nume complet")}</Label>
           <Input
             id="fullName"
             autoComplete="name"
@@ -98,7 +101,7 @@ function RegisterPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email address</Label>
+          <Label htmlFor="email">{t("Email address", "Adresă de email")}</Label>
           <Input
             id="email"
             type="email"
@@ -109,7 +112,7 @@ function RegisterPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{t("Password", "Parolă")}</Label>
           <Input
             id="password"
             type="password"
@@ -122,19 +125,19 @@ function RegisterPage() {
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="clientType">Client type</Label>
+            <Label htmlFor="clientType">{t("Client type", "Tip de client")}</Label>
             <Select value={clientType} onValueChange={setClientType}>
               <SelectTrigger id="clientType">
-                <SelectValue placeholder="Select one" />
+                <SelectValue placeholder={t("Select one", "Selectați")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="individual">Individual</SelectItem>
-                <SelectItem value="business">Business</SelectItem>
+                <SelectItem value="individual">{t("Individual", "Persoană fizică")}</SelectItem>
+                <SelectItem value="business">{t("Business", "Companie")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="company">Company name (optional)</Label>
+            <Label htmlFor="company">{t("Company name (optional)", "Nume companie (opțional)")}</Label>
             <Input
               id="company"
               autoComplete="organization"
@@ -146,16 +149,16 @@ function RegisterPage() {
         <div className="flex items-start gap-3">
           <Checkbox id="agree" required className="mt-1" />
           <Label htmlFor="agree" className="text-sm font-normal leading-relaxed text-muted-foreground">
-            I agree to the{" "}
+            {t("I agree to the", "Sunt de acord cu")}{" "}
             <Link to="/privacy" className="text-primary underline-offset-4 hover:underline">
-              Privacy Policy
+              {t("Privacy Policy", "Politica de Confidențialitate")}
             </Link>
             .
           </Label>
         </div>
         <Button type="submit" className="w-full" size="lg" disabled={loading}>
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          Create account
+          {t("Create account", "Creează cont")}
         </Button>
       </form>
     </AuthLayout>

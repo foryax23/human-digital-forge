@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/i18n";
 
 const title = "Reset password | Vortex Hub";
 const description = "Set a new password for your Vortex Hub account.";
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/reset-password")({
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [ready, setReady] = useState(false);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,27 +52,27 @@ function ResetPasswordPage() {
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (error) {
-      toast.error(error.message || "Could not update your password.");
+      toast.error(error.message || t("Could not update your password.", "Nu s-a putut actualiza parola."));
       return;
     }
-    toast.success("Password updated. You're all set.");
+    toast.success(t("Password updated. You're all set.", "Parola a fost actualizată. Totul este în regulă."));
     navigate({ to: "/dashboard" });
   }
 
   return (
     <AuthLayout
-      heading="Set a new password."
-      intro="Choose a strong password to secure your client account."
+      heading={t("Set a new password.", "Setează o parolă nouă.")}
+      intro={t("Choose a strong password to secure your client account.", "Alegeți o parolă puternică pentru a vă securiza contul de client.")}
       footer={
         <Link to="/login" className="text-primary underline-offset-4 hover:underline">
-          Back to login
+          {t("Back to login", "Înapoi la autentificare")}
         </Link>
       }
     >
       {ready ? (
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <Label htmlFor="password">New password</Label>
+            <Label htmlFor="password">{t("New password", "Parolă nouă")}</Label>
             <Input
               id="password"
               type="password"
@@ -83,12 +85,15 @@ function ResetPasswordPage() {
           </div>
           <Button type="submit" className="w-full" size="lg" disabled={loading}>
             {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Update password
+            {t("Update password", "Actualizează parola")}
           </Button>
         </form>
       ) : (
         <p className="text-sm text-muted-foreground">
-          Open this page from the reset link in your email to set a new password.
+          {t(
+            "Open this page from the reset link in your email to set a new password.",
+            "Deschideți această pagină din linkul de resetare din emailul dvs. pentru a seta o parolă nouă."
+          )}
         </p>
       )}
     </AuthLayout>
