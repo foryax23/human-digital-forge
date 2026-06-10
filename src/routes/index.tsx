@@ -61,7 +61,10 @@ function Index() {
         <PortfolioPreview />
         <SectionTransition tone="indigo" />
         <ConsultationSection />
+        <SectionTransition tone="indigo" />
+        <PricingSection />
         <SectionTransition tone="teal" />
+
         <TrustSection />
         <FinalCTA />
       </SiteLayout>
