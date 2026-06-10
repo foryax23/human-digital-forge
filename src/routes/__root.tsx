@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { LanguageProvider } from "@/i18n";
 import { Toaster } from "@/components/ui/sonner";
+import { CookieConsent } from "@/components/cookies/CookieConsent";
 
 function NotFoundComponent() {
   return (
