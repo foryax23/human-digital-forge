@@ -22,6 +22,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ConsultancyRouteImport } from './routes/consultancy'
+import { Route as BillingSuccessRouteImport } from './routes/billing-success'
 import { Route as AiAutomationRouteImport } from './routes/ai-automation'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
@@ -32,6 +33,7 @@ import { Route as DashboardMessagesRouteImport } from './routes/dashboard.messag
 import { Route as DashboardFilesRouteImport } from './routes/dashboard.files'
 import { Route as DashboardConsultationsRouteImport } from './routes/dashboard.consultations'
 import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 
 const WebsitesRoute = WebsitesRouteImport.update({
   id: '/websites',
@@ -98,6 +100,11 @@ const ConsultancyRoute = ConsultancyRouteImport.update({
   path: '/consultancy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BillingSuccessRoute = BillingSuccessRouteImport.update({
+  id: '/billing-success',
+  path: '/billing-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AiAutomationRoute = AiAutomationRouteImport.update({
   id: '/ai-automation',
   path: '/ai-automation',
@@ -148,10 +155,16 @@ const DashboardBillingRoute = DashboardBillingRouteImport.update({
   path: '/billing',
   getParentRoute: () => DashboardRoute,
 } as any)
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe-webhook',
+  path: '/api/public/stripe-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
+  '/billing-success': typeof BillingSuccessRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
   '/cookies': typeof CookiesRoute
@@ -173,10 +186,12 @@ export interface FileRoutesByFullPath {
   '/dashboard/projects': typeof DashboardProjectsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
+  '/billing-success': typeof BillingSuccessRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
   '/cookies': typeof CookiesRoute
@@ -197,11 +212,13 @@ export interface FileRoutesByTo {
   '/dashboard/projects': typeof DashboardProjectsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
+  '/billing-success': typeof BillingSuccessRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
   '/cookies': typeof CookiesRoute
@@ -223,12 +240,14 @@ export interface FileRoutesById {
   '/dashboard/projects': typeof DashboardProjectsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/ai-automation'
+    | '/billing-success'
     | '/consultancy'
     | '/contact'
     | '/cookies'
@@ -250,10 +269,12 @@ export interface FileRouteTypes {
     | '/dashboard/projects'
     | '/dashboard/settings'
     | '/dashboard/'
+    | '/api/public/stripe-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/ai-automation'
+    | '/billing-success'
     | '/consultancy'
     | '/contact'
     | '/cookies'
@@ -274,10 +295,12 @@ export interface FileRouteTypes {
     | '/dashboard/projects'
     | '/dashboard/settings'
     | '/dashboard'
+    | '/api/public/stripe-webhook'
   id:
     | '__root__'
     | '/'
     | '/ai-automation'
+    | '/billing-success'
     | '/consultancy'
     | '/contact'
     | '/cookies'
@@ -299,11 +322,13 @@ export interface FileRouteTypes {
     | '/dashboard/projects'
     | '/dashboard/settings'
     | '/dashboard/'
+    | '/api/public/stripe-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiAutomationRoute: typeof AiAutomationRoute
+  BillingSuccessRoute: typeof BillingSuccessRoute
   ConsultancyRoute: typeof ConsultancyRoute
   ContactRoute: typeof ContactRoute
   CookiesRoute: typeof CookiesRoute
@@ -317,6 +342,7 @@ export interface RootRouteChildren {
   ServicesRoute: typeof ServicesRoute
   TermsRoute: typeof TermsRoute
   WebsitesRoute: typeof WebsitesRoute
+  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -412,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsultancyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/billing-success': {
+      id: '/billing-success'
+      path: '/billing-success'
+      fullPath: '/billing-success'
+      preLoaderRoute: typeof BillingSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ai-automation': {
       id: '/ai-automation'
       path: '/ai-automation'
@@ -482,6 +515,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBillingRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/api/public/stripe-webhook': {
+      id: '/api/public/stripe-webhook'
+      path: '/api/public/stripe-webhook'
+      fullPath: '/api/public/stripe-webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -514,6 +554,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiAutomationRoute: AiAutomationRoute,
+  BillingSuccessRoute: BillingSuccessRoute,
   ConsultancyRoute: ConsultancyRoute,
   ContactRoute: ContactRoute,
   CookiesRoute: CookiesRoute,
@@ -527,6 +568,7 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesRoute: ServicesRoute,
   TermsRoute: TermsRoute,
   WebsitesRoute: WebsitesRoute,
+  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

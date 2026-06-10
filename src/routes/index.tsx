@@ -7,6 +7,7 @@ import { AudienceSection } from "@/components/home/AudienceSection";
 import { ProcessSteps } from "@/components/home/ProcessSteps";
 import { AISpotlight } from "@/components/home/AISpotlight";
 import { PortfolioPreview } from "@/components/home/PortfolioPreview";
+import { PricingSection } from "@/components/home/PricingSection";
 import { ConsultationSection } from "@/components/home/ConsultationSection";
 import { TrustSection } from "@/components/home/TrustSection";
 import { FinalCTA } from "@/components/home/FinalCTA";
@@ -60,7 +61,10 @@ function Index() {
         <PortfolioPreview />
         <SectionTransition tone="indigo" />
         <ConsultationSection />
+        <SectionTransition tone="indigo" />
+        <PricingSection />
         <SectionTransition tone="teal" />
+
         <TrustSection />
         <FinalCTA />
       </SiteLayout>
