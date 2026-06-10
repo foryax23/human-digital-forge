@@ -48,12 +48,12 @@ export function ConsultationSection() {
               <div className="mt-8 flex flex-wrap gap-4">
                 <Magnetic>
                   <Button asChild className="glow-soft">
-                    <Link to="/consultancy">Book a consultation</Link>
+                    <Link to="/consultancy">{t("Book a consultation", "Programează o consultanță")}</Link>
                   </Button>
                 </Magnetic>
                 <Magnetic>
                   <Button asChild variant="outline" className="border-border glass-panel">
-                    <Link to="/contact">Send an enquiry</Link>
+                    <Link to="/contact">{t("Send an enquiry", "Trimite o cerere")}</Link>
                   </Button>
                 </Magnetic>
               </div>
@@ -73,13 +73,13 @@ export function ConsultationSection() {
                 <div className="p-5">
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <Calendar className="h-4 w-4 text-primary" />
-                    Booking calendar
+                    {t("Booking calendar", "Calendar de programări")}
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Live scheduling will appear here once the design is approved.
+                    {t("Live scheduling will appear here once the design is approved.", "Programarea în timp real va apărea aici după aprobarea designului.")}
                   </p>
                   <div className="mt-4 grid grid-cols-4 gap-2">
-                    {["Mon", "Tue", "Wed", "Thu"].map((day, i) => (
+                    {[t("Mon", "Lun"), t("Tue", "Mar"), t("Wed", "Mie"), t("Thu", "Joi")].map((day, i) => (
                       <div
                         key={day}
                         className={`rounded-lg border border-border px-2 py-3 text-center text-xs ${
