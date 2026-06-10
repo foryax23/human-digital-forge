@@ -6,17 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/cinematic/Reveal";
 import { Magnetic } from "@/components/cinematic/Magnetic";
+import { useI18n } from "@/i18n";
 import aiImg from "@/assets/home/ai-spotlight.jpg";
-
-const useCases = [
-  { icon: Inbox, label: "Enquiry and lead organisation." },
-  { icon: FileStack, label: "Document workflow support." },
-  { icon: CalendarClock, label: "Appointment and follow-up processes." },
-  { icon: Boxes, label: "Internal productivity systems." },
-];
 
 export function AISpotlight() {
   const reduce = useReducedMotion();
+  const { t } = useI18n();
+
+  const useCases = [
+    { icon: Inbox, label: t("Enquiry and lead organisation.", "Organizarea cererilor și a lead-urilor.") },
+    { icon: FileStack, label: t("Document workflow support.", "Sprijin pentru fluxul de documente.") },
+    { icon: CalendarClock, label: t("Appointment and follow-up processes.", "Procese de programare și urmărire.") },
+    { icon: Boxes, label: t("Internal productivity systems.", "Sisteme interne de productivitate.") },
+  ];
 
   return (
     <section className="relative overflow-hidden">
