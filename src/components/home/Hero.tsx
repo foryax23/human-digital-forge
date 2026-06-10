@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import { HeroBackground } from "@/components/cinematic/HeroBackground";
+import heroBg from "@/assets/home/hero-bg.jpg";
 
 function FloatingWorkflow() {
   return (
