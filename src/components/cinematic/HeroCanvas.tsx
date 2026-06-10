@@ -46,43 +46,87 @@ function Particles() {
   );
 }
 
-/** Glowing central core with a soft pulse and an additive halo shell. */
+/** Glowing wireframe network globe with surface node points and soft pulse. */
 function Core() {
   const inner = useRef<THREE.Mesh>(null);
+  const nodes = useRef<THREE.Points>(null);
   const halo = useRef<THREE.Mesh>(null);
   const mat = useRef<THREE.MeshStandardMaterial>(null);
 
+  // Evenly distributed points on the sphere surface (fibonacci sphere).
+  const nodePositions = useMemo(() => {
+    const count = 220;
+    const arr = new Float32Array(count * 3);
+    const golden = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < count; i++) {
+      const y = 1 - (i / (count - 1)) * 2;
+      const r = Math.sqrt(1 - y * y);
+      const theta = golden * i;
+      arr[i * 3] = Math.cos(theta) * r * 1.02;
+      arr[i * 3 + 1] = y * 1.02;
+      arr[i * 3 + 2] = Math.sin(theta) * r * 1.02;
+    }
+    return arr;
+  }, []);
+
+  const nodeArgs = useMemo(
+    () => [nodePositions, 3] as [Float32Array, number],
+    [nodePositions],
+  );
+
   useFrame((state) => {
     const t = state.clock.elapsedTime;
-    const pulse = 1 + Math.sin(t * 0.6) * 0.06;
+    const pulse = 1 + Math.sin(t * 0.6) * 0.05;
     if (inner.current) {
       inner.current.scale.setScalar(pulse);
-      inner.current.rotation.y += 0.0025;
+      inner.current.rotation.y += 0.0022;
     }
+    if (nodes.current) nodes.current.rotation.y += 0.0022;
     if (halo.current) halo.current.scale.setScalar(pulse * 1.05);
-    if (mat.current) mat.current.emissiveIntensity = 0.7 + Math.sin(t * 0.6) * 0.25;
+    if (mat.current) mat.current.emissiveIntensity = 0.6 + Math.sin(t * 0.6) * 0.2;
   });
 
   return (
     <group>
+      {/* Wireframe network sphere */}
       <mesh ref={inner}>
-        <icosahedronGeometry args={[0.85, 2]} />
+        <icosahedronGeometry args={[1, 4]} />
         <meshStandardMaterial
           ref={mat}
           color={INDIGO}
           emissive={INDIGO}
-          emissiveIntensity={0.8}
-          roughness={0.3}
-          metalness={0.6}
+          emissiveIntensity={0.7}
+          roughness={0.35}
+          metalness={0.5}
           wireframe
+          transparent
+          opacity={0.55}
         />
       </mesh>
+
+      {/* Bright surface nodes */}
+      <points ref={nodes}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={nodeArgs} />
+        </bufferGeometry>
+        <pointsMaterial
+          size={0.05}
+          color={CYAN}
+          transparent
+          opacity={0.9}
+          sizeAttenuation
+          depthWrite={false}
+          blending={THREE.AdditiveBlending}
+        />
+      </points>
+
+      {/* Soft glow shell */}
       <mesh ref={halo}>
-        <sphereGeometry args={[1.05, 32, 32]} />
+        <sphereGeometry args={[1.18, 32, 32]} />
         <meshBasicMaterial
           color={BLUE}
           transparent
-          opacity={0.12}
+          opacity={0.1}
           blending={THREE.AdditiveBlending}
           depthWrite={false}
           side={THREE.BackSide}

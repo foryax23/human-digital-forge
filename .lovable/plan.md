@@ -1,39 +1,65 @@
-# Rework the hero 3D scene into a refined digital ecosystem
+# Match the hero design 1:1
 
-Replace the current abstract WebGL scene (random particle cloud + wireframe torus knot) with a structured, professional composition: a glowing central core on the right, surrounded by smooth neon orbit rings in violet, blue and cyan, with small service nodes (Strategy / Design / Automation) slowly orbiting the core. The core pulses softly, rings rotate at different speeds, and fine particles drift in the background. Motion is calm, continuous and seamless — no cursor reactivity.
-
-## What changes
-
-Only the hero background scene is touched. The headline, copy, buttons and the floating workflow card stay exactly as they are.
+Recreate the homepage hero exactly as in the reference: a two-line stacked logo, refined nav/CTA, a glowing "planet" partner badge, the full headline/CTAs/trust line, a detailed glassy **FLUX DE LUCRU** workflow card on the right, and a glowing network-globe background behind it.
 
 ```text
-        ┌──────────────────────────────────────────────┐
-        │  Headline + CTAs        ◯ ← orbit ring (violet)│
-        │  (unchanged)         ◯  ●  ◯  ← rings (blue/cyan)│
-        │                         ╲ ◉ ╱  ← glowing core   │
-        │                       node·  ·node (orbiting)    │
-        │                    · · drifting particles · ·    │
-        └──────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│ [V] Vortex/Hub   Servicii  Automatizare AI ...   [EN|RO] Autent. [Începe →] │
+├───────────────────────────────────────────────────────────────┤
+│ ( ◍ ) PARTENERUL TĂU DIGITAL                  ╭───── FLUX DE LUCRU ─ ●Proiect──╮ │
+│       Strategie • Design • Automatizare       │ Strategie, design și automatizare│ │
+│                                               │ Un proces clar, rezultate...     │ │
+│ Muncă digitală,                               │ ①Descoperire ②Design ③Automatiz. │ │
+│ construită în jurul                           │ ┌Colaborare┐┌Impact +68%┐┌Încredere┐│ │
+│ oamenilor reali.   (gradient)                 │ └ avatars  ┘└  chart ↗  ┘└ quote★★┘│ │
+│ paragraph...                                  │ Livrabile: Strategie · UI/UX · AI │ │
+│ [🚀 Începe un proiect →] [📅 Programează...]   ╰──────────────────────────────────╯ │
+│ 👥 Comunicare clară. Livrare sigură...          (glowing network globe behind)     │
+└───────────────────────────────────────────────────────────────┘
 ```
 
-## Files
+## Files to change
 
-**`src/components/cinematic/HeroCanvas.tsx`** (full rewrite of the scene)
-- **Core**: a layered glowing sphere positioned to the right (`position ≈ [3, 0.4, -1]`, matching the current knot placement so it sits behind the hero card). Built from an inner emissive sphere + an additive-blended glow halo sprite/shell. Soft pulse via scale + emissive intensity oscillating on `Math.sin(clock.elapsedTime * ~0.6)`.
-- **Orbit rings**: three rings using `ringGeometry` (thin, large-radius) or `torusGeometry` with small tube radius, each tilted on different axes and rotating at different speeds (e.g. 0.05 / 0.08 / 0.12 rad/frame-scaled). Colors map to brand tokens: violet `#4f46e5` (primary/indigo), blue `#7c75ff`, cyan/teal `#3b9eae`. `transparent`, additive blending, low opacity for neon glow.
-- **Service nodes**: a few small emissive spheres parented to invisible pivot groups that rotate around the core, so they travel along the ring paths at different radii/speeds. Each leaves a subtle light-trail feel via a faint additive sprite. (Conceptually Strategy / Design / Automation — visual only, no labels in 3D.)
-- **Background particles**: keep a reduced, slow-drifting point field (lower count than today, ~1200) for depth, drifting gently rather than the current fast rotation.
-- **Lighting/colors**: keep ambient + two colored point lights (indigo + teal) for depth. All colors use the existing brand hexes already in this file so it matches the design system.
-- **Motion**: continuous auto-rotation only. Remove the `state.pointer`/cursor-parallax lerp logic so it is calm and seamless.
+**`src/components/layout/nav-data.tsx`** — `Wordmark`
+- Stacked two-line wordmark: gradient rounded "V" tile + "Vortex" / "Hub" on two lines (font-sans, tight leading), matching the reference logo.
 
-**`src/components/cinematic/HeroBackground.tsx`** (unchanged logic)
-- No structural change. It already lazy-loads `HeroCanvas`, gates on `prefers-reduced-motion`, keeps the static `bg-aurora` gradient fallback, and wraps in an error boundary. The new scene benefits from all of this automatically.
+**`src/components/layout/LanguageToggle.tsx`**
+- Active language pill uses the indigo/primary fill (gradient-brand) instead of `bg-foreground`, matching the highlighted **RO** chip.
+
+**`src/components/layout/SiteHeader.tsx`**
+- Header CTA "Începe un proiect" becomes a gradient button (`bg-gradient-brand`, `glow-soft`) with a trailing `ArrowRight`.
+- "Autentificare/Login" stays a plain text link (ghost) to the left of the CTA.
+
+**`src/components/home/Hero.tsx`** (main work)
+- **Badge**: replace the `Sparkles` pill with a larger rounded glass pill containing a glowing planet glyph (inline saturn-with-ring SVG, indigo→teal gradient + soft glow) and two text lines: eyebrow `PARTENERUL TĂU DIGITAL` (primary, uppercase, tracked) and `Strategie • Design • Automatizare` (foreground, semibold).
+- **Headline / paragraph**: unchanged copy; keep gradient on "oamenilor reali.".
+- **CTAs**: primary "Începe un proiect" gets a `Rocket` leading icon + `ArrowRight` trailing; secondary "Programează o consultanță" gets a leading `CalendarCheck` icon (outline glass style). Keep `Magnetic` wrappers.
+- **Trust line**: prefix with a `Users` icon, text unchanged.
+- Replace `FloatingWorkflow` with the new `WorkflowShowcase` card (below).
+
+**`src/components/home/WorkflowShowcase.tsx`** (new) — the right-side card
+- Glass card (`glass-panel`, rounded-2xl, border, `glow-soft`) with an outer gradient glow + `animate-float-slow`.
+- **Header row**: eyebrow `FLUX DE LUCRU` + a pill badge "Proiect în desfășurare" with a pulsing teal dot.
+- **Title block**: `Strategie, design și automatizare` + muted subtitle `Un proces clar, rezultate măsurabile.`.
+- **Workflow timeline**: 3 nodes (`01 Descoperire`, `02 Design & Build`, `03 Automatizare`), each a gradient icon circle (lucide `Search`, `PenTool`, `Workflow`) on a connecting line ending in an arrow; each with a short caption.
+- **Three sub-cards** (inner bordered tiles):
+  - `COLABORARE LIVE` — overlapping avatar stack + "+3", text "Echipă dedicată în timp real. Transparență totală.", "● Online" (teal dot).
+  - `IMPACT` — big `+68%`, an inline SVG upward line chart with gradient area fill, caption "Eficiență operațională pentru clienții noștri".
+  - `ÎNCREDERE` — quote glyph, testimonial "Vortex Hub ne-a oferit claritate, viteză și rezultate peste așteptări.", "— Andreea P, CEO", 5 filled stars.
+- **Livrabile row**: 3 inline items with icons (`Target` Strategie digitală, `PenTool` Design UI/UX, `Share2` Automatizări AI), separated by dividers.
+- All copy via `t(en, ro)`; tokens only (primary/teal/muted/border), no hardcoded colors.
+
+**`src/components/cinematic/HeroCanvas.tsx`** — background
+- Adjust the existing WebGL scene toward the reference: a **wireframe network globe** (icosahedron/sphere wireframe with node points) as the core on the right, wrapped by 2–3 bright orbital arc rings (violet/blue/cyan, additive) and a soft particle field, with calm continuous auto-rotation. Keep it lazy-loaded, reduced-motion-safe, and SSR-safe via the existing `HeroBackground` wrapper.
+
+## Assets
+- **Avatars**: generate 4 small on-brand portrait avatars (or reuse simple gradient avatar circles if generation is skipped) for the COLABORARE LIVE stack. Default: 4 generated square avatars imported into `src/assets/home/`.
+- No new fonts; no design-token changes beyond the toggle active color.
 
 ## Notes / constraints
-- Stays WebGL via `@react-three/fiber` + `three` (already installed and used).
-- Respects `prefers-reduced-motion` (handled by `HeroBackground` — reduced-motion users see the static gradient, scene never mounts).
-- SSR-safe: scene remains client-only and lazy-loaded, so build prerender renders only the gradient fallback.
-- No new dependencies, no design-token or color changes elsewhere, no copy changes.
+- Only the homepage hero, header wordmark/toggle/CTA, and hero background are touched. Other sections stay as-is.
+- Bilingual: every new string added to both `t(en, ro)` calls.
+- WebGL stays in `@react-three/fiber` + `three` (already installed); no new deps except optional avatar images.
 
 ## Result
-The right side of the hero reads as a structured, glowing digital ecosystem — a pulsing core with neon orbit rings and slowly circling service nodes over a soft particle field — calm, premium and on-brand, replacing the generic abstract knot.
+The homepage hero visually matches the reference: refined header, glowing planet badge, the detailed FLUX DE LUCRU workflow card with timeline, live-collab/impact/trust tiles and deliverables, all over a glowing network-globe backdrop.
