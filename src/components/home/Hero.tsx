@@ -95,30 +95,32 @@ export function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-border glass-panel px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            Digital services & AI consultancy
+            {t("Digital services & AI consultancy", "Servicii digitale & consultanță AI")}
           </motion.span>
 
           <motion.h1
             variants={item}
             className="mt-6 text-4xl leading-[1.05] sm:text-5xl lg:text-6xl xl:text-7xl"
           >
-            Digital work, built around{" "}
-            <span className="text-gradient-brand">real people.</span>
+            {t("Digital work, built around", "Muncă digitală, construită în jurul")}{" "}
+            <span className="text-gradient-brand">{t("real people.", "oamenilor reali.")}</span>
           </motion.h1>
 
           <motion.p
             variants={item}
             className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground"
           >
-            Vortex Hub creates professional digital products, practical websites and thoughtful AI
-            automations for individuals and businesses.
+            {t(
+              "Vortex Hub creates professional digital products, practical websites and thoughtful AI automations for individuals and businesses.",
+              "Vortex Hub creează produse digitale profesionale, site-uri web practice și automatizări AI atent gândite pentru persoane și companii.",
+            )}
           </motion.p>
 
           <motion.div variants={item} className="mt-9 flex flex-wrap gap-4">
             <Magnetic>
               <Button asChild size="lg" className="glow-soft">
                 <Link to="/contact">
-                  Start a project
+                  {t("Start a project", "Începe un proiect")}
                   <ArrowRight />
                 </Link>
               </Button>
@@ -130,13 +132,16 @@ export function Hero() {
                 variant="outline"
                 className="border-border glass-panel hover:bg-accent"
               >
-                <Link to="/consultancy">Book a consultation</Link>
+                <Link to="/consultancy">{t("Book a consultation", "Programează o consultanță")}</Link>
               </Button>
             </Magnetic>
           </motion.div>
 
           <motion.p variants={item} className="mt-7 text-sm text-muted-foreground">
-            Clear communication. Secure delivery. Human support from idea to completion.
+            {t(
+              "Clear communication. Secure delivery. Human support from idea to completion.",
+              "Comunicare clară. Livrare sigură. Sprijin uman de la idee până la finalizare.",
+            )}
           </motion.p>
         </motion.div>
 
