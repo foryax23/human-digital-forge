@@ -3,22 +3,25 @@ import { FileCheck2, Lock, ShieldCheck, UserCheck } from "lucide-react";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { GlowCard } from "@/components/cinematic/GlowCard";
 import { Reveal } from "@/components/cinematic/Reveal";
-
-const points = [
-  { icon: FileCheck2, label: "Clear proposals before work begins." },
-  { icon: Lock, label: "Private project communication." },
-  { icon: ShieldCheck, label: "Secure file delivery." },
-  { icon: UserCheck, label: "Human review throughout the process." },
-];
+import { useI18n } from "@/i18n";
 
 export function TrustSection() {
+  const { t } = useI18n();
+
+  const points = [
+    { icon: FileCheck2, label: t("Clear proposals before work begins.", "Propuneri clare înainte de începerea lucrului.") },
+    { icon: Lock, label: t("Private project communication.", "Comunicare privată pe proiect.") },
+    { icon: ShieldCheck, label: t("Secure file delivery.", "Livrare sigură a fișierelor.") },
+    { icon: UserCheck, label: t("Human review throughout the process.", "Verificare umană pe tot parcursul procesului.") },
+  ];
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
       <Reveal>
         <SectionHeading
           align="center"
-          eyebrow="Why Vortex Hub"
-          title="Designed for a straightforward and secure client experience."
+          eyebrow={t("Why Vortex Hub", "De ce Vortex Hub")}
+          title={t("Designed for a straightforward and secure client experience.", "Conceput pentru o experiență de client simplă și sigură.")}
         />
       </Reveal>
       <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
