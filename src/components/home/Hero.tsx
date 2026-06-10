@@ -20,13 +20,13 @@ function FloatingWorkflow() {
         <div className="rounded-xl border border-border bg-background/40 p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Project request
+              {t("Project request", "Cerere de proiect")}
             </span>
             <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-medium text-primary">
-              Proposal in preparation
+              {t("Proposal in preparation", "Propunere în pregătire")}
             </span>
           </div>
-          <h3 className="mt-3 font-sans text-base font-semibold">Website for local business</h3>
+          <h3 className="mt-3 font-sans text-base font-semibold">{t("Website for local business", "Site web pentru afacere locală")}</h3>
           <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <div className="h-full w-2/5 rounded-full bg-gradient-brand" />
           </div>
@@ -37,23 +37,23 @@ function FloatingWorkflow() {
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-teal/20 text-teal">
               <CalendarCheck className="h-4 w-4" />
             </span>
-            <p className="mt-3 text-sm font-medium">Consultation</p>
-            <p className="text-xs text-muted-foreground">14 June, 10:30</p>
+            <p className="mt-3 text-sm font-medium">{t("Consultation", "Consultanță")}</p>
+            <p className="text-xs text-muted-foreground">{t("14 June, 10:30", "14 iunie, 10:30")}</p>
           </div>
 
           <div className="rounded-xl border border-border bg-background/40 p-4">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary/15 text-primary">
               <FileText className="h-4 w-4" />
             </span>
-            <p className="mt-3 truncate text-sm font-medium">Brand presentation.pdf</p>
-            <p className="text-xs text-muted-foreground">Delivered</p>
+            <p className="mt-3 truncate text-sm font-medium">{t("Brand presentation.pdf", "Prezentare brand.pdf")}</p>
+            <p className="text-xs text-muted-foreground">{t("Delivered", "Livrat")}</p>
           </div>
         </div>
 
         <div className="mt-4 flex items-center gap-2 rounded-xl border border-dashed border-border bg-background/30 px-4 py-3">
           <CheckCircle2 className="h-4 w-4 text-teal" />
           <span className="text-xs text-muted-foreground">
-            Request → Proposal → Delivery, in one calm workflow
+            {t("Request → Proposal → Delivery, in one calm workflow", "Cerere → Propunere → Livrare, într-un flux clar")}
           </span>
         </div>
       </div>
