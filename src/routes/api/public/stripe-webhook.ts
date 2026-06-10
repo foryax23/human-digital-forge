@@ -38,7 +38,17 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
           "@/integrations/supabase/client.server"
         );
 
-        async function upsert(fields: Record<string, unknown> & { email: string }) {
+        interface SubscriberRow {
+          email: string;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          tier?: string | null;
+          user_id?: string | null;
+          status?: string;
+          current_period_end?: string | null;
+        }
+
+        async function upsert(fields: SubscriberRow) {
           const { error } = await supabaseAdmin
             .from("subscribers")
             .upsert(fields, { onConflict: "email" });
