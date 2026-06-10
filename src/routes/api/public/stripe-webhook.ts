@@ -97,9 +97,11 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
                   tier: sub.metadata?.plan ?? null,
                   user_id: sub.metadata?.user_id ?? null,
                   status,
-                  current_period_end: new Date(
-                    sub.current_period_end * 1000,
-                  ).toISOString(),
+                  current_period_end: (() => {
+                    const periodEnd = (sub as unknown as { current_period_end?: number })
+                      .current_period_end;
+                    return periodEnd ? new Date(periodEnd * 1000).toISOString() : null;
+                  })(),
                 });
               }
               break;
