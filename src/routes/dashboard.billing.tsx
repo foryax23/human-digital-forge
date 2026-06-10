@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CreditCard, Loader2 } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/dashboard/billing")({
@@ -49,6 +50,7 @@ function formatDate(value: string | null) {
 }
 
 function BillingPage() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +69,10 @@ function BillingPage() {
         .order("issued_at", { ascending: false });
       if (err) {
         console.error("[billing] load failed", err);
-        setError("We couldn't load your invoices. Please refresh to try again.");
+        setError(t(
+          "We couldn't load your invoices. Please refresh to try again.",
+          "Nu am putut încărca facturile tale. Te rugăm să reîmprospătezi pagina.",
+        ));
       } else {
         setError(null);
         setInvoices((data as Invoice[]) ?? []);
@@ -98,9 +103,9 @@ function BillingPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-3xl">Billing</h1>
+      <h1 className="text-3xl">{t("Billing", "Facturare")}</h1>
       <p className="mt-1 text-muted-foreground">
-        Invoices and payment details for your projects.
+        {t("Invoices and payment details for your projects.", "Facturi și detalii de plată pentru proiectele tale.")}
       </p>
 
       {loading && (
@@ -120,10 +125,12 @@ function BillingPage() {
           <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
             <CreditCard className="h-6 w-6" />
           </span>
-          <h2 className="mt-4 text-2xl">No invoices yet</h2>
+          <h2 className="mt-4 text-2xl">{t("No invoices yet", "Nicio factură încă")}</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            When your project lead issues an invoice, it will appear here with its amount, due date,
-            and payment status.
+            {t(
+              "When your project lead issues an invoice, it will appear here with its amount, due date, and payment status.",
+              "Când responsabilul de proiect emite o factură, aceasta va apărea aici cu suma, scadența și starea plății.",
+            )}
           </p>
         </div>
       )}
@@ -132,7 +139,7 @@ function BillingPage() {
         <>
           {outstanding > 0 && (
             <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-              <p className="text-sm text-muted-foreground">Outstanding balance</p>
+              <p className="text-sm text-muted-foreground">{t("Outstanding balance", "Sold restant")}</p>
               <p className="mt-1 text-3xl font-semibold">{formatMoney(outstanding, currency)}</p>
             </div>
           )}
@@ -156,8 +163,8 @@ function BillingPage() {
                       <p className="mt-1 text-sm text-muted-foreground">{invoice.description}</p>
                     )}
                     <p className="mt-2 text-xs text-muted-foreground">
-                      Issued {formatDate(invoice.issued_at)} · Due {formatDate(invoice.due_at)}
-                      {invoice.paid_at && ` · Paid ${formatDate(invoice.paid_at)}`}
+                      {t("Issued", "Emisă")} {formatDate(invoice.issued_at)} · {t("Due", "Scadentă")} {formatDate(invoice.due_at)}
+                      {invoice.paid_at && ` · ${t("Paid", "Plătită")} ${formatDate(invoice.paid_at)}`}
                     </p>
                   </div>
                   <p className="text-xl font-semibold">
