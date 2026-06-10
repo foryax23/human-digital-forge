@@ -54,6 +54,22 @@ function AudienceColumn({
 }
 
 export function AudienceSection() {
+  const { t } = useI18n();
+
+  const individuals = [
+    t("Professional documents and presentations.", "Documente și prezentări profesionale."),
+    t("Personal portfolio websites.", "Site-uri personale de portofoliu."),
+    t("Posters and visual projects.", "Postere și proiecte vizuale."),
+    t("One-to-one AI guidance.", "Îndrumare AI personalizată."),
+  ];
+
+  const businesses = [
+    t("Business websites and landing pages.", "Site-uri de business și pagini de prezentare."),
+    t("Marketing and design materials.", "Materiale de marketing și design."),
+    t("AI workflow planning.", "Planificarea fluxurilor AI."),
+    t("Digital process consultancy.", "Consultanță pentru procese digitale."),
+  ];
+
   return (
     <section className="relative overflow-hidden">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-30" />
@@ -61,25 +77,25 @@ export function AudienceSection() {
         <Reveal>
           <SectionHeading
             align="center"
-            eyebrow="Who it's for"
-            title="Built for individuals and growing businesses."
+            eyebrow={t("Who it's for", "Pentru cine")}
+            title={t("Built for individuals and growing businesses.", "Creat pentru persoane și afaceri în creștere.")}
           />
         </Reveal>
         <div className="mt-14 grid gap-6 md:grid-cols-2">
           <Reveal>
             <AudienceColumn
-              title="For Individuals"
+              title={t("For Individuals", "Pentru persoane")}
               image={individualsImg}
               items={individuals}
-              buttonLabel="View individual services"
+              buttonLabel={t("View individual services", "Vezi serviciile pentru persoane")}
             />
           </Reveal>
           <Reveal delay={0.12}>
             <AudienceColumn
-              title="For Businesses"
+              title={t("For Businesses", "Pentru companii")}
               image={businessImg}
               items={businesses}
-              buttonLabel="View business services"
+              buttonLabel={t("View business services", "Vezi serviciile pentru companii")}
             />
           </Reveal>
         </div>
