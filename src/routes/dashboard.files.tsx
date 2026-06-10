@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/dashboard/files")({
@@ -38,6 +39,7 @@ function formatDate(value: string) {
 }
 
 function FilesPage() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [files, setFiles] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +56,10 @@ function FilesPage() {
       .order("created_at", { ascending: false });
     if (err) {
       console.error("[files] load failed", err);
-      setError("We couldn't load your files. Please refresh to try again.");
+      setError(t(
+        "We couldn't load your files. Please refresh to try again.",
+        "Nu am putut încărca fișierele tale. Te rugăm să reîmprospătezi pagina.",
+      ));
     } else {
       setError(null);
       setFiles((data as FileItem[]) ?? []);
@@ -92,7 +97,7 @@ function FilesPage() {
     const file = event.target.files?.[0];
     if (!file || !user) return;
     if (file.size > MAX_BYTES) {
-      toast.error("That file is too large. Please keep uploads under 25 MB.");
+      toast.error(t("That file is too large. Please keep uploads under 25 MB.", "Fișierul este prea mare. Te rugăm să păstrezi încărcările sub 25 MB."));
       event.target.value = "";
       return;
     }
@@ -118,11 +123,11 @@ function FilesPage() {
         throw insertErr;
       }
 
-      toast.success("File uploaded");
+      toast.success(t("File uploaded", "Fișier încărcat"));
       await loadFiles();
     } catch (err) {
       console.error("[files] upload failed", err);
-      toast.error("Upload failed. Please try again.");
+      toast.error(t("Upload failed. Please try again.", "Încărcarea a eșuat. Te rugăm să încerci din nou."));
     } finally {
       setUploading(false);
       event.target.value = "";
@@ -131,7 +136,7 @@ function FilesPage() {
 
   async function handleDownload(file: FileItem) {
     if (!file.file_path) {
-      toast.error("This file isn't available to download.");
+      toast.error(t("This file isn't available to download.", "Acest fișier nu este disponibil pentru descărcare."));
       return;
     }
     setBusyId(file.id);
@@ -143,7 +148,7 @@ function FilesPage() {
       window.open(data.signedUrl, "_blank", "noopener,noreferrer");
     } catch (err) {
       console.error("[files] download failed", err);
-      toast.error("We couldn't open that file. Please try again.");
+      toast.error(t("We couldn't open that file. Please try again.", "Nu am putut deschide acel fișier. Te rugăm să încerci din nou."));
     } finally {
       setBusyId(null);
     }
@@ -157,11 +162,11 @@ function FilesPage() {
       }
       const { error: err } = await supabase.from("project_files").delete().eq("id", file.id);
       if (err) throw err;
-      toast.success("File removed");
+      toast.success(t("File removed", "Fișier șters"));
       setFiles((prev) => prev.filter((f) => f.id !== file.id));
     } catch (err) {
       console.error("[files] delete failed", err);
-      toast.error("We couldn't remove that file. Please try again.");
+      toast.error(t("We couldn't remove that file. Please try again.", "Nu am putut șterge acel fișier. Te rugăm să încerci din nou."));
     } finally {
       setBusyId(null);
     }
@@ -171,9 +176,12 @@ function FilesPage() {
     <div className="mx-auto max-w-4xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl">Files</h1>
+          <h1 className="text-3xl">{t("Files", "Fișiere")}</h1>
           <p className="mt-1 text-muted-foreground">
-            Upload documents and download deliverables shared with you.
+            {t(
+              "Upload documents and download deliverables shared with you.",
+              "Încarcă documente și descarcă livrabile partajate cu tine.",
+            )}
           </p>
         </div>
         <Button onClick={() => inputRef.current?.click()} disabled={uploading}>
@@ -182,7 +190,7 @@ function FilesPage() {
           ) : (
             <UploadCloud className="h-4 w-4" />
           )}
-          {uploading ? "Uploading…" : "Upload file"}
+          {uploading ? t("Uploading…", "Se încarcă…") : t("Upload file", "Încarcă fișier")}
         </Button>
         <input ref={inputRef} type="file" className="hidden" onChange={handleUpload} />
       </div>
@@ -204,13 +212,16 @@ function FilesPage() {
           <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
             <FileText className="h-6 w-6" />
           </span>
-          <h2 className="mt-4 text-2xl">No files yet</h2>
+          <h2 className="mt-4 text-2xl">{t("No files yet", "Niciun fișier încă")}</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            Upload a brief, asset, or document — your deliverables will appear here too.
+            {t(
+              "Upload a brief, asset, or document — your deliverables will appear here too.",
+              "Încarcă un brief, un asset sau un document — livrabilele tale vor apărea și ele aici.",
+            )}
           </p>
           <Button onClick={() => inputRef.current?.click()} className="mt-6" disabled={uploading}>
             <UploadCloud className="h-4 w-4" />
-            Upload your first file
+            {t("Upload your first file", "Încarcă primul tău fișier")}
           </Button>
         </div>
       )}
@@ -239,7 +250,7 @@ function FilesPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="Download file"
+                  aria-label={t("Download file", "Descarcă fișierul")}
                   disabled={busyId === file.id || !file.file_path}
                   onClick={() => handleDownload(file)}
                 >
@@ -252,7 +263,7 @@ function FilesPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="Delete file"
+                  aria-label={t("Delete file", "Șterge fișierul")}
                   disabled={busyId === file.id}
                   onClick={() => handleDelete(file)}
                 >

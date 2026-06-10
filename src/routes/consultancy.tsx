@@ -4,6 +4,7 @@ import { Lightbulb, LayoutTemplate, Workflow, Calendar } from "lucide-react";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/i18n";
 
 const title = "Consultancy | Vortex Hub";
 const description =
@@ -22,33 +23,48 @@ export const Route = createFileRoute("/consultancy")({
   component: ConsultancyPage,
 });
 
-const sessions = [
-  {
-    icon: Lightbulb,
-    title: "Digital Idea Consultation",
-    description:
-      "For individuals planning a digital product, personal website or creative project.",
-  },
-  {
-    icon: LayoutTemplate,
-    title: "Website Strategy Consultation",
-    description: "For clients requiring help with pages, features, branding and user journeys.",
-  },
-  {
-    icon: Workflow,
-    title: "AI Automation Assessment",
-    description:
-      "For businesses wanting to identify tasks that could be improved through automation.",
-  },
-];
-
 function ConsultancyPage() {
+  const { t } = useI18n();
+
+  const sessions = [
+    {
+      icon: Lightbulb,
+      title: t("Digital Idea Consultation", "Consultanță pentru idei digitale"),
+      description: t(
+        "For individuals planning a digital product, personal website or creative project.",
+        "Pentru persoane care planifică un produs digital, un site web personal sau un proiect creativ."
+      ),
+    },
+    {
+      icon: LayoutTemplate,
+      title: t("Website Strategy Consultation", "Consultanță pentru strategia site-ului web"),
+      description: t(
+        "For clients requiring help with pages, features, branding and user journeys.",
+        "Pentru clienți care au nevoie de ajutor cu paginile, funcționalitățile, brandingul și parcursurile utilizatorilor."
+      ),
+    },
+    {
+      icon: Workflow,
+      title: t("AI Automation Assessment", "Evaluare Automatizare AI"),
+      description: t(
+        "For businesses wanting to identify tasks that could be improved through automation.",
+        "Pentru afaceri care doresc să identifice sarcini ce ar putea fi îmbunătățite prin automatizare."
+      ),
+    },
+  ];
+
   return (
     <SiteLayout>
       <PageHero
-        eyebrow="Consultancy"
-        title="Clear advice before you invest time and money."
-        description="Book a one-to-one conversation and leave with a practical next step, whatever stage your idea is at."
+        eyebrow={t("Consultancy", "Consultanță")}
+        title={t(
+          "Clear advice before you invest time and money.",
+          "Sfaturi clare înainte să investești timp și bani."
+        )}
+        description={t(
+          "Book a one-to-one conversation and leave with a practical next step, whatever stage your idea is at.",
+          "Programează o conversație unu-la-unu și pleacă cu un pas practic următor, indiferent de stadiul în care se află ideea ta."
+        )}
       />
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-3">
@@ -65,7 +81,7 @@ function ConsultancyPage() {
                 {session.description}
               </p>
               <Button asChild className="mt-6">
-                <Link to="/contact">Book this session</Link>
+                <Link to="/contact">{t("Book this session", "Rezervă această sesiune")}</Link>
               </Button>
             </div>
           ))}
@@ -75,11 +91,13 @@ function ConsultancyPage() {
         <div className="mt-12 rounded-2xl border border-dashed border-border bg-card p-8">
           <div className="flex items-center gap-2 text-base font-medium">
             <Calendar className="h-5 w-5 text-primary" />
-            Select a time
+            {t("Select a time", "Selectează o oră")}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            This is a booking interface placeholder. Live scheduling will be connected once the
-            design is approved.
+            {t(
+              "This is a booking interface placeholder. Live scheduling will be connected once the design is approved.",
+              "Acesta este un substituent pentru interfața de rezervare. Programarea în timp real va fi conectată odată ce designul este aprobat."
+            )}
           </p>
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
             {["09:00", "10:30", "12:00", "13:30", "15:00", "16:30"].map((slot, i) => (
