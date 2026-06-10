@@ -32,7 +32,10 @@ export function ProcessSteps() {
   return (
     <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
       <Reveal>
-        <SectionHeading title="A simple process, from request to delivery." />
+        <SectionHeading
+          eyebrow="How it works"
+          title="A simple process, from request to delivery."
+        />
       </Reveal>
 
       <div className="relative mt-14">

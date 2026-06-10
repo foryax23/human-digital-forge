@@ -17,6 +17,7 @@ export function TrustSection() {
       <Reveal>
         <SectionHeading
           align="center"
+          eyebrow="Why Vortex Hub"
           title="Designed for a straightforward and secure client experience."
         />
       </Reveal>

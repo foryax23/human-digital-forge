@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import { HeroBackground } from "@/components/cinematic/HeroBackground";
+import heroBg from "@/assets/home/hero-bg.jpg";
 
 function FloatingWorkflow() {
   return (
@@ -72,6 +73,12 @@ export function Hero() {
 
   return (
     <section className="relative isolate overflow-hidden">
+      <img
+        src={heroBg}
+        alt=""
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-40"
+      />
       <HeroBackground />
       <div
         aria-hidden

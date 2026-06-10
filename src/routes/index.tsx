@@ -11,6 +11,7 @@ import { ConsultationSection } from "@/components/home/ConsultationSection";
 import { TrustSection } from "@/components/home/TrustSection";
 import { FinalCTA } from "@/components/home/FinalCTA";
 import { CustomCursor } from "@/components/cinematic/CustomCursor";
+import { SectionTransition } from "@/components/cinematic/SectionTransition";
 
 const title = "Vortex Hub | Digital Products, Websites and AI Consultancy";
 const description =
@@ -44,16 +45,22 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
-    <div className="cinematic">
+    <div className="cinematic cinematic-flow">
       <CustomCursor />
       <SiteLayout>
         <Hero />
+        <SectionTransition tone="indigo" />
         <ServicesIntro />
+        <SectionTransition tone="teal" />
         <AudienceSection />
+        <SectionTransition tone="indigo" />
         <ProcessSteps />
         <AISpotlight />
+        <SectionTransition tone="teal" />
         <PortfolioPreview />
+        <SectionTransition tone="indigo" />
         <ConsultationSection />
+        <SectionTransition tone="teal" />
         <TrustSection />
         <FinalCTA />
       </SiteLayout>

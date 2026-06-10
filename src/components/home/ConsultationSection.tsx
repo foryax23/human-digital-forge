@@ -6,6 +6,7 @@ import { SectionHeading } from "@/components/shared/SectionHeading";
 import { GlowCard } from "@/components/cinematic/GlowCard";
 import { Reveal } from "@/components/cinematic/Reveal";
 import { Magnetic } from "@/components/cinematic/Magnetic";
+import consultationImg from "@/assets/home/consultation.jpg";
 
 const sessions = [
   {
@@ -27,13 +28,14 @@ const sessions = [
 
 export function ConsultationSection() {
   return (
-    <section className="relative overflow-hidden border-y border-border">
+    <section className="relative overflow-hidden">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-25" />
       <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
           <Reveal>
             <div>
               <SectionHeading
+                eyebrow="Talk it through"
                 title="Not sure what you need yet?"
                 description="Book a one-to-one conversation to discuss your idea, website, digital product or possible AI workflow. You will receive clear advice on the next practical step."
               />
@@ -50,26 +52,39 @@ export function ConsultationSection() {
                 </Magnetic>
               </div>
 
-              <div className="mt-8 rounded-xl border border-dashed border-border glass-panel p-5">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  Booking calendar
+              <div className="mt-8 overflow-hidden rounded-2xl border border-border glass-panel">
+                <div className="relative h-40">
+                  <img
+                    src={consultationImg}
+                    alt="A one-to-one consultation conversation"
+                    loading="lazy"
+                    width={1024}
+                    height={1024}
+                    className="h-full w-full object-cover opacity-70"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Live scheduling will appear here once the design is approved.
-                </p>
-                <div className="mt-4 grid grid-cols-4 gap-2">
-                  {["Mon", "Tue", "Wed", "Thu"].map((day, i) => (
-                    <div
-                      key={day}
-                      className={`rounded-lg border border-border px-2 py-3 text-center text-xs ${
-                        i === 1 ? "bg-primary/15 text-primary" : "text-muted-foreground"
-                      }`}
-                    >
-                      <div className="font-medium">{day}</div>
-                      <div className="mt-1">10:30</div>
-                    </div>
-                  ))}
+                <div className="p-5">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    Booking calendar
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Live scheduling will appear here once the design is approved.
+                  </p>
+                  <div className="mt-4 grid grid-cols-4 gap-2">
+                    {["Mon", "Tue", "Wed", "Thu"].map((day, i) => (
+                      <div
+                        key={day}
+                        className={`rounded-lg border border-border px-2 py-3 text-center text-xs ${
+                          i === 1 ? "bg-primary/15 text-primary" : "text-muted-foreground"
+                        }`}
+                      >
+                        <div className="font-medium">{day}</div>
+                        <div className="mt-1">10:30</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
