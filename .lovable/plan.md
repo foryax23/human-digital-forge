@@ -1,17 +1,39 @@
-# Trust section: icons-only, no boxes
+# Rework the hero 3D scene into a refined digital ecosystem
 
-Rework the "Why Vortex Hub" trust section so each item is just a large dynamic animated icon with its label — no GlowCard boxes and no rounded icon tile behind the icon.
+Replace the current abstract WebGL scene (random particle cloud + wireframe torus knot) with a structured, professional composition: a glowing central core on the right, surrounded by smooth neon orbit rings in violet, blue and cyan, with small service nodes (Strategy / Design / Automation) slowly orbiting the core. The core pulses softly, rings rotate at different speeds, and fine particles drift in the background. Motion is calm, continuous and seamless — no cursor reactivity.
 
-## Changes (frontend only)
+## What changes
 
-**`src/components/home/TrustSection.tsx`**
-- Remove the `GlowCard` wrapper around each item.
-- Remove the rounded square tile (`span` with `bg-teal/15 ... glow-teal`) that frames each icon.
-- Render each icon directly at a larger size (e.g. `h-16 w-16` / `h-20 w-20`) so the animated SVGs read as standalone, floating icons.
-- Keep the existing 4-column responsive grid (`sm:grid-cols-2 lg:grid-cols-4`), the `Reveal` staggered entrance, the labels, and the bilingual `t()` copy.
-- Keep the existing "Client feedback" panel below unchanged.
+Only the hero background scene is touched. The headline, copy, buttons and the floating workflow card stay exactly as they are.
 
-No changes to the animated icon SVGs themselves (`TrustIcons.tsx`) or the `ti-*` animations in `styles.css` — they already loop continuously. The icons stay dynamic; only the surrounding boxes/tiles are removed.
+```text
+        ┌──────────────────────────────────────────────┐
+        │  Headline + CTAs        ◯ ← orbit ring (violet)│
+        │  (unchanged)         ◯  ●  ◯  ← rings (blue/cyan)│
+        │                         ╲ ◉ ╱  ← glowing core   │
+        │                       node·  ·node (orbiting)    │
+        │                    · · drifting particles · ·    │
+        └──────────────────────────────────────────────┘
+```
+
+## Files
+
+**`src/components/cinematic/HeroCanvas.tsx`** (full rewrite of the scene)
+- **Core**: a layered glowing sphere positioned to the right (`position ≈ [3, 0.4, -1]`, matching the current knot placement so it sits behind the hero card). Built from an inner emissive sphere + an additive-blended glow halo sprite/shell. Soft pulse via scale + emissive intensity oscillating on `Math.sin(clock.elapsedTime * ~0.6)`.
+- **Orbit rings**: three rings using `ringGeometry` (thin, large-radius) or `torusGeometry` with small tube radius, each tilted on different axes and rotating at different speeds (e.g. 0.05 / 0.08 / 0.12 rad/frame-scaled). Colors map to brand tokens: violet `#4f46e5` (primary/indigo), blue `#7c75ff`, cyan/teal `#3b9eae`. `transparent`, additive blending, low opacity for neon glow.
+- **Service nodes**: a few small emissive spheres parented to invisible pivot groups that rotate around the core, so they travel along the ring paths at different radii/speeds. Each leaves a subtle light-trail feel via a faint additive sprite. (Conceptually Strategy / Design / Automation — visual only, no labels in 3D.)
+- **Background particles**: keep a reduced, slow-drifting point field (lower count than today, ~1200) for depth, drifting gently rather than the current fast rotation.
+- **Lighting/colors**: keep ambient + two colored point lights (indigo + teal) for depth. All colors use the existing brand hexes already in this file so it matches the design system.
+- **Motion**: continuous auto-rotation only. Remove the `state.pointer`/cursor-parallax lerp logic so it is calm and seamless.
+
+**`src/components/cinematic/HeroBackground.tsx`** (unchanged logic)
+- No structural change. It already lazy-loads `HeroCanvas`, gates on `prefers-reduced-motion`, keeps the static `bg-aurora` gradient fallback, and wraps in an error boundary. The new scene benefits from all of this automatically.
+
+## Notes / constraints
+- Stays WebGL via `@react-three/fiber` + `three` (already installed and used).
+- Respects `prefers-reduced-motion` (handled by `HeroBackground` — reduced-motion users see the static gradient, scene never mounts).
+- SSR-safe: scene remains client-only and lazy-loaded, so build prerender renders only the gradient fallback.
+- No new dependencies, no design-token or color changes elsewhere, no copy changes.
 
 ## Result
-Four standalone looping icons sit directly on the section background, each centered above its label, with no card or tile chrome.
+The right side of the hero reads as a structured, glowing digital ecosystem — a pulsing core with neon orbit rings and slowly circling service nodes over a soft particle field — calm, premium and on-brand, replacing the generic abstract knot.
