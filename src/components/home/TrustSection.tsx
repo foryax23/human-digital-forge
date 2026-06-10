@@ -1,5 +1,5 @@
 import { SectionHeading } from "@/components/shared/SectionHeading";
-import { GlowCard } from "@/components/cinematic/GlowCard";
+
 import { Reveal } from "@/components/cinematic/Reveal";
 import { ProposalIcon, PrivacyIcon, DeliveryIcon, ReviewIcon } from "@/components/cinematic/TrustIcons";
 import { useI18n } from "@/i18n";
@@ -24,17 +24,13 @@ export function TrustSection() {
           title={t("Designed for a straightforward and secure client experience.", "Conceput pentru o experiență de client simplă și sigură.")}
         />
       </Reveal>
-      <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         {points.map((point, i) => (
           <Reveal key={point.label} delay={i * 0.1}>
-            <GlowCard className="h-full">
-              <div className="p-7 text-center">
-                <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-teal/15 text-teal glow-teal">
-                  <point.icon className="h-9 w-9" />
-                </span>
-                <p className="mt-4 text-sm font-medium">{point.label}</p>
-              </div>
-            </GlowCard>
+            <div className="flex flex-col items-center px-4 text-center">
+              <point.icon className="h-20 w-20 text-teal" />
+              <p className="mt-5 text-sm font-medium">{point.label}</p>
+            </div>
           </Reveal>
         ))}
       </div>
