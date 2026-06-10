@@ -50,7 +50,7 @@ export function WorkflowShowcase() {
         aria-hidden
         className="absolute -inset-8 rounded-[2.5rem] bg-gradient-brand opacity-25 blur-3xl animate-glow-pulse"
       />
-      <div className="relative rounded-3xl border border-border glass-panel p-6 glow-soft sm:p-7">
+      <div className="relative rounded-3xl border border-border bg-card/75 backdrop-blur-xl p-6 glow-soft sm:p-7">
         {/* Header row */}
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
