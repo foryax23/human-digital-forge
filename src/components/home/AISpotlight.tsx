@@ -31,18 +31,22 @@ export function AISpotlight() {
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <Reveal>
             <div>
-              <Eyebrow className="text-teal">AI automation</Eyebrow>
+              <Eyebrow className="text-teal">{t("AI automation", "Automatizare AI")}</Eyebrow>
               <h2 className="mt-4 text-3xl leading-tight sm:text-4xl lg:text-5xl">
-                Technology should remove unnecessary work, not remove the human relationship.
+                {t(
+                  "Technology should remove unnecessary work, not remove the human relationship.",
+                  "Tehnologia ar trebui să elimine munca inutilă, nu relația umană.",
+                )}
               </h2>
               <p className="mt-6 text-base leading-relaxed text-muted-foreground">
-                We help individuals and businesses explore useful AI workflows, from organising
-                enquiries and documents to improving repetitive internal processes. Every solution
-                begins with a real need, not with technology for its own sake.
+                {t(
+                  "We help individuals and businesses explore useful AI workflows, from organising enquiries and documents to improving repetitive internal processes. Every solution begins with a real need, not with technology for its own sake.",
+                  "Ajutăm persoane și companii să exploreze fluxuri AI utile, de la organizarea cererilor și documentelor până la îmbunătățirea proceselor interne repetitive. Fiecare soluție pornește de la o nevoie reală, nu de la tehnologie de dragul tehnologiei.",
+                )}
               </p>
               <Magnetic>
                 <Button asChild className="mt-9 glow-soft">
-                  <Link to="/ai-automation">Discuss an automation idea</Link>
+                  <Link to="/ai-automation">{t("Discuss an automation idea", "Discută o idee de automatizare")}</Link>
                 </Button>
               </Magnetic>
             </div>
