@@ -275,6 +275,49 @@
   .animate-float-slow {
     animation: float-slow 9s ease-in-out infinite;
   }
+
+  /* One continuous vertical gradient so sections flow into each other */
+  .cinematic-flow {
+    background:
+      linear-gradient(
+        180deg,
+        oklch(0.12 0.028 282) 0%,
+        oklch(0.16 0.05 278) 14%,
+        oklch(0.15 0.045 250) 28%,
+        oklch(0.12 0.03 285) 42%,
+        oklch(0.16 0.05 286) 56%,
+        oklch(0.14 0.05 205) 70%,
+        oklch(0.13 0.035 280) 84%,
+        oklch(0.1 0.03 283) 100%
+      );
+  }
+
+  /* Soft floating glow orb that bridges section boundaries */
+  .flow-orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(80px);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .flow-orb-indigo {
+    background: radial-gradient(circle, oklch(0.585 0.225 277 / 60%), transparent 70%);
+  }
+  .flow-orb-teal {
+    background: radial-gradient(circle, oklch(0.74 0.11 200 / 55%), transparent 70%);
+  }
+
+  /* Thin luminous seam used between sections */
+  .section-seam {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      oklch(0.585 0.225 277 / 50%),
+      oklch(0.74 0.11 200 / 45%),
+      transparent
+    );
+  }
 }
 
 @keyframes aurora-drift {
