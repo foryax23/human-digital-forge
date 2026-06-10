@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 
 import { LanguageToggle } from "./LanguageToggle";
 import { useI18n } from "@/i18n";
+import { openCookieSettings } from "@/components/cookies/cookie-consent";
 
 const footerNav = [
   { en: "Services", ro: "Servicii", to: "/services" },
@@ -76,7 +77,21 @@ export function SiteFooter() {
                 </li>
               ))}
               <li>
-                <span className="text-sm text-ink-foreground/70">{t("Cookie Policy", "Politica de cookie-uri")}</span>
+                <Link
+                  to="/cookies"
+                  className="text-sm text-ink-foreground/70 transition-colors hover:text-ink-foreground"
+                >
+                  {t("Cookie Policy", "Politica de cookie-uri")}
+                </Link>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={openCookieSettings}
+                  className="text-left text-sm text-ink-foreground/70 transition-colors hover:text-ink-foreground"
+                >
+                  {t("Cookie settings", "Setări cookie-uri")}
+                </button>
               </li>
             </ul>
           </div>

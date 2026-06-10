@@ -19,6 +19,7 @@ import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DigitalProductsRouteImport } from './routes/digital-products'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ConsultancyRouteImport } from './routes/consultancy'
 import { Route as AiAutomationRouteImport } from './routes/ai-automation'
@@ -80,6 +81,11 @@ const DigitalProductsRoute = DigitalProductsRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
+  '/cookies': typeof CookiesRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/digital-products': typeof DigitalProductsRoute
   '/login': typeof LoginRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByTo {
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
+  '/cookies': typeof CookiesRoute
   '/digital-products': typeof DigitalProductsRoute
   '/login': typeof LoginRoute
   '/portfolio': typeof PortfolioRoute
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/ai-automation': typeof AiAutomationRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
+  '/cookies': typeof CookiesRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/digital-products': typeof DigitalProductsRoute
   '/login': typeof LoginRoute
@@ -222,6 +231,7 @@ export interface FileRouteTypes {
     | '/ai-automation'
     | '/consultancy'
     | '/contact'
+    | '/cookies'
     | '/dashboard'
     | '/digital-products'
     | '/login'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/ai-automation'
     | '/consultancy'
     | '/contact'
+    | '/cookies'
     | '/digital-products'
     | '/login'
     | '/portfolio'
@@ -269,6 +280,7 @@ export interface FileRouteTypes {
     | '/ai-automation'
     | '/consultancy'
     | '/contact'
+    | '/cookies'
     | '/dashboard'
     | '/digital-products'
     | '/login'
@@ -294,6 +306,7 @@ export interface RootRouteChildren {
   AiAutomationRoute: typeof AiAutomationRoute
   ConsultancyRoute: typeof ConsultancyRoute
   ContactRoute: typeof ContactRoute
+  CookiesRoute: typeof CookiesRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   DigitalProductsRoute: typeof DigitalProductsRoute
   LoginRoute: typeof LoginRoute
@@ -376,6 +389,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -496,6 +516,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiAutomationRoute: AiAutomationRoute,
   ConsultancyRoute: ConsultancyRoute,
   ContactRoute: ContactRoute,
+  CookiesRoute: CookiesRoute,
   DashboardRoute: DashboardRouteWithChildren,
   DigitalProductsRoute: DigitalProductsRoute,
   LoginRoute: LoginRoute,
@@ -510,13 +531,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
