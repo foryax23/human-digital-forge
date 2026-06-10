@@ -45,16 +45,22 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
-    <div className="cinematic">
+    <div className="cinematic cinematic-flow">
       <CustomCursor />
       <SiteLayout>
         <Hero />
+        <SectionTransition tone="indigo" />
         <ServicesIntro />
+        <SectionTransition tone="teal" />
         <AudienceSection />
+        <SectionTransition tone="indigo" />
         <ProcessSteps />
         <AISpotlight />
+        <SectionTransition tone="teal" />
         <PortfolioPreview />
+        <SectionTransition tone="indigo" />
         <ConsultationSection />
+        <SectionTransition tone="teal" />
         <TrustSection />
         <FinalCTA />
       </SiteLayout>
