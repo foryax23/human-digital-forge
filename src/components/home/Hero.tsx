@@ -9,6 +9,7 @@ import { useI18n } from "@/i18n";
 import heroBg from "@/assets/home/hero-bg.jpg";
 
 function FloatingWorkflow() {
+  const { t } = useI18n();
   return (
     <div className="relative animate-float-slow">
       <div
