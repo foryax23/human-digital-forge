@@ -13,10 +13,12 @@ import {
 import { navLinks, Wordmark } from "./nav-data";
 import { LanguageToggle } from "./LanguageToggle";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useI18n } from "@/i18n";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+  const { t, lang } = useI18n();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
