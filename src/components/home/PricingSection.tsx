@@ -131,7 +131,7 @@ export function PricingSection() {
           </p>
         )}
 
-        <div className="mt-16 grid items-center gap-6 lg:grid-cols-4">
+        <div className="mt-16 grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {/* Free plan */}
           <Reveal>
             <div className="flex h-full flex-col rounded-3xl border border-border bg-card/60 p-7 backdrop-blur-sm">
