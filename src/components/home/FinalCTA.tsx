@@ -4,8 +4,10 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/cinematic/Reveal";
 import { Magnetic } from "@/components/cinematic/Magnetic";
+import { useI18n } from "@/i18n";
 
 export function FinalCTA() {
+  const { t } = useI18n();
   return (
     <section className="relative overflow-hidden border-t border-border bg-ink text-ink-foreground">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-60" />
