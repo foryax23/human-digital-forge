@@ -1,11 +1,10 @@
-import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useI18n, type Language } from "@/i18n";
 
-const languages = ["EN", "RO"] as const;
-type Language = (typeof languages)[number];
+const languages: Language[] = ["en", "ro"];
 
 export function LanguageToggle({ className }: { className?: string }) {
-  const [active, setActive] = useState<Language>("EN");
+  const { lang, setLang } = useI18n();
 
   return (
     <div
@@ -16,20 +15,20 @@ export function LanguageToggle({ className }: { className?: string }) {
         className,
       )}
     >
-      {languages.map((lang) => (
+      {languages.map((code) => (
         <button
-          key={lang}
+          key={code}
           type="button"
-          aria-pressed={active === lang}
-          onClick={() => setActive(lang)}
+          aria-pressed={lang === code}
+          onClick={() => setLang(code)}
           className={cn(
-            "rounded px-2 py-1 transition-colors",
-            active === lang
+            "rounded px-2 py-1 uppercase transition-colors",
+            lang === code
               ? "bg-foreground text-background"
               : "text-muted-foreground hover:text-foreground",
           )}
         >
-          {lang}
+          {code}
         </button>
       ))}
     </div>
