@@ -41,10 +41,12 @@ export function TrustSection() {
 
       <Reveal delay={0.1}>
         <div className="mt-10 rounded-2xl border border-dashed border-border glass-panel p-8 text-center">
-          <p className="text-sm font-medium text-foreground">Client feedback</p>
+          <p className="text-sm font-medium text-foreground">{t("Client feedback", "Feedback de la clienți")}</p>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            A reserved space for approved client feedback. Real testimonials will appear here once
-            client work is shared with permission.
+            {t(
+              "A reserved space for approved client feedback. Real testimonials will appear here once client work is shared with permission.",
+              "Un spațiu rezervat pentru feedback aprobat al clienților. Testimoniale reale vor apărea aici după ce lucrările sunt partajate cu acordul clienților.",
+            )}
           </p>
         </div>
       </Reveal>
