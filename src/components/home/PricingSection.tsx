@@ -4,9 +4,7 @@ import { Check, Loader2, MessageCircle, Sparkles, Rocket, Crown } from "lucide-r
 
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/shared/SectionHeading";
-import { GlowCard } from "@/components/cinematic/GlowCard";
 import { Reveal } from "@/components/cinematic/Reveal";
-import { Magnetic } from "@/components/cinematic/Magnetic";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useI18n } from "@/i18n";
 import { createCheckoutSession } from "@/lib/checkout.functions";
@@ -16,6 +14,17 @@ import { cn } from "@/lib/utils";
 function formatPrice(minor: number, lang: "en" | "ro") {
   const major = minor / 100;
   return lang === "ro" ? `${major} LEI` : `${major} EUR`;
+}
+
+function FeatureItem({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-3">
+      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal/20 text-teal">
+        <Check className="h-3 w-3" strokeWidth={3} />
+      </span>
+      <span className="text-sm text-muted-foreground">{children}</span>
+    </li>
+  );
 }
 
 export function PricingSection() {
@@ -63,10 +72,7 @@ export function PricingSection() {
       id: "starter",
       icon: Sparkles,
       name: t("Starter", "Starter"),
-      tagline: t(
-        "A focused first step into working with us.",
-        "Un prim pas concentrat în colaborarea cu noi.",
-      ),
+      tagline: t("For up to 1 focused goal", "Pentru până la 1 obiectiv concentrat"),
       features: [
         t("30 minutes of live Zoom consultation each month", "30 de minute de consultanță live pe Zoom în fiecare lună"),
         t("1 month access to our AI tools", "1 lună de acces la instrumentele noastre AI"),
@@ -78,10 +84,7 @@ export function PricingSection() {
       id: "growth",
       icon: Rocket,
       name: t("Growth", "Growth"),
-      tagline: t(
-        "For people actively building momentum.",
-        "Pentru cei care construiesc activ avânt.",
-      ),
+      tagline: t("For people building momentum", "Pentru cei care construiesc avânt"),
       highlight: true,
       features: [
         t("2 hours of live Zoom consultation", "2 ore de consultanță live pe Zoom"),
@@ -95,10 +98,7 @@ export function PricingSection() {
       id: "pro",
       icon: Crown,
       name: t("Pro", "Pro"),
-      tagline: t(
-        "Everything we offer, with us beside you.",
-        "Tot ce oferim, cu noi alături de tine.",
-      ),
+      tagline: t("For full, hands-on partnership", "Pentru un parteneriat complet, implicat"),
       features: [
         t("Full access to our complete program", "Acces complet la întregul nostru program"),
         t("Unlimited live support from our team", "Suport live nelimitat din partea echipei noastre"),
@@ -117,10 +117,10 @@ export function PricingSection() {
           <SectionHeading
             align="center"
             eyebrow={t("Plans & pricing", "Planuri și prețuri")}
-            title={t("Choose the level of support that fits you.", "Alege nivelul de sprijin potrivit pentru tine.")}
+            title={t("Choose your plan", "Alege-ți planul")}
             description={t(
-              "Start a conversation for free, or subscribe monthly for consultations, AI access and hands-on help. Prices renew monthly and you can cancel anytime.",
-              "Începe o conversație gratuit sau abonează-te lunar pentru consultanță, acces la AI și ajutor practic. Prețurile se reînnoiesc lunar și poți renunța oricând.",
+              "Our plans are designed to be affordable, flexible and tailored to your goals. Start free, or subscribe monthly and cancel anytime.",
+              "Planurile noastre sunt accesibile, flexibile și adaptate obiectivelor tale. Începe gratuit sau abonează-te lunar și anulează oricând.",
             )}
           />
         </Reveal>
@@ -131,97 +131,109 @@ export function PricingSection() {
           </p>
         )}
 
-        <div className="mt-14 grid gap-6 lg:grid-cols-4">
+        <div className="mt-16 grid items-center gap-6 lg:grid-cols-4">
           {/* Free plan */}
           <Reveal>
-            <GlowCard className="h-full">
-              <div className="flex h-full flex-col p-7">
-                <span className="grid h-11 w-11 place-items-center rounded-lg bg-primary/15 text-primary">
-                  <MessageCircle className="h-5 w-5" />
-                </span>
-                <h3 className="mt-5 text-xl">{t("Free", "Gratuit")}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t("Talk to us and shape your direction.", "Vorbește cu noi și conturează-ți direcția.")}
-                </p>
-                <div className="mt-5">
-                  <span className="text-3xl font-semibold">{formatPrice(0, lang)}</span>
-                </div>
-                <ul className="mt-6 flex-1 space-y-3 text-sm">
-                  {[
-                    t("A conversation with our team", "O conversație cu echipa noastră"),
-                    t("Build a plan for your future business", "Construiește un plan pentru viitoarea ta afacere"),
-                    t("Clear, practical advice — no commitment", "Sfaturi clare și practice — fără obligații"),
-                  ].map((f) => (
-                    <li key={f} className="flex items-start gap-2.5">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal" />
-                      <span className="text-muted-foreground">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button asChild variant="outline" className="mt-7 w-full border-border glass-panel">
-                  <Link to="/contact">{t("Talk to us", "Vorbește cu noi")}</Link>
-                </Button>
+            <div className="flex h-full flex-col rounded-3xl border border-border bg-card/60 p-7 backdrop-blur-sm">
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-muted text-muted-foreground">
+                <MessageCircle className="h-5 w-5" />
+              </span>
+              <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                {t("Free", "Gratuit")}
+              </p>
+              <div className="mt-3 flex items-end gap-2">
+                <span className="text-4xl font-bold tracking-tight">{formatPrice(0, lang)}</span>
               </div>
-            </GlowCard>
+              <p className="mt-3 text-sm text-muted-foreground">
+                {t("Talk to us, no commitment", "Vorbește cu noi, fără obligații")}
+              </p>
+
+              <p className="mt-7 text-xs font-semibold uppercase tracking-[0.2em] text-foreground/80">
+                {t("Features", "Beneficii")}
+              </p>
+              <ul className="mt-4 flex-1 space-y-3.5">
+                <FeatureItem>{t("A conversation with our team", "O conversație cu echipa noastră")}</FeatureItem>
+                <FeatureItem>{t("Build a plan for your future business", "Construiește un plan pentru viitoarea ta afacere")}</FeatureItem>
+                <FeatureItem>{t("Clear, practical advice", "Sfaturi clare și practice")}</FeatureItem>
+              </ul>
+
+              <Button asChild variant="outline" className="mt-7 h-12 w-full rounded-xl border-border">
+                <Link to="/contact">{t("Talk to us", "Vorbește cu noi")}</Link>
+              </Button>
+            </div>
           </Reveal>
 
           {/* Paid plans */}
           {paidPlans.map((plan, i) => (
             <Reveal key={plan.id} delay={(i + 1) * 0.08}>
-              <GlowCard
+              <div
                 className={cn(
-                  "h-full",
-                  plan.highlight && "border-primary/50 glow-soft",
+                  "relative flex h-full flex-col rounded-3xl border p-7 backdrop-blur-sm",
+                  plan.highlight
+                    ? "border-primary/60 bg-card glow-soft lg:-my-6 lg:py-12"
+                    : "border-border bg-card/60",
                 )}
               >
-                <div className="flex h-full flex-col p-7">
-                  {plan.highlight && (
-                    <span className="absolute right-5 top-5 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground">
-                      {t("Most popular", "Cel mai popular")}
-                    </span>
-                  )}
-                  <span className="grid h-11 w-11 place-items-center rounded-lg bg-primary/15 text-primary">
-                    <plan.icon className="h-5 w-5" />
+                {plan.highlight && (
+                  <span className="absolute right-6 top-6 rounded-full bg-gradient-brand px-3 py-1 text-xs font-semibold text-primary-foreground">
+                    {t("Most popular", "Cel mai popular")}
                   </span>
-                  <h3 className="mt-5 text-xl">{plan.name}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{plan.tagline}</p>
-                  <div className="mt-5 flex items-baseline gap-1.5">
-                    <span className="text-3xl font-semibold">
-                      {formatPrice(PLAN_PRICING[plan.id][currency], lang)}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      {t("/ month", "/ lună")}
-                    </span>
-                  </div>
-                  <ul className="mt-6 flex-1 space-y-3 text-sm">
-                    {plan.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2.5">
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-teal" />
-                        <span className="text-muted-foreground">{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Magnetic className="mt-7 w-full">
-                    <Button
-                      className={cn("w-full", plan.highlight && "glow-soft")}
-                      variant={plan.highlight ? "default" : "outline"}
-                      disabled={loadingPlan !== null}
-                      onClick={() => handleSubscribe(plan.id)}
-                    >
-                      {loadingPlan === plan.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        t("Subscribe", "Abonează-te")
-                      )}
-                    </Button>
-                  </Magnetic>
+                )}
+                <span
+                  className={cn(
+                    "grid h-11 w-11 place-items-center rounded-xl",
+                    plan.highlight
+                      ? "bg-gradient-brand text-primary-foreground"
+                      : "bg-primary/15 text-primary",
+                  )}
+                >
+                  <plan.icon className="h-5 w-5" />
+                </span>
+                <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  {plan.name}
+                </p>
+                <div className="mt-3 flex items-end gap-2">
+                  <span className="text-4xl font-bold tracking-tight sm:text-5xl">
+                    {formatPrice(PLAN_PRICING[plan.id][currency], lang)}
+                  </span>
+                  <span className="pb-1 text-xs text-muted-foreground">
+                    {t("/ month", "/ lună")}
+                  </span>
                 </div>
-              </GlowCard>
+                <p className="mt-3 text-sm text-muted-foreground">{plan.tagline}</p>
+
+                <p className="mt-7 text-xs font-semibold uppercase tracking-[0.2em] text-foreground/80">
+                  {t("Features", "Beneficii")}
+                </p>
+                <ul className="mt-4 flex-1 space-y-3.5">
+                  {plan.features.map((f) => (
+                    <FeatureItem key={f}>{f}</FeatureItem>
+                  ))}
+                </ul>
+
+                <Button
+                  className={cn(
+                    "mt-7 h-12 w-full rounded-xl",
+                    plan.highlight
+                      ? "bg-gradient-brand text-primary-foreground hover:opacity-90"
+                      : "",
+                  )}
+                  variant={plan.highlight ? "default" : "outline"}
+                  disabled={loadingPlan !== null}
+                  onClick={() => handleSubscribe(plan.id)}
+                >
+                  {loadingPlan === plan.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    t("Get started", "Începe acum")
+                  )}
+                </Button>
+              </div>
             </Reveal>
           ))}
         </div>
 
-        <p className="mt-8 text-center text-xs text-muted-foreground">
+        <p className="mt-10 text-center text-xs text-muted-foreground">
           {t(
             "Secure payment handled by Stripe. You can cancel your subscription at any time.",
             "Plată securizată prin Stripe. Poți anula abonamentul în orice moment.",
