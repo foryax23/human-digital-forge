@@ -7,6 +7,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/i18n";
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/dashboard/settings")({
 });
 
 function SettingsPage() {
+  const { t } = useI18n();
   const { user, profile, refreshProfile } = useAuth();
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");
@@ -49,65 +51,65 @@ function SettingsPage() {
 
     if (error) {
       console.error("[settings] update failed", error);
-      toast.error("Could not save your changes. Please try again.");
+      toast.error(t("Could not save your changes. Please try again.", "Nu am putut salva modificările. Te rugăm să încerci din nou."));
       return;
     }
     await refreshProfile();
-    toast.success("Your profile has been updated.");
+    toast.success(t("Your profile has been updated.", "Profilul tău a fost actualizat."));
   }
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-3xl">Settings</h1>
+      <h1 className="text-3xl">{t("Settings", "Setări")}</h1>
       <p className="mt-1 text-muted-foreground">
-        Manage your profile details and how we address you.
+        {t("Manage your profile details and how we address you.", "Gestionează detaliile profilului tău și modul în care te adresăm.")}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t("Email", "Email")}</Label>
           <Input id="email" value={user?.email ?? ""} disabled />
           <p className="text-xs text-muted-foreground">
-            Your email is linked to your account and can't be changed here.
+            {t("Your email is linked to your account and can't be changed here.", "Adresa ta de email este legată de contul tău și nu poate fi modificată aici.")}
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="fullName">Full name</Label>
+          <Label htmlFor="fullName">{t("Full name", "Nume complet")}</Label>
           <Input
             id="fullName"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            placeholder="Your name"
+            placeholder={t("Your name", "Numele tău")}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="company">Company (optional)</Label>
+          <Label htmlFor="company">{t("Company (optional)", "Companie (opțional)")}</Label>
           <Input
             id="company"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            placeholder="Your company"
+            placeholder={t("Your company", "Compania ta")}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="clientType">I'm working as</Label>
+          <Label htmlFor="clientType">{t("I'm working as", "Lucrez ca")}</Label>
           <Select value={clientType} onValueChange={setClientType}>
             <SelectTrigger id="clientType">
-              <SelectValue placeholder="Select one" />
+              <SelectValue placeholder={t("Select one", "Selectează una")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="individual">An individual</SelectItem>
-              <SelectItem value="business">A business</SelectItem>
+              <SelectItem value="individual">{t("An individual", "Persoană fizică")}</SelectItem>
+              <SelectItem value="business">{t("A business", "Companie")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <Button type="submit" size="lg" disabled={saving}>
           {saving && <Loader2 className="animate-spin" />}
-          Save changes
+          {t("Save changes", "Salvează modificările")}
         </Button>
       </form>
     </div>
