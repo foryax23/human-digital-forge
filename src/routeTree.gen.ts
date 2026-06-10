@@ -22,6 +22,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ConsultancyRouteImport } from './routes/consultancy'
+import { Route as BillingSuccessRouteImport } from './routes/billing-success'
 import { Route as AiAutomationRouteImport } from './routes/ai-automation'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
@@ -99,6 +100,11 @@ const ConsultancyRoute = ConsultancyRouteImport.update({
   path: '/consultancy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BillingSuccessRoute = BillingSuccessRouteImport.update({
+  id: '/billing-success',
+  path: '/billing-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AiAutomationRoute = AiAutomationRouteImport.update({
   id: '/ai-automation',
   path: '/ai-automation',
@@ -158,6 +164,7 @@ const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
+  '/billing-success': typeof BillingSuccessRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
   '/cookies': typeof CookiesRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
+  '/billing-success': typeof BillingSuccessRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
   '/cookies': typeof CookiesRoute
@@ -210,6 +218,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
+  '/billing-success': typeof BillingSuccessRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
   '/cookies': typeof CookiesRoute
@@ -238,6 +247,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/ai-automation'
+    | '/billing-success'
     | '/consultancy'
     | '/contact'
     | '/cookies'
@@ -264,6 +274,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/ai-automation'
+    | '/billing-success'
     | '/consultancy'
     | '/contact'
     | '/cookies'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/ai-automation'
+    | '/billing-success'
     | '/consultancy'
     | '/contact'
     | '/cookies'
@@ -316,6 +328,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiAutomationRoute: typeof AiAutomationRoute
+  BillingSuccessRoute: typeof BillingSuccessRoute
   ConsultancyRoute: typeof ConsultancyRoute
   ContactRoute: typeof ContactRoute
   CookiesRoute: typeof CookiesRoute
@@ -423,6 +436,13 @@ declare module '@tanstack/react-router' {
       path: '/consultancy'
       fullPath: '/consultancy'
       preLoaderRoute: typeof ConsultancyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing-success': {
+      id: '/billing-success'
+      path: '/billing-success'
+      fullPath: '/billing-success'
+      preLoaderRoute: typeof BillingSuccessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ai-automation': {
@@ -534,6 +554,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiAutomationRoute: AiAutomationRoute,
+  BillingSuccessRoute: BillingSuccessRoute,
   ConsultancyRoute: ConsultancyRoute,
   ContactRoute: ContactRoute,
   CookiesRoute: CookiesRoute,
@@ -552,3 +573,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
