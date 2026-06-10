@@ -12,11 +12,14 @@ export const navLinks = [
 export function Wordmark({ className }: { className?: string }) {
   return (
     <Link to="/" className={className} aria-label="Vortex Hub home">
-      <span className="flex items-center gap-2">
-        <span className="grid h-8 w-8 place-items-center rounded-md bg-gradient-brand text-[0.95rem] font-semibold text-primary-foreground">
+      <span className="flex items-center gap-2.5">
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-brand text-lg font-bold text-primary-foreground glow-soft">
           V
         </span>
-        <span className="font-serif text-xl leading-none tracking-tight">Vortex Hub</span>
+        <span className="flex flex-col font-sans text-lg font-semibold leading-[0.95] tracking-tight">
+          <span>Vortex</span>
+          <span>Hub</span>
+        </span>
       </span>
     </Link>
   );
