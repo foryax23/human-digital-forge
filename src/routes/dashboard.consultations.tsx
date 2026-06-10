@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/dashboard/consultations")({
@@ -31,8 +32,8 @@ interface ConsultationItem {
   notes: string | null;
 }
 
-function formatWhen(value: string | null) {
-  if (!value) return "To be scheduled";
+function formatWhen(value: string | null, t: (en: string, ro: string) => string) {
+  if (!value) return t("To be scheduled", "Urmează a fi programat");
   return new Date(value).toLocaleString(undefined, {
     weekday: "short",
     day: "numeric",
@@ -43,6 +44,7 @@ function formatWhen(value: string | null) {
 }
 
 function ConsultationsPage() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [items, setItems] = useState<ConsultationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +64,10 @@ function ConsultationsPage() {
       .order("scheduled_at", { ascending: true });
     if (err) {
       console.error("[consultations] load failed", err);
-      setError("We couldn't load your consultations. Please refresh to try again.");
+      setError(t(
+        "We couldn't load your consultations. Please refresh to try again.",
+        "Nu am putut încărca consultațiile tale. Te rugăm să reîmprospătezi pagina.",
+      ));
     } else {
       setError(null);
       setItems((data as ConsultationItem[]) ?? []);
@@ -89,7 +94,7 @@ function ConsultationsPage() {
         status: "requested",
       });
       if (err) throw err;
-      toast.success("Consultation requested. We'll confirm a time soon.");
+      toast.success(t("Consultation requested. We'll confirm a time soon.", "Consultație solicitată. Vom confirma un interval în curând."));
       setOpen(false);
       setTitle("");
       setPreferred("");
@@ -97,7 +102,7 @@ function ConsultationsPage() {
       await loadItems();
     } catch (err) {
       console.error("[consultations] booking failed", err);
-      toast.error("We couldn't book that session. Please try again.");
+      toast.error(t("We couldn't book that session. Please try again.", "Nu am putut rezerva sesiunea. Te rugăm să încerci din nou."));
     } finally {
       setSubmitting(false);
     }
@@ -106,30 +111,32 @@ function ConsultationsPage() {
   const bookButton = (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Book a session</Button>
+        <Button>{t("Book a session", "Rezervă o sesiune")}</Button>
       </DialogTrigger>
       <DialogContent>
         <form onSubmit={handleBook}>
           <DialogHeader>
-            <DialogTitle>Book a consultation</DialogTitle>
+            <DialogTitle>{t("Book a consultation", "Rezervă o consultație")}</DialogTitle>
             <DialogDescription>
-              Tell us what you'd like to talk through and a time that suits you. We'll confirm the
-              details.
+              {t(
+                "Tell us what you'd like to talk through and a time that suits you. We'll confirm the details.",
+                "Spune-ne despre ce vrei să discuți și un interval care ți se potrivește. Vom confirma detaliile.",
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="c-title">What's it about?</Label>
+              <Label htmlFor="c-title">{t("What's it about?", "Despre ce este?")}</Label>
               <Input
                 id="c-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. AI automation strategy"
+                placeholder={t("e.g. AI automation strategy", "ex. Strategie de automatizare AI")}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="c-time">Preferred date &amp; time</Label>
+              <Label htmlFor="c-time">{t("Preferred date & time", "Dată și oră preferate")}</Label>
               <Input
                 id="c-time"
                 type="datetime-local"
@@ -138,12 +145,12 @@ function ConsultationsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="c-notes">Anything to share beforehand?</Label>
+              <Label htmlFor="c-notes">{t("Anything to share beforehand?", "Ai ceva de împărtășit în prealabil?")}</Label>
               <Textarea
                 id="c-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Goals, questions, context…"
+                placeholder={t("Goals, questions, context…", "Obiective, întrebări, context…")}
                 rows={3}
               />
             </div>
@@ -151,7 +158,7 @@ function ConsultationsPage() {
           <DialogFooter className="mt-6">
             <Button type="submit" disabled={submitting || !title.trim()}>
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              Request session
+              {t("Request session", "Solicită sesiunea")}
             </Button>
           </DialogFooter>
         </form>
@@ -163,9 +170,9 @@ function ConsultationsPage() {
     <div className="mx-auto max-w-3xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl">Consultations</h1>
+          <h1 className="text-3xl">{t("Consultations", "Consultații")}</h1>
           <p className="mt-1 text-muted-foreground">
-            Your booked one-to-one sessions with the Vortex Hub team.
+            {t("Your booked one-to-one sessions with the Vortex Hub team.", "Sesiunile tale rezervate individual cu echipa Vortex Hub.")}
           </p>
         </div>
         {bookButton}
@@ -188,9 +195,12 @@ function ConsultationsPage() {
           <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-teal/15 text-teal">
             <CalendarCheck className="h-6 w-6" />
           </span>
-          <h2 className="mt-4 text-2xl">No consultations booked</h2>
+          <h2 className="mt-4 text-2xl">{t("No consultations booked", "Nicio consultație rezervată")}</h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            Book a session to talk through your goals and map out the best next steps.
+            {t(
+              "Book a session to talk through your goals and map out the best next steps.",
+              "Rezervă o sesiune pentru a-ți discuta obiectivele și a stabili cei mai buni pași următori.",
+            )}
           </p>
           <div className="mt-6 flex justify-center">{bookButton}</div>
         </div>
@@ -212,7 +222,7 @@ function ConsultationsPage() {
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {formatWhen(item.scheduled_at)}
+                    {formatWhen(item.scheduled_at, t)}
                   </p>
                   {item.notes && <p className="mt-2 text-sm text-muted-foreground">{item.notes}</p>}
                 </div>

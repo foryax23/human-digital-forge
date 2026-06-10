@@ -5,9 +5,11 @@ import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import { HeroBackground } from "@/components/cinematic/HeroBackground";
+import { useI18n } from "@/i18n";
 import heroBg from "@/assets/home/hero-bg.jpg";
 
 function FloatingWorkflow() {
+  const { t } = useI18n();
   return (
     <div className="relative animate-float-slow">
       <div
@@ -18,13 +20,13 @@ function FloatingWorkflow() {
         <div className="rounded-xl border border-border bg-background/40 p-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Project request
+              {t("Project request", "Cerere de proiect")}
             </span>
             <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-medium text-primary">
-              Proposal in preparation
+              {t("Proposal in preparation", "Propunere în pregătire")}
             </span>
           </div>
-          <h3 className="mt-3 font-sans text-base font-semibold">Website for local business</h3>
+          <h3 className="mt-3 font-sans text-base font-semibold">{t("Website for local business", "Site web pentru afacere locală")}</h3>
           <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
             <div className="h-full w-2/5 rounded-full bg-gradient-brand" />
           </div>
@@ -35,23 +37,23 @@ function FloatingWorkflow() {
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-teal/20 text-teal">
               <CalendarCheck className="h-4 w-4" />
             </span>
-            <p className="mt-3 text-sm font-medium">Consultation</p>
-            <p className="text-xs text-muted-foreground">14 June, 10:30</p>
+            <p className="mt-3 text-sm font-medium">{t("Consultation", "Consultanță")}</p>
+            <p className="text-xs text-muted-foreground">{t("14 June, 10:30", "14 iunie, 10:30")}</p>
           </div>
 
           <div className="rounded-xl border border-border bg-background/40 p-4">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary/15 text-primary">
               <FileText className="h-4 w-4" />
             </span>
-            <p className="mt-3 truncate text-sm font-medium">Brand presentation.pdf</p>
-            <p className="text-xs text-muted-foreground">Delivered</p>
+            <p className="mt-3 truncate text-sm font-medium">{t("Brand presentation.pdf", "Prezentare brand.pdf")}</p>
+            <p className="text-xs text-muted-foreground">{t("Delivered", "Livrat")}</p>
           </div>
         </div>
 
         <div className="mt-4 flex items-center gap-2 rounded-xl border border-dashed border-border bg-background/30 px-4 py-3">
           <CheckCircle2 className="h-4 w-4 text-teal" />
           <span className="text-xs text-muted-foreground">
-            Request → Proposal → Delivery, in one calm workflow
+            {t("Request → Proposal → Delivery, in one calm workflow", "Cerere → Propunere → Livrare, într-un flux clar")}
           </span>
         </div>
       </div>
@@ -61,6 +63,7 @@ function FloatingWorkflow() {
 
 export function Hero() {
   const reduce = useReducedMotion();
+  const { t } = useI18n();
 
   const container = {
     hidden: {},
@@ -92,30 +95,32 @@ export function Hero() {
             className="inline-flex items-center gap-2 rounded-full border border-border glass-panel px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary"
           >
             <Sparkles className="h-3.5 w-3.5" />
-            Digital services & AI consultancy
+            {t("Digital services & AI consultancy", "Servicii digitale & consultanță AI")}
           </motion.span>
 
           <motion.h1
             variants={item}
             className="mt-6 text-4xl leading-[1.05] sm:text-5xl lg:text-6xl xl:text-7xl"
           >
-            Digital work, built around{" "}
-            <span className="text-gradient-brand">real people.</span>
+            {t("Digital work, built around", "Muncă digitală, construită în jurul")}{" "}
+            <span className="text-gradient-brand">{t("real people.", "oamenilor reali.")}</span>
           </motion.h1>
 
           <motion.p
             variants={item}
             className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground"
           >
-            Vortex Hub creates professional digital products, practical websites and thoughtful AI
-            automations for individuals and businesses.
+            {t(
+              "Vortex Hub creates professional digital products, practical websites and thoughtful AI automations for individuals and businesses.",
+              "Vortex Hub creează produse digitale profesionale, site-uri web practice și automatizări AI atent gândite pentru persoane și companii.",
+            )}
           </motion.p>
 
           <motion.div variants={item} className="mt-9 flex flex-wrap gap-4">
             <Magnetic>
               <Button asChild size="lg" className="glow-soft">
                 <Link to="/contact">
-                  Start a project
+                  {t("Start a project", "Începe un proiect")}
                   <ArrowRight />
                 </Link>
               </Button>
@@ -127,13 +132,16 @@ export function Hero() {
                 variant="outline"
                 className="border-border glass-panel hover:bg-accent"
               >
-                <Link to="/consultancy">Book a consultation</Link>
+                <Link to="/consultancy">{t("Book a consultation", "Programează o consultanță")}</Link>
               </Button>
             </Magnetic>
           </motion.div>
 
           <motion.p variants={item} className="mt-7 text-sm text-muted-foreground">
-            Clear communication. Secure delivery. Human support from idea to completion.
+            {t(
+              "Clear communication. Secure delivery. Human support from idea to completion.",
+              "Comunicare clară. Livrare sigură. Sprijin uman de la idee până la finalizare.",
+            )}
           </motion.p>
         </motion.div>
 

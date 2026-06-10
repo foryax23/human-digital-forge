@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import type { MessageRow } from "@/hooks/use-dashboard-data";
@@ -24,6 +25,7 @@ function formatWhen(value: string) {
 }
 
 function MessagesPage() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,10 @@ function MessagesPage() {
       .order("created_at", { ascending: true });
     if (err) {
       console.error("[messages] load failed", err);
-      setError("We couldn't load your messages. Please refresh to try again.");
+      setError(t(
+        "We couldn't load your messages. Please refresh to try again.",
+        "Nu am putut încărca mesajele tale. Te rugăm să reîmprospătezi pagina.",
+      ));
     } else {
       setError(null);
       setMessages((data as MessageRow[]) ?? []);
@@ -98,7 +103,7 @@ function MessagesPage() {
       setDraft("");
     } catch (err) {
       console.error("[messages] send failed", err);
-      toast.error("Your message didn't send. Please try again.");
+      toast.error(t("Your message didn't send. Please try again.", "Mesajul nu a fost trimis. Te rugăm să încerci din nou."));
     } finally {
       setSending(false);
     }
@@ -106,9 +111,9 @@ function MessagesPage() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col">
-      <h1 className="text-3xl">Messages</h1>
+      <h1 className="text-3xl">{t("Messages", "Mesaje")}</h1>
       <p className="mt-1 text-muted-foreground">
-        Talk directly with your Vortex Hub team.
+        {t("Talk directly with your Vortex Hub team.", "Discută direct cu echipa ta Vortex Hub.")}
       </p>
 
       {loading && (
@@ -130,9 +135,12 @@ function MessagesPage() {
               <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-teal/15 text-teal">
                 <MessagesSquare className="h-6 w-6" />
               </span>
-              <h2 className="mt-4 text-2xl">Start the conversation</h2>
+              <h2 className="mt-4 text-2xl">{t("Start the conversation", "Începe conversația")}</h2>
               <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-                Send your first message below and your team will reply here.
+                {t(
+                  "Send your first message below and your team will reply here.",
+                  "Trimite primul tău mesaj mai jos și echipa ta va răspunde aici.",
+                )}
               </p>
             </div>
           ) : (
@@ -154,7 +162,7 @@ function MessagesPage() {
                     >
                       <div className="flex items-center justify-between gap-3">
                         <span className="text-sm font-medium">
-                          {mine ? "You" : "Vortex Hub"}
+                          {mine ? t("You", "Tu") : "Vortex Hub"}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {formatWhen(message.created_at)}
@@ -175,7 +183,7 @@ function MessagesPage() {
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Write a message to your team…"
+              placeholder={t("Write a message to your team…", "Scrie un mesaj echipei tale…")}
               rows={3}
               className="resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
               onKeyDown={(e) => {
@@ -185,10 +193,10 @@ function MessagesPage() {
               }}
             />
             <div className="mt-3 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">⌘/Ctrl + Enter to send</span>
+              <span className="text-xs text-muted-foreground">{t("⌘/Ctrl + Enter to send", "⌘/Ctrl + Enter pentru a trimite")}</span>
               <Button type="submit" disabled={sending || !draft.trim()}>
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                Send
+                {t("Send", "Trimite")}
               </Button>
             </div>
           </form>

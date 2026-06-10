@@ -12,6 +12,7 @@ import {
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { CtaBand } from "@/components/shared/CtaBand";
+import { useI18n } from "@/i18n";
 
 const title = "AI Automation and Consultancy | Vortex Hub";
 const description =
@@ -30,22 +31,30 @@ export const Route = createFileRoute("/ai-automation")({
   component: AiAutomationPage,
 });
 
-const solutions = [
-  { icon: FileInput, title: "Form submissions organised automatically" },
-  { icon: MessagesSquare, title: "Client enquiry summaries" },
-  { icon: FolderCog, title: "Document handling workflows" },
-  { icon: PenLine, title: "Content preparation support" },
-  { icon: CalendarClock, title: "Appointment and follow-up assistance" },
-  { icon: Library, title: "Internal knowledge organisation" },
-];
-
 function AiAutomationPage() {
+  const { t } = useI18n();
+
+  const solutions = [
+    { icon: FileInput, title: t("Form submissions organised automatically", "Trimiteri de formulare organizate automat") },
+    { icon: MessagesSquare, title: t("Client enquiry summaries", "Rezumate ale cererilor clienților") },
+    { icon: FolderCog, title: t("Document handling workflows", "Fluxuri de gestionare a documentelor") },
+    { icon: PenLine, title: t("Content preparation support", "Suport pentru pregătirea conținutului") },
+    { icon: CalendarClock, title: t("Appointment and follow-up assistance", "Asistență pentru programări și urmăriri") },
+    { icon: Library, title: t("Internal knowledge organisation", "Organizarea cunoștințelor interne") },
+  ];
+
   return (
     <SiteLayout>
       <PageHero
-        eyebrow="AI automation and consultancy"
-        title="Useful AI solutions for real tasks and real businesses."
-        description="AI automation can support repetitive activities, improve organisation and help teams spend more time on valuable work. Vortex Hub provides practical guidance and carefully planned solutions."
+        eyebrow={t("AI automation and consultancy", "Automatizare AI și consultanță")}
+        title={t(
+          "Useful AI solutions for real tasks and real businesses.",
+          "Soluții AI utile pentru sarcini reale și afaceri reale."
+        )}
+        description={t(
+          "AI automation can support repetitive activities, improve organisation and help teams spend more time on valuable work. Vortex Hub provides practical guidance and carefully planned solutions.",
+          "Automatizarea AI poate sprijini activitățile repetitive, îmbunătăți organizarea și ajuta echipele să petreacă mai mult timp pe muncă valoroasă. Vortex Hub oferă îndrumare practică și soluții planificate cu atenție."
+        )}
       />
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -64,15 +73,18 @@ function AiAutomationPage() {
             <ShieldCheck className="h-5 w-5" />
           </span>
           <p className="text-lg leading-relaxed text-foreground">
-            “AI solutions should be transparent, appropriate and supported by human judgement.”
+            {t(
+              '"AI solutions should be transparent, appropriate and supported by human judgement."',
+              '"Soluțiile AI trebuie să fie transparente, adecvate și susținute de judecata umană."'
+            )}
           </p>
         </div>
       </section>
       <CtaBand
-        title="Exploring practical automation?"
-        primaryLabel="Book an AI workflow review"
+        title={t("Exploring practical automation?", "Explorezi automatizarea practică?")}
+        primaryLabel={t("Book an AI workflow review", "Programează o analiză a fluxului AI")}
         primaryTo="/consultancy"
-        secondaryLabel="Send an enquiry"
+        secondaryLabel={t("Send an enquiry", "Trimite o cerere")}
         secondaryTo="/contact"
       />
     </SiteLayout>

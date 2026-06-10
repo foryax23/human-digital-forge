@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useI18n } from "@/i18n";
 import {
   Select,
   SelectContent,
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/dashboard/new-request")({
 });
 
 function NewRequestPage() {
+  const { t } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
@@ -51,11 +53,11 @@ function NewRequestPage() {
 
     if (error) {
       console.error("[new-request] insert failed", error);
-      toast.error("Could not submit your request. Please try again.");
+      toast.error(t("Could not submit your request. Please try again.", "Nu am putut trimite cererea ta. Te rugăm să încerci din nou."));
       return;
     }
 
-    toast.success("Request submitted — we'll be in touch soon.");
+    toast.success(t("Request submitted — we'll be in touch soon.", "Cerere trimisă — te vom contacta în curând."));
     navigate({ to: "/dashboard" });
   }
 
@@ -64,56 +66,59 @@ function NewRequestPage() {
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
         <Link to="/dashboard">
           <ArrowLeft />
-          Back to overview
+          {t("Back to overview", "Înapoi la prezentare generală")}
         </Link>
       </Button>
 
-      <h1 className="text-3xl">Start a new request</h1>
+      <h1 className="text-3xl">{t("Start a new request", "Începe o cerere nouă")}</h1>
       <p className="mt-1 text-muted-foreground">
-        Tell us what you need and we will turn it into a clear, tracked project.
+        {t(
+          "Tell us what you need and we will turn it into a clear, tracked project.",
+          "Spune-ne de ce ai nevoie și vom transforma cererea într-un proiect clar și urmărit.",
+        )}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="title">Project title</Label>
-          <Input id="title" name="title" required placeholder="e.g. New brand website" />
+          <Label htmlFor="title">{t("Project title", "Titlul proiectului")}</Label>
+          <Input id="title" name="title" required placeholder={t("e.g. New brand website", "ex. Site nou pentru brand")} />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="service">Service needed</Label>
+          <Label htmlFor="service">{t("Service needed", "Serviciu necesar")}</Label>
           <Select value={service} onValueChange={setService}>
             <SelectTrigger id="service">
-              <SelectValue placeholder="Select one" />
+              <SelectValue placeholder={t("Select one", "Selectează una")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="digital-product">Digital Product</SelectItem>
-              <SelectItem value="website">Website</SelectItem>
-              <SelectItem value="ai-automation">AI Automation</SelectItem>
-              <SelectItem value="consultancy">Consultancy</SelectItem>
-              <SelectItem value="not-sure">Not sure yet</SelectItem>
+              <SelectItem value="digital-product">{t("Digital Product", "Produs digital")}</SelectItem>
+              <SelectItem value="website">{t("Website", "Website")}</SelectItem>
+              <SelectItem value="ai-automation">{t("AI Automation", "Automatizare AI")}</SelectItem>
+              <SelectItem value="consultancy">{t("Consultancy", "Consultanță")}</SelectItem>
+              <SelectItem value="not-sure">{t("Not sure yet", "Nu știu încă")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description">Brief description</Label>
+          <Label htmlFor="description">{t("Brief description", "Descriere succintă")}</Label>
           <Textarea id="description" name="description" rows={5} required />
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="budget">Approximate budget (optional)</Label>
-            <Input id="budget" name="budget" placeholder="e.g. €500–€1,500" />
+            <Label htmlFor="budget">{t("Approximate budget (optional)", "Buget aproximativ (opțional)")}</Label>
+            <Input id="budget" name="budget" placeholder={t("e.g. €500–€1,500", "ex. €500–€1.500")} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="timeline">Preferred timeline (optional)</Label>
-            <Input id="timeline" name="timeline" placeholder="e.g. Within 4 weeks" />
+            <Label htmlFor="timeline">{t("Preferred timeline (optional)", "Interval preferat (opțional)")}</Label>
+            <Input id="timeline" name="timeline" placeholder={t("e.g. Within 4 weeks", "ex. În 4 săptămâni")} />
           </div>
         </div>
 
         <Button type="submit" size="lg" disabled={submitting}>
           {submitting && <Loader2 className="animate-spin" />}
-          Submit request
+          {t("Submit request", "Trimite cererea")}
         </Button>
       </form>
     </div>

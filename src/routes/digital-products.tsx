@@ -11,6 +11,7 @@ import {
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { CtaBand } from "@/components/shared/CtaBand";
+import { useI18n } from "@/i18n";
 
 const title = "Digital Products | Vortex Hub";
 const description =
@@ -29,22 +30,30 @@ export const Route = createFileRoute("/digital-products")({
   component: DigitalProductsPage,
 });
 
-const cards = [
-  { icon: Megaphone, title: "Posters and campaign graphics" },
-  { icon: Presentation, title: "Presentation design" },
-  { icon: FileText, title: "Document formatting and layout" },
-  { icon: Share2, title: "Social media visual assets" },
-  { icon: LayoutGrid, title: "Digital templates" },
-  { icon: Sparkles, title: "Custom visual requests" },
-];
-
 function DigitalProductsPage() {
+  const { t } = useI18n();
+
+  const cards = [
+    { icon: Megaphone, title: t("Posters and campaign graphics", "Postere și grafice pentru campanii") },
+    { icon: Presentation, title: t("Presentation design", "Design de prezentări") },
+    { icon: FileText, title: t("Document formatting and layout", "Formatare și aspect de documente") },
+    { icon: Share2, title: t("Social media visual assets", "Materiale vizuale pentru social media") },
+    { icon: LayoutGrid, title: t("Digital templates", "Șabloane digitale") },
+    { icon: Sparkles, title: t("Custom visual requests", "Cereri vizuale personalizate") },
+  ];
+
   return (
     <SiteLayout>
       <PageHero
-        eyebrow="Digital products"
-        title="Design that makes information clearer and ideas easier to present."
-        description="From promotional posters to professionally formatted documents, Vortex Hub creates digital materials that are visually clear, polished and suitable for real use."
+        eyebrow={t("Digital products", "Produse digitale")}
+        title={t(
+          "Design that makes information clearer and ideas easier to present.",
+          "Design care face informațiile mai clare și ideile mai ușor de prezentat."
+        )}
+        description={t(
+          "From promotional posters to professionally formatted documents, Vortex Hub creates digital materials that are visually clear, polished and suitable for real use.",
+          "De la postere promoționale la documente formatate profesional, Vortex Hub creează materiale digitale care sunt clare vizual, îngrijite și potrivite pentru utilizare reală."
+        )}
       />
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -59,10 +68,10 @@ function DigitalProductsPage() {
         </div>
       </section>
       <CtaBand
-        title="Ready to create something polished?"
-        primaryLabel="Request a digital product"
+        title={t("Ready to create something polished?", "Ești gata să creezi ceva rafinat?")}
+        primaryLabel={t("Request a digital product", "Solicită un produs digital")}
         primaryTo="/contact"
-        secondaryLabel="Book a consultation"
+        secondaryLabel={t("Book a consultation", "Programează o consultanță")}
         secondaryTo="/consultancy"
       />
     </SiteLayout>

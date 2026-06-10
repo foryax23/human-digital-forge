@@ -4,6 +4,7 @@ import { Mail, Clock, ShieldCheck } from "lucide-react";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { ContactForm } from "@/components/forms/ContactForm";
+import { useI18n } from "@/i18n";
 
 const title = "Contact | Vortex Hub";
 const description =
@@ -22,19 +23,27 @@ export const Route = createFileRoute("/contact")({
   component: ContactPage,
 });
 
-const points = [
-  { icon: Mail, text: "Write to us at hello@vortexhub.ro" },
-  { icon: Clock, text: "We aim to reply within two working days." },
-  { icon: ShieldCheck, text: "Your details stay private and are used only to reply." },
-];
-
 function ContactPage() {
+  const { t } = useI18n();
+
+  const points = [
+    { icon: Mail, text: t("Write to us at hello@vortexhub.ro", "Scrie-ne la hello@vortexhub.ro") },
+    { icon: Clock, text: t("We aim to reply within two working days.", "Ne propunem să răspundem în două zile lucrătoare.") },
+    { icon: ShieldCheck, text: t("Your details stay private and are used only to reply.", "Datele tale rămân private și sunt folosite doar pentru a răspunde.") },
+  ];
+
   return (
     <SiteLayout>
       <PageHero
-        eyebrow="Contact"
-        title="Tell us what you need. We will help you shape it clearly."
-        description="Share a few details about your idea or challenge and we will respond with a practical next step."
+        eyebrow={t("Contact", "Contact")}
+        title={t(
+          "Tell us what you need. We will help you shape it clearly.",
+          "Spune-ne de ce ai nevoie. Te vom ajuta să-l conturezi clar."
+        )}
+        description={t(
+          "Share a few details about your idea or challenge and we will respond with a practical next step.",
+          "Împărtășește câteva detalii despre ideea sau provocarea ta și vom răspunde cu un pas practic următor."
+        )}
       />
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-[1fr_320px] lg:gap-16">

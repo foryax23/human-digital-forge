@@ -13,10 +13,12 @@ import {
 import { navLinks, Wordmark } from "./nav-data";
 import { LanguageToggle } from "./LanguageToggle";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useI18n } from "@/i18n";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+  const { t, lang } = useI18n();
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
@@ -31,7 +33,7 @@ export function SiteHeader() {
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"
               activeProps={{ className: "text-foreground font-medium" }}
             >
-              {link.label}
+              {lang === "ro" ? link.ro : link.en}
             </Link>
           ))}
         </nav>
@@ -40,15 +42,15 @@ export function SiteHeader() {
           <LanguageToggle />
           {user ? (
             <Button asChild variant="ghost" size="sm">
-              <Link to="/dashboard">Dashboard</Link>
+              <Link to="/dashboard">{t("Dashboard", "Panou")}</Link>
             </Button>
           ) : (
             <Button asChild variant="ghost" size="sm">
-              <Link to="/login">Login</Link>
+              <Link to="/login">{t("Login", "Autentificare")}</Link>
             </Button>
           )}
           <Button asChild size="sm">
-            <Link to="/contact">Start a project</Link>
+            <Link to="/contact">{t("Start a project", "Începe un proiect")}</Link>
           </Button>
         </div>
 
@@ -77,16 +79,16 @@ export function SiteHeader() {
                     className="rounded-md px-3 py-3 text-base text-foreground hover:bg-accent"
                     activeProps={{ className: "bg-accent font-medium" }}
                   >
-                    {link.label}
+                    {lang === "ro" ? link.ro : link.en}
                   </Link>
                 ))}
               </nav>
               <div className="mt-6 flex flex-col gap-3">
                 <Button asChild variant="outline" onClick={() => setOpen(false)}>
-                  <Link to={user ? "/dashboard" : "/login"}>{user ? "Dashboard" : "Login"}</Link>
+                  <Link to={user ? "/dashboard" : "/login"}>{user ? t("Dashboard", "Panou") : t("Login", "Autentificare")}</Link>
                 </Button>
                 <Button asChild onClick={() => setOpen(false)}>
-                  <Link to="/contact">Start a project</Link>
+                  <Link to="/contact">{t("Start a project", "Începe un proiect")}</Link>
                 </Button>
               </div>
 

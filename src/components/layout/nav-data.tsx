@@ -1,12 +1,12 @@
 import { Link } from "@tanstack/react-router";
 
 export const navLinks = [
-  { label: "Services", to: "/services" },
-  { label: "AI Automation", to: "/ai-automation" },
-  { label: "Websites", to: "/websites" },
-  { label: "Consultancy", to: "/consultancy" },
-  { label: "Portfolio", to: "/portfolio" },
-  { label: "Contact", to: "/contact" },
+  { en: "Services", ro: "Servicii", to: "/services" },
+  { en: "AI Automation", ro: "Automatizare AI", to: "/ai-automation" },
+  { en: "Websites", ro: "Site-uri web", to: "/websites" },
+  { en: "Consultancy", ro: "Consultanță", to: "/consultancy" },
+  { en: "Portfolio", ro: "Portofoliu", to: "/portfolio" },
+  { en: "Contact", ro: "Contact", to: "/contact" },
 ] as const;
 
 export function Wordmark({ className }: { className?: string }) {

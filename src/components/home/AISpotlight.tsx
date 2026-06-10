@@ -6,17 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/cinematic/Reveal";
 import { Magnetic } from "@/components/cinematic/Magnetic";
+import { useI18n } from "@/i18n";
 import aiImg from "@/assets/home/ai-spotlight.jpg";
-
-const useCases = [
-  { icon: Inbox, label: "Enquiry and lead organisation." },
-  { icon: FileStack, label: "Document workflow support." },
-  { icon: CalendarClock, label: "Appointment and follow-up processes." },
-  { icon: Boxes, label: "Internal productivity systems." },
-];
 
 export function AISpotlight() {
   const reduce = useReducedMotion();
+  const { t } = useI18n();
+
+  const useCases = [
+    { icon: Inbox, label: t("Enquiry and lead organisation.", "Organizarea cererilor și a lead-urilor.") },
+    { icon: FileStack, label: t("Document workflow support.", "Sprijin pentru fluxul de documente.") },
+    { icon: CalendarClock, label: t("Appointment and follow-up processes.", "Procese de programare și urmărire.") },
+    { icon: Boxes, label: t("Internal productivity systems.", "Sisteme interne de productivitate.") },
+  ];
 
   return (
     <section className="relative overflow-hidden">
@@ -29,18 +31,22 @@ export function AISpotlight() {
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <Reveal>
             <div>
-              <Eyebrow className="text-teal">AI automation</Eyebrow>
+              <Eyebrow className="text-teal">{t("AI automation", "Automatizare AI")}</Eyebrow>
               <h2 className="mt-4 text-3xl leading-tight sm:text-4xl lg:text-5xl">
-                Technology should remove unnecessary work, not remove the human relationship.
+                {t(
+                  "Technology should remove unnecessary work, not remove the human relationship.",
+                  "Tehnologia ar trebui să elimine munca inutilă, nu relația umană.",
+                )}
               </h2>
               <p className="mt-6 text-base leading-relaxed text-muted-foreground">
-                We help individuals and businesses explore useful AI workflows, from organising
-                enquiries and documents to improving repetitive internal processes. Every solution
-                begins with a real need, not with technology for its own sake.
+                {t(
+                  "We help individuals and businesses explore useful AI workflows, from organising enquiries and documents to improving repetitive internal processes. Every solution begins with a real need, not with technology for its own sake.",
+                  "Ajutăm persoane și companii să exploreze fluxuri AI utile, de la organizarea cererilor și documentelor până la îmbunătățirea proceselor interne repetitive. Fiecare soluție pornește de la o nevoie reală, nu de la tehnologie de dragul tehnologiei.",
+                )}
               </p>
               <Magnetic>
                 <Button asChild className="mt-9 glow-soft">
-                  <Link to="/ai-automation">Discuss an automation idea</Link>
+                  <Link to="/ai-automation">{t("Discuss an automation idea", "Discută o idee de automatizare")}</Link>
                 </Button>
               </Magnetic>
             </div>
