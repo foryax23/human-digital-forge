@@ -5,7 +5,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import { HeroBackground } from "@/components/cinematic/HeroBackground";
-import { WorkflowShowcase } from "@/components/home/WorkflowShowcase";
+import { AutomationCore } from "@/components/home/AutomationCore";
 import { useI18n } from "@/i18n";
 import heroBg from "@/assets/home/hero-bg.jpg";
 
@@ -149,7 +149,7 @@ export function Hero() {
           animate={reduce ? undefined : { opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
         >
-          <WorkflowShowcase />
+          <AutomationCore />
         </motion.div>
       </div>
     </section>
