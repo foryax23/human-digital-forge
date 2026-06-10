@@ -1,45 +1,47 @@
-# Pricing Section + Stripe Subscriptions
+# Plan: Detailed animated icons for the "Why Vortex Hub" cards
 
 ## Goal
-Add a pricing section to the landing page with 4 plans (1 free + 3 paid), bilingual EN/RO, prices following the language toggle (EUR in English, LEI/RON in Romanian). Paid plans charge as **monthly subscriptions** through **your own Stripe account**.
+Upgrade the four trust cards (`Propuneri clare`, `Comunicare privată`, `Livrare sigură`, `Verificare umană`) from simple flat Lucide glyphs to richer, multi-layered SVG icons with continuous, subtle looping motion — fully on-brand (indigo `--primary` → teal `--teal`), no flat color hardcoding, no new dependencies.
 
-## The plans
+## Approach
+Build four bespoke SVG icon components rendered inline (so they can be themed with CSS tokens and animated with CSS keyframes). Each icon is composed of several layers — a soft glowing aura, a rounded gradient tile/backing, the main glyph, and 1–2 accent details — that animate independently in a slow, ambient loop. Pure CSS/SVG, GPU-friendly transforms only.
 
-| Plan | Price (EUR / RON) | What's included |
-|------|------|------|
-| **Free** | 0 | Talk to us and build a plan for your future business. Intro conversation only. CTA → contact form. |
-| **Starter** | 20 EUR / 100 LEI / mo | 30 min live Zoom consultation each month, 1 month access to our AI tools. |
-| **Growth** | 50 EUR / 250 LEI / mo | 2 hours of live Zoom consultation, expanded access to our AIs and programs. |
-| **Pro** | 200 EUR / 1000 LEI / mo | Full access to our program, unlimited live support from us. |
+```text
+each icon
+ ├─ aura        slow pulse (scale + opacity)  ~4s loop
+ ├─ tile/back   gentle drift / breathing      ~6s loop
+ ├─ main glyph  subtle float + draw shimmer    ~5s loop
+ └─ accent dot/ring  orbit or twinkle          ~3s loop
+```
 
-Each plan card shows a title, price with `/mo`, short description, a bullet list of features, and a CTA button. The Growth plan is highlighted as "Most popular". All copy written in both English and Romanian using the existing `t(en, ro)` convention. The currency shown switches automatically with the language toggle.
+## What gets built
 
-## How payments work (your Stripe key)
-You chose to connect your own Stripe account. The flow:
+1. **New animated-icon set** — `src/components/cinematic/TrustIcons.tsx`
+   - One small React component per concept, each a self-contained inline `<svg>` with layered `<g>` groups:
+     - `ProposalIcon` — document with an animated check stroke + floating accent lines.
+     - `PrivacyIcon` — shield/lock with a pulsing keyhole and orbiting privacy dot.
+     - `DeliveryIcon` — shield + file with an upward "delivery" shimmer and traveling spark.
+     - `ReviewIcon` — person + check with a sweeping verification ring.
+   - All strokes/fills use `currentColor` and gradient `<defs>` referencing brand tokens, so the existing `text-teal` wrapper continues to drive color.
+   - Gradients defined inline via SVG `linearGradient` using the indigo→teal brand pair.
 
-1. You provide your Stripe **secret key**, stored securely as a backend secret (never in the code or frontend).
-2. Clicking a paid plan opens Stripe's hosted checkout in **subscription mode**, in the currency matching the active language (EUR or RON).
-3. After payment, Stripe redirects back to the site with a success message; cancelling returns to the pricing section.
-4. Logged-in users get their subscription tracked so the app knows their current tier; a webhook keeps that status in sync when subscriptions renew, change, or cancel.
+2. **Animation keyframes** — added to `src/styles.css` (utility classes, e.g. `trust-aura-pulse`, `trust-float`, `trust-orbit`, `trust-shimmer`, `trust-draw`)
+   - Each is an `infinite` loop with eased timing and small offsets so the four cards feel alive but not distracting.
+   - Wrapped in `@media (prefers-reduced-motion: reduce)` to disable looping for users who opt out (accessibility).
 
-## Technical details
+3. **Wire into the section** — `src/components/home/TrustSection.tsx`
+   - Replace the `points[].icon` Lucide references with the new components.
+   - Keep the existing `GlowCard` + `Reveal` layout and the circular `bg-teal/20 text-teal glow-teal` icon tile; the new SVG sits inside it at the same `h-12 w-12` footprint so layout is unchanged.
+   - No changes to copy, grid, or the testimonial block.
 
-**Frontend**
-- New `src/components/home/PricingSection.tsx` — 4 responsive cards, reuses `SectionHeading`, `GlowCard`, `Reveal`, `Magnetic`, `Button`. Prices/features defined inline with `t()`. Currency picked from `useI18n().lang` (`ro` → RON, else → EUR).
-- Mount it in `src/routes/index.tsx` between existing sections (e.g. after `ConsultationSection`), with a `SectionTransition`.
-- A `src/routes/billing-success.tsx` (or success/cancel handling on the pricing section) to show confirmation after Stripe redirect.
+## Scope / constraints
+- Frontend/presentation only — no data, routing, or backend changes.
+- No new npm packages (hand-authored SVG + CSS keyframes only).
+- Reuse existing design tokens (`--primary`, `--teal`, `--gradient-brand`); no hardcoded hex/`text-white` etc.
+- Motion is always-looping (per selection), kept subtle, and respects reduced-motion.
+- Only the four icons in `TrustSection` change; the rest of the page is untouched.
 
-**Backend (your Stripe key, BYOK)**
-- Enable the bring-your-own-key Stripe integration and add `STRIPE_SECRET_KEY` as a secret (you'll paste it into a secure form — I never see or store it in code).
-- `src/lib/checkout.functions.ts` — a `createServerFn` that builds a Stripe Checkout Session in `subscription` mode using inline `price_data` (amount + currency + monthly recurrence based on chosen plan and language) and returns the checkout URL. Validates the plan id and currency server-side.
-- A Stripe webhook route at `src/routes/api/public/stripe-webhook.ts` that verifies the Stripe signature and upserts subscription status.
-- `subscribers` table (user_id, email, stripe_customer_id, tier, status, current_period_end) with RLS — users read only their own row; the webhook writes via the service role. Includes GRANTs.
-
-**Notes**
-- Amounts are passed as fixed server-side maps keyed by plan + currency, so the client cannot tamper with prices.
-- Free plan button links to `/contact` (no Stripe).
-- Going fully live with real charges requires your Stripe account to be active; test mode works immediately for verifying the flow.
-
-## Out of scope (unless you want it)
-- Gating actual AI/program features behind tiers (this plan tracks subscription status; wiring each feature to a tier can be a follow-up).
-- A customer billing portal for self-service cancellation (can add later).
+## Technical notes
+- Icons render at a fixed `viewBox="0 0 48 48"` and scale to the tile via `className="h-5 w-5"`/container, matching the current sizing.
+- Animations rely only on `transform` and `opacity` for smooth compositing; `transform-box: fill-box` + `transform-origin: center` set on animated `<g>` elements so SVG transforms pivot correctly.
+- Stagger via per-icon `animation-delay` to avoid synchronized "blinking" across cards.
