@@ -63,6 +63,7 @@ function FloatingWorkflow() {
 
 export function Hero() {
   const reduce = useReducedMotion();
+  const { t } = useI18n();
 
   const container = {
     hidden: {},
