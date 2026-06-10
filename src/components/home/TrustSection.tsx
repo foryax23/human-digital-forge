@@ -1,5 +1,5 @@
 import { SectionHeading } from "@/components/shared/SectionHeading";
-import { GlowCard } from "@/components/cinematic/GlowCard";
+
 import { Reveal } from "@/components/cinematic/Reveal";
 import { ProposalIcon, PrivacyIcon, DeliveryIcon, ReviewIcon } from "@/components/cinematic/TrustIcons";
 import { useI18n } from "@/i18n";
