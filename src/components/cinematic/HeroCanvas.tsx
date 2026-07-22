@@ -2,9 +2,9 @@ import { useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-const INDIGO = "#4f46e5";
-const BLUE = "#7c75ff";
-const CYAN = "#3b9eae";
+const INDIGO = "#6A1B9A";
+const BLUE = "#9D4EDD";
+const CYAN = "#C77DFF";
 
 /** Slow-drifting background star field for depth. */
 function Particles() {

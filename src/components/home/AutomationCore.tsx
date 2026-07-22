@@ -90,19 +90,19 @@ export function AutomationCore() {
             <radialGradient id={`core-${uid}`} cx="42%" cy="38%" r="65%">
               <stop offset="0%" stopColor="oklch(0.92 0.06 270)" />
               <stop offset="40%" stopColor="oklch(0.66 0.22 277)" />
-              <stop offset="100%" stopColor="oklch(0.42 0.19 290)" />
+              <stop offset="100%" stopColor="oklch(0.32 0.18 300)" />
             </radialGradient>
             <radialGradient id={`coreGlow-${uid}`} cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="oklch(0.62 0.22 277 / 0.55)" />
-              <stop offset="100%" stopColor="oklch(0.62 0.22 277 / 0)" />
+              <stop offset="0%" stopColor="oklch(0.66 0.22 305 / 0.55)" />
+              <stop offset="100%" stopColor="oklch(0.66 0.22 305 / 0)" />
             </radialGradient>
             <linearGradient id={`wire-${uid}`} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="oklch(0.585 0.225 277)" />
-              <stop offset="100%" stopColor="oklch(0.74 0.11 200)" />
+              <stop offset="0%" stopColor="oklch(0.66 0.22 305)" />
+              <stop offset="100%" stopColor="oklch(0.78 0.16 310)" />
             </linearGradient>
             <radialGradient id={`packet-${uid}`} cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="oklch(0.98 0.04 200)" />
-              <stop offset="100%" stopColor="oklch(0.74 0.13 200 / 0)" />
+              <stop offset="100%" stopColor="oklch(0.78 0.16 310 / 0)" />
             </radialGradient>
           </defs>
 
@@ -165,8 +165,8 @@ export function AutomationCore() {
             const Icon = n.icon;
             const tone =
               n.tone === "teal"
-                ? { ring: "oklch(0.74 0.11 200 / 0.5)", fill: "oklch(0.74 0.11 200 / 0.16)" }
-                : { ring: "oklch(0.585 0.225 277 / 0.55)", fill: "oklch(0.585 0.225 277 / 0.18)" };
+                ? { ring: "oklch(0.78 0.16 310 / 0.5)", fill: "oklch(0.78 0.16 310 / 0.16)" }
+                : { ring: "oklch(0.66 0.22 305 / 0.55)", fill: "oklch(0.66 0.22 305 / 0.18)" };
             return (
               <g key={`node-${i}`}>
                 <circle cx={n.x} cy={n.y} r={26} fill={tone.fill} stroke={tone.ring} strokeWidth={1.5} />
@@ -198,7 +198,7 @@ export function AutomationCore() {
             cy={CY}
             r={52}
             fill="none"
-            stroke="oklch(0.74 0.11 200 / 0.4)"
+            stroke="oklch(0.78 0.16 310 / 0.4)"
             strokeWidth={1.2}
             strokeDasharray="3 7"
           >
