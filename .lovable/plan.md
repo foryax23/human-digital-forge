@@ -1,39 +1,65 @@
-# Replace the workflow card with a living automation circuit
+# Adopt the Vortex Hub visual identity
 
-Swap the right-side `WorkflowShowcase` card for a dynamic SVG automation diagram: a glowing central core with curved circuit paths reaching out to service nodes, with bright "information" packets traveling along every circuit so the whole scene feels alive.
+Roll the uploaded brand board (purple vortex logo, Exo 2 typography, deep-purple palette) into the live site — replacing the current indigo→teal system and the generic "V" wordmark.
 
-```text
-        ╭ Strategie
-   ╭────●──────╮
-   │           ╲   ● Design
- ( ◎ CORE ) ====●───────
-   │           ╱   ● Automatizare
-   ╰────●──────╯
-        ╰ Website-uri / AI / Răspuns rapid
-   (packets of light travel along each line toward/away from the core)
-```
+## 1. Brand assets
 
-## What changes
+Save the uploaded reference and generate clean production assets from it via `lovable-assets` (no binaries in the repo):
+- `vortex-logo-primary.png` — full "VORTEX HUB" wordmark on transparent background (used in header + footer).
+- `vortex-logo-mark.png` — the swirl "V" mark only (used as favicon/app icon and small contexts).
+- `vortex-social-banner.jpg` — the social banner from the board (OG image fallback).
 
-**New component `src/components/home/AutomationCore.tsx`**
-- A single responsive SVG (viewBox-based, scales to the column) on a glass panel matching the existing card frame (`rounded-3xl`, border, `glow-soft`, soft outer gradient glow).
-- **Central core**: layered radial-gradient orb (violet→blue→cyan brand tokens) with a soft pulsing glow and a small lightning/automation glyph in the center.
-- **Service nodes** arranged around the core, each a rounded glass chip with a Lucide icon + label: Strategie, Design, Automatizare, Website-uri, AI, plus Răspuns rapid.
-- **Circuits**: smooth curved SVG paths from the core to each node, drawn with a faint base line plus an additive glowing stroke.
-- **Traveling information**: small bright dots animate along each path (animated `<circle>` packets moving with offset distances / a moving dashed glow), so circuits continuously pulse with data flowing in and out of the core.
+Wire the mark as the favicon in `src/routes/__root.tsx` `head()` and as `og:image` where no page-specific hero exists.
 
-**Wire-up in `src/components/home/Hero.tsx`**
-- Replace `<WorkflowShowcase />` with `<AutomationCore />` inside the existing animated right-column wrapper (keep the entrance animation).
+## 2. Typography — single font: Exo 2
 
-**Cleanup**
-- Delete `src/components/home/WorkflowShowcase.tsx`.
-- Delete the now-unused avatar assets: `src/assets/home/avatar-1.jpg` … `avatar-4.jpg`.
+- Load **Exo 2** (weights 400/500/600/700/800) via `<link>` in `__root.tsx` head (not `@import`, per Tailwind v4 rules).
+- In `src/styles.css` set both `--font-sans` and `--font-serif` to `"Exo 2"` so every heading and body element uses it — one font across the site as requested.
+- Keep the existing heading weight/tracking rules.
 
-## Technical details
-- Pure SVG + CSS keyframes / `motion` — no WebGL, SSR-safe, no new dependencies.
-- Respects `prefers-reduced-motion`: packets and pulse stop, leaving a static lit diagram.
-- All labels bilingual via `t(en, ro)` from `useI18n`.
-- Colors strictly from existing design tokens (primary / teal / brand gradients) — no hardcoded hex in components.
+## 3. Color palette (from the brand board)
+
+Replace the indigo/teal tokens with the purple ramp (`#2B0E4A`, `#6A1B9A`, `#9D4EDD`, `#C77DFF`, `#FFFFFF`), converted to oklch:
+
+- Light theme `--primary` → mid purple `#9D4EDD`.
+- Dark theme (`.dark` + `.cinematic`) `--background` → deep `#1a0a2e`-ish surface with `--primary` at `#C77DFF` for glow.
+- `--gradient-brand` → `linear-gradient(135deg, #6A1B9A, #C77DFF)`.
+- Update `.cinematic-flow`, `.bg-aurora`, `.glow-soft`, `flow-orb-*` to shades of purple (drop the teal accent — brand is mono-purple).
+- Update `--ring`, `--sidebar-primary`, chart colors to sit inside the same ramp.
+
+## 4. Wordmark component
+
+Rewrite `src/components/layout/nav-data.tsx` `Wordmark`:
+- Replace the "V" gradient tile with the `vortex-logo-primary.png` asset (height ~36px, `img` with proper alt).
+- On mobile / small contexts, fall back to `vortex-logo-mark.png`.
+- Remove the two-line "Vortex / Hub" text — the logo is the wordmark.
+
+## 5. Hero + accents cleanup
+
+- The Hero `PlanetGlyph` (saturn glyph) becomes a small purple swirl chip using the mark asset, keeping the pulsing glow.
+- `HeroCanvas` (3D core) recolor: replace `INDIGO/BLUE/CYAN` constants with three purple stops from the ramp so the WebGL globe matches the brand.
+- `AutomationCore` circuit strokes/nodes → purple ramp.
+- Language toggle active state, buttons, pricing gradient CTA, and all `bg-gradient-brand`/`text-gradient-brand` usages inherit automatically from the new tokens — no per-component edits needed.
+
+## 6. Tagline (optional, from the board)
+
+Update the hero eyebrow / footer tagline to the brand line: **"Powering Ideas. Spinning Solutions."** with the RO equivalent **"Idei puternice. Soluții în mișcare."** — still routed through `useI18n`.
+
+## Files touched
+
+- `src/routes/__root.tsx` — Exo 2 `<link>`, favicon, default OG image.
+- `src/styles.css` — font vars, full purple palette, gradient/glow/aurora recolor.
+- `src/components/layout/nav-data.tsx` — logo-image Wordmark.
+- `src/components/home/Hero.tsx` — PlanetGlyph swap, tagline.
+- `src/components/cinematic/HeroCanvas.tsx` — purple color constants.
+- `src/components/home/AutomationCore.tsx` — purple strokes/nodes.
+- `src/assets/vortex-logo-*.png.asset.json` (+ social banner) — new asset pointers.
+
+## Out of scope
+
+- No layout/component structure changes, no copy overhaul beyond the tagline, no backend work.
+- The teal accent color is retired; every "teal" utility resolves to a lighter purple so nothing breaks visually.
 
 ## Result
-The hero's right side becomes a calm, premium automation diagram: a pulsing core feeding glowing data packets through circuits to the service nodes, replacing the static workflow card while keeping the same on-brand framing.
+
+Every page reads as one brand: Exo 2 typography throughout, purple palette, real Vortex Hub swirl logo in the header/footer/favicon, and the WebGL + circuit visuals recolored to match the identity board.
