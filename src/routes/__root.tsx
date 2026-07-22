@@ -99,8 +99,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&display=swap",
       },
+      { rel: "icon", type: "image/png", href: "/__l5e/assets-v1/e32e4aa8-9a32-4001-966f-2b221bf05045/vortex-hub-mark.png" },
       {
         rel: "stylesheet",
         href: appCss,
