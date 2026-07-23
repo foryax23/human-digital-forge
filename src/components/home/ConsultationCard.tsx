@@ -46,11 +46,19 @@ export function ConsultationCard() {
   ];
 
   return (
-    <div className="relative flex h-full w-full flex-col gap-5 overflow-hidden rounded-3xl border border-border glass-panel glow-soft p-6 sm:p-7">
+    <div className="relative rounded-3xl bg-gradient-brand p-[1.5px] glow-strong">
+      {/* FREE ribbon */}
+      <div
+        aria-hidden
+        className="absolute -top-3 -right-3 z-10 rotate-6 rounded-full bg-gradient-brand px-3 py-1 text-[0.65rem] font-bold uppercase tracking-widest text-primary-foreground shadow-[0_8px_24px_-6px_oklch(0.66_0.22_305/0.65)]"
+      >
+        {t("Free", "Gratuit")}
+      </div>
+      <div className="relative flex h-full w-full flex-col gap-5 overflow-hidden rounded-[calc(1.5rem-1.5px)] bg-[oklch(0.12_0.06_300/0.9)] p-6 backdrop-blur-xl sm:p-7">
       {/* Ambient purple glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-primary/30 blur-3xl"
+        className="pointer-events-none absolute -top-24 -right-16 h-64 w-64 rounded-full bg-primary/40 blur-3xl"
       />
 
       {/* Status pill */}
@@ -169,7 +177,7 @@ export function ConsultationCard() {
           <Button
             asChild
             size="lg"
-            className="w-full bg-gradient-brand text-primary-foreground glow-soft hover:opacity-90"
+            className="h-12 w-full bg-gradient-brand text-base text-primary-foreground shadow-[0_10px_30px_-8px_oklch(0.66_0.22_305/0.7)] hover:opacity-90"
           >
             <Link to="/consultancy" hash={`slot=${iso}T${time}`}>
               {t("Book my slot", "Rezervă slotul meu")}
@@ -180,6 +188,7 @@ export function ConsultationCard() {
         <p className="text-center text-xs text-muted-foreground">
           {t("Trusted by 40+ founders across the EU", "Ales de peste 40 de fondatori din UE")}
         </p>
+      </div>
       </div>
     </div>
   );

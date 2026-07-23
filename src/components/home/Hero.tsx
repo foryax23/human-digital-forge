@@ -59,7 +59,7 @@ export function Hero() {
       />
 
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-24 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-32">
-        <motion.div variants={container} initial="hidden" animate="show">
+        <motion.div variants={container} initial="hidden" animate="show" className="relative z-10">
           <motion.div
             variants={item}
             className="inline-flex items-center gap-3 rounded-full border border-border glass-panel py-2 pl-2 pr-5"
