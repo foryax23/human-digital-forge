@@ -4,9 +4,10 @@ import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
-import { VortexVideoBackground } from "@/components/cinematic/VortexVideoBackground";
+import { HeroBackground } from "@/components/cinematic/HeroBackground";
 import { AutomationCore } from "@/components/home/AutomationCore";
 import { useI18n } from "@/i18n";
+import heroBg from "@/assets/home/hero-bg.jpg";
 
 import { brandAssets } from "@/components/layout/nav-data";
 
@@ -45,8 +46,17 @@ export function Hero() {
 
   return (
     <section className="relative isolate overflow-hidden">
-      <VortexVideoBackground />
-
+      <img
+        src={heroBg}
+        alt=""
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-40"
+      />
+      <HeroBackground />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-background"
+      />
 
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-24 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-32">
         <motion.div variants={container} initial="hidden" animate="show">
@@ -67,7 +77,7 @@ export function Hero() {
 
           <motion.h1
             variants={item}
-            className="mt-6 text-4xl leading-[1.05] tracking-[-0.02em] text-glow-brand sm:text-5xl lg:text-6xl xl:text-7xl"
+            className="mt-6 text-4xl leading-[1.05] sm:text-5xl lg:text-6xl xl:text-7xl"
           >
             {t("Digital work, built around", "Muncă digitală, construită în jurul")}{" "}
             <span className="text-gradient-brand">{t("real people.", "oamenilor reali.")}</span>

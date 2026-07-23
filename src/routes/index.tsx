@@ -52,19 +52,18 @@ function Index() {
         <Hero />
         <SectionTransition tone="indigo" />
         <ServicesIntro />
-        <SectionTransition tone="magenta" />
+        <SectionTransition tone="teal" />
         <AudienceSection />
         <SectionTransition tone="indigo" />
         <ProcessSteps />
         <AISpotlight />
-        <SectionTransition tone="magenta" />
+        <SectionTransition tone="teal" />
         <PortfolioPreview />
         <SectionTransition tone="indigo" />
         <ConsultationSection />
-        <SectionTransition tone="magenta" />
-        <PricingSection />
         <SectionTransition tone="indigo" />
-
+        <PricingSection />
+        <SectionTransition tone="teal" />
 
         <TrustSection />
         <FinalCTA />
