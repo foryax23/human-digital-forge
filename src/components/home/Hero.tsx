@@ -5,28 +5,45 @@ import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import { HeroBackground } from "@/components/cinematic/HeroBackground";
-import { ConsultationCard } from "@/components/home/ConsultationCard";
+import { AutomationCore } from "@/components/home/AutomationCore";
 import { useI18n } from "@/i18n";
 import heroBg from "@/assets/home/hero-bg.jpg";
 
-import { brandAssets } from "@/components/layout/nav-data";
-
-/** Vortex swirl mark used in the partner badge. */
+/** Glowing saturn-style planet glyph used in the partner badge. */
 function PlanetGlyph() {
   return (
     <span className="relative grid h-12 w-12 place-items-center">
       <span
         aria-hidden
-        className="absolute inset-0 rounded-full bg-gradient-brand opacity-45 blur-md animate-glow-pulse"
+        className="absolute inset-0 rounded-full bg-gradient-brand opacity-40 blur-md animate-glow-pulse"
       />
-      <img
-        src={brandAssets.mark}
-        alt=""
-        aria-hidden
-        width={44}
-        height={44}
-        className="relative h-11 w-11 object-contain"
-      />
+      <svg viewBox="0 0 48 48" className="relative h-11 w-11" aria-hidden>
+        <defs>
+          <radialGradient id="planetBody" cx="40%" cy="35%" r="70%">
+            <stop offset="0%" stopColor="oklch(0.78 0.12 280)" />
+            <stop offset="55%" stopColor="oklch(0.585 0.225 277)" />
+            <stop offset="100%" stopColor="oklch(0.4 0.18 290)" />
+          </radialGradient>
+          <linearGradient id="planetRing" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="oklch(0.74 0.11 200)" />
+            <stop offset="100%" stopColor="oklch(0.585 0.225 277)" />
+          </linearGradient>
+        </defs>
+        <circle cx="24" cy="24" r="9" fill="url(#planetBody)" />
+        <ellipse
+          cx="24"
+          cy="24"
+          rx="18"
+          ry="6.5"
+          fill="none"
+          stroke="url(#planetRing)"
+          strokeWidth="1.6"
+          transform="rotate(-22 24 24)"
+        />
+        <circle cx="11" cy="14" r="0.9" fill="oklch(0.9 0.05 270)" />
+        <circle cx="38" cy="34" r="0.8" fill="oklch(0.85 0.08 200)" />
+        <circle cx="36" cy="11" r="0.7" fill="oklch(0.9 0.05 270)" />
+      </svg>
     </span>
   );
 }
@@ -59,7 +76,7 @@ export function Hero() {
       />
 
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-24 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-32">
-        <motion.div variants={container} initial="hidden" animate="show" className="relative z-10">
+        <motion.div variants={container} initial="hidden" animate="show">
           <motion.div
             variants={item}
             className="inline-flex items-center gap-3 rounded-full border border-border glass-panel py-2 pl-2 pr-5"
@@ -131,9 +148,8 @@ export function Hero() {
           initial={reduce ? false : { opacity: 0, scale: 0.94 }}
           animate={reduce ? undefined : { opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="relative w-full"
         >
-          <ConsultationCard />
+          <AutomationCore />
         </motion.div>
       </div>
     </section>

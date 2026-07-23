@@ -1,58 +1,39 @@
-## Goal
-Sharper, denser, interactive ASCII background across the hero — no WebGL globe competing with it — plus a more visible, punchier booking card.
+# Replace the workflow card with a living automation circuit
 
-## 1. Remove the WebGL globe
+Swap the right-side `WorkflowShowcase` card for a dynamic SVG automation diagram: a glowing central core with curved circuit paths reaching out to service nodes, with bright "information" packets traveling along every circuit so the whole scene feels alive.
 
-`src/components/cinematic/HeroBackground.tsx`:
-- Drop the `HeroCanvas` lazy import, the `CanvasBoundary` error wrapper, the `ready` state, and the `useEffect` that gates it.
-- Keep only two layers: the `bg-aurora` gradient base and the ASCII layer (promoted to hero visual).
-- Also delete the now-unused `src/components/cinematic/HeroCanvas.tsx` file (no other importers — verified via search).
+```text
+        ╭ Strategie
+   ╭────●──────╮
+   │           ╲   ● Design
+ ( ◎ CORE ) ====●───────
+   │           ╱   ● Automatizare
+   ╰────●──────╯
+        ╰ Website-uri / AI / Răspuns rapid
+   (packets of light travel along each line toward/away from the core)
+```
 
-## 2. Higher-fidelity ASCII
+## What changes
 
-Same file, upgraded settings so the ASCII reads as a crafted image, not a pattern:
+**New component `src/components/home/AutomationCore.tsx`**
+- A single responsive SVG (viewBox-based, scales to the column) on a glass panel matching the existing card frame (`rounded-3xl`, border, `glow-soft`, soft outer gradient glow).
+- **Central core**: layered radial-gradient orb (violet→blue→cyan brand tokens) with a soft pulsing glow and a small lightning/automation glyph in the center.
+- **Service nodes** arranged around the core, each a rounded glass chip with a Lucide icon + label: Strategie, Design, Automatizare, Website-uri, AI, plus Răspuns rapid.
+- **Circuits**: smooth curved SVG paths from the core to each node, drawn with a faint base line plus an additive glowing stroke.
+- **Traveling information**: small bright dots animate along each path (animated `<circle>` packets moving with offset distances / a moving dashed glow), so circuits continuously pulse with data flowing in and out of the core.
 
-- `fontSize={7}` (was 12) — roughly 3× more characters, denser pixel-grid feel.
-- `lineHeight={1}` and `characterSpacing={0.55}` — tighter cell so glyphs read as pixels, not letters.
-- `fontWeight={600}` — heavier strokes stay legible at 7px.
-- `contrast={1.35}`, `brightnessBoost={2.6}`, `posterize={5}` — crisper tonal separation.
-- Richer ramp: `chars=" .·:-=+*#%@█"` (space → full block) for a wider luminance range.
-- `dither="floyd-steinberg"`, `ditherStrength={0.35}` — hides banding in the vortex gradient.
-- Opacity raised to `~0.55` (was 0.18) since the globe is gone; keep `mask-radial-fade` so copy stays legible on the left half.
-- Drop `mix-blend-screen` — with higher opacity it washes out; use straight alpha.
+**Wire-up in `src/components/home/Hero.tsx`**
+- Replace `<WorkflowShowcase />` with `<AutomationCore />` inside the existing animated right-column wrapper (keep the entrance animation).
 
-## 3. Make the ASCII interactive again
+**Cleanup**
+- Delete `src/components/home/WorkflowShowcase.tsx`.
+- Delete the now-unused avatar assets: `src/assets/home/avatar-1.jpg` … `avatar-4.jpg`.
 
-- `mouseRadius={220}`, `mouseStrength={38}`, `mouseWaveSpeed={1.2}` on the background instance.
-- Remove `pointer-events-none` from the ASCII wrapper so the canvas receives pointer events; keep it on the mask overlay only.
-- Wrap the hero copy column in `pointer-events-auto` inside a container marked `pointer-events-none` — so the ASCII layer catches cursor movement anywhere the copy isn't, but buttons/links stay clickable. (Concretely: outer hero grid keeps default; only the ASCII wrapper gets pointer events, and the copy column stays above it via `z-10`.)
+## Technical details
+- Pure SVG + CSS keyframes / `motion` — no WebGL, SSR-safe, no new dependencies.
+- Respects `prefers-reduced-motion`: packets and pulse stop, leaving a static lit diagram.
+- All labels bilingual via `t(en, ro)` from `useI18n`.
+- Colors strictly from existing design tokens (primary / teal / brand gradients) — no hardcoded hex in components.
 
-## 4. More visible booking card
-
-`src/components/home/ConsultationCard.tsx`:
-
-- Solid backdrop instead of translucent glass: replace `glass-panel` with `bg-[oklch(0.12_0.06_300/0.88)]` + `backdrop-blur-xl` so text is always crisp over the ASCII.
-- Thicker gradient border via a wrapper: `p-[1.5px] rounded-3xl bg-gradient-brand` around the inner card (double-border trick, gives the card a lit edge).
-- Stronger outer glow: swap `glow-soft` for a new `glow-strong` utility in `src/styles.css`:
-  ```css
-  .glow-strong {
-    box-shadow:
-      0 0 0 1px oklch(1 0 0 / 10%),
-      0 0 60px -10px oklch(0.66 0.22 305 / 45%),
-      0 40px 90px -30px oklch(0.30 0.20 300 / 70%);
-  }
-  ```
-- Slightly larger typography (h3 → `text-2xl sm:text-3xl` already, bump to `sm:text-[2rem]`) and increase day-chip contrast: active state uses `bg-primary/25` + `text-primary-foreground`.
-- Add a floating "FREE" ribbon in the top-right corner (small rotated gradient badge) — draws the eye immediately.
-- Bump CTA size to `h-12` and add `shadow-[0_10px_30px_-8px_var(--primary)]` for lift.
-
-## 5. Keep Hero.tsx wiring
-
-Only tweak: give the copy column `relative z-10` so it sits above the interactive ASCII layer; the right-column `motion.div` already floats above via the grid.
-
-## Files touched
-- **edit** `src/components/cinematic/HeroBackground.tsx` — remove globe, upgrade ASCII, interactivity
-- **delete** `src/components/cinematic/HeroCanvas.tsx`
-- **edit** `src/styles.css` — add `.glow-strong` utility
-- **edit** `src/components/home/ConsultationCard.tsx` — solid bg, gradient border, glow, FREE ribbon, bigger CTA
-- **edit** `src/components/home/Hero.tsx` — `z-10` on copy column
+## Result
+The hero's right side becomes a calm, premium automation diagram: a pulsing core feeding glowing data packets through circuits to the service nodes, replacing the static workflow card while keeping the same on-brand framing.
