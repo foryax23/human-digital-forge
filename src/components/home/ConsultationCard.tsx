@@ -171,7 +171,7 @@ export function ConsultationCard() {
             size="lg"
             className="w-full bg-gradient-brand text-primary-foreground glow-soft hover:opacity-90"
           >
-            <Link to="/consultancy" search={{ day: iso, time } as never}>
+            <Link to="/consultancy" hash={`slot=${iso}T${time}`}>
               {t("Book my slot", "Rezervă slotul meu")}
               <ArrowRight />
             </Link>
