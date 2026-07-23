@@ -128,7 +128,8 @@ export function AsciiEffect({
 
     const resize = () => {
       const rect = container.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // Use full device pixel ratio (capped at 3) so glyphs stay crisp on retina/4K.
+      const dpr = Math.min(window.devicePixelRatio || 1, 3);
       width = Math.max(1, rect.width);
       height = Math.max(1, rect.height);
       canvas.width = Math.round(width * dpr);
@@ -136,6 +137,10 @@ export function AsciiEffect({
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = "high";
+      sampleContext.imageSmoothingEnabled = true;
+      sampleContext.imageSmoothingQuality = "high";
       if (loaded) draw(performance.now());
     };
 
