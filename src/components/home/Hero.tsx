@@ -5,7 +5,8 @@ import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import { HeroBackground } from "@/components/cinematic/HeroBackground";
-import { AutomationCore } from "@/components/home/AutomationCore";
+import { AsciiEffect } from "@/components/ui/ascii-effect";
+import heroAsciiAsset from "@/assets/home/hero-ascii-source.jpg.asset.json";
 import { useI18n } from "@/i18n";
 import heroBg from "@/assets/home/hero-bg.jpg";
 
@@ -131,8 +132,28 @@ export function Hero() {
           initial={reduce ? false : { opacity: 0, scale: 0.94 }}
           animate={reduce ? undefined : { opacity: 1, scale: 1 }}
           transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="relative aspect-square w-full overflow-hidden rounded-3xl border border-border glass-panel glow-soft"
         >
-          <AutomationCore />
+          <AsciiEffect
+            variant="flow"
+            imageSrc={heroAsciiAsset.url}
+            alt={t(
+              "Animated ASCII rendering of the Vortex Hub automation core",
+              "Redare ASCII animată a nucleului de automatizare Vortex Hub",
+            )}
+            fontSize={10}
+            scale={1.1}
+            colors={["#2B0E4A", "#6A1B9A", "#9D4EDD", "#C77DFF", "#F5E9FF"]}
+            backgroundColor="#0F0620"
+            flowSpeed={0.18}
+            flowStrength={10}
+            flowFrequency={0.02}
+            mouseRadius={180}
+            mouseStrength={26}
+            brightnessBoost={2.4}
+            contrast={1.2}
+          />
+          <div aria-hidden className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/5" />
         </motion.div>
       </div>
     </section>
