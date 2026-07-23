@@ -1,23 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import vortexVideo from "@/assets/home/vortex-hero.mp4.asset.json";
-import vortexPoster from "@/assets/home/vortex-hero-poster.jpg";
+import vortexVideo from "@/assets/home/vortex-hero-v3.mp4.asset.json";
+import vortexPoster from "@/assets/home/vortex-hero-v3-poster.jpg";
 
 /**
- * Looping vortex black-hole video used as the hero background.
+ * Looping cinematic vortex video used as the hero background.
  *
  * - SSR / initial paint ships the poster only (fast LCP).
  * - Video mounts client-side, autoplay muted+inline+loop.
+ * - Playback rate is slowed for a more majestic rotation.
  * - `prefers-reduced-motion` users stay on the poster.
- * - A radial scrim + bottom fade keeps hero text AAA-legible.
  */
 export function VortexVideoBackground() {
   const [play, setPlay] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!reduce) setPlay(true);
   }, []);
+
+  useEffect(() => {
+    if (play && videoRef.current) {
+      videoRef.current.playbackRate = 0.6;
+    }
+  }, [play]);
 
   return (
     <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
@@ -33,6 +40,7 @@ export function VortexVideoBackground() {
 
       {play && (
         <video
+          ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover"
           autoPlay
           muted
@@ -46,23 +54,23 @@ export function VortexVideoBackground() {
         </video>
       )}
 
-      {/* Purple color-grade wash */}
+      {/* Subtle purple color-grade wash (lighter so lightning reads) */}
       <div
         aria-hidden
         className="absolute inset-0 mix-blend-color"
         style={{
           background:
-            "linear-gradient(135deg, oklch(0.42 0.22 305 / 55%), oklch(0.78 0.16 310 / 35%))",
+            "linear-gradient(135deg, oklch(0.42 0.22 305 / 35%), oklch(0.78 0.16 310 / 20%))",
         }}
       />
 
-      {/* Radial vignette so the vortex reads as depth, not noise */}
+      {/* Radial vignette so the vortex reads as depth */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at center, transparent 30%, oklch(0.1 0.06 295 / 70%) 100%)",
+            "radial-gradient(ellipse at center, transparent 25%, oklch(0.08 0.06 295 / 82%) 100%)",
         }}
       />
 
