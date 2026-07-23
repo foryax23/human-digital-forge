@@ -18,10 +18,10 @@ export function HeroBackground() {
           variant="flow"
           imageSrc={heroAsciiAsset.url}
           chars=" .·:-=+*#%@█"
-          fontSize={7}
+          fontSize={6}
           fontWeight={600}
-          lineHeight={1}
-          characterSpacing={0.55}
+          lineHeight={0.95}
+          characterSpacing={0.5}
           scale={1.25}
           colors={["#2B0E4A", "#6A1B9A", "#9D4EDD", "#C77DFF", "#F5E9FF"]}
           backgroundColor="#0F0620"
