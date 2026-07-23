@@ -1,54 +1,79 @@
 ## Goal
-Replace the `AutomationCore` SVG diagram in the hero's right column with the Componentry **AsciiEffect** component, rendering a business-relevant image as animated ASCII art in the Vortex Hub purple palette.
+Move the ASCII vortex to a subtle full-bleed background layer in the hero, and replace the right-column box with a creative, useful **Booking / Consultation card** that drives conversions.
 
-## What to build
+## 1. ASCII as hero background (subtle wash)
 
-### 1. Add the component
-Create `src/components/ui/ascii-effect.tsx` with the full source from the Componentry snippet. Fixes required while transcribing:
-- Restore the JSX return (the pasted snippet has empty `return ( ... )` blocks). Render a wrapping `div` with `ref={containerRef}`, `className`, `onPointerMove={trackPointer}`, `onPointerLeave={resetPointer}`, and a child `<canvas ref={canvasRef} aria-label={alt} role="img" />`.
-- Restore preset returns: `AsciiImage` → `<AsciiEffect variant="image" {...props} />`, `AsciiFlow` → `variant="flow"`, `AsciiGlitch` → `variant="glitch"`.
-- Add typed refs (`useRef<HTMLDivElement>(null)`, `useRef<HTMLCanvasElement>(null)`) so strict TS builds pass.
+In `src/components/cinematic/HeroBackground.tsx`, layer `AsciiEffect` under the existing WebGL globe:
 
-### 2. Generate the source image
-Business-relevant subject that reads well as ASCII (high contrast, clear silhouette on dark bg): a stylized **vortex/spiral network node** — concentric swirl converging to a bright core with faint orbiting data points. Saved to `src/assets/home/hero-ascii-source.jpg` (1024×1024, dark background, luminous purple/violet subject). This ties the ASCII visual to the Vortex Hub identity and the "automation core" concept it replaces.
-
-### 3. Wire it into the Hero
-Edit `src/components/home/Hero.tsx`:
-- Remove `import { AutomationCore }` and its usage inside the right-column `motion.div`.
-- Import `AsciiEffect` and the new image.
-- Replace `<AutomationCore />` with a framed panel:
-
-```tsx
-<div className="relative aspect-square w-full overflow-hidden rounded-3xl border border-border glass-panel glow-soft">
-  <AsciiEffect
-    variant="flow"
-    imageSrc={heroAscii}
-    fontSize={10}
-    scale={1.1}
-    colors={["#2B0E4A", "#9D4EDD", "#C77DFF", "#F5E9FF"]}
-    backgroundColor="#0F0620"
-    flowSpeed={0.18}
-    flowStrength={10}
-    mouseRadius={180}
-    mouseStrength={26}
-  />
-  <div aria-hidden className="pointer-events-none absolute inset-0 rounded-3xl ring-1 ring-inset ring-white/5" />
-</div>
+```
+[bg-aurora gradient]  ← base
+[AsciiEffect flow]    ← new, ~18% opacity, blurred edges via mask
+[HeroCanvas WebGL]    ← existing globe (unchanged)
+[bottom fade]         ← existing
 ```
 
-- Keep the existing `motion.div` entrance animation and `useReducedMotion` behavior (AsciiEffect internally respects `prefers-reduced-motion` and falls back to a static render).
+- Import `AsciiEffect` + the existing `heroAsciiAsset` URL.
+- Wrap it in an absolutely-positioned div: `opacity-[0.18]`, radial mask `mask-image: radial-gradient(ellipse at center, black 55%, transparent 85%)` (add utility `.mask-radial-fade` in `styles.css`), `pointer-events-none` so it doesn't steal cursor.
+- Slower/gentler settings: `flowSpeed={0.08}`, `flowStrength={6}`, `fontSize={12}`, `mouseStrength={0}` (no cursor interaction on bg).
+- Respect reduced motion (component already does).
 
-### 4. Cleanup
-Leave `AutomationCore.tsx` on disk (still exported, no other importers) — safe to delete once we confirm nothing else references it. The plan will remove it after a project-wide search confirms zero usages.
+## 2. Remove ASCII from the right column
 
-## Technical notes
-- No new dependencies; component uses only React + Canvas 2D.
-- Purple gradient (`colors`) drives the character color so the visual matches the site palette without changing tokens.
-- `variant="flow"` gives a subtle continuous motion + magnetic cursor interaction, matching the hero's "Motion: 5 / interactive cursor" spec.
-- Image asset generated at build time — no runtime fetch, works with SSR/edge Worker.
+In `src/components/home/Hero.tsx`:
+- Drop `AsciiEffect` import + asset import + the framed panel.
+- Replace the `motion.div` contents with the new booking card component.
+
+## 3. New right-column component: `ConsultationCard`
+
+Create `src/components/home/ConsultationCard.tsx`. Bilingual via `useI18n`. Purpose: instantly show value + book a free discovery call.
+
+### Visual structure
+
+```
+┌─ glass-panel, purple border, glow-soft, rounded-3xl ─┐
+│  ● Available now  ·  30-min free discovery call      │  ← live status pill (pulsing dot)
+│                                                       │
+│  Talk to a strategist                                 │  ← h3, gradient
+│  Free 30-min call · no obligation                     │  ← muted
+│                                                       │
+│  ┌───────┬───────┬───────┐                           │
+│  │ Thu   │ Fri   │ Mon   │   ← next 3 available days │
+│  │ 24    │ 25    │ 28    │      (computed client-side)
+│  │ 3 slots│ 5 slots│ 4 slots│                        │
+│  └───────┴───────┴───────┘                           │
+│                                                       │
+│  Preferred time                                       │
+│  [ 10:00 ] [ 13:30 ] [ 16:00 ]  ← chip selector      │
+│                                                       │
+│  What we'll cover:                                    │
+│  ✓ Your goals & current stack                         │
+│  ✓ A concrete roadmap & estimate                      │
+│  ✓ Next steps — zero pressure                         │
+│                                                       │
+│  [  Book my slot  → ]   ← gradient CTA, magnetic     │
+│  Trusted by 40+ founders across EU                    │  ← tiny proof line + avatar stack
+└───────────────────────────────────────────────────────┘
+```
+
+### Behavior
+
+- Day/time chips are purely presentational selectors (local `useState`); clicking **Book my slot** navigates to `/consultancy?day=<iso>&time=<hhmm>` (existing route), where the real booking form lives. No new backend.
+- Dates computed live: next 3 weekdays from `new Date()`; slot counts are deterministic pseudo-random per day so they don't flicker on re-render.
+- Pulsing green dot on the "Available now" pill.
+- Motion: card fades/scales in (existing wrapper animation stays); chips get a subtle `whileHover` scale via CSS; the CTA uses the existing `<Magnetic>` primitive.
+- All text bilingual through `t(en, ro)`.
+
+### Why this is useful + creative
+- **Useful:** turns the hero from decorative into a direct conversion surface (matches "powerful selling website" goal).
+- **Creative:** feels like a mini product (live availability, slot chips) rather than a static image — reinforces the "we build real digital products" positioning.
+
+## 4. Cleanup
+
+- Remove now-unused imports in `Hero.tsx` (`AsciiEffect`, `heroAsciiAsset`).
+- Keep `src/components/ui/ascii-effect.tsx` and the source image — both still used by the background.
 
 ## Files touched
-- **create** `src/components/ui/ascii-effect.tsx`
-- **create** `src/assets/home/hero-ascii-source.jpg` (generated)
-- **edit** `src/components/home/Hero.tsx`
-- **delete** `src/components/home/AutomationCore.tsx` (after usage check)
+- **edit** `src/components/cinematic/HeroBackground.tsx` — add ASCII layer
+- **edit** `src/styles.css` — add `.mask-radial-fade` utility
+- **create** `src/components/home/ConsultationCard.tsx`
+- **edit** `src/components/home/Hero.tsx` — swap right column
