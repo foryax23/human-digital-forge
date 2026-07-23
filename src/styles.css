@@ -260,6 +260,11 @@
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
   }
+  /* Radial fade mask for full-bleed background layers */
+  .mask-radial-fade {
+    -webkit-mask-image: radial-gradient(ellipse at center, black 50%, transparent 85%);
+    mask-image: radial-gradient(ellipse at center, black 50%, transparent 85%);
+  }
   /* Slow drifting aurora gradient backdrop — Vortex purple */
   .bg-aurora {
     background:
