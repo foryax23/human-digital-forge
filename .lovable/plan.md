@@ -1,79 +1,58 @@
 ## Goal
-Move the ASCII vortex to a subtle full-bleed background layer in the hero, and replace the right-column box with a creative, useful **Booking / Consultation card** that drives conversions.
+Sharper, denser, interactive ASCII background across the hero — no WebGL globe competing with it — plus a more visible, punchier booking card.
 
-## 1. ASCII as hero background (subtle wash)
+## 1. Remove the WebGL globe
 
-In `src/components/cinematic/HeroBackground.tsx`, layer `AsciiEffect` under the existing WebGL globe:
+`src/components/cinematic/HeroBackground.tsx`:
+- Drop the `HeroCanvas` lazy import, the `CanvasBoundary` error wrapper, the `ready` state, and the `useEffect` that gates it.
+- Keep only two layers: the `bg-aurora` gradient base and the ASCII layer (promoted to hero visual).
+- Also delete the now-unused `src/components/cinematic/HeroCanvas.tsx` file (no other importers — verified via search).
 
-```
-[bg-aurora gradient]  ← base
-[AsciiEffect flow]    ← new, ~18% opacity, blurred edges via mask
-[HeroCanvas WebGL]    ← existing globe (unchanged)
-[bottom fade]         ← existing
-```
+## 2. Higher-fidelity ASCII
 
-- Import `AsciiEffect` + the existing `heroAsciiAsset` URL.
-- Wrap it in an absolutely-positioned div: `opacity-[0.18]`, radial mask `mask-image: radial-gradient(ellipse at center, black 55%, transparent 85%)` (add utility `.mask-radial-fade` in `styles.css`), `pointer-events-none` so it doesn't steal cursor.
-- Slower/gentler settings: `flowSpeed={0.08}`, `flowStrength={6}`, `fontSize={12}`, `mouseStrength={0}` (no cursor interaction on bg).
-- Respect reduced motion (component already does).
+Same file, upgraded settings so the ASCII reads as a crafted image, not a pattern:
 
-## 2. Remove ASCII from the right column
+- `fontSize={7}` (was 12) — roughly 3× more characters, denser pixel-grid feel.
+- `lineHeight={1}` and `characterSpacing={0.55}` — tighter cell so glyphs read as pixels, not letters.
+- `fontWeight={600}` — heavier strokes stay legible at 7px.
+- `contrast={1.35}`, `brightnessBoost={2.6}`, `posterize={5}` — crisper tonal separation.
+- Richer ramp: `chars=" .·:-=+*#%@█"` (space → full block) for a wider luminance range.
+- `dither="floyd-steinberg"`, `ditherStrength={0.35}` — hides banding in the vortex gradient.
+- Opacity raised to `~0.55` (was 0.18) since the globe is gone; keep `mask-radial-fade` so copy stays legible on the left half.
+- Drop `mix-blend-screen` — with higher opacity it washes out; use straight alpha.
 
-In `src/components/home/Hero.tsx`:
-- Drop `AsciiEffect` import + asset import + the framed panel.
-- Replace the `motion.div` contents with the new booking card component.
+## 3. Make the ASCII interactive again
 
-## 3. New right-column component: `ConsultationCard`
+- `mouseRadius={220}`, `mouseStrength={38}`, `mouseWaveSpeed={1.2}` on the background instance.
+- Remove `pointer-events-none` from the ASCII wrapper so the canvas receives pointer events; keep it on the mask overlay only.
+- Wrap the hero copy column in `pointer-events-auto` inside a container marked `pointer-events-none` — so the ASCII layer catches cursor movement anywhere the copy isn't, but buttons/links stay clickable. (Concretely: outer hero grid keeps default; only the ASCII wrapper gets pointer events, and the copy column stays above it via `z-10`.)
 
-Create `src/components/home/ConsultationCard.tsx`. Bilingual via `useI18n`. Purpose: instantly show value + book a free discovery call.
+## 4. More visible booking card
 
-### Visual structure
+`src/components/home/ConsultationCard.tsx`:
 
-```
-┌─ glass-panel, purple border, glow-soft, rounded-3xl ─┐
-│  ● Available now  ·  30-min free discovery call      │  ← live status pill (pulsing dot)
-│                                                       │
-│  Talk to a strategist                                 │  ← h3, gradient
-│  Free 30-min call · no obligation                     │  ← muted
-│                                                       │
-│  ┌───────┬───────┬───────┐                           │
-│  │ Thu   │ Fri   │ Mon   │   ← next 3 available days │
-│  │ 24    │ 25    │ 28    │      (computed client-side)
-│  │ 3 slots│ 5 slots│ 4 slots│                        │
-│  └───────┴───────┴───────┘                           │
-│                                                       │
-│  Preferred time                                       │
-│  [ 10:00 ] [ 13:30 ] [ 16:00 ]  ← chip selector      │
-│                                                       │
-│  What we'll cover:                                    │
-│  ✓ Your goals & current stack                         │
-│  ✓ A concrete roadmap & estimate                      │
-│  ✓ Next steps — zero pressure                         │
-│                                                       │
-│  [  Book my slot  → ]   ← gradient CTA, magnetic     │
-│  Trusted by 40+ founders across EU                    │  ← tiny proof line + avatar stack
-└───────────────────────────────────────────────────────┘
-```
+- Solid backdrop instead of translucent glass: replace `glass-panel` with `bg-[oklch(0.12_0.06_300/0.88)]` + `backdrop-blur-xl` so text is always crisp over the ASCII.
+- Thicker gradient border via a wrapper: `p-[1.5px] rounded-3xl bg-gradient-brand` around the inner card (double-border trick, gives the card a lit edge).
+- Stronger outer glow: swap `glow-soft` for a new `glow-strong` utility in `src/styles.css`:
+  ```css
+  .glow-strong {
+    box-shadow:
+      0 0 0 1px oklch(1 0 0 / 10%),
+      0 0 60px -10px oklch(0.66 0.22 305 / 45%),
+      0 40px 90px -30px oklch(0.30 0.20 300 / 70%);
+  }
+  ```
+- Slightly larger typography (h3 → `text-2xl sm:text-3xl` already, bump to `sm:text-[2rem]`) and increase day-chip contrast: active state uses `bg-primary/25` + `text-primary-foreground`.
+- Add a floating "FREE" ribbon in the top-right corner (small rotated gradient badge) — draws the eye immediately.
+- Bump CTA size to `h-12` and add `shadow-[0_10px_30px_-8px_var(--primary)]` for lift.
 
-### Behavior
+## 5. Keep Hero.tsx wiring
 
-- Day/time chips are purely presentational selectors (local `useState`); clicking **Book my slot** navigates to `/consultancy?day=<iso>&time=<hhmm>` (existing route), where the real booking form lives. No new backend.
-- Dates computed live: next 3 weekdays from `new Date()`; slot counts are deterministic pseudo-random per day so they don't flicker on re-render.
-- Pulsing green dot on the "Available now" pill.
-- Motion: card fades/scales in (existing wrapper animation stays); chips get a subtle `whileHover` scale via CSS; the CTA uses the existing `<Magnetic>` primitive.
-- All text bilingual through `t(en, ro)`.
-
-### Why this is useful + creative
-- **Useful:** turns the hero from decorative into a direct conversion surface (matches "powerful selling website" goal).
-- **Creative:** feels like a mini product (live availability, slot chips) rather than a static image — reinforces the "we build real digital products" positioning.
-
-## 4. Cleanup
-
-- Remove now-unused imports in `Hero.tsx` (`AsciiEffect`, `heroAsciiAsset`).
-- Keep `src/components/ui/ascii-effect.tsx` and the source image — both still used by the background.
+Only tweak: give the copy column `relative z-10` so it sits above the interactive ASCII layer; the right-column `motion.div` already floats above via the grid.
 
 ## Files touched
-- **edit** `src/components/cinematic/HeroBackground.tsx` — add ASCII layer
-- **edit** `src/styles.css` — add `.mask-radial-fade` utility
-- **create** `src/components/home/ConsultationCard.tsx`
-- **edit** `src/components/home/Hero.tsx` — swap right column
+- **edit** `src/components/cinematic/HeroBackground.tsx` — remove globe, upgrade ASCII, interactivity
+- **delete** `src/components/cinematic/HeroCanvas.tsx`
+- **edit** `src/styles.css` — add `.glow-strong` utility
+- **edit** `src/components/home/ConsultationCard.tsx` — solid bg, gradient border, glow, FREE ribbon, bigger CTA
+- **edit** `src/components/home/Hero.tsx` — `z-10` on copy column
