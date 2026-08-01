@@ -4,15 +4,19 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { lovable } from "@/integrations/lovable/index";
 
-export function GoogleButton({ label = "Continue with Google" }: { label?: string }) {
+export function GoogleButton({
+  label = "Continue with Google",
+  redirect_uri = window.location.origin + "/dashboard",
+}: {
+  label?: string;
+  redirect_uri?: string;
+}) {
   const [loading, setLoading] = useState(false);
 
   async function handleGoogle() {
     setLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/dashboard",
-      });
+      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri });
       if (result.error) {
         toast.error("Google sign-in failed. Please try again.");
         setLoading(false);

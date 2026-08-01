@@ -15,9 +15,12 @@ const title = "Login | Vortex Hub";
 const description = "Access your Vortex Hub projects, messages and completed deliveries.";
 
 export const Route = createFileRoute("/login")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    redirect: typeof search.redirect === "string" ? search.redirect : "/dashboard",
-  }),
+  validateSearch: (search: Record<string, unknown>) => {
+    const result: { redirect?: string; next?: string } = {};
+    if (typeof search.redirect === "string") result.redirect = search.redirect;
+    if (typeof search.next === "string") result.next = search.next;
+    return result;
+  },
   head: () => ({
     meta: [
       { title },
@@ -31,13 +34,15 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const { redirect } = Route.useSearch();
+  const { redirect, next } = Route.useSearch();
   const navigate = useNavigate();
   const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"login" | "forgot">("login");
+
+  const returnTo = next ?? redirect ?? "/dashboard";
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -48,7 +53,7 @@ function LoginPage() {
       toast.error(error.message || t("Could not log in. Check your details.", "Nu s-a putut autentifica. Verificați datele introduse."));
       return;
     }
-    navigate({ to: redirect });
+    navigate({ to: returnTo });
   }
 
   async function handleForgot(e: React.FormEvent) {
@@ -116,7 +121,7 @@ function LoginPage() {
         </span>
       }
     >
-      <GoogleButton />
+      <GoogleButton redirect_uri={`${window.location.origin}${returnTo}`} />
       <AuthDivider />
       <form className="space-y-5" onSubmit={handleLogin}>
         <div className="space-y-2">
