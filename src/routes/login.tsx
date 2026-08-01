@@ -15,10 +15,12 @@ const title = "Login | Vortex Hub";
 const description = "Access your Vortex Hub projects, messages and completed deliveries.";
 
 export const Route = createFileRoute("/login")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    redirect: typeof search.redirect === "string" ? search.redirect : "/dashboard",
-    next: typeof search.next === "string" ? search.next : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>) => {
+    const result: { redirect?: string; next?: string } = {};
+    if (typeof search.redirect === "string") result.redirect = search.redirect;
+    if (typeof search.next === "string") result.next = search.next;
+    return result;
+  },
   head: () => ({
     meta: [
       { title },
