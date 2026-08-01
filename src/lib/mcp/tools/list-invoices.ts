@@ -15,11 +15,12 @@ export default defineTool({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
+    const userId = ctx.getUserId()!;
     const supabase = supabaseForUser(ctx);
     let query = supabase
       .from("invoices")
       .select("id, invoice_number, description, amount_cents, currency, status, issued_at, due_at, paid_at, created_at")
-      .eq("user_id", ctx.getUserId())
+      .eq("user_id", userId)
       .order("issued_at", { ascending: false })
       .limit(limit);
 

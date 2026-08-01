@@ -16,11 +16,12 @@ export default defineTool({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
+    const userId = ctx.getUserId()!;
     const supabase = supabaseForUser(ctx);
     const { data, error } = await supabase
       .from("consultations")
       .insert({
-        user_id: ctx.getUserId(),
+        user_id: userId,
         title,
         notes: notes ?? null,
         scheduled_at: scheduled_at ?? null,

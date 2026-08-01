@@ -15,11 +15,12 @@ export default defineTool({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
+    const userId = ctx.getUserId()!;
     const supabase = supabaseForUser(ctx);
     let query = supabase
       .from("messages")
       .select("id, project_id, sender, body, read, created_at")
-      .eq("user_id", ctx.getUserId())
+      .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(limit);
 

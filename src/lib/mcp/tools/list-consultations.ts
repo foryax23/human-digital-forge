@@ -14,11 +14,12 @@ export default defineTool({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
+    const userId = ctx.getUserId()!;
     const supabase = supabaseForUser(ctx);
     const { data, error } = await supabase
       .from("consultations")
       .select("id, title, notes, scheduled_at, status, created_at")
-      .eq("user_id", ctx.getUserId())
+      .eq("user_id", userId)
       .order("scheduled_at", { ascending: false, nullsFirst: false })
       .limit(limit);
 
