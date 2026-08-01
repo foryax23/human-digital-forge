@@ -119,7 +119,7 @@ function LoginPage() {
         </span>
       }
     >
-      <GoogleButton />
+      <GoogleButton redirect_uri={`${window.location.origin}${returnTo}`} />
       <AuthDivider />
       <form className="space-y-5" onSubmit={handleLogin}>
         <div className="space-y-2">
