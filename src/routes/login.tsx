@@ -32,13 +32,15 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const { redirect } = Route.useSearch();
+  const { redirect, next } = Route.useSearch();
   const navigate = useNavigate();
   const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"login" | "forgot">("login");
+
+  const returnTo = next ?? redirect;
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -49,7 +51,7 @@ function LoginPage() {
       toast.error(error.message || t("Could not log in. Check your details.", "Nu s-a putut autentifica. Verificați datele introduse."));
       return;
     }
-    navigate({ to: redirect });
+    navigate({ to: returnTo });
   }
 
   async function handleForgot(e: React.FormEvent) {
