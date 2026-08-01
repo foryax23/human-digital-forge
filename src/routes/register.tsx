@@ -39,6 +39,7 @@ export const Route = createFileRoute("/register")({
 });
 
 function RegisterPage() {
+  const { next } = Route.useSearch();
   const navigate = useNavigate();
   const { t } = useI18n();
   const [fullName, setFullName] = useState("");
@@ -48,6 +49,8 @@ function RegisterPage() {
   const [company, setCompany] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const returnTo = next ?? "/dashboard";
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -55,7 +58,7 @@ function RegisterPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}${returnTo}`,
         data: {
           full_name: fullName,
           client_type: clientType,
@@ -69,10 +72,10 @@ function RegisterPage() {
       return;
     }
     if (data.session) {
-      navigate({ to: "/dashboard" });
+      navigate({ to: returnTo });
     } else {
       toast.success(t("Account created. Please check your email to confirm, then log in.", "Cont creat. Verificați emailul pentru confirmare, apoi autentificați-vă."));
-      navigate({ to: "/login" });
+      navigate({ to: "/login", search: next ? { next } : undefined });
     }
   }
 
