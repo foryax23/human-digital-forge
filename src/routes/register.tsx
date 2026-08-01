@@ -93,7 +93,10 @@ function RegisterPage() {
         </span>
       }
     >
-      <GoogleButton label={t("Sign up with Google", "Înregistrare cu Google")} />
+      <GoogleButton
+        label={t("Sign up with Google", "Înregistrare cu Google")}
+        redirect_uri={`${window.location.origin}${returnTo}`}
+      />
       <AuthDivider />
       <form className="space-y-5" onSubmit={handleSubmit}>
         <div className="space-y-2">
