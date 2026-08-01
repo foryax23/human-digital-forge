@@ -17,6 +17,7 @@ const description = "Access your Vortex Hub projects, messages and completed del
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>) => ({
     redirect: typeof search.redirect === "string" ? search.redirect : "/dashboard",
+    next: typeof search.next === "string" ? search.next : undefined,
   }),
   head: () => ({
     meta: [
