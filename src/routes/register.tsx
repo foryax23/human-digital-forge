@@ -23,6 +23,9 @@ const title = "Create account | Vortex Hub";
 const description = "Create a Vortex Hub client account to submit projects and track progress.";
 
 export const Route = createFileRoute("/register")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    next: typeof search.next === "string" ? search.next : undefined,
+  }),
   head: () => ({
     meta: [
       { title },
