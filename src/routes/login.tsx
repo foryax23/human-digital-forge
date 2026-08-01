@@ -42,7 +42,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"login" | "forgot">("login");
 
-  const returnTo = next ?? redirect;
+  const returnTo = next ?? redirect ?? "/dashboard";
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
