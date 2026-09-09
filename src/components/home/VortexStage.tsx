@@ -41,7 +41,7 @@ export function VortexStage() {
         src={swirlAsset.url}
         alt=""
         aria-hidden
-        className="absolute left-1/2 top-1/2 h-[92vmin] w-[92vmin] -translate-x-1/2 -translate-y-1/2 object-contain opacity-50 mix-blend-screen"
+        className="absolute left-1/2 top-1/2 h-[86vmin] w-[86vmin] -translate-x-1/2 -translate-y-1/2 object-contain opacity-25 blur-[2px] mix-blend-screen hero-mask"
       />
       {ready && (
         <SceneBoundary>

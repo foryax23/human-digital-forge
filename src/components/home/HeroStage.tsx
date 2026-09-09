@@ -69,7 +69,7 @@ export function HeroStage() {
       {/* Layer 3 — foreground vignette so the type always reads */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(58%_50%_at_50%_50%,oklch(0.085_0.026_286/0.72)_0%,oklch(0.085_0.026_286/0.35)_55%,oklch(0.085_0.026_286/0.95)_100%)]"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(58%_50%_at_50%_50%,oklch(0.085_0.026_286/0.86)_0%,oklch(0.085_0.026_286/0.5)_58%,oklch(0.085_0.026_286/0.96)_100%)]"
       />
       <div
         aria-hidden
