@@ -16,7 +16,7 @@ export function TrustSection() {
 
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+    <section className="mx-auto max-w-7xl px-4 py-28 sm:px-6 lg:px-8">
       <Reveal>
         <SectionHeading
           align="center"
@@ -24,21 +24,23 @@ export function TrustSection() {
           title={t("Designed for a straightforward and secure client experience.", "Conceput pentru o experiență de client simplă și sigură.")}
         />
       </Reveal>
-      <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-20 grid gap-14 sm:grid-cols-2 lg:grid-cols-4">
         {points.map((point, i) => (
           <Reveal key={point.label} delay={i * 0.1}>
-            <div className="flex flex-col items-center px-4 text-center">
-              <point.icon className="h-20 w-20 text-teal" />
-              <p className="mt-5 text-sm font-medium">{point.label}</p>
+            <div className="flex flex-col items-center px-2 text-center">
+              <point.icon className="h-24 w-24 text-teal" />
+              <p className="mt-7 max-w-[15rem] text-sm font-medium leading-relaxed">{point.label}</p>
             </div>
           </Reveal>
         ))}
       </div>
 
       <Reveal delay={0.1}>
-        <div className="mt-10 rounded-2xl border border-dashed border-border glass-panel p-8 text-center">
-          <p className="text-sm font-medium text-foreground">{t("Client feedback", "Feedback de la clienți")}</p>
-          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+        <div className="mx-auto mt-20 max-w-2xl rounded-[1.75rem] bento-panel p-10 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            {t("Client feedback", "Feedback de la clienți")}
+          </p>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
             {t(
               "A reserved space for approved client feedback. Real testimonials will appear here once client work is shared with permission.",
               "Un spațiu rezervat pentru feedback aprobat al clienților. Testimoniale reale vor apărea aici după ce lucrările sunt partajate cu acordul clienților.",
@@ -46,6 +48,7 @@ export function TrustSection() {
           </p>
         </div>
       </Reveal>
+
     </section>
   );
 }

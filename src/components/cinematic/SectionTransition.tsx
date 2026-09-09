@@ -3,8 +3,8 @@ import { cn } from "@/lib/utils";
 type Tone = "indigo" | "teal";
 
 /**
- * A luminous seam placed between sections so each one melts into the next.
- * Renders a thin gradient line plus a soft glow orb that bridges the boundary.
+ * A single soft glow that bridges two sections. No hard seam line — the page
+ * reads as one continuous scene.
  */
 export function SectionTransition({
   tone = "indigo",
@@ -15,10 +15,9 @@ export function SectionTransition({
 }) {
   return (
     <div aria-hidden className={cn("relative h-px w-full", className)}>
-      <div className="section-seam absolute inset-x-0 top-0" />
       <div
         className={cn(
-          "flow-orb left-1/2 top-1/2 h-48 w-[36rem] max-w-[80vw] -translate-x-1/2 -translate-y-1/2 animate-glow-pulse",
+          "flow-orb left-1/2 top-1/2 h-40 w-[44rem] max-w-[86vw] -translate-x-1/2 -translate-y-1/2 animate-glow-pulse",
           tone === "teal" ? "flow-orb-teal" : "flow-orb-indigo",
         )}
       />
