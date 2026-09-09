@@ -17,8 +17,9 @@ class SceneBoundary extends Component<{ children: ReactNode }, { failed: boolean
 }
 
 /**
- * The hero's cinematic vortex. Client-only and lazy-loaded; SSR, reduced-motion
- * users and unsupported devices see the static swirl instead.
+ * The cinematic vortex. Fills its container edge to edge; client-only and
+ * lazy-loaded, so SSR, reduced-motion users and unsupported devices get the
+ * static swirl frame instead. Pauses itself when scrolled out of view.
  */
 export function VortexStage() {
   const [ready, setReady] = useState(false);
@@ -29,23 +30,23 @@ export function VortexStage() {
   }, []);
 
   return (
-    <div className="pointer-events-none relative isolate aspect-square w-full max-w-[42rem] lg:max-w-none">
+    <div className="pointer-events-none absolute inset-0 isolate overflow-hidden">
       {/* Depth glow behind the vortex */}
       <div
         aria-hidden
-        className="absolute inset-[12%] rounded-full bg-gradient-brand opacity-25 blur-[70px] animate-glow-pulse"
+        className="absolute left-1/2 top-1/2 h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-brand opacity-30 blur-[110px] animate-glow-pulse"
       />
       {/* Static fallback / SSR frame */}
       <img
         src={swirlAsset.url}
         alt=""
         aria-hidden
-        className="absolute inset-[6%] h-[88%] w-[88%] object-contain opacity-70 mix-blend-screen"
+        className="absolute left-1/2 top-1/2 h-[92vmin] w-[92vmin] -translate-x-1/2 -translate-y-1/2 object-contain opacity-50 mix-blend-screen"
       />
       {ready && (
         <SceneBoundary>
           <Suspense fallback={null}>
-            <div className="absolute inset-0">
+            <div className="absolute inset-0 hero-mask">
               <VortexScene />
             </div>
           </Suspense>
