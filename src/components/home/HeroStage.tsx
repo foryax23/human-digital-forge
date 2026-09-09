@@ -81,7 +81,7 @@ export function HeroStage() {
         style={reduce ? undefined : { y: copyY, opacity: copyOpacity }}
       >
         <motion.div
-          initial="hidden"
+          initial={reduce ? false : "hidden"}
           animate="show"
           variants={{ hidden: {}, show: {} }}
           className="inline-flex items-center gap-3 rounded-full border border-border glass-panel py-1.5 pl-1.5 pr-5"
@@ -109,7 +109,7 @@ export function HeroStage() {
               key={line.text}
               variants={rise}
               custom={i + 1}
-              initial="hidden"
+              initial={reduce ? false : "hidden"}
               animate="show"
               className="block"
             >
@@ -121,7 +121,7 @@ export function HeroStage() {
         <motion.p
           variants={rise}
           custom={4}
-          initial="hidden"
+          initial={reduce ? false : "hidden"}
           animate="show"
           className="mx-auto mt-9 max-w-2xl text-balance text-lg leading-relaxed text-muted-foreground"
         >
@@ -134,7 +134,7 @@ export function HeroStage() {
         <motion.div
           variants={rise}
           custom={5}
-          initial="hidden"
+          initial={reduce ? false : "hidden"}
           animate="show"
           className="mt-11 flex flex-wrap items-center justify-center gap-3"
         >
