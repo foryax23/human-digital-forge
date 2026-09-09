@@ -8,8 +8,9 @@ import { HeroBackground } from "@/components/cinematic/HeroBackground";
 import { AutomationCore } from "@/components/home/AutomationCore";
 import { useI18n } from "@/i18n";
 import heroBg from "@/assets/home/hero-bg.jpg";
+import swirlAsset from "@/assets/brand/vortex-swirl.png.asset.json";
 
-/** Glowing saturn-style planet glyph used in the partner badge. */
+/** Brand swirl mark used in the partner badge. */
 function PlanetGlyph() {
   return (
     <span className="relative grid h-12 w-12 place-items-center">
@@ -17,33 +18,12 @@ function PlanetGlyph() {
         aria-hidden
         className="absolute inset-0 rounded-full bg-gradient-brand opacity-40 blur-md animate-glow-pulse"
       />
-      <svg viewBox="0 0 48 48" className="relative h-11 w-11" aria-hidden>
-        <defs>
-          <radialGradient id="planetBody" cx="40%" cy="35%" r="70%">
-            <stop offset="0%" stopColor="oklch(0.78 0.12 280)" />
-            <stop offset="55%" stopColor="oklch(0.585 0.225 277)" />
-            <stop offset="100%" stopColor="oklch(0.4 0.18 290)" />
-          </radialGradient>
-          <linearGradient id="planetRing" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="oklch(0.74 0.11 200)" />
-            <stop offset="100%" stopColor="oklch(0.585 0.225 277)" />
-          </linearGradient>
-        </defs>
-        <circle cx="24" cy="24" r="9" fill="url(#planetBody)" />
-        <ellipse
-          cx="24"
-          cy="24"
-          rx="18"
-          ry="6.5"
-          fill="none"
-          stroke="url(#planetRing)"
-          strokeWidth="1.6"
-          transform="rotate(-22 24 24)"
-        />
-        <circle cx="11" cy="14" r="0.9" fill="oklch(0.9 0.05 270)" />
-        <circle cx="38" cy="34" r="0.8" fill="oklch(0.85 0.08 200)" />
-        <circle cx="36" cy="11" r="0.7" fill="oklch(0.9 0.05 270)" />
-      </svg>
+      <img
+        src={swirlAsset.url}
+        alt=""
+        aria-hidden
+        className="relative h-11 w-11 animate-spin [animation-duration:18s]"
+      />
     </span>
   );
 }

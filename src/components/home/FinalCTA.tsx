@@ -5,11 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/cinematic/Reveal";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import { useI18n } from "@/i18n";
+import swirlLoop from "@/assets/brand/vortex-swirl-loop.mp4.asset.json";
+import swirlPoster from "@/assets/brand/vortex-swirl.png.asset.json";
+
 
 export function FinalCTA() {
   const { t } = useI18n();
   return (
     <section className="relative overflow-hidden border-t border-border bg-ink text-ink-foreground">
+      <video
+        src={swirlLoop.url}
+        poster={swirlPoster.url}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[38rem] w-[38rem] -translate-x-1/2 -translate-y-1/2 object-contain opacity-25 mix-blend-screen motion-reduce:hidden"
+      />
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-60" />
       <div
         aria-hidden
