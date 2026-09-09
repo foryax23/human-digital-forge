@@ -24,11 +24,16 @@ export function FinalCTA() {
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-1/2 h-[38rem] w-[38rem] -translate-x-1/2 -translate-y-1/2 object-contain opacity-25 mix-blend-screen motion-reduce:hidden"
       />
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-60" />
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-40" />
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-brand opacity-30 blur-3xl animate-glow-pulse"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(90%_70%_at_50%_50%,transparent_20%,oklch(0.085_0.026_286/0.92)_100%)]"
       />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-brand opacity-25 blur-3xl animate-glow-pulse"
+      />
+
       <div className="relative mx-auto max-w-4xl px-4 py-28 text-center sm:px-6 lg:px-8">
         <Reveal>
           <h2 className="text-4xl leading-tight sm:text-5xl lg:text-6xl">

@@ -55,9 +55,10 @@ export function AISpotlight() {
           <div className="relative">
             <div
               aria-hidden
-              className="absolute -inset-6 rounded-[2rem] bg-gradient-brand opacity-20 blur-3xl animate-glow-pulse"
+              className="absolute -inset-6 rounded-[2.25rem] bg-gradient-brand opacity-20 blur-3xl animate-glow-pulse"
             />
-            <div className="relative overflow-hidden rounded-2xl border border-border glass-panel glow-soft">
+            <div className="relative overflow-hidden rounded-[1.75rem] bento-panel">
+
               <img
                 src={aiImg}
                 alt="Abstract visualisation of an automated workflow"

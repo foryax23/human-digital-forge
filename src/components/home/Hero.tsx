@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Rocket, CalendarCheck, Users } from "lucide-react";
+import { ArrowRight, Rocket, CalendarCheck, ShieldCheck, Sparkles, Clock } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import { HeroBackground } from "@/components/cinematic/HeroBackground";
-import { AutomationCore } from "@/components/home/AutomationCore";
+import { VortexStage } from "@/components/home/VortexStage";
 import { useI18n } from "@/i18n";
 import heroBg from "@/assets/home/hero-bg.jpg";
 import swirlAsset from "@/assets/brand/vortex-swirl.png.asset.json";
@@ -13,7 +13,7 @@ import swirlAsset from "@/assets/brand/vortex-swirl.png.asset.json";
 /** Brand swirl mark used in the partner badge. */
 function PlanetGlyph() {
   return (
-    <span className="relative grid h-12 w-12 place-items-center">
+    <span className="relative grid h-10 w-10 place-items-center">
       <span
         aria-hidden
         className="absolute inset-0 rounded-full bg-gradient-brand opacity-40 blur-md animate-glow-pulse"
@@ -22,7 +22,7 @@ function PlanetGlyph() {
         src={swirlAsset.url}
         alt=""
         aria-hidden
-        className="relative h-11 w-11 animate-spin [animation-duration:18s]"
+        className="relative h-9 w-9 animate-spin-slow"
       />
     </span>
   );
@@ -34,12 +34,18 @@ export function Hero() {
 
   const container = {
     hidden: {},
-    show: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
+    show: { transition: { staggerChildren: 0.11, delayChildren: 0.08 } },
   };
   const item = {
-    hidden: { opacity: 0, y: 28 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const } },
+    hidden: { opacity: 0, y: 26 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1] as const } },
   };
+
+  const trust = [
+    { icon: Sparkles, label: t("Design-led delivery", "Livrare orientată pe design") },
+    { icon: ShieldCheck, label: t("Private client area", "Zonă privată de client") },
+    { icon: Clock, label: t("Clear timelines", "Termene clare") },
+  ];
 
   return (
     <section className="relative isolate overflow-hidden">
@@ -47,50 +53,50 @@ export function Hero() {
         src={heroBg}
         alt=""
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-40"
+        className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-30"
       />
       <HeroBackground />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-background"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(120%_90%_at_50%_0%,transparent_35%,oklch(0.085_0.026_286/0.85)_100%)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-b from-transparent to-background"
       />
 
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-24 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:px-8 lg:py-32">
-        <motion.div variants={container} initial="hidden" animate="show">
+      <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-24 pt-20 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:px-8 lg:pb-36 lg:pt-32">
+        <motion.div variants={container} initial="hidden" animate="show" className="relative z-10">
           <motion.div
             variants={item}
-            className="inline-flex items-center gap-3 rounded-full border border-border glass-panel py-2 pl-2 pr-5"
+            className="inline-flex items-center gap-3 rounded-full border border-border glass-panel py-1.5 pl-1.5 pr-5"
           >
             <PlanetGlyph />
-            <span className="flex flex-col leading-tight">
-              <span className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-primary">
-                {t("Your digital partner", "Partenerul tău digital")}
-              </span>
-              <span className="text-sm font-semibold">
-                {t("Strategy • Design • Automation", "Strategie • Design • Automatizare")}
-              </span>
+            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              {t("Strategy · Design · Automation", "Strategie · Design · Automatizare")}
             </span>
           </motion.div>
 
           <motion.h1
             variants={item}
-            className="mt-6 text-4xl leading-[1.05] sm:text-5xl lg:text-6xl xl:text-7xl"
+            className="mt-8 max-w-[15ch] text-[clamp(2.5rem,5.6vw,4.75rem)] font-bold leading-[0.98] tracking-[-0.04em]"
           >
             {t("Digital work, built around", "Muncă digitală, construită în jurul")}{" "}
             <span className="text-gradient-brand">{t("real people.", "oamenilor reali.")}</span>
           </motion.h1>
 
+
           <motion.p
             variants={item}
-            className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground"
+            className="mt-7 max-w-lg text-lg leading-relaxed text-muted-foreground"
           >
             {t(
-              "Vortex Hub creates professional digital products, practical websites and thoughtful AI automations for individuals and businesses.",
-              "Vortex Hub creează produse digitale profesionale, site-uri web practice și automatizări AI atent gândite pentru persoane și companii.",
+              "Professional digital products, practical websites and thoughtful AI automation — for individuals and businesses.",
+              "Produse digitale profesionale, site-uri practice și automatizări AI atent gândite — pentru persoane și companii.",
             )}
           </motion.p>
 
-          <motion.div variants={item} className="mt-9 flex flex-wrap gap-4">
+          <motion.div variants={item} className="mt-10 flex flex-wrap gap-3">
             <Magnetic>
               <Button asChild size="lg" className="bg-gradient-brand text-primary-foreground glow-soft hover:opacity-90">
                 <Link to="/contact">
@@ -115,21 +121,29 @@ export function Hero() {
             </Magnetic>
           </motion.div>
 
-          <motion.p variants={item} className="mt-7 flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="h-4 w-4 shrink-0" />
-            {t(
-              "Clear communication. Secure delivery. Human support from idea to completion.",
-              "Comunicare clară. Livrare sigură. Sprijin uman de la idee până la finalizare.",
-            )}
-          </motion.p>
+          <motion.ul
+            variants={item}
+            className="mt-12 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-border pt-7"
+          >
+            {trust.map((point) => (
+              <li
+                key={point.label}
+                className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground"
+              >
+                <point.icon className="h-4 w-4 shrink-0 text-teal" />
+                {point.label}
+              </li>
+            ))}
+          </motion.ul>
         </motion.div>
 
         <motion.div
-          initial={reduce ? false : { opacity: 0, scale: 0.94 }}
+          className="relative lg:-mr-16 xl:-mr-24"
+          initial={reduce ? false : { opacity: 0, scale: 0.9 }}
           animate={reduce ? undefined : { opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 1.2, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
         >
-          <AutomationCore />
+          <VortexStage />
         </motion.div>
       </div>
     </section>
