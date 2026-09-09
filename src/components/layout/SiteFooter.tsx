@@ -3,6 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { LanguageToggle } from "./LanguageToggle";
 import { useI18n } from "@/i18n";
 import { openCookieSettings } from "@/components/cookies/cookie-consent";
+import iconAsset from "@/assets/brand/vortex-app-icon.png.asset.json";
+
 
 const footerNav = [
   { en: "Services", ro: "Servicii", to: "/services" },
@@ -27,10 +29,15 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           <div className="lg:col-span-2 max-w-sm">
-            <span className="flex items-center gap-2">
-              <span className="grid h-8 w-8 place-items-center rounded-md bg-gradient-brand text-sm font-semibold text-primary-foreground">
-                V
-              </span>
+            <span className="flex items-center gap-3">
+              <img
+                src={iconAsset.url}
+                alt="Vortex Hub"
+                width={1248}
+                height={1248}
+                loading="lazy"
+                className="h-11 w-11 rounded-xl"
+              />
               <span className="font-serif text-xl">Vortex Hub</span>
             </span>
             <p className="mt-4 text-sm text-ink-foreground/70">
