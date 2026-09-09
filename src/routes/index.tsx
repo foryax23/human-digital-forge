@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { SiteLayout } from "@/components/layout/SiteLayout";
-import { Hero } from "@/components/home/Hero";
+import { HeroStage } from "@/components/home/HeroStage";
+import { TrustMarquee } from "@/components/home/TrustMarquee";
 import { ServicesIntro } from "@/components/home/ServicesIntro";
 import { AudienceSection } from "@/components/home/AudienceSection";
 import { ProcessSteps } from "@/components/home/ProcessSteps";
@@ -49,7 +50,8 @@ function Index() {
     <div className="cinematic cinematic-flow">
       <CustomCursor />
       <SiteLayout>
-        <Hero />
+        <HeroStage />
+        <TrustMarquee />
         <SectionTransition tone="indigo" />
         <ServicesIntro />
         <SectionTransition tone="teal" />
