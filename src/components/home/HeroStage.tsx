@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import VortexProductMockup from "@/components/home/mockup/VortexProductMockup";
 import { HeroProofRow } from "@/components/home/HeroProofRow";
+import { AuroraBackground } from "@/components/backgrounds/AuroraBackground";
+import { SplitText } from "@/components/cinematic/SplitText";
+import { GradientText } from "@/components/cinematic/GradientText";
 import { useI18n } from "@/i18n";
 
 /**
