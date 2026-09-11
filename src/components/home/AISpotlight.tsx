@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/cinematic/Reveal";
 import { Magnetic } from "@/components/cinematic/Magnetic";
+import { SilkBackground } from "@/components/backgrounds/SilkBackground";
 import { useI18n } from "@/i18n";
 import aiImg from "@/assets/home/ai-spotlight.jpg";
 
@@ -22,7 +23,8 @@ export function AISpotlight() {
 
   return (
     <section className="relative overflow-hidden">
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-50" />
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-40" />
+      <SilkBackground />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/70 via-ink/40 to-ink/70"

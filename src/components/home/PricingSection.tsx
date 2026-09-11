@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/cinematic/Reveal";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { SquaresBackground } from "@/components/backgrounds/SquaresBackground";
 import { useI18n } from "@/i18n";
 import { createCheckoutSession } from "@/lib/checkout.functions";
 import { PLAN_PRICING, type PlanId } from "@/lib/plans";
@@ -112,6 +113,7 @@ export function PricingSection() {
   return (
     <section id="pricing" className="relative overflow-hidden scroll-mt-24">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-20" />
+      <SquaresBackground className="opacity-90" />
       <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
         <Reveal>
           <SectionHeading
