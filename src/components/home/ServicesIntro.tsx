@@ -3,6 +3,8 @@ import { Palette, Globe, Workflow, ArrowRight } from "lucide-react";
 
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/cinematic/Reveal";
+import { TiltedCard } from "@/components/cinematic/TiltedCard";
+import { SpotlightCard } from "@/components/cinematic/SpotlightCard";
 import { useI18n } from "@/i18n";
 import productsImg from "@/assets/home/service-products.jpg";
 import websitesImg from "@/assets/home/service-websites.jpg";
@@ -65,6 +67,7 @@ export function ServicesIntro() {
       <div className="mt-16 grid gap-5 lg:grid-cols-3">
         {/* Large feature tile */}
         <Reveal className="lg:col-span-2">
+          <TiltedCard className="h-full rounded-[1.75rem]" max={6}>
           <Link
             to={feature.to}
             className="group relative flex h-full min-h-[24rem] flex-col justify-end overflow-hidden rounded-[1.75rem] bento-panel p-8 sm:p-10"
@@ -94,12 +97,14 @@ export function ServicesIntro() {
               </span>
             </div>
           </Link>
+          </TiltedCard>
         </Reveal>
 
         {/* Two stacked supporting tiles */}
         <div className="grid gap-5">
           {supporting.map((service, i) => (
-            <Reveal key={service.title} delay={0.1 + i * 0.1}>
+            <Reveal key={service.title} delay={0.1 + i * 0.1} className="h-full">
+              <SpotlightCard className="h-full">
               <Link
                 to={service.to}
                 className="group relative flex h-full min-h-[11.5rem] flex-col justify-end overflow-hidden rounded-[1.75rem] bento-panel p-7"
@@ -125,6 +130,7 @@ export function ServicesIntro() {
                   </p>
                 </div>
               </Link>
+              </SpotlightCard>
             </Reveal>
           ))}
         </div>

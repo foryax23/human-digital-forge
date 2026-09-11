@@ -12,7 +12,7 @@ import swirlPoster from "@/assets/brand/vortex-swirl.png.asset.json";
 export function FinalCTA() {
   const { t } = useI18n();
   return (
-    <section className="relative overflow-hidden border-t border-border bg-ink text-ink-foreground">
+    <section className="relative isolate overflow-hidden border-t border-border bg-ink text-ink-foreground">
       <video
         src={swirlLoop.url}
         poster={swirlPoster.url}
