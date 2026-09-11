@@ -60,7 +60,7 @@ export function StageRail() {
     <div className="relative">
       <div
         aria-hidden
-        className="absolute left-[1.4rem] top-3 bottom-3 w-px bg-gradient-to-b from-primary/70 via-teal/40 to-transparent lg:hidden"
+        className="absolute left-[1.4rem] top-3 bottom-3 w-px bg-border lg:hidden"
       />
       <div className="grid gap-10 lg:grid-cols-5 lg:gap-6">
         {stages.map((stage, i) => (
