@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/cinematic/Reveal";
 import { Magnetic } from "@/components/cinematic/Magnetic";
+import { ParticlesBackground } from "@/components/backgrounds/ParticlesBackground";
 import { useI18n } from "@/i18n";
 import swirlLoop from "@/assets/brand/vortex-swirl-loop.mp4.asset.json";
 import swirlPoster from "@/assets/brand/vortex-swirl.png.asset.json";
@@ -13,6 +14,7 @@ export function FinalCTA() {
   const { t } = useI18n();
   return (
     <section className="relative isolate overflow-hidden border-t border-border bg-ink text-ink-foreground">
+      <ParticlesBackground count={45} />
       <video
         src={swirlLoop.url}
         poster={swirlPoster.url}
