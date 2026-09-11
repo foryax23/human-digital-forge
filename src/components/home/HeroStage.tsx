@@ -60,7 +60,7 @@ export function HeroStage() {
       {/* The vortex, offset and cropped to the right instead of centred */}
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute -right-[22%] top-1/2 -z-10 h-[130%] w-[85%] -translate-y-1/2 opacity-70"
+        className="pointer-events-none absolute -right-[22%] top-1/2 -z-10 h-[130%] w-[85%] -translate-y-1/2 opacity-45"
         style={reduce ? undefined : { opacity: sceneOpacity, y: sceneY }}
       >
         <VortexStage />

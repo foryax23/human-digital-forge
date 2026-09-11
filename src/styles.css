@@ -265,7 +265,7 @@
   }
   .bento-panel,
   .plan-block {
-    background-color: oklch(1 0 0 / 2.5%);
+    background-color: oklch(0.145 0.04 286 / 92%);
     border: 1px solid oklch(1 0 0 / 10%);
     border-radius: 2px;
     box-shadow: none;
@@ -274,7 +274,6 @@
   .bento-panel:hover,
   .plan-block:hover {
     border-color: oklch(0.53 0.245 278 / 70%);
-    background-color: oklch(1 0 0 / 4%);
   }
   /* Monospace technical label */
   .mono-label {
