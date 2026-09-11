@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Rocket, CalendarCheck, ChevronDown } from "lucide-react";
+import { ArrowRight, Rocket, ChevronDown, Route, Gauge, Globe, Target } from "lucide-react";
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 
 import { Button } from "@/components/ui/button";
@@ -164,6 +164,30 @@ export function HeroStage() {
               </Link>
             </Button>
           </Magnetic>
+        </motion.div>
+
+        <motion.div
+          variants={rise}
+          custom={6}
+          initial={reduce ? false : "hidden"}
+          animate="show"
+          className="mx-auto mt-16 grid max-w-4xl gap-4 sm:grid-cols-3"
+        >
+          <StatCard
+            value={t("5 stages", "5 etape")}
+            label={t("Audit to running operation", "De la audit la operare")}
+            icon={<Route className="h-5 w-5" />}
+          />
+          <StatCard
+            value={t("2 min", "2 min")}
+            label={t("Free infrastructure audit", "Audit gratuit de infrastructură")}
+            icon={<Gauge className="h-5 w-5" />}
+          />
+          <StatCard
+            value={t("EN / RO", "EN / RO")}
+            label={t("Romanian and international work", "Proiecte din România și internaționale")}
+            icon={<Globe className="h-5 w-5" />}
+          />
         </motion.div>
       </motion.div>
 
