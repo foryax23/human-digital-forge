@@ -68,9 +68,15 @@ export function HeroStage() {
 
           <h1 className="mt-7 max-w-2xl text-hero-split font-bold">
             {lines.map((line, i) => (
-              <motion.span key={line.text} {...anim} custom={i + 1} className="block">
-                {line.accent ? <span className="text-gradient-brand">{line.text}</span> : line.text}
-              </motion.span>
+              <span key={line.text} className="block">
+                {line.accent ? (
+                  <GradientText>
+                    <SplitText text={line.text} delay={0.24 + i * 0.16} />
+                  </GradientText>
+                ) : (
+                  <SplitText text={line.text} delay={0.24 + i * 0.16} />
+                )}
+              </span>
             ))}
           </h1>
 
