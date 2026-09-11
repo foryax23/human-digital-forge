@@ -31,9 +31,9 @@ export function HeroStage() {
   const copyOpacity = useTransform(smooth, [0, 0.75], [1, 0]);
 
   const lines = [
-    { text: t("Digital work,", "Muncă digitală,"), accent: false },
-    { text: t("built around", "construită în jurul"), accent: false },
-    { text: t("real people.", "oamenilor reali."), accent: true },
+    { text: t("We build and run", "Construim și operăm"), accent: false },
+    { text: t("the infrastructure", "infrastructura"), accent: false },
+    { text: t("your business runs on.", "pe care merge afacerea ta."), accent: true },
   ];
 
   const rise = {
@@ -127,8 +127,8 @@ export function HeroStage() {
           className="mx-auto mt-9 max-w-2xl text-balance text-lg leading-relaxed text-muted-foreground"
         >
           {t(
-            "Professional digital products, practical websites and thoughtful AI automation — for individuals and businesses.",
-            "Produse digitale profesionale, site-uri practice și automatizări AI atent gândite — pentru persoane și companii.",
+            "Websites, internal systems, connected data and supervised AI — designed, built and operated for you, so the business stops depending on manual work.",
+            "Site-uri, sisteme interne, date conectate și AI supravegheat — proiectate, construite și operate pentru tine, ca afacerea să nu mai depindă de munca manuală.",
           )}
         </motion.p>
 
