@@ -23,7 +23,7 @@ export function ProofWall() {
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {slots.map((slot, i) => (
         <Reveal key={slot} delay={i * 0.06}>
-          <div className="flex h-full flex-col rounded-2xl border border-dashed border-border glass-panel p-6">
+          <div className="flex h-full flex-col rounded-sm border border-dashed border-border glass-panel p-6">
             <Quote className="h-5 w-5 text-teal" />
             <p className="mt-4 text-base font-semibold">{slot}</p>
             <p className="mt-3 flex-1 text-sm leading-relaxed text-muted-foreground">

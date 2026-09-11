@@ -25,7 +25,7 @@ export function GlowCard({
       ref={ref}
       onMouseMove={handleMove}
       className={cn(
-        "group relative overflow-hidden rounded-2xl border border-border glass-panel transition-transform duration-300 hover:-translate-y-1",
+        "group relative overflow-hidden rounded-sm border border-border glass-panel transition-transform duration-300 hover:-translate-y-1",
         className,
       )}
     >

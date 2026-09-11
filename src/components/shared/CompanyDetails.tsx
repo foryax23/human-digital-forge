@@ -12,7 +12,7 @@ export function CompanyDetails() {
   const { t } = useI18n();
 
   return (
-    <div className="rounded-xl border border-border bg-card p-6">
+    <div className="rounded-sm border border-border bg-card p-6">
       <h2 className="font-serif text-lg text-foreground">VORTEX HUB S.R.L.</h2>
       <dl className="mt-4 space-y-3">
         {rows.map((row) => (

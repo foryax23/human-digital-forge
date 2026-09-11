@@ -185,14 +185,14 @@ function ConsultationsPage() {
       )}
 
       {!loading && error && (
-        <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+        <div className="mt-8 rounded-sm border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
           {error}
         </div>
       )}
 
       {!loading && !error && items.length === 0 && (
-        <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-10 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-teal/15 text-teal">
+        <div className="mt-8 rounded-sm border border-dashed border-border bg-card p-10 text-center">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-sm bg-teal/15 text-teal">
             <CalendarCheck className="h-6 w-6" />
           </span>
           <h2 className="mt-4 text-2xl">{t("No consultations booked", "Nicio consultație rezervată")}</h2>
@@ -209,7 +209,7 @@ function ConsultationsPage() {
       {!loading && !error && items.length > 0 && (
         <ul className="mt-8 space-y-3">
           {items.map((item) => (
-            <li key={item.id} className="rounded-2xl border border-border bg-card p-5">
+            <li key={item.id} className="rounded-sm border border-border bg-card p-5">
               <div className="flex items-start gap-4">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-teal/15 text-teal">
                   <CalendarCheck className="h-5 w-5" />

@@ -59,7 +59,7 @@ function Index() {
   const { t } = useI18n();
 
   return (
-    <div className="cinematic cinematic-flow">
+    <div>
       <CustomCursor />
       <SiteLayout>
         <HeroStage />
@@ -71,7 +71,7 @@ function Index() {
         <Band tone="light">
           <Reveal>
             <SectionHeading
-              align="center"
+              
               eyebrow={t("The real problem", "Problema reală")}
               title={t(
                 "Most businesses don't have a growth problem. They have an infrastructure problem.",
@@ -130,7 +130,7 @@ function Index() {
         <Band tone="light">
           <Reveal>
             <SectionHeading
-              align="center"
+              
               eyebrow={t("Results", "Rezultate")}
               title={t("Proof, published only when we can prove it.", "Dovezi, publicate doar când le putem demonstra.")}
               description={t(

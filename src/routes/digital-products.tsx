@@ -58,7 +58,7 @@ function DigitalProductsPage() {
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {cards.map((card) => (
-            <div key={card.title} className="rounded-xl border border-border bg-card p-6">
+            <div key={card.title} className="rounded-sm border border-border bg-card p-6">
               <span className="grid h-11 w-11 place-items-center rounded-lg bg-primary/10 text-primary">
                 <card.icon className="h-5 w-5" />
               </span>

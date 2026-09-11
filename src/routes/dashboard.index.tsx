@@ -42,7 +42,7 @@ function formatDate(value: string | null, t: (en: string, ro: string) => string)
 function ProjectTimeline({ currentStep }: { currentStep: number }) {
   const { t } = useI18n();
   return (
-    <div className="rounded-2xl border border-border bg-card p-6">
+    <div className="rounded-sm border border-border bg-card p-6">
       <h2 className="text-lg">{t("Project status", "Starea proiectului")}</h2>
       <ol className="mt-6 space-y-4">
         {TIMELINE_STEPS.map((label, index) => {
@@ -79,7 +79,7 @@ function ActiveProjectCard({ project }: { project: ProjectRow }) {
   const total = TIMELINE_STEPS.length - 1;
   const pct = Math.round((Math.min(project.current_step, total) / total) * 100);
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
+    <div className="rounded-sm border border-border bg-card p-6 lg:col-span-2">
       <div className="flex items-center justify-between">
         <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium capitalize text-primary">
           {project.service_type?.replace("-", " ") || t("Project", "Proiect")}
@@ -100,7 +100,7 @@ function ActiveProjectCard({ project }: { project: ProjectRow }) {
         )}
       </div>
       <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div className="h-full rounded-full bg-gradient-brand" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -109,8 +109,8 @@ function ActiveProjectCard({ project }: { project: ProjectRow }) {
 function EmptyState() {
   const { t } = useI18n();
   return (
-    <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center lg:col-span-3">
-      <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
+    <div className="rounded-sm border border-dashed border-border bg-card p-10 text-center lg:col-span-3">
+      <span className="mx-auto grid h-12 w-12 place-items-center rounded-sm bg-primary/10 text-primary">
         <FilePlus2 className="h-6 w-6" />
       </span>
       <h2 className="mt-4 text-2xl">{t("No projects yet", "Niciun proiect încă")}</h2>
@@ -164,7 +164,7 @@ function DashboardOverview() {
       )}
 
       {!loading && error && (
-        <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+        <div className="mt-8 rounded-sm border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
           {error}
         </div>
       )}
@@ -176,7 +176,7 @@ function DashboardOverview() {
           {activeProject && <ActiveProjectCard project={activeProject} />}
 
           {activeProject && (
-            <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="rounded-sm border border-border bg-card p-6">
               <span className="grid h-10 w-10 place-items-center rounded-lg bg-teal/15 text-teal">
                 <CalendarCheck className="h-5 w-5" />
               </span>
@@ -197,7 +197,7 @@ function DashboardOverview() {
           )}
 
           {activeProject && (
-            <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="rounded-sm border border-border bg-card p-6">
               <span className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
                 <FileText className="h-5 w-5" />
               </span>
@@ -209,7 +209,7 @@ function DashboardOverview() {
           )}
 
           {activeProject && (
-            <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="rounded-sm border border-border bg-card p-6">
               <span className="grid h-10 w-10 place-items-center rounded-lg bg-teal/15 text-teal">
                 <MessagesSquare className="h-5 w-5" />
               </span>

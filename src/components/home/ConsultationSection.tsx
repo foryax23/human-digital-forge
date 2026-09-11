@@ -58,7 +58,7 @@ export function ConsultationSection() {
                 </Magnetic>
               </div>
 
-              <div className="mt-8 overflow-hidden rounded-2xl border border-border glass-panel">
+              <div className="mt-8 overflow-hidden rounded-sm border border-border glass-panel">
                 <div className="relative h-40">
                   <img
                     src={consultationImg}

@@ -84,7 +84,7 @@ export function AudienceSection() {
       <div className="relative mx-auto max-w-7xl px-4 py-28 sm:px-6 lg:px-8">
         <Reveal>
           <SectionHeading
-            align="center"
+            
             eyebrow={t("Who it's for", "Pentru cine")}
             title={t(
               "Built for individuals and growing businesses.",

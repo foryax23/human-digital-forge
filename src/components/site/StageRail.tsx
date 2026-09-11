@@ -60,7 +60,7 @@ export function StageRail() {
     <div className="relative">
       <div
         aria-hidden
-        className="absolute left-[1.4rem] top-3 bottom-3 w-px bg-gradient-to-b from-primary/70 via-teal/40 to-transparent lg:hidden"
+        className="absolute left-[1.4rem] top-3 bottom-3 w-px bg-border lg:hidden"
       />
       <div className="grid gap-10 lg:grid-cols-5 lg:gap-6">
         {stages.map((stage, i) => (
@@ -69,11 +69,11 @@ export function StageRail() {
               <div className="relative shrink-0">
                 <motion.span
                   aria-hidden
-                  className="absolute inset-0 rounded-2xl bg-gradient-brand blur-lg"
+                  className="absolute inset-0 rounded-sm bg-primary blur-lg"
                   animate={reduce ? undefined : { opacity: [0.25, 0.6, 0.25] }}
                   transition={{ duration: 4.5, repeat: Infinity, delay: i * 0.5 }}
                 />
-                <span className="relative grid h-11 w-11 place-items-center rounded-2xl bg-gradient-brand text-primary-foreground">
+                <span className="relative grid h-11 w-11 place-items-center rounded-sm bg-primary text-primary-foreground">
                   <stage.icon className="h-5 w-5" />
                 </span>
               </div>

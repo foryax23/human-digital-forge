@@ -140,7 +140,7 @@ function AuditPage() {
                       key={option.value}
                       type="button"
                       onClick={() => pick(auditQuestions[step]!.id, option.value)}
-                      className={`group flex items-center justify-between gap-4 rounded-xl border px-5 py-4 text-left text-base transition-all ${
+                      className={`group flex items-center justify-between gap-4 rounded-sm border px-5 py-4 text-left text-base transition-all ${
                         active
                           ? "border-primary bg-accent glow-soft"
                           : "border-border glass-panel hover:border-primary/50 hover:bg-accent"
@@ -204,7 +204,7 @@ function AuditPage() {
                   size="lg"
                   onClick={submit}
                   disabled={saving}
-                  className="bg-gradient-brand text-primary-foreground glow-soft hover:opacity-90"
+                  className="bg-primary text-primary-foreground glow-soft hover:opacity-90"
                 >
                   {saving ? <Loader2 className="animate-spin" /> : <Target />}
                   {t("Show my plan", "Arată-mi planul")}
@@ -225,7 +225,7 @@ function AuditPage() {
                 {result.summary[lang]}
               </p>
 
-              <div className="mt-8 rounded-2xl bento-panel p-6">
+              <div className="mt-8 rounded-sm bento-panel p-6">
                 <div className="flex items-end justify-between gap-4">
                   <span className="text-sm text-muted-foreground">
                     {t("Infrastructure risk score", "Scor de risc al infrastructurii")}
@@ -250,7 +250,7 @@ function AuditPage() {
                     {result.gaps.map((gap) => (
                       <li
                         key={gap.en}
-                        className="rounded-xl border border-border glass-panel px-5 py-4 text-base text-muted-foreground"
+                        className="rounded-sm border border-border glass-panel px-5 py-4 text-base text-muted-foreground"
                       >
                         {gap[lang]}
                       </li>
@@ -265,8 +265,8 @@ function AuditPage() {
                 </h2>
                 <ol className="mt-4 grid gap-3">
                   {result.moves.map((move, i) => (
-                    <li key={move.en} className="flex gap-4 rounded-xl bento-panel px-5 py-4">
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-brand text-sm font-bold text-primary-foreground">
+                    <li key={move.en} className="flex gap-4 rounded-sm bento-panel px-5 py-4">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
                         {i + 1}
                       </span>
                       <span className="text-base">{move[lang]}</span>
@@ -275,7 +275,7 @@ function AuditPage() {
                 </ol>
               </div>
 
-              <div className="mt-10 rounded-2xl bento-panel p-6">
+              <div className="mt-10 rounded-sm bento-panel p-6">
                 <div className="flex items-center gap-3">
                   <Check className="h-5 w-5 text-teal" />
                   <span className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -287,7 +287,7 @@ function AuditPage() {
                   <Button
                     asChild
                     size="lg"
-                    className="bg-gradient-brand text-primary-foreground hover:opacity-90"
+                    className="bg-primary text-primary-foreground hover:opacity-90"
                   >
                     <Link to="/consultancy">
                       {t("Book the call", "Programează apelul")}

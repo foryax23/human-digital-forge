@@ -49,7 +49,7 @@ export function SiteHeader() {
               <Link to="/login">{t("Login", "Autentificare")}</Link>
             </Button>
           )}
-          <Button asChild size="sm" className="bg-gradient-brand text-primary-foreground glow-soft hover:opacity-90">
+          <Button asChild size="sm" className="bg-primary text-primary-foreground hover:opacity-90">
             <Link to="/contact">
               {t("Start a project", "Începe un proiect")}
               <ArrowRight />

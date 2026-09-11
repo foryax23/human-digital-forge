@@ -19,7 +19,7 @@ export function CtaBand({
 }) {
   return (
     <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="rounded-2xl bg-ink px-8 py-12 text-center text-ink-foreground sm:px-12">
+      <div className="rounded-sm bg-ink px-8 py-12 text-center text-ink-foreground sm:px-12">
         <h2 className="text-3xl leading-tight sm:text-4xl">{title}</h2>
         {description && (
           <p className="mx-auto mt-4 max-w-xl text-base text-ink-foreground/70">{description}</p>

@@ -115,14 +115,14 @@ function BillingPage() {
       )}
 
       {!loading && error && (
-        <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+        <div className="mt-8 rounded-sm border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
           {error}
         </div>
       )}
 
       {!loading && !error && invoices.length === 0 && (
-        <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-10 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
+        <div className="mt-8 rounded-sm border border-dashed border-border bg-card p-10 text-center">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-sm bg-primary/10 text-primary">
             <CreditCard className="h-6 w-6" />
           </span>
           <h2 className="mt-4 text-2xl">{t("No invoices yet", "Nicio factură încă")}</h2>
@@ -138,7 +138,7 @@ function BillingPage() {
       {!loading && !error && invoices.length > 0 && (
         <>
           {outstanding > 0 && (
-            <div className="mt-8 rounded-2xl border border-border bg-card p-6">
+            <div className="mt-8 rounded-sm border border-border bg-card p-6">
               <p className="text-sm text-muted-foreground">{t("Outstanding balance", "Sold restant")}</p>
               <p className="mt-1 text-3xl font-semibold">{formatMoney(outstanding, currency)}</p>
             </div>
@@ -146,7 +146,7 @@ function BillingPage() {
 
           <ul className="mt-8 space-y-3">
             {invoices.map((invoice) => (
-              <li key={invoice.id} className="rounded-2xl border border-border bg-card p-5">
+              <li key={invoice.id} className="rounded-sm border border-border bg-card p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">

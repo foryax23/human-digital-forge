@@ -27,7 +27,7 @@ export function BeforeAfter() {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <Reveal>
-        <div className="h-full rounded-3xl border border-border glass-panel p-8">
+        <div className="h-full rounded-sm border border-border glass-panel p-8">
           <span className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
             {t("Without infrastructure", "Fără infrastructură")}
           </span>
@@ -46,7 +46,7 @@ export function BeforeAfter() {
       </Reveal>
 
       <Reveal delay={0.12}>
-        <div className="h-full rounded-3xl bento-panel p-8 glow-soft">
+        <div className="h-full rounded-sm bento-panel p-8 glow-soft">
           <span className="text-xs font-semibold uppercase tracking-[0.22em] text-teal">
             {t("With Vortex Hub", "Cu Vortex Hub")}
           </span>
@@ -56,7 +56,7 @@ export function BeforeAfter() {
           <ul className="mt-7 grid gap-4">
             {after.map((item) => (
               <li key={item} className="flex gap-3 text-base">
-                <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-gradient-brand">
+                <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary">
                   <Check className="h-3 w-3 text-primary-foreground" />
                 </span>
                 {item}

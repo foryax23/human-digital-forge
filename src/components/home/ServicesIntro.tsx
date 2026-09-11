@@ -81,7 +81,7 @@ export function ServicesIntro() {
               className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-transparent"
             />
             <div className="relative">
-              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/25 text-primary-foreground backdrop-blur glow-soft">
+              <span className="grid h-12 w-12 place-items-center rounded-sm bg-primary/25 text-primary-foreground backdrop-blur glow-soft">
                 <feature.icon className="h-5 w-5" />
               </span>
               <h3 className="mt-6 max-w-md text-3xl sm:text-4xl">{feature.title}</h3>
@@ -116,7 +116,7 @@ export function ServicesIntro() {
                   className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-transparent"
                 />
                 <div className="relative">
-                  <span className="inline-grid h-10 w-10 place-items-center rounded-xl bg-teal/20 text-teal">
+                  <span className="inline-grid h-10 w-10 place-items-center rounded-sm bg-teal/20 text-teal">
                     <service.icon className="h-4.5 w-4.5" />
                   </span>
                   <h3 className="mt-4 text-xl">{service.title}</h3>

@@ -26,7 +26,7 @@ export function StickyCta() {
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-full opacity-0"
       }`}
     >
-      <div className="mx-auto mb-4 flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-border glass-panel px-5 py-3 shadow-lg">
+      <div className="mx-auto mb-4 flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-sm border border-border glass-panel px-5 py-3 shadow-lg">
         <p className="text-sm text-muted-foreground">
           {t(
             "Not sure where your infrastructure leaks time?",
@@ -40,7 +40,7 @@ export function StickyCta() {
           <Button
             asChild
             size="sm"
-            className="bg-gradient-brand text-primary-foreground hover:opacity-90"
+            className="bg-primary text-primary-foreground hover:opacity-90"
           >
             <Link to="/audit">
               {t("Free audit", "Audit gratuit")}
