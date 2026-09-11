@@ -70,9 +70,9 @@ export function HeroStage() {
             {lines.map((line, i) => (
               <span key={line.text} className="block">
                 {line.accent ? (
-                  <GradientText>
-                    <SplitText text={line.text} delay={0.24 + i * 0.16} />
-                  </GradientText>
+                  <motion.span {...anim} custom={i + 1} className="inline-block">
+                    <GradientText>{line.text}</GradientText>
+                  </motion.span>
                 ) : (
                   <SplitText text={line.text} delay={0.24 + i * 0.16} />
                 )}
