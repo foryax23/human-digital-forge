@@ -382,9 +382,9 @@
 
   /* Display type for the hero statement */
   .text-hero {
-    font-size: clamp(2.75rem, 8.6vw, 8rem);
-    line-height: 0.92;
-    letter-spacing: -0.05em;
+    font-size: clamp(2.4rem, 5.6vw, 5rem);
+    line-height: 0.98;
+    letter-spacing: -0.045em;
   }
 
   .animate-marquee {
@@ -394,6 +394,34 @@
   .animate-scroll-cue {
     animation: scroll-cue 2.2s ease-in-out infinite;
   }
+}
+
+/*
+ * Public-site band tones. Bands alternate so the page has rhythm instead of
+ * one flat dark scroll. Each tone only overrides tokens, so children keep
+ * using semantic classes.
+ */
+.band-light {
+  --background: oklch(0.235 0.075 284);
+  --card: oklch(0.275 0.085 284);
+  --card-foreground: oklch(0.97 0.006 275);
+  --muted: oklch(0.3 0.09 284);
+  --muted-foreground: oklch(0.78 0.03 278);
+  --accent: oklch(0.32 0.1 283);
+  --border: oklch(1 0 0 / 12%);
+
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.band-ink {
+  --background: oklch(0.085 0.026 286);
+  --card: oklch(0.145 0.045 286);
+  --muted-foreground: oklch(0.7 0.026 278);
+  --border: oklch(1 0 0 / 8%);
+
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
 @keyframes marquee {

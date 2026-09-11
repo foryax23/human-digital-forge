@@ -1,11 +1,12 @@
 import { useRef } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Rocket, CalendarCheck, ChevronDown } from "lucide-react";
+import { ArrowRight, Rocket, ChevronDown, Route, Gauge, Globe, Target } from "lucide-react";
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import { VortexStage } from "@/components/home/VortexStage";
+import { StatCard } from "@/components/site/StatCard";
 import { useI18n } from "@/i18n";
 import swirlAsset from "@/assets/brand/vortex-swirl.png.asset.json";
 
@@ -30,9 +31,9 @@ export function HeroStage() {
   const copyOpacity = useTransform(smooth, [0, 0.75], [1, 0]);
 
   const lines = [
-    { text: t("Digital work,", "Muncă digitală,"), accent: false },
-    { text: t("built around", "construită în jurul"), accent: false },
-    { text: t("real people.", "oamenilor reali."), accent: true },
+    { text: t("We build and run", "Construim și operăm"), accent: false },
+    { text: t("the infrastructure", "infrastructura"), accent: false },
+    { text: t("your business runs on.", "pe care merge afacerea ta."), accent: true },
   ];
 
   const rise = {
@@ -77,7 +78,7 @@ export function HeroStage() {
       />
 
       <motion.div
-        className="relative mx-auto w-full max-w-6xl px-4 py-28 text-center sm:px-6 lg:px-8"
+        className="relative mx-auto w-full max-w-6xl px-4 py-20 text-center sm:px-6 lg:px-8"
         style={reduce ? undefined : { y: copyY, opacity: copyOpacity }}
       >
         <motion.div
@@ -103,7 +104,7 @@ export function HeroStage() {
           </motion.span>
         </motion.div>
 
-        <h1 className="mx-auto mt-9 max-w-5xl text-hero font-bold">
+        <h1 className="mx-auto mt-8 max-w-5xl text-hero font-bold">
           {lines.map((line, i) => (
             <motion.span
               key={line.text}
@@ -123,11 +124,11 @@ export function HeroStage() {
           custom={4}
           initial={reduce ? false : "hidden"}
           animate="show"
-          className="mx-auto mt-9 max-w-2xl text-balance text-lg leading-relaxed text-muted-foreground"
+          className="mx-auto mt-7 max-w-2xl text-balance text-lg leading-relaxed text-muted-foreground"
         >
           {t(
-            "Professional digital products, practical websites and thoughtful AI automation — for individuals and businesses.",
-            "Produse digitale profesionale, site-uri practice și automatizări AI atent gândite — pentru persoane și companii.",
+            "Websites, internal systems, connected data and supervised AI — designed, built and operated for you, so the business stops depending on manual work.",
+            "Site-uri, sisteme interne, date conectate și AI supravegheat — proiectate, construite și operate pentru tine, ca afacerea să nu mai depindă de munca manuală.",
           )}
         </motion.p>
 
@@ -136,7 +137,7 @@ export function HeroStage() {
           custom={5}
           initial={reduce ? false : "hidden"}
           animate="show"
-          className="mt-11 flex flex-wrap items-center justify-center gap-3"
+          className="mt-9 flex flex-wrap items-center justify-center gap-3"
         >
           <Magnetic>
             <Button
@@ -158,12 +159,36 @@ export function HeroStage() {
               variant="outline"
               className="border-border glass-panel hover:bg-accent"
             >
-              <Link to="/consultancy">
-                <CalendarCheck />
-                {t("Book a consultation", "Programează o consultanță")}
+              <Link to="/audit">
+                <Target />
+                {t("Free infrastructure audit", "Audit gratuit de infrastructură")}
               </Link>
             </Button>
           </Magnetic>
+        </motion.div>
+
+        <motion.div
+          variants={rise}
+          custom={6}
+          initial={reduce ? false : "hidden"}
+          animate="show"
+          className="mx-auto mt-12 grid max-w-4xl gap-4 sm:grid-cols-3"
+        >
+          <StatCard
+            value={t("5 stages", "5 etape")}
+            label={t("Audit to running operation", "De la audit la operare")}
+            icon={<Route className="h-5 w-5" />}
+          />
+          <StatCard
+            value={t("2 min", "2 min")}
+            label={t("Free infrastructure audit", "Audit gratuit de infrastructură")}
+            icon={<Gauge className="h-5 w-5" />}
+          />
+          <StatCard
+            value={t("EN / RO", "EN / RO")}
+            label={t("Romanian and international work", "Proiecte din România și internaționale")}
+            icon={<Globe className="h-5 w-5" />}
+          />
         </motion.div>
       </motion.div>
 
