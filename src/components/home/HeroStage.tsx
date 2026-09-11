@@ -6,6 +6,7 @@ import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "mo
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import { VortexStage } from "@/components/home/VortexStage";
+import { StatCard } from "@/components/site/StatCard";
 import { useI18n } from "@/i18n";
 import swirlAsset from "@/assets/brand/vortex-swirl.png.asset.json";
 
@@ -158,9 +159,9 @@ export function HeroStage() {
               variant="outline"
               className="border-border glass-panel hover:bg-accent"
             >
-              <Link to="/consultancy">
-                <CalendarCheck />
-                {t("Book a consultation", "Programează o consultanță")}
+              <Link to="/audit">
+                <Target />
+                {t("Free infrastructure audit", "Audit gratuit de infrastructură")}
               </Link>
             </Button>
           </Magnetic>
