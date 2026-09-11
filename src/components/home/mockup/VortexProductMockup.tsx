@@ -1,4 +1,6 @@
-import styles from './VortexProductMockup.module.css';
+import { useI18n } from "@/i18n";
+
+import styles from "./VortexProductMockup.module.css";
 
 type IconProps = { className?: string };
 
@@ -65,13 +67,29 @@ function VortexMark() {
   );
 }
 
+/** The hero product scene: tilted browser window with three floating cards. */
 export default function VortexProductMockup() {
+  const { t } = useI18n();
+
+  const navItems = [
+    t("Solutions", "Soluții"),
+    t("About", "Despre noi"),
+    t("Portfolio", "Portofoliu"),
+    t("Contact", "Contact"),
+  ];
+
+  const websiteItems = [
+    t("Custom design", "Design personalizat"),
+    t("Optimised for performance", "Optimizat pentru performanță"),
+    t("Ready to grow", "Pregătit pentru creștere"),
+  ];
+
   return (
     <div className={styles.scene} data-vortex-mockup>
       <div className={styles.halo} aria-hidden="true" />
       <div className={styles.floorGlow} aria-hidden="true" />
 
-      <section className={styles.browser} data-role="browser-card" aria-label="Website preview mockup">
+      <section className={styles.browser} data-role="browser-card" aria-label={t("Website preview", "Previzualizare site")}>
         <div className={styles.browserChrome}>
           <div className={styles.chromeDots} aria-hidden="true">
             <span /><span /><span />
@@ -81,20 +99,28 @@ export default function VortexProductMockup() {
         <div className={styles.browserInner}>
           <div className={styles.browserNav}>
             <VortexMark />
-            <nav className={styles.miniNav} aria-label="Mock navigation">
-              <span>Soluții</span>
-              <span>Despre noi</span>
-              <span>Portofoliu</span>
-              <span>Contact</span>
+            <nav className={styles.miniNav} aria-hidden="true">
+              {navItems.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
             </nav>
-            <button className={styles.talkButton} type="button">Hai să discutăm</button>
+            <span className={styles.talkButton}>{t("Let's talk", "Hai să discutăm")}</span>
           </div>
 
           <div className={styles.browserContent}>
             <div className={styles.browserCopy}>
-              <h3>Branduri<br />mai puternice<br />prin <em>tehnologie.</em></h3>
-              <p>Site-uri web. Automatizări AI. Rezultate reale.</p>
-              <button className={styles.learnButton} type="button">Află mai multe <span>→</span></button>
+              <h3>
+                {t("Stronger", "Branduri")}
+                <br />
+                {t("brands through", "mai puternice")}
+                <br />
+                {t("", "prin ")}
+                <em>{t("technology.", "tehnologie.")}</em>
+              </h3>
+              <p>{t("Websites. AI automation. Real results.", "Site-uri web. Automatizări AI. Rezultate reale.")}</p>
+              <span className={styles.learnButton}>
+                {t("Learn more", "Află mai multe")} <span>→</span>
+              </span>
             </div>
 
             <div className={styles.visualPanel} aria-hidden="true">
@@ -139,7 +165,13 @@ export default function VortexProductMockup() {
                 <circle cx="465" cy="240" r="7" fill="#b591ff" filter="url(#beamGlow)" />
               </svg>
 
-              <div className={styles.visualWords}>IDEI<br />SISTEME<br />REZULTATE</div>
+              <div className={styles.visualWords}>
+                {t("IDEAS", "IDEI")}
+                <br />
+                {t("SYSTEMS", "SISTEME")}
+                <br />
+                {t("RESULTS", "REZULTATE")}
+              </div>
               <div className={styles.visualRule} />
             </div>
           </div>
@@ -149,10 +181,10 @@ export default function VortexProductMockup() {
       <article className={`${styles.floatCard} ${styles.websiteCard}`} data-role="website-card">
         <div className={styles.cardHeading}>
           <span className={`${styles.iconBox} ${styles.purpleIcon}`}><GlobeIcon /></span>
-          <strong>Website modern</strong>
+          <strong>{t("Modern website", "Website modern")}</strong>
         </div>
         <ul className={styles.checkList}>
-          {['Design personalizat', 'Optimizat pentru performanță', 'Pregătit pentru creștere'].map((item) => (
+          {websiteItems.map((item) => (
             <li key={item}><span className={styles.checkDot}><CheckIcon /></span>{item}</li>
           ))}
         </ul>
@@ -161,22 +193,31 @@ export default function VortexProductMockup() {
       <article className={`${styles.floatCard} ${styles.automationCard}`} data-role="automation-card">
         <div className={styles.cardHeadingDark}>
           <span className={`${styles.iconBox} ${styles.robotIcon}`}><BotIcon /></span>
-          <strong>Automatizare AI</strong>
+          <strong>{t("AI automation", "Automatizare AI")}</strong>
         </div>
 
         <div className={styles.flow}>
           <div className={styles.flowLine} aria-hidden="true" />
           <div className={styles.flowStep}>
             <span className={`${styles.flowIcon} ${styles.trigger}`}><BoltIcon /></span>
-            <div><strong>Trigger</strong><small>Formular nou completat</small></div>
+            <div>
+              <strong>{t("Trigger", "Trigger")}</strong>
+              <small>{t("New form submitted", "Formular nou completat")}</small>
+            </div>
           </div>
           <div className={styles.flowStep}>
             <span className={`${styles.flowIcon} ${styles.process}`}><BrainIcon /></span>
-            <div><strong>AI Procesează</strong><small>Analiză și clasificare</small></div>
+            <div>
+              <strong>{t("AI processes", "AI Procesează")}</strong>
+              <small>{t("Analysis and classification", "Analiză și clasificare")}</small>
+            </div>
           </div>
           <div className={styles.flowStep}>
             <span className={`${styles.flowIcon} ${styles.action}`}><CheckIcon /></span>
-            <div><strong>Acțiune</strong><small>Răspuns automat + notificare</small></div>
+            <div>
+              <strong>{t("Action", "Acțiune")}</strong>
+              <small>{t("Auto reply + notification", "Răspuns automat + notificare")}</small>
+            </div>
           </div>
         </div>
       </article>
@@ -184,12 +225,12 @@ export default function VortexProductMockup() {
       <article className={`${styles.floatCard} ${styles.resultsCard}`} data-role="results-card">
         <div className={styles.cardHeading}>
           <span className={`${styles.iconBox} ${styles.chartIcon}`}><ChartIcon /></span>
-          <strong>Rezultate reale</strong>
+          <strong>{t("Real results", "Rezultate reale")}</strong>
         </div>
         <ul className={styles.resultList}>
-          <li><CheckIcon /><span>Mai mult timp<br />pentru ce contează</span></li>
-          <li><CheckIcon /><span>Procese mai simple</span></li>
-          <li><CheckIcon /><span>Clienți mai mulțumiți</span></li>
+          <li><CheckIcon /><span>{t("More time for what matters", "Mai mult timp pentru ce contează")}</span></li>
+          <li><CheckIcon /><span>{t("Simpler processes", "Procese mai simple")}</span></li>
+          <li><CheckIcon /><span>{t("Happier clients", "Clienți mai mulțumiți")}</span></li>
         </ul>
       </article>
     </div>
