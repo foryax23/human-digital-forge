@@ -136,7 +136,7 @@ export function HeroStage() {
           custom={4}
           initial={reduce ? false : "hidden"}
           animate="show"
-          className="mb-28 lg:mb-24"
+          className="mb-44 lg:mb-40"
         >
           <HeroShowcase />
         </motion.div>
