@@ -8,7 +8,7 @@
   position: relative;
   width: min(100%, 900px);
   aspect-ratio: 1.31 / 1;
-  min-height: 510px;
+  min-height: 560px;
   margin-inline: auto;
   isolation: isolate;
   perspective: 1400px;
@@ -61,8 +61,8 @@
   position: absolute;
   z-index: 1;
   width: 74%;
-  height: 70%;
-  top: 8%;
+  height: 64%;
+  top: 1%;
   left: 18%;
   border: 1px solid rgba(189, 198, 255, 0.68);
   border-radius: 19px;
@@ -158,14 +158,14 @@
   color: #ebecff;
 }
 
-.websiteCard { width: 29%; min-width: 225px; left: 2%; bottom: 11%; padding: 26px 26px 24px; transform: rotate(-0.5deg); }
-.resultsCard { width: 30%; min-width: 232px; right: 0; bottom: 7%; padding: 27px 27px 22px; transform: rotate(0.45deg); }
+.websiteCard { width: 29%; min-width: 225px; left: 2%; bottom: 4%; padding: 26px 26px 24px; transform: rotate(-0.5deg); }
+.resultsCard { width: 30%; min-width: 232px; right: 0; bottom: 1%; padding: 27px 27px 22px; transform: rotate(0.45deg); }
 
 .automationCard {
   width: 29.5%;
   min-width: 230px;
   left: 35.5%;
-  bottom: 2%;
+  bottom: -6%;
   padding: 26px 25px 22px;
   color: #141833;
   background: linear-gradient(145deg, rgba(250,250,255,0.96), rgba(225,229,255,0.94));
