@@ -387,6 +387,13 @@
     letter-spacing: -0.05em;
   }
 
+  /* Display type for the split hero statement */
+  .text-hero-split {
+    font-size: clamp(2.5rem, 5.2vw, 4.6rem);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+  }
+
   .animate-marquee {
     animation: marquee 34s linear infinite;
   }

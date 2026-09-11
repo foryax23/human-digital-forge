@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { HeroStage } from "@/components/home/HeroStage";
-import { TrustMarquee } from "@/components/home/TrustMarquee";
+
 import { ServicesIntro } from "@/components/home/ServicesIntro";
 import { AudienceSection } from "@/components/home/AudienceSection";
 import { ProcessSteps } from "@/components/home/ProcessSteps";
@@ -51,7 +51,6 @@ function Index() {
       <CustomCursor />
       <SiteLayout>
         <HeroStage />
-        <TrustMarquee />
         <SectionTransition tone="indigo" />
         <ServicesIntro />
         <SectionTransition tone="teal" />
