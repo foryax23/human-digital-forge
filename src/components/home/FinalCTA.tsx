@@ -31,7 +31,7 @@ export function FinalCTA() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-brand opacity-25 blur-3xl animate-glow-pulse"
+        className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary opacity-25 blur-3xl animate-glow-pulse"
       />
 
       <div className="relative mx-auto max-w-4xl px-4 py-28 text-center sm:px-6 lg:px-8">

@@ -50,7 +50,7 @@ export function AuditTeaser() {
               <Button
                 asChild
                 size="lg"
-                className="mt-9 bg-gradient-brand text-primary-foreground glow-soft hover:opacity-90"
+                className="mt-9 bg-primary text-primary-foreground glow-soft hover:opacity-90"
               >
                 <Link to="/audit">
                   {t("Start the free audit", "Începe auditul gratuit")}
@@ -64,9 +64,9 @@ export function AuditTeaser() {
             {points.map((point) => (
               <li
                 key={point.label}
-                className="flex items-center gap-4 rounded-xl border border-border glass-panel px-5 py-4"
+                className="flex items-center gap-4 rounded-sm border border-border glass-panel px-5 py-4"
               >
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-gradient-brand text-primary-foreground">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
                   <point.icon className="h-4 w-4" />
                 </span>
                 <span className="text-sm font-medium">{point.label}</span>

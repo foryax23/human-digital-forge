@@ -22,7 +22,7 @@ export function ServiceCard({
     <Link
       to={to}
       className={cn(
-        "group flex flex-col rounded-xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm",
+        "group flex flex-col rounded-sm border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm",
         className,
       )}
     >

@@ -77,9 +77,9 @@ function ServicesPage() {
           {areas.map((area) => (
             <div
               key={area.title}
-              className="grid gap-6 rounded-2xl border border-border bg-card p-8 md:grid-cols-[auto_1fr_auto] md:items-center"
+              className="grid gap-6 rounded-sm border border-border bg-card p-8 md:grid-cols-[auto_1fr_auto] md:items-center"
             >
-              <span className="grid h-14 w-14 place-items-center rounded-xl bg-primary/10 text-primary">
+              <span className="grid h-14 w-14 place-items-center rounded-sm bg-primary/10 text-primary">
                 <area.icon className="h-6 w-6" />
               </span>
               <div>

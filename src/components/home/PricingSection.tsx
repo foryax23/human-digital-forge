@@ -134,8 +134,8 @@ export function PricingSection() {
         <div className="mt-16 grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {/* Free plan */}
           <Reveal>
-            <div className="flex h-full flex-col rounded-3xl border border-border bg-card/60 p-7 backdrop-blur-sm">
-              <span className="grid h-11 w-11 place-items-center rounded-xl bg-muted text-muted-foreground">
+            <div className="flex h-full flex-col rounded-sm border border-border bg-card/60 p-7 backdrop-blur-sm">
+              <span className="grid h-11 w-11 place-items-center rounded-sm bg-muted text-muted-foreground">
                 <MessageCircle className="h-5 w-5" />
               </span>
               <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -157,7 +157,7 @@ export function PricingSection() {
                 <FeatureItem>{t("Clear, practical advice", "Sfaturi clare și practice")}</FeatureItem>
               </ul>
 
-              <Button asChild variant="outline" className="mt-7 h-12 w-full rounded-xl border-border">
+              <Button asChild variant="outline" className="mt-7 h-12 w-full rounded-sm border-border">
                 <Link to="/contact">{t("Talk to us", "Vorbește cu noi")}</Link>
               </Button>
             </div>
@@ -168,22 +168,22 @@ export function PricingSection() {
             <Reveal key={plan.id} delay={(i + 1) * 0.08}>
               <div
                 className={cn(
-                  "relative flex h-full flex-col rounded-3xl border p-7 backdrop-blur-sm",
+                  "relative flex h-full flex-col rounded-sm border p-7 backdrop-blur-sm",
                   plan.highlight
                     ? "border-primary/60 bg-card glow-soft lg:-my-6 lg:py-12"
                     : "border-border bg-card/60",
                 )}
               >
                 {plan.highlight && (
-                  <span className="absolute right-6 top-6 rounded-full bg-gradient-brand px-3 py-1 text-xs font-semibold text-primary-foreground">
+                  <span className="absolute right-6 top-6 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
                     {t("Most popular", "Cel mai popular")}
                   </span>
                 )}
                 <span
                   className={cn(
-                    "grid h-11 w-11 place-items-center rounded-xl",
+                    "grid h-11 w-11 place-items-center rounded-sm",
                     plan.highlight
-                      ? "bg-gradient-brand text-primary-foreground"
+                      ? "bg-primary text-primary-foreground"
                       : "bg-primary/15 text-primary",
                   )}
                 >
@@ -213,9 +213,9 @@ export function PricingSection() {
 
                 <Button
                   className={cn(
-                    "mt-7 h-12 w-full rounded-xl",
+                    "mt-7 h-12 w-full rounded-sm",
                     plan.highlight
-                      ? "bg-gradient-brand text-primary-foreground hover:opacity-90"
+                      ? "bg-primary text-primary-foreground hover:opacity-90"
                       : "",
                   )}
                   variant={plan.highlight ? "default" : "outline"}
