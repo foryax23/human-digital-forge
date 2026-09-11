@@ -1,30 +1,19 @@
-import { useRef } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Route, Gauge, Globe } from "lucide-react";
-import { motion, useReducedMotion, useScroll, useSpring, useTransform } from "motion/react";
+import { ArrowRight, CalendarDays, Clock, FileText, Headphones, Users, Zap } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
-import { VortexStage } from "@/components/home/VortexStage";
-import { StatCard } from "@/components/site/StatCard";
+import { HeroShowcase } from "@/components/home/HeroShowcase";
 import { useI18n } from "@/i18n";
 
 /**
- * Studio hero. Left-anchored statement on an exposed grid, the vortex offset
- * and cropped to the right, and the facts kept as a staggered ledger of
- * squared blocks instead of glass cards.
+ * Hero built to the approved reference: left-anchored statement with two
+ * actions, a layered product showcase on the right, and a row of plain facts
+ * closing the section on a hairline rule.
  */
 export function HeroStage() {
   const reduce = useReducedMotion();
   const { t } = useI18n();
-  const ref = useRef<HTMLElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end start"],
-  });
-  const smooth = useSpring(scrollYProgress, { stiffness: 90, damping: 26, mass: 0.4 });
-  const sceneOpacity = useTransform(smooth, [0, 1], [1, 0.2]);
-  const sceneY = useTransform(smooth, [0, 1], [0, 80]);
 
   const rise = {
     hidden: { opacity: 0, y: 24 },
@@ -37,41 +26,41 @@ export function HeroStage() {
 
   const facts = [
     {
-      index: "01 / method",
-      value: t("5 stages", "5 etape"),
-      label: t("Audit to running operation", "De la audit la operare"),
-      icon: <Route className="h-4 w-4" />,
-      className: "sm:mt-10 sm:h-44",
+      icon: <Clock className="h-4 w-4" />,
+      title: t("Clear timelines", "Termene clare"),
+      sub: t("No surprises", "Fără surprize"),
     },
     {
-      index: "02 / audit",
-      value: t("2 min", "2 min"),
-      label: t("Free infrastructure audit", "Audit gratuit de infrastructură"),
-      icon: <Gauge className="h-4 w-4" />,
-      className: "sm:-mt-2 sm:h-52",
+      icon: <FileText className="h-4 w-4" />,
+      title: t("Transparent pricing", "Prețuri transparente"),
+      sub: t("Fair proposals", "Oferte corecte"),
+    },
+    {
+      icon: <Headphones className="h-4 w-4" />,
+      title: t("Bilingual support", "Suport bilingv"),
+      sub: "RO / EN",
+    },
+    {
+      icon: <Users className="h-4 w-4" />,
+      title: t("Private client area", "Zonă privată de client"),
+      sub: t("Everything in one place", "Totul într-un singur loc"),
+    },
+    {
+      icon: <Zap className="h-4 w-4" />,
+      title: t("AI automation included", "Automatizare AI inclusă"),
+      sub: t("Practical, not promises", "Soluții practice, nu promisiuni"),
     },
   ];
 
   return (
-    <section
-      ref={ref}
-      className="relative isolate flex min-h-[88svh] items-center overflow-hidden py-24"
-    >
-      {/* The vortex, offset and cropped to the right instead of centred */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute -right-[22%] top-1/2 -z-10 h-[130%] w-[85%] -translate-y-1/2 opacity-45"
-        style={reduce ? undefined : { opacity: sceneOpacity, y: sceneY }}
-      >
-        <VortexStage />
-      </motion.div>
+    <section className="relative isolate overflow-hidden pb-10 pt-16 sm:pt-20">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-0 -z-10 w-2/3 bg-gradient-to-r from-background via-background/85 to-transparent"
+        className="pointer-events-none absolute right-[-15%] top-[-10%] -z-10 h-[70vmax] w-[70vmax] rounded-full bg-[radial-gradient(circle,oklch(0.35_0.16_280/45%),transparent_65%)]"
       />
 
-      <div className="relative mx-auto grid w-full max-w-7xl grid-cols-12 gap-10 px-4 sm:px-6 lg:px-8">
-        <div className="col-span-12 border-l border-[oklch(1_0_0/12%)] pl-6 lg:col-span-7 lg:pl-8">
+      <div className="mx-auto grid w-full max-w-7xl items-center gap-16 px-4 sm:px-6 lg:grid-cols-2 lg:gap-10 lg:px-8">
+        <div>
           <motion.div
             variants={rise}
             custom={0}
@@ -79,10 +68,10 @@ export function HeroStage() {
             animate="show"
             className="flex items-center gap-3"
           >
-            <span className="h-px w-10 bg-primary" />
-            <span className="mono-label">
-              {t("strategy / design / automation", "strategie / design / automatizare")}
+            <span className="text-[0.7rem] uppercase tracking-[0.3em] text-primary">
+              {t("Strategy • Design • Automation", "Strategie • Design • Automatizare")}
             </span>
+            <span className="h-px w-10 bg-primary/50" />
           </motion.div>
 
           <motion.h1
@@ -90,13 +79,12 @@ export function HeroStage() {
             custom={1}
             initial={reduce ? false : "hidden"}
             animate="show"
-            className="mt-8 max-w-3xl text-hero font-bold"
+            className="mt-7 max-w-2xl font-sans text-5xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl lg:text-[4.2rem]"
           >
-            {t("We build and run the ", "Construim și operăm ")}
-            <span className="text-primary">
-              {t("infrastructure", "infrastructura")}
+            {t("Digital products built for ", "Produse digitale construite pentru ")}
+            <span className="bg-[linear-gradient(90deg,oklch(0.58_0.22_285),oklch(0.68_0.14_250))] bg-clip-text text-transparent">
+              {t("real people.", "oameni reali.")}
             </span>
-            {t(" your business runs on.", " pe care merge afacerea ta.")}
           </motion.h1>
 
           <motion.p
@@ -104,11 +92,11 @@ export function HeroStage() {
             custom={2}
             initial={reduce ? false : "hidden"}
             animate="show"
-            className="mt-8 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
+            className="mt-7 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg"
           >
             {t(
-              "Websites, internal systems, connected data and supervised AI — designed, built and operated for you, so the business stops depending on manual work.",
-              "Site-uri, sisteme interne, date conectate și AI supravegheat — proiectate, construite și operate pentru tine, ca afacerea să nu mai depindă de munca manuală.",
+              "We build websites, digital products and practical AI automation that simplify the work, bring results and fit the people behind every brand.",
+              "Creăm site-uri web, produse digitale și automatizări AI practice care simplifică munca, aduc rezultate și se potrivesc cu oamenii din spatele fiecărui brand.",
             )}
           </motion.p>
 
@@ -117,11 +105,15 @@ export function HeroStage() {
             custom={3}
             initial={reduce ? false : "hidden"}
             animate="show"
-            className="mt-10 flex flex-wrap items-center gap-3"
+            className="mt-9 flex flex-wrap items-center gap-4"
           >
-            <Button asChild size="lg" className="rounded-none font-display text-xs tracking-[0.16em]">
+            <Button
+              asChild
+              size="lg"
+              className="rounded-md bg-[linear-gradient(90deg,oklch(0.52_0.23_285),oklch(0.6_0.18_262))] px-7 font-sans text-sm font-semibold"
+            >
               <Link to="/contact">
-                {t("START A PROJECT", "ÎNCEPE UN PROIECT")}
+                {t("Start a project", "Începe un proiect")}
                 <ArrowRight />
               </Link>
             </Button>
@@ -129,40 +121,56 @@ export function HeroStage() {
               asChild
               size="lg"
               variant="outline"
-              className="rounded-none border-[oklch(1_0_0/16%)] font-display text-xs tracking-[0.16em] hover:border-primary hover:bg-transparent"
+              className="rounded-md border-[oklch(1_0_0/16%)] px-7 font-sans text-sm font-semibold hover:border-primary hover:bg-transparent"
             >
-              <Link to="/audit">{t("FREE AUDIT", "AUDIT GRATUIT")}</Link>
+              <Link to="/consultancy">
+                <CalendarDays />
+                {t("Book a consultation", "Programează o consultație")}
+              </Link>
             </Button>
           </motion.div>
         </div>
 
-        {/* Fact ledger — staggered heights, squared blocks */}
         <motion.div
           variants={rise}
           custom={4}
           initial={reduce ? false : "hidden"}
           animate="show"
-          className="col-span-12 grid grid-cols-2 gap-4 self-center lg:col-span-5"
+          className="mb-44 lg:mb-40"
         >
-          {facts.map((fact) => (
-            <StatCard key={fact.index} {...fact} />
-          ))}
-          <div className="plan-block col-span-2 flex items-center justify-between gap-6 p-5">
-            <div>
-              <span className="mono-label">03 / reach</span>
-              <div className="mt-2 font-display text-lg font-bold tracking-tight">
-                {t("Romanian and international work", "Proiecte din România și internaționale")}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="font-display text-2xl font-bold text-primary">EN / RO</div>
-              <div className="mt-1 flex items-center justify-end gap-2 text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground">
-                <Globe className="h-3.5 w-3.5" />
-                {t("Bilingual delivery", "Livrare bilingvă")}
-              </div>
-            </div>
-          </div>
+          <HeroShowcase />
         </motion.div>
+      </div>
+
+      {/* Fact row */}
+      <div className="mx-auto mt-14 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <ul className="grid gap-y-8 sm:grid-cols-2 lg:grid-cols-5">
+          {facts.map((fact, i) => (
+            <li
+              key={fact.title}
+              className={`flex items-center gap-3 px-0 lg:px-5 ${i > 0 ? "lg:border-l lg:border-[oklch(1_0_0/10%)]" : ""}`}
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[oklch(1_0_0/16%)] text-primary">
+                {fact.icon}
+              </span>
+              <span>
+                <span className="block font-sans text-sm font-semibold">{fact.title}</span>
+                <span className="block text-xs text-muted-foreground">{fact.sub}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-12 flex items-center gap-6">
+          <span className="h-px flex-1 bg-[oklch(1_0_0/10%)]" />
+          <span className="text-[0.62rem] uppercase tracking-[0.3em] text-muted-foreground">
+            {t(
+              "Technology with meaning. For people with vision.",
+              "Tehnologie cu sens. Pentru oameni cu viziune.",
+            )}
+          </span>
+          <span className="h-px flex-1 bg-[oklch(1_0_0/10%)]" />
+        </div>
       </div>
     </section>
   );
