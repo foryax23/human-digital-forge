@@ -36,7 +36,7 @@ export const Route = createFileRoute("/audit")({
 type Step = number | "contact" | "result";
 
 function AuditPage() {
-  const { t, language } = useI18n();
+  const { t, lang } = useI18n();
   const save = useServerFn(submitAuditLead);
 
   const [step, setStep] = useState<Step>(0);
@@ -80,10 +80,10 @@ function AuditPage() {
           answers,
           score: result.score,
           recommendedTier: result.recommendedTier,
-          recommendation: [result.headline[language], ...result.moves.map((m) => m[language])].join(
+          recommendation: [result.headline[lang], ...result.moves.map((m) => m[lang])].join(
             " · ",
           ),
-          language,
+          language: lang,
         },
       });
       setStep("result");
@@ -123,13 +123,13 @@ function AuditPage() {
           {typeof step === "number" && (
             <div className="mt-12">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-teal">
-                {auditQuestions[step]!.eyebrow[language]}
+                {auditQuestions[step]!.eyebrow[lang]}
               </p>
               <h1 className="mt-4 text-3xl font-bold leading-tight sm:text-4xl">
-                {auditQuestions[step]!.question[language]}
+                {auditQuestions[step]!.question[lang]}
               </h1>
               <p className="mt-3 text-base text-muted-foreground">
-                {auditQuestions[step]!.help[language]}
+                {auditQuestions[step]!.help[lang]}
               </p>
 
               <div className="mt-8 grid gap-3">
@@ -146,7 +146,7 @@ function AuditPage() {
                           : "border-border glass-panel hover:border-primary/50 hover:bg-accent"
                       }`}
                     >
-                      <span>{option.label[language]}</span>
+                      <span>{option.label[lang]}</span>
                       <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1" />
                     </button>
                   );
@@ -219,10 +219,10 @@ function AuditPage() {
                 {t("Your result", "Rezultatul tău")}
               </p>
               <h1 className="mt-4 text-3xl font-bold leading-tight sm:text-4xl">
-                {result.headline[language]}
+                {result.headline[lang]}
               </h1>
               <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-                {result.summary[language]}
+                {result.summary[lang]}
               </p>
 
               <div className="mt-8 rounded-2xl bento-panel p-6">
@@ -252,7 +252,7 @@ function AuditPage() {
                         key={gap.en}
                         className="rounded-xl border border-border glass-panel px-5 py-4 text-base text-muted-foreground"
                       >
-                        {gap[language]}
+                        {gap[lang]}
                       </li>
                     ))}
                   </ul>
@@ -269,7 +269,7 @@ function AuditPage() {
                       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-brand text-sm font-bold text-primary-foreground">
                         {i + 1}
                       </span>
-                      <span className="text-base">{move[language]}</span>
+                      <span className="text-base">{move[lang]}</span>
                     </li>
                   ))}
                 </ol>
@@ -282,7 +282,7 @@ function AuditPage() {
                     {t("Recommended next step", "Pasul recomandat")}
                   </span>
                 </div>
-                <p className="mt-3 text-lg font-semibold">{result.tierLabel[language]}</p>
+                <p className="mt-3 text-lg font-semibold">{result.tierLabel[lang]}</p>
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Button
                     asChild
