@@ -302,35 +302,20 @@
     animation: ti-orbit 90s linear infinite;
   }
 
-  /* One continuous vertical gradient so sections flow into each other */
+  /* One quiet ink surface for the whole page — no rainbow drift */
   .cinematic-flow {
     background:
       linear-gradient(
         180deg,
-        oklch(0.1 0.028 286) 0%,
-        oklch(0.145 0.055 285) 16%,
-        oklch(0.13 0.05 275) 32%,
-        oklch(0.115 0.035 288) 46%,
-        oklch(0.16 0.07 283) 60%,
-        oklch(0.13 0.05 262) 74%,
-        oklch(0.11 0.032 286) 88%,
-        oklch(0.085 0.026 286) 100%
+        oklch(0.105 0.028 286) 0%,
+        oklch(0.115 0.032 285) 55%,
+        oklch(0.09 0.026 286) 100%
       );
   }
 
-  /* Soft floating glow orb that bridges section boundaries */
+  /* Section seam: a hairline, not a glowing orb */
   .flow-orb {
-    position: absolute;
-    border-radius: 9999px;
-    filter: blur(90px);
-    opacity: 0.45;
-    pointer-events: none;
-  }
-  .flow-orb-indigo {
-    background: radial-gradient(circle, oklch(0.53 0.245 278 / 60%), transparent 70%);
-  }
-  .flow-orb-teal {
-    background: radial-gradient(circle, oklch(0.75 0.13 250 / 45%), transparent 70%);
+    display: none;
   }
 
 
