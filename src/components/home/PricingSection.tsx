@@ -115,7 +115,7 @@ export function PricingSection() {
       <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
         <Reveal>
           <SectionHeading
-            align="center"
+            
             eyebrow={t("Plans & pricing", "Planuri și prețuri")}
             title={t("Choose your plan", "Alege-ți planul")}
             description={t(

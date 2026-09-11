@@ -19,7 +19,7 @@ export function TrustSection() {
     <section className="mx-auto max-w-7xl px-4 py-28 sm:px-6 lg:px-8">
       <Reveal>
         <SectionHeading
-          align="center"
+          
           eyebrow={t("Why Vortex Hub", "De ce Vortex Hub")}
           title={t("Designed for a straightforward and secure client experience.", "Conceput pentru o experiență de client simplă și sigură.")}
         />
