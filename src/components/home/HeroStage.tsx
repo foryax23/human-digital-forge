@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
 import VortexProductMockup from "@/components/home/mockup/VortexProductMockup";
 import { HeroProofRow } from "@/components/home/HeroProofRow";
+import { AuroraBackground } from "@/components/backgrounds/AuroraBackground";
+import { SplitText } from "@/components/cinematic/SplitText";
+import { GradientText } from "@/components/cinematic/GradientText";
 import { useI18n } from "@/i18n";
 
 /**
@@ -42,7 +45,7 @@ export function HeroStage() {
 
   return (
     <section className="relative isolate overflow-hidden">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-aurora opacity-40" />
+      <AuroraBackground className="-z-10 opacity-70" />
       <div
         aria-hidden
         className="pointer-events-none absolute -right-32 top-10 -z-10 h-[40rem] w-[40rem] rounded-full bg-gradient-brand opacity-[0.13] blur-[170px]"
@@ -65,9 +68,15 @@ export function HeroStage() {
 
           <h1 className="mt-7 max-w-2xl text-hero-split font-bold">
             {lines.map((line, i) => (
-              <motion.span key={line.text} {...anim} custom={i + 1} className="block">
-                {line.accent ? <span className="text-gradient-brand">{line.text}</span> : line.text}
-              </motion.span>
+              <span key={line.text} className="block">
+                {line.accent ? (
+                  <motion.span {...anim} custom={i + 1} className="inline-block">
+                    <GradientText>{line.text}</GradientText>
+                  </motion.span>
+                ) : (
+                  <SplitText text={line.text} delay={0.24 + i * 0.16} />
+                )}
+              </span>
             ))}
           </h1>
 

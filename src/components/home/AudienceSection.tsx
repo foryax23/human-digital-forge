@@ -4,6 +4,7 @@ import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/cinematic/Reveal";
+import { AnimatedList } from "@/components/cinematic/AnimatedList";
 import { useI18n } from "@/i18n";
 import individualsImg from "@/assets/home/audience-individuals.jpg";
 import businessImg from "@/assets/home/audience-business.jpg";
@@ -40,16 +41,16 @@ function AudiencePanel({
       </div>
       <div className="p-8 sm:p-9">
         <h3 className="text-2xl">{title}</h3>
-        <ul className="mt-6 space-y-3.5">
+        <AnimatedList className="mt-6 space-y-3.5">
           {items.map((item) => (
-            <li key={item} className="flex items-start gap-3 text-sm text-muted-foreground">
+            <span key={item} className="flex items-start gap-3 text-sm text-muted-foreground">
               <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal/20 text-teal">
                 <Check className="h-3 w-3" />
               </span>
               {item}
-            </li>
+            </span>
           ))}
-        </ul>
+        </AnimatedList>
         <Button asChild variant="ghost" className="mt-8 -ml-3 text-teal hover:bg-accent">
           <Link to="/services">
             {buttonLabel}

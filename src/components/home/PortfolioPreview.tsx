@@ -2,6 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/cinematic/Reveal";
+import { ParticlesBackground } from "@/components/backgrounds/ParticlesBackground";
 import { useI18n } from "@/i18n";
 import project1 from "@/assets/home/portfolio-1.jpg";
 import project2 from "@/assets/home/portfolio-2.jpg";
@@ -55,7 +56,8 @@ export function PortfolioPreview() {
   ];
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-28 sm:px-6 lg:px-8">
+    <section className="relative isolate mx-auto max-w-7xl overflow-hidden px-4 py-28 sm:px-6 lg:px-8">
+      <ParticlesBackground className="-z-10" count={40} />
       <Reveal>
         <SectionHeading
           eyebrow={t("Selected work", "Lucrări selectate")}

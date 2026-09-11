@@ -2,6 +2,7 @@ import { SectionHeading } from "@/components/shared/SectionHeading";
 
 import { Reveal } from "@/components/cinematic/Reveal";
 import { ProposalIcon, PrivacyIcon, DeliveryIcon, ReviewIcon } from "@/components/cinematic/TrustIcons";
+import { ParticlesBackground } from "@/components/backgrounds/ParticlesBackground";
 import { useI18n } from "@/i18n";
 
 export function TrustSection() {
@@ -16,7 +17,8 @@ export function TrustSection() {
 
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-28 sm:px-6 lg:px-8">
+    <section className="relative isolate mx-auto max-w-7xl overflow-hidden px-4 py-28 sm:px-6 lg:px-8">
+      <ParticlesBackground className="-z-10" count={55} />
       <Reveal>
         <SectionHeading
           align="center"
