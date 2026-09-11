@@ -5,6 +5,7 @@ import logoAsset from "@/assets/brand/vortex-logo.png.asset.json";
 
 export const navLinks = [
   { en: "Services", ro: "Servicii", to: "/services" },
+  { en: "Free audit", ro: "Audit gratuit", to: "/audit" },
   { en: "AI Automation", ro: "Automatizare AI", to: "/ai-automation" },
   { en: "Websites", ro: "Site-uri web", to: "/websites" },
   { en: "Consultancy", ro: "Consultanță", to: "/consultancy" },
