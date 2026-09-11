@@ -4,7 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
-import { HeroShowcase } from "@/components/home/HeroShowcase";
+import VortexProductMockup from "@/components/home/mockup/VortexProductMockup";
 import { HeroProofRow } from "@/components/home/HeroProofRow";
 import { useI18n } from "@/i18n";
 
@@ -116,9 +116,9 @@ export function HeroStage() {
           initial={reduce ? false : { opacity: 0, y: 40 }}
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 1.1, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-52 lg:mb-44"
+          className="mb-8"
         >
-          <HeroShowcase />
+          <VortexProductMockup />
         </motion.div>
       </div>
 
