@@ -382,9 +382,9 @@
 
   /* Display type for the hero statement */
   .text-hero {
-    font-size: clamp(2.75rem, 8.6vw, 8rem);
-    line-height: 0.92;
-    letter-spacing: -0.05em;
+    font-size: clamp(2.4rem, 5.6vw, 5rem);
+    line-height: 0.98;
+    letter-spacing: -0.045em;
   }
 
   .animate-marquee {
