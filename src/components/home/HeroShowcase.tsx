@@ -66,7 +66,7 @@ export function HeroShowcase() {
       </div>
 
       {/* Floating card — website */}
-      <div className="absolute -bottom-28 -left-8 hidden w-56 rounded-md border border-[oklch(1_0_0/12%)] bg-[oklch(0.19_0.02_268)] p-4 shadow-[0_20px_50px_-20px_oklch(0.1_0.05_277/80%)] sm:block">
+      <div className="absolute -bottom-32 left-0 hidden w-52 rounded-md border border-[oklch(1_0_0/12%)] bg-[oklch(0.19_0.02_268)] p-4 shadow-[0_20px_50px_-20px_oklch(0.1_0.05_277/80%)] sm:block">
         <div className="flex items-center gap-2">
           <Globe className="h-4 w-4 text-primary" />
           <span className="font-sans text-xs font-semibold">
@@ -88,7 +88,7 @@ export function HeroShowcase() {
       </div>
 
       {/* Floating card — automation flow (light) */}
-      <div className="absolute -bottom-40 left-1/2 w-64 -translate-x-1/2 rounded-md border border-black/5 bg-[oklch(0.98_0.005_280)] p-4 text-[oklch(0.2_0.02_268)] shadow-[0_30px_60px_-20px_oklch(0.1_0.05_277/85%)]">
+      <div className="absolute -bottom-44 left-1/2 w-60 -translate-x-1/2 rounded-md border border-black/5 bg-[oklch(0.98_0.005_280)] p-4 text-[oklch(0.2_0.02_268)] shadow-[0_30px_60px_-20px_oklch(0.1_0.05_277/85%)]">
         <div className="flex items-center gap-2">
           <Bot className="h-4 w-4 text-primary" />
           <span className="font-sans text-xs font-semibold">
@@ -132,7 +132,7 @@ export function HeroShowcase() {
       </div>
 
       {/* Floating card — results */}
-      <div className="absolute -bottom-24 -right-8 hidden w-52 rounded-md border border-[oklch(1_0_0/12%)] bg-[oklch(0.19_0.02_268)] p-4 shadow-[0_20px_50px_-20px_oklch(0.1_0.05_277/80%)] lg:block">
+      <div className="absolute -bottom-28 right-0 hidden w-48 rounded-md border border-[oklch(1_0_0/12%)] bg-[oklch(0.19_0.02_268)] p-4 shadow-[0_20px_50px_-20px_oklch(0.1_0.05_277/80%)] lg:block">
         <div className="flex items-center gap-2">
           <BarChart3 className="h-4 w-4 text-teal" />
           <span className="font-sans text-xs font-semibold">
