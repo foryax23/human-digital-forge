@@ -45,7 +45,7 @@ export function HeroStage() {
 
   return (
     <section className="relative isolate overflow-hidden">
-      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-aurora opacity-40" />
+      <AuroraBackground className="-z-10 opacity-70" />
       <div
         aria-hidden
         className="pointer-events-none absolute -right-32 top-10 -z-10 h-[40rem] w-[40rem] rounded-full bg-gradient-brand opacity-[0.13] blur-[170px]"
