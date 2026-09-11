@@ -57,7 +57,7 @@ export function ProcessSteps() {
                 <span className="relative grid h-12 w-12 place-items-center rounded-full border border-border bg-background font-display text-lg font-semibold text-primary transition-shadow duration-500 group-hover:glow-soft">
                   <span
                     aria-hidden
-                    className="absolute inset-0 rounded-full bg-primary opacity-0 blur-md transition-opacity duration-500 group-hover:opacity-50"
+                    className="absolute inset-0 rounded-full bg-gradient-brand opacity-0 blur-md transition-opacity duration-500 group-hover:opacity-50"
                   />
                   <span className="relative">{index + 1}</span>
                 </span>

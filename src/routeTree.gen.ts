@@ -24,7 +24,6 @@ import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as ConsultancyRouteImport } from './routes/consultancy'
 import { Route as BillingSuccessRouteImport } from './routes/billing-success'
-import { Route as AuditRouteImport } from './routes/audit'
 import { Route as AiAutomationRouteImport } from './routes/ai-automation'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
@@ -116,11 +115,6 @@ const BillingSuccessRoute = BillingSuccessRouteImport.update({
   path: '/billing-success',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuditRoute = AuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AiAutomationRoute = AiAutomationRouteImport.update({
   id: '/ai-automation',
   path: '/ai-automation',
@@ -203,7 +197,6 @@ const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
-  '/audit': typeof AuditRoute
   '/billing-success': typeof BillingSuccessRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
@@ -236,7 +229,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
-  '/audit': typeof AuditRoute
   '/billing-success': typeof BillingSuccessRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
@@ -269,7 +261,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ai-automation': typeof AiAutomationRoute
-  '/audit': typeof AuditRoute
   '/billing-success': typeof BillingSuccessRoute
   '/consultancy': typeof ConsultancyRoute
   '/contact': typeof ContactRoute
@@ -304,7 +295,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/ai-automation'
-    | '/audit'
     | '/billing-success'
     | '/consultancy'
     | '/contact'
@@ -337,7 +327,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/ai-automation'
-    | '/audit'
     | '/billing-success'
     | '/consultancy'
     | '/contact'
@@ -369,7 +358,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/ai-automation'
-    | '/audit'
     | '/billing-success'
     | '/consultancy'
     | '/contact'
@@ -403,7 +391,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiAutomationRoute: typeof AiAutomationRoute
-  AuditRoute: typeof AuditRoute
   BillingSuccessRoute: typeof BillingSuccessRoute
   ConsultancyRoute: typeof ConsultancyRoute
   ContactRoute: typeof ContactRoute
@@ -531,13 +518,6 @@ declare module '@tanstack/react-router' {
       path: '/billing-success'
       fullPath: '/billing-success'
       preLoaderRoute: typeof BillingSuccessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/audit': {
-      id: '/audit'
-      path: '/audit'
-      fullPath: '/audit'
-      preLoaderRoute: typeof AuditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ai-automation': {
@@ -677,7 +657,6 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiAutomationRoute: AiAutomationRoute,
-  AuditRoute: AuditRoute,
   BillingSuccessRoute: BillingSuccessRoute,
   ConsultancyRoute: ConsultancyRoute,
   ContactRoute: ContactRoute,

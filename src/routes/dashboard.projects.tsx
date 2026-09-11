@@ -25,7 +25,7 @@ function ProjectCard({ project }: { project: ProjectRow }) {
   const total = TIMELINE_STEPS.length - 1;
   const pct = Math.round((Math.min(project.current_step, total) / total) * 100);
   return (
-    <div className="rounded-sm border border-border bg-card p-6">
+    <div className="rounded-2xl border border-border bg-card p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium capitalize text-primary">
           {project.service_type?.replace("-", " ") || t("Project", "Proiect")}
@@ -46,7 +46,7 @@ function ProjectCard({ project }: { project: ProjectRow }) {
         )}
       </div>
       <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-gradient-brand" style={{ width: `${pct}%` }} />
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
         {t("Step", "Pasul")} {Math.min(project.current_step + 1, TIMELINE_STEPS.length)} {t("of", "din")} {TIMELINE_STEPS.length}
@@ -115,14 +115,14 @@ function ProjectsPage() {
       )}
 
       {!loading && error && (
-        <div className="mt-8 rounded-sm border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+        <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
           {error}
         </div>
       )}
 
       {!loading && !error && projects.length === 0 && (
-        <div className="mt-8 rounded-sm border border-dashed border-border bg-card p-10 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-sm bg-primary/10 text-primary">
+        <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+          <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
             <FolderKanban className="h-6 w-6" />
           </span>
           <h2 className="mt-4 text-2xl">{t("No projects yet", "Niciun proiect încă")}</h2>

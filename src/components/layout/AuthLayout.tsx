@@ -13,11 +13,11 @@ export function AuthLayout({
   footer: ReactNode;
 }) {
   return (
-    <div className="cinematic grid min-h-screen lg:grid-cols-2">
+    <div className="grid min-h-screen lg:grid-cols-2">
       {/* Brand panel */}
       <div className="relative hidden flex-col justify-between bg-ink p-12 text-ink-foreground lg:flex">
         <Link to="/" className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-sm font-semibold text-primary-foreground">
+          <span className="grid h-8 w-8 place-items-center rounded-md bg-gradient-brand text-sm font-semibold text-primary-foreground">
             V
           </span>
           <span className="font-serif text-xl">Vortex Hub</span>
@@ -38,7 +38,7 @@ export function AuthLayout({
       <div className="flex flex-col items-center justify-center px-6 py-12 sm:px-12">
         <div className="w-full max-w-md">
           <Link to="/" className="mb-8 flex items-center gap-2 lg:hidden">
-            <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-sm font-semibold text-primary-foreground">
+            <span className="grid h-8 w-8 place-items-center rounded-md bg-gradient-brand text-sm font-semibold text-primary-foreground">
               V
             </span>
             <span className="font-serif text-xl">Vortex Hub</span>

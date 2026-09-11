@@ -79,7 +79,7 @@ function PortfolioPage() {
           {projects.map((project) => (
             <article
               key={project.title}
-              className="overflow-hidden rounded-sm border border-border bg-card"
+              className="overflow-hidden rounded-2xl border border-border bg-card"
             >
               <div
                 className={`relative flex h-48 items-center justify-center bg-gradient-to-br ${project.accent}`}

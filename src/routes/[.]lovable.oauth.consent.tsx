@@ -58,7 +58,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
   component: ConsentPage,
   errorComponent: ({ error }) => (
     <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="max-w-md rounded-sm border border-border bg-card p-8 text-center">
+      <div className="max-w-md rounded-2xl border border-border bg-card p-8 text-center">
         <h1 className="text-xl font-semibold">Authorization request</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Could not load this authorization request: {String((error as Error)?.message ?? error)}
@@ -104,8 +104,8 @@ function ConsentPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-sm border border-border bg-card p-8 shadow-2xl">
-        <div className="mx-auto grid h-14 w-14 place-items-center rounded-sm bg-primary text-primary-foreground">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-2xl">
+        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-brand text-primary-foreground">
           <span className="text-xl font-bold">V</span>
         </div>
         <h1 className="mt-6 text-center text-2xl font-semibold">

@@ -25,7 +25,7 @@ function BillingSuccessPage() {
   return (
     <SiteLayout>
       <section className="relative mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center px-4 py-24 text-center sm:px-6">
-        <span className="grid h-16 w-16 place-items-center rounded-sm bg-teal/15 text-teal glow-soft">
+        <span className="grid h-16 w-16 place-items-center rounded-2xl bg-teal/15 text-teal glow-soft">
           <CheckCircle2 className="h-8 w-8" />
         </span>
         <h1 className="mt-6 text-3xl sm:text-4xl">

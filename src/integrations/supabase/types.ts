@@ -14,45 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      audit_leads: {
-        Row: {
-          answers: Json
-          company: string | null
-          created_at: string
-          email: string
-          full_name: string | null
-          id: string
-          language: string
-          recommendation: string | null
-          recommended_tier: string | null
-          score: number
-        }
-        Insert: {
-          answers?: Json
-          company?: string | null
-          created_at?: string
-          email: string
-          full_name?: string | null
-          id?: string
-          language?: string
-          recommendation?: string | null
-          recommended_tier?: string | null
-          score?: number
-        }
-        Update: {
-          answers?: Json
-          company?: string | null
-          created_at?: string
-          email?: string
-          full_name?: string | null
-          id?: string
-          language?: string
-          recommendation?: string | null
-          recommended_tier?: string | null
-          score?: number
-        }
-        Relationships: []
-      }
       consultations: {
         Row: {
           created_at: string

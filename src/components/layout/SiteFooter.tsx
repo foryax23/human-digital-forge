@@ -36,7 +36,7 @@ export function SiteFooter() {
                 width={1248}
                 height={1248}
                 loading="lazy"
-                className="h-11 w-11 rounded-sm"
+                className="h-11 w-11 rounded-xl"
               />
               <span className="font-serif text-xl">Vortex Hub</span>
             </span>

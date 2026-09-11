@@ -34,7 +34,7 @@ export function VortexStage() {
       {/* Depth glow behind the vortex */}
       <div
         aria-hidden
-        className="absolute left-1/2 top-1/2 h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary opacity-30 blur-[110px] animate-glow-pulse"
+        className="absolute left-1/2 top-1/2 h-[70vmin] w-[70vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-brand opacity-30 blur-[110px] animate-glow-pulse"
       />
       {/* Static fallback / SSR frame */}
       <img

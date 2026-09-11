@@ -60,7 +60,7 @@ function WebsitesPage() {
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {categories.map((category) => (
-            <div key={category.title} className="rounded-sm border border-border bg-card p-6">
+            <div key={category.title} className="rounded-xl border border-border bg-card p-6">
               <span className="grid h-11 w-11 place-items-center rounded-lg bg-teal/15 text-teal">
                 <category.icon className="h-5 w-5" />
               </span>
@@ -74,7 +74,7 @@ function WebsitesPage() {
           <SectionHeading title={t("A clear path to launch.", "Un drum clar spre lansare.")} />
           <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {process.map((step, index) => (
-              <li key={step} className="rounded-sm border border-border bg-background p-6">
+              <li key={step} className="rounded-xl border border-border bg-background p-6">
                 <span className="font-serif text-3xl text-primary">{index + 1}</span>
                 <h3 className="mt-2 text-base leading-snug">{step}</h3>
               </li>

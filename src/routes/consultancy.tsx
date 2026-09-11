@@ -71,9 +71,9 @@ function ConsultancyPage() {
           {sessions.map((session) => (
             <div
               key={session.title}
-              className="flex flex-col rounded-sm border border-border bg-card p-7"
+              className="flex flex-col rounded-2xl border border-border bg-card p-7"
             >
-              <span className="grid h-12 w-12 place-items-center rounded-sm bg-primary/10 text-primary">
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
                 <session.icon className="h-5 w-5" />
               </span>
               <h2 className="mt-5 text-xl">{session.title}</h2>
@@ -88,7 +88,7 @@ function ConsultancyPage() {
         </div>
 
         {/* Booking placeholder */}
-        <div className="mt-12 rounded-sm border border-dashed border-border bg-card p-8">
+        <div className="mt-12 rounded-2xl border border-dashed border-border bg-card p-8">
           <div className="flex items-center gap-2 text-base font-medium">
             <Calendar className="h-5 w-5 text-primary" />
             {t("Select a time", "Selectează o oră")}

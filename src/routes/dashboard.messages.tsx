@@ -123,7 +123,7 @@ function MessagesPage() {
       )}
 
       {!loading && error && (
-        <div className="mt-8 rounded-sm border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+        <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
           {error}
         </div>
       )}
@@ -131,8 +131,8 @@ function MessagesPage() {
       {!loading && !error && (
         <>
           {messages.length === 0 ? (
-            <div className="mt-8 rounded-sm border border-dashed border-border bg-card p-10 text-center">
-              <span className="mx-auto grid h-12 w-12 place-items-center rounded-sm bg-teal/15 text-teal">
+            <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+              <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-teal/15 text-teal">
                 <MessagesSquare className="h-6 w-6" />
               </span>
               <h2 className="mt-4 text-2xl">{t("Start the conversation", "Începe conversația")}</h2>
@@ -154,7 +154,7 @@ function MessagesPage() {
                   >
                     <div
                       className={cn(
-                        "max-w-[80%] rounded-sm border p-4",
+                        "max-w-[80%] rounded-2xl border p-4",
                         mine
                           ? "border-primary/30 bg-primary/10"
                           : "border-border bg-card",
@@ -179,7 +179,7 @@ function MessagesPage() {
             </ul>
           )}
 
-          <form onSubmit={handleSend} className="mt-6 rounded-sm border border-border bg-card p-4">
+          <form onSubmit={handleSend} className="mt-6 rounded-2xl border border-border bg-card p-4">
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}

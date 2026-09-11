@@ -52,7 +52,7 @@ function ContactPage() {
             {points.map((point) => (
               <div
                 key={point.text}
-                className="flex items-start gap-3 rounded-sm border border-border bg-card p-5"
+                className="flex items-start gap-3 rounded-xl border border-border bg-card p-5"
               >
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
                   <point.icon className="h-4 w-4" />
