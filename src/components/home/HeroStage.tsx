@@ -78,7 +78,7 @@ export function HeroStage() {
       />
 
       <motion.div
-        className="relative mx-auto w-full max-w-6xl px-4 py-28 text-center sm:px-6 lg:px-8"
+        className="relative mx-auto w-full max-w-6xl px-4 py-20 text-center sm:px-6 lg:px-8"
         style={reduce ? undefined : { y: copyY, opacity: copyOpacity }}
       >
         <motion.div
@@ -104,7 +104,7 @@ export function HeroStage() {
           </motion.span>
         </motion.div>
 
-        <h1 className="mx-auto mt-9 max-w-5xl text-hero font-bold">
+        <h1 className="mx-auto mt-8 max-w-5xl text-hero font-bold">
           {lines.map((line, i) => (
             <motion.span
               key={line.text}
@@ -124,7 +124,7 @@ export function HeroStage() {
           custom={4}
           initial={reduce ? false : "hidden"}
           animate="show"
-          className="mx-auto mt-9 max-w-2xl text-balance text-lg leading-relaxed text-muted-foreground"
+          className="mx-auto mt-7 max-w-2xl text-balance text-lg leading-relaxed text-muted-foreground"
         >
           {t(
             "Websites, internal systems, connected data and supervised AI — designed, built and operated for you, so the business stops depending on manual work.",
@@ -137,7 +137,7 @@ export function HeroStage() {
           custom={5}
           initial={reduce ? false : "hidden"}
           animate="show"
-          className="mt-11 flex flex-wrap items-center justify-center gap-3"
+          className="mt-9 flex flex-wrap items-center justify-center gap-3"
         >
           <Magnetic>
             <Button
@@ -172,7 +172,7 @@ export function HeroStage() {
           custom={6}
           initial={reduce ? false : "hidden"}
           animate="show"
-          className="mx-auto mt-16 grid max-w-4xl gap-4 sm:grid-cols-3"
+          className="mx-auto mt-12 grid max-w-4xl gap-4 sm:grid-cols-3"
         >
           <StatCard
             value={t("5 stages", "5 etape")}
