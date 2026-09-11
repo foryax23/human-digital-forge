@@ -45,7 +45,7 @@ export function HeroStage() {
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-aurora opacity-40" />
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-32 top-10 -z-10 h-[40rem] w-[40rem] rounded-full bg-gradient-brand opacity-20 blur-[150px]"
+        className="pointer-events-none absolute -right-32 top-10 -z-10 h-[40rem] w-[40rem] rounded-full bg-gradient-brand opacity-[0.13] blur-[170px]"
       />
       <div
         aria-hidden
@@ -116,7 +116,7 @@ export function HeroStage() {
           initial={reduce ? false : { opacity: 0, y: 40 }}
           animate={reduce ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 1.1, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-24 lg:mb-16"
+          className="mb-52 lg:mb-44"
         >
           <HeroShowcase />
         </motion.div>

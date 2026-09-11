@@ -117,7 +117,7 @@ export function HeroShowcase() {
 
         {/* Card — modern website */}
         <div
-          className="absolute -bottom-16 -left-6 w-[15rem] rounded-2xl border border-border bento-panel p-4 animate-float-slow sm:-left-14"
+          className="absolute -bottom-32 -left-6 w-[15rem] rounded-2xl border border-border bento-panel p-4 animate-float-slow sm:-left-14"
           style={float(0)}
         >
           <p className="flex items-center gap-2 text-sm font-semibold">
@@ -142,7 +142,7 @@ export function HeroShowcase() {
 
         {/* Card — AI automation */}
         <div
-          className="absolute -bottom-28 left-1/2 w-[15.5rem] -translate-x-1/2 rounded-2xl border border-border bento-panel p-4 glow-soft animate-float-slow"
+          className="absolute -bottom-48 left-1/2 w-[15.5rem] -translate-x-1/2 rounded-2xl border border-border bento-panel p-4 glow-soft animate-float-slow"
           style={float(1.2)}
         >
           <p className="flex items-center gap-2 text-sm font-semibold">
@@ -185,7 +185,7 @@ export function HeroShowcase() {
 
         {/* Card — real results */}
         <div
-          className="absolute -bottom-12 -right-4 w-[14.5rem] rounded-2xl border border-border bento-panel p-4 animate-float-slow sm:-right-12"
+          className="absolute -bottom-28 -right-4 w-[14.5rem] rounded-2xl border border-border bento-panel p-4 animate-float-slow sm:-right-12"
           style={float(2.1)}
         >
           <p className="flex items-center gap-2 text-sm font-semibold">
