@@ -13,7 +13,7 @@ export function AuthLayout({
   footer: ReactNode;
 }) {
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
+    <div className="cinematic grid min-h-screen lg:grid-cols-2">
       {/* Brand panel */}
       <div className="relative hidden flex-col justify-between bg-ink p-12 text-ink-foreground lg:flex">
         <Link to="/" className="flex items-center gap-2">

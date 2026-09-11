@@ -59,7 +59,7 @@ function Index() {
   const { t } = useI18n();
 
   return (
-    <div className="cinematic cinematic-flow">
+    <div>
       <CustomCursor />
       <SiteLayout>
         <HeroStage />
