@@ -26,8 +26,8 @@ export function SiteFooter() {
 
   return (
     <footer className="bg-ink text-ink-foreground">
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-[1.4fr_0.8fr_0.8fr]">
           <div className="lg:col-span-2 max-w-sm">
             <span className="flex items-center gap-3">
               <img
@@ -36,9 +36,9 @@ export function SiteFooter() {
                 width={1248}
                 height={1248}
                 loading="lazy"
-                className="h-11 w-11 rounded-xl"
+               className="h-10 w-10 rounded-lg"
               />
-              <span className="font-serif text-xl">Vortex Hub</span>
+               <span className="font-display text-xl font-semibold">Vortex Hub</span>
             </span>
             <p className="mt-4 text-sm text-ink-foreground/70">
               {t(
@@ -55,7 +55,7 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h2 className="font-serif text-base text-ink-foreground">{t("Explore", "Explorează")}</h2>
+             <h2 className="font-display text-base font-semibold text-ink-foreground">{t("Explore", "Explorează")}</h2>
             <ul className="mt-4 space-y-2">
               {footerNav.map((item) => (
                 <li key={item.to}>
@@ -71,7 +71,7 @@ export function SiteFooter() {
           </div>
 
           <div>
-            <h2 className="font-serif text-base text-ink-foreground">{t("Legal", "Legal")}</h2>
+             <h2 className="font-display text-base font-semibold text-ink-foreground">{t("Legal", "Legal")}</h2>
             <ul className="mt-4 space-y-2">
               {legalNav.map((item) => (
                 <li key={item.to}>

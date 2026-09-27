@@ -13,7 +13,7 @@ import swirlPoster from "@/assets/brand/vortex-swirl.png.asset.json";
 export function FinalCTA() {
   const { t } = useI18n();
   return (
-    <section className="relative isolate overflow-hidden border-t border-border bg-ink text-ink-foreground">
+    <section className="relative isolate overflow-hidden border-y border-border bg-ink text-ink-foreground">
       <ParticlesBackground count={45} />
       <video
         src={swirlLoop.url}
@@ -24,7 +24,7 @@ export function FinalCTA() {
         playsInline
         preload="metadata"
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[38rem] w-[38rem] -translate-x-1/2 -translate-y-1/2 object-contain opacity-25 mix-blend-screen motion-reduce:hidden"
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[34rem] w-[34rem] -translate-x-1/2 -translate-y-1/2 object-contain opacity-30 mix-blend-screen motion-reduce:hidden"
       />
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-40" />
       <div
@@ -36,10 +36,11 @@ export function FinalCTA() {
         className="pointer-events-none absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-brand opacity-25 blur-3xl animate-glow-pulse"
       />
 
-      <div className="relative mx-auto max-w-4xl px-4 py-28 text-center sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-4xl px-4 py-32 text-center sm:px-6 lg:px-8 lg:py-40">
         <Reveal>
-          <h2 className="text-4xl leading-tight sm:text-5xl lg:text-6xl">
-            {t("Have a digital project in mind?", "Ai un proiect digital în minte?")}
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-teal">Vortex Hub</p>
+          <h2 className="mt-5 text-4xl leading-tight sm:text-5xl lg:text-7xl">
+            {t("Turn the next idea into momentum.", "Transformă următoarea idee în progres.")}
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-lg text-ink-foreground/70">
             {t("Tell Vortex Hub what you would like to create, improve or automate.", "Spune-i Vortex Hub ce ai vrea să creezi, să îmbunătățești sau să automatizezi.")}

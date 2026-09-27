@@ -33,7 +33,7 @@ export function ProcessSteps() {
   ];
 
   return (
-    <section className="relative isolate mx-auto max-w-7xl overflow-hidden px-4 py-28 sm:px-6 lg:px-8">
+    <section className="relative isolate mx-auto max-w-7xl overflow-hidden px-4 py-24 sm:px-6 lg:px-8 lg:py-32">
       <ThreadsBackground className="-z-10 opacity-80" />
       <Reveal>
         <SectionHeading
@@ -52,14 +52,14 @@ export function ProcessSteps() {
           viewport={{ once: true }}
           transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1] }}
         />
-        <ol className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5 lg:gap-6">
+        <ol className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5 lg:gap-4">
           {steps.map((step, index) => (
             <Reveal key={step.title} delay={index * 0.1}>
-              <li className="group relative">
-                <span className="relative grid h-12 w-12 place-items-center rounded-full border border-border bg-background font-display text-lg font-semibold text-primary transition-shadow duration-500 group-hover:glow-soft">
+              <li className="group relative border-l border-border/70 pl-5 lg:border-l-0 lg:pl-0">
+                <span className="relative grid h-12 w-12 place-items-center rounded-lg border border-border bg-background font-display text-lg font-semibold text-teal transition-shadow duration-500 group-hover:glow-teal">
                   <span
                     aria-hidden
-                    className="absolute inset-0 rounded-full bg-gradient-brand opacity-0 blur-md transition-opacity duration-500 group-hover:opacity-50"
+                    className="absolute inset-0 rounded-lg bg-gradient-brand opacity-0 blur-md transition-opacity duration-500 group-hover:opacity-40"
                   />
                   <span className="relative">{index + 1}</span>
                 </span>
