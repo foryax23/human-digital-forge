@@ -21,8 +21,8 @@ export function SiteHeader() {
   const { t, lang } = useI18n();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
+      <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Wordmark />
 
         <nav className="hidden items-center gap-7 lg:flex" aria-label="Primary">
@@ -30,8 +30,8 @@ export function SiteHeader() {
             <Link
               key={link.to}
               to={link.to}
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-              activeProps={{ className: "text-foreground font-medium" }}
+              className="relative py-2 text-[0.82rem] font-medium text-muted-foreground transition-colors after:absolute after:inset-x-0 after:-bottom-0.5 after:h-px after:origin-right after:scale-x-0 after:bg-teal after:transition-transform hover:text-foreground hover:after:origin-left hover:after:scale-x-100"
+              activeProps={{ className: "text-foreground after:scale-x-100" }}
             >
               {lang === "ro" ? link.ro : link.en}
             </Link>
@@ -49,7 +49,7 @@ export function SiteHeader() {
               <Link to="/login">{t("Login", "Autentificare")}</Link>
             </Button>
           )}
-          <Button asChild size="sm" className="bg-gradient-brand text-primary-foreground glow-soft hover:opacity-90">
+          <Button asChild size="sm" className="bg-primary text-primary-foreground glow-soft hover:bg-primary/90">
             <Link to="/contact">
               {t("Start a project", "Începe un proiect")}
               <ArrowRight />

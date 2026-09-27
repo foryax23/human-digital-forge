@@ -4,7 +4,7 @@ export function Eyebrow({ children, className }: { children: React.ReactNode; cl
   return (
     <span
       className={cn(
-        "inline-block text-xs font-semibold uppercase tracking-[0.18em] text-primary",
+        "inline-flex items-center gap-3 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-teal before:h-px before:w-8 before:bg-teal/60",
         className,
       )}
     >
@@ -29,15 +29,15 @@ export function SectionHeading({
   return (
     <div
       className={cn(
-        "max-w-2xl",
+        "max-w-3xl",
         align === "center" && "mx-auto text-center",
         className,
       )}
     >
       {eyebrow && <Eyebrow className="mb-3">{eyebrow}</Eyebrow>}
-      <h2 className="text-3xl leading-tight sm:text-4xl">{title}</h2>
+      <h2 className="text-4xl leading-[1.02] sm:text-5xl lg:text-6xl">{title}</h2>
       {description && (
-        <p className="mt-4 text-base leading-relaxed text-muted-foreground">{description}</p>
+        <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">{description}</p>
       )}
     </div>
   );
