@@ -133,10 +133,10 @@ export function PricingSection() {
           </p>
         )}
 
-        <div className="mt-16 grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-16 grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-4">
           {/* Free plan */}
           <Reveal>
-            <div className="flex h-full flex-col rounded-3xl border border-border bg-card/60 p-7 backdrop-blur-sm">
+            <div className="flex h-full flex-col rounded-lg border border-border bg-card/60 p-6 backdrop-blur-sm">
               <span className="grid h-11 w-11 place-items-center rounded-xl bg-muted text-muted-foreground">
                 <MessageCircle className="h-5 w-5" />
               </span>
@@ -170,9 +170,9 @@ export function PricingSection() {
             <Reveal key={plan.id} delay={(i + 1) * 0.08}>
               <div
                 className={cn(
-                  "relative flex h-full flex-col rounded-3xl border p-7 backdrop-blur-sm",
+                  "relative flex h-full flex-col rounded-lg border p-6 backdrop-blur-sm",
                   plan.highlight
-                    ? "border-primary/60 bg-card glow-soft lg:-my-6 lg:py-12"
+                    ? "border-primary/60 bg-card glow-soft lg:-my-4 lg:py-10"
                     : "border-border bg-card/60",
                 )}
               >

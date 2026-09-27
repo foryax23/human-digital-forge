@@ -1,14 +1,14 @@
 .scene {
-  --violet: #7357ff;
-  --violet-2: #9c63ff;
-  --blue: #5688ff;
-  --ink: #050716;
+  --violet: #665cff;
+  --violet-2: #8e7dff;
+  --blue: #5fe3d0;
+  --ink: #070713;
   --panel: rgba(13, 18, 46, 0.82);
   --stroke: rgba(132, 127, 255, 0.48);
   position: relative;
   width: min(100%, 900px);
-  aspect-ratio: 1.31 / 1;
-  min-height: 560px;
+  aspect-ratio: 1.42 / 1;
+  min-height: 520px;
   margin-inline: auto;
   isolation: isolate;
   perspective: 1400px;
@@ -216,15 +216,15 @@
 }
 
 @media (max-width: 680px) {
-  .scene { min-height: 620px; aspect-ratio: auto; }
+  .scene { min-height: 500px; aspect-ratio: auto; }
   .halo { inset: -2% -20% 18% -20%; }
   .browser { position: relative; top: 0; left: 3%; width: 94%; height: 340px; transform: none; }
   .browserCopy { padding-top: 28px; }
   .browserContent { grid-template-columns: 40% 60%; }
   .floatCard { position: absolute; min-width: 0; }
-  .websiteCard { width: 44%; left: 0; bottom: 70px; padding: 18px; }
-  .automationCard { width: 46%; left: 27%; bottom: 0; padding: 18px; }
-  .resultsCard { width: 44%; right: 0; bottom: 60px; padding: 18px; }
+  .websiteCard { display: none; }
+  .automationCard { width: 74%; left: 13%; bottom: 0; padding: 18px; }
+  .resultsCard { display: none; }
   .checkList li { white-space: normal; }
 }
 

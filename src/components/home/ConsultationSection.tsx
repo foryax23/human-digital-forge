@@ -31,7 +31,7 @@ export function ConsultationSection() {
   ];
 
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-hidden border-y border-border/60 bg-secondary/20">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-25" />
       <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
@@ -58,7 +58,7 @@ export function ConsultationSection() {
                 </Magnetic>
               </div>
 
-              <div className="mt-8 overflow-hidden rounded-2xl border border-border glass-panel">
+              <div className="mt-8 overflow-hidden rounded-lg border border-border glass-panel">
                 <div className="relative h-40">
                   <img
                     src={consultationImg}
@@ -75,9 +75,7 @@ export function ConsultationSection() {
                     <Calendar className="h-4 w-4 text-primary" />
                     {t("Booking calendar", "Calendar de programări")}
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {t("Live scheduling will appear here once the design is approved.", "Programarea în timp real va apărea aici după aprobarea designului.")}
-                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">{t("Choose a session, then request the time that works for you.", "Alege o sesiune, apoi solicită ora care ți se potrivește.")}</p>
                   <div className="mt-4 grid grid-cols-4 gap-2">
                     {[t("Mon", "Lun"), t("Tue", "Mar"), t("Wed", "Mie"), t("Thu", "Joi")].map((day, i) => (
                       <div
