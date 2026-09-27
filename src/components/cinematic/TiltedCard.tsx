@@ -52,18 +52,14 @@ export function TiltedCard({
       ref={ref}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
-      style={
-        reduce
-          ? undefined
-          : { rotateX: springRx, rotateY: springRy, transformPerspective: 900 }
-      }
+      style={{ rotateX: springRx, rotateY: springRy, transformPerspective: 900 }}
       className={cn("relative", className)}
     >
       {children}
       <motion.span
         aria-hidden
         className="pointer-events-none absolute inset-0 rounded-[inherit] mix-blend-soft-light"
-        style={reduce ? { display: "none" } : { backgroundImage: glare, opacity }}
+        style={{ backgroundImage: glare, opacity }}
       />
     </motion.div>
   );

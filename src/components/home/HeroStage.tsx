@@ -32,9 +32,7 @@ export function HeroStage() {
     }),
   };
 
-  const anim = reduce
-    ? {}
-    : { initial: "hidden" as const, animate: "show" as const, variants: rise };
+  const anim = { initial: "hidden" as const, animate: "show" as const, variants: rise };
 
   return (
     <section className="relative isolate overflow-hidden border-b border-border/60">
@@ -106,8 +104,8 @@ export function HeroStage() {
         </div>
 
         <motion.div
-          initial={reduce ? false : { opacity: 0, y: 40 }}
-          animate={reduce ? undefined : { opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.1, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
           className="relative z-0 lg:-mr-10"
         >

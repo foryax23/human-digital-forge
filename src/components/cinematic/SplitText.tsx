@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 
@@ -19,10 +19,6 @@ export function SplitText({
   stagger?: number;
   inView?: boolean;
 }) {
-  const reduce = useReducedMotion();
-
-  if (reduce) return <span className={className}>{text}</span>;
-
   const words = text.split(" ");
   let index = -1;
 

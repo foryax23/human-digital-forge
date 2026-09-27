@@ -61,11 +61,11 @@ export function CookieConsent() {
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] p-3 sm:p-5">
-      <div className="pointer-events-auto ml-auto max-h-[72vh] w-full max-w-md overflow-y-auto rounded-lg border border-border bg-card/95 p-5 shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom-4 fade-in duration-300 sm:p-6">
+      <div className="pointer-events-auto ml-auto max-h-[58vh] w-full max-w-md overflow-y-auto rounded-lg border border-border bg-card/95 p-4 shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom-4 fade-in duration-300 sm:max-h-[72vh] sm:p-6">
         <h2 className="text-lg font-semibold text-foreground">
           {t("We value your privacy", "Confidențialitatea ta contează")}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground sm:text-sm">
           {t(
             "We use cookies to keep the site working, understand how it is used and improve your experience. You can accept all, reject non-essential, or choose which categories to allow.",
             "Folosim cookie-uri pentru ca site-ul să funcționeze, pentru a înțelege modul de utilizare și pentru a-ți îmbunătăți experiența. Poți accepta toate, respinge cele neesențiale sau alege ce categorii permiți.",

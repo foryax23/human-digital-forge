@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 
 import { cn } from "@/lib/utils";
 
@@ -14,12 +14,6 @@ export function Reveal({
   y?: number;
   className?: string;
 }) {
-  const reduce = useReducedMotion();
-
-  if (reduce) {
-    return <div className={className}>{children}</div>;
-  }
-
   return (
     <motion.div
       className={cn(className)}

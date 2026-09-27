@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/cinematic/Reveal";
@@ -6,7 +6,6 @@ import { ThreadsBackground } from "@/components/backgrounds/ThreadsBackground";
 import { useI18n } from "@/i18n";
 
 export function ProcessSteps() {
-  const reduce = useReducedMotion();
   const { t } = useI18n();
 
   const steps = [
@@ -47,8 +46,8 @@ export function ProcessSteps() {
         <motion.div
           aria-hidden
           className="absolute left-0 top-6 hidden h-px w-full origin-left bg-gradient-to-r from-primary via-teal to-transparent lg:block"
-          initial={reduce ? false : { scaleX: 0 }}
-          whileInView={reduce ? undefined : { scaleX: 1 }}
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1] }}
         />

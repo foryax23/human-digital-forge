@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Inbox, FileStack, CalendarClock, Boxes } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/shared/SectionHeading";
@@ -11,7 +11,6 @@ import { useI18n } from "@/i18n";
 import aiImg from "@/assets/home/ai-spotlight.jpg";
 
 export function AISpotlight() {
-  const reduce = useReducedMotion();
   const { t } = useI18n();
 
   const useCases = [
@@ -69,8 +68,8 @@ export function AISpotlight() {
               <motion.div
                 aria-hidden
                 className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-teal to-transparent"
-                initial={reduce ? false : { scaleY: 0, opacity: 0 }}
-                whileInView={reduce ? undefined : { scaleY: 1, opacity: 1 }}
+                initial={{ scaleY: 0, opacity: 0 }}
+                whileInView={{ scaleY: 1, opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
               />
