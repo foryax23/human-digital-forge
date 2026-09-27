@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Rocket, CalendarCheck } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Magnetic } from "@/components/cinematic/Magnetic";
@@ -15,7 +15,6 @@ import { useI18n } from "@/i18n";
  * points across the bottom.
  */
 export function HeroStage() {
-  const reduce = useReducedMotion();
   const { t } = useI18n();
 
   const rise = {
