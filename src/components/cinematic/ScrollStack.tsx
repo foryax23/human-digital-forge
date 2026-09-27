@@ -1,5 +1,5 @@
 import { useRef, type ReactNode } from "react";
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { motion, useScroll, useTransform } from "motion/react";
 
 import { cn } from "@/lib/utils";
 
@@ -18,20 +18,6 @@ export function ScrollStack({
   itemClassName?: string;
   top?: number;
 }) {
-  const reduce = useReducedMotion();
-
-  if (reduce) {
-    return (
-      <div className={cn("space-y-6", className)}>
-        {children.map((child, i) => (
-          <div key={i} className={itemClassName}>
-            {child}
-          </div>
-        ))}
-      </div>
-    );
-  }
-
   return (
     <div className={cn("relative", className)}>
       {children.map((child, i) => (

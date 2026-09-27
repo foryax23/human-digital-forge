@@ -60,12 +60,12 @@ export function CookieConsent() {
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[60] p-4 sm:p-6">
-      <div className="mx-auto max-w-3xl rounded-2xl border border-border bg-card p-6 shadow-2xl animate-in slide-in-from-bottom-4 fade-in duration-300">
-        <h2 className="font-serif text-lg text-foreground">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] p-3 sm:p-5">
+      <div className="pointer-events-auto ml-auto max-h-[58vh] w-full max-w-md overflow-y-auto rounded-lg border border-border bg-card/95 p-4 shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom-4 fade-in duration-300 sm:max-h-[72vh] sm:p-6">
+        <h2 className="text-lg font-semibold text-foreground">
           {t("We value your privacy", "Confidențialitatea ta contează")}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground sm:text-sm">
           {t(
             "We use cookies to keep the site working, understand how it is used and improve your experience. You can accept all, reject non-essential, or choose which categories to allow.",
             "Folosim cookie-uri pentru ca site-ul să funcționeze, pentru a înțelege modul de utilizare și pentru a-ți îmbunătăți experiența. Poți accepta toate, respinge cele neesențiale sau alege ce categorii permiți.",
@@ -109,19 +109,19 @@ export function CookieConsent() {
           </div>
         )}
 
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-          <Button onClick={acceptAll} className="sm:order-3">
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <Button onClick={acceptAll} className="col-span-2">
             {t("Accept all", "Acceptă toate")}
           </Button>
-          <Button variant="outline" onClick={rejectAll} className="sm:order-2">
+          <Button variant="outline" onClick={rejectAll}>
             {t("Reject non-essential", "Respinge neesențiale")}
           </Button>
           {customize ? (
-            <Button variant="secondary" onClick={savePreferences} className="sm:order-1 sm:mr-auto">
+            <Button variant="secondary" onClick={savePreferences}>
               {t("Save preferences", "Salvează preferințele")}
             </Button>
           ) : (
-            <Button variant="ghost" onClick={() => setCustomize(true)} className="sm:order-1 sm:mr-auto">
+            <Button variant="ghost" onClick={() => setCustomize(true)}>
               {t("Customize", "Personalizează")}
             </Button>
           )}

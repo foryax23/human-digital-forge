@@ -62,7 +62,7 @@ function Index() {
         <PortfolioPreview />
         <SectionTransition tone="indigo" />
         <ConsultationSection />
-        <SectionTransition tone="indigo" />
+        <SectionTransition tone="teal" />
         <PricingSection />
         <SectionTransition tone="teal" />
 

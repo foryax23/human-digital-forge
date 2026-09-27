@@ -49,7 +49,7 @@ export function ServicesIntro() {
   ];
 
   return (
-    <section className="relative mx-auto max-w-7xl px-4 py-28 sm:px-6 lg:px-8">
+    <section className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 lg:py-32">
       <Reveal>
         <SectionHeading
           eyebrow={t("What we do", "Ce facem")}
@@ -64,27 +64,27 @@ export function ServicesIntro() {
         />
       </Reveal>
 
-      <div className="mt-16 grid gap-5 lg:grid-cols-3">
+      <div className="mt-14 grid gap-4 lg:grid-cols-3">
         {/* Large feature tile */}
         <Reveal className="lg:col-span-2">
-          <TiltedCard className="h-full rounded-[1.75rem]" max={6}>
+          <TiltedCard className="h-full rounded-lg" max={4}>
           <Link
             to={feature.to}
-            className="group relative flex h-full min-h-[24rem] flex-col justify-end overflow-hidden rounded-[1.75rem] bento-panel p-8 sm:p-10"
+            className="group relative flex h-full min-h-[28rem] flex-col justify-end overflow-hidden rounded-lg bento-panel p-8 sm:p-10"
           >
             <img
               src={feature.image}
               alt=""
               aria-hidden
               loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover opacity-35 transition-transform duration-[1200ms] group-hover:scale-105"
+              className="absolute inset-0 h-full w-full object-cover opacity-55 transition-transform duration-[1200ms] group-hover:scale-105"
             />
             <div
               aria-hidden
               className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-transparent"
             />
             <div className="relative">
-              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/25 text-primary-foreground backdrop-blur glow-soft">
+              <span className="grid h-12 w-12 place-items-center rounded-lg bg-primary/25 text-primary-foreground backdrop-blur glow-soft">
                 <feature.icon className="h-5 w-5" />
               </span>
               <h3 className="mt-6 max-w-md text-3xl sm:text-4xl">{feature.title}</h3>
@@ -107,14 +107,14 @@ export function ServicesIntro() {
               <SpotlightCard className="h-full">
               <Link
                 to={service.to}
-                className="group relative flex h-full min-h-[11.5rem] flex-col justify-end overflow-hidden rounded-[1.75rem] bento-panel p-7"
+                className="group relative flex h-full min-h-[13.5rem] flex-col justify-end overflow-hidden rounded-lg bento-panel p-7"
               >
                 <img
                   src={service.image}
                   alt=""
                   aria-hidden
                   loading="lazy"
-                  className="absolute inset-0 h-full w-full object-cover opacity-20 transition-transform duration-[1200ms] group-hover:scale-105"
+                  className="absolute inset-0 h-full w-full object-cover opacity-40 transition-transform duration-[1200ms] group-hover:scale-105"
                 />
                 <div
                   aria-hidden

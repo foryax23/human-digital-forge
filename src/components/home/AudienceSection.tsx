@@ -23,24 +23,24 @@ function AudiencePanel({
   flip?: boolean;
 }) {
   return (
-    <div className="group grid overflow-hidden rounded-[1.75rem] bento-panel sm:grid-cols-[0.85fr_1fr]">
-      <div className={`relative min-h-[13rem] ${flip ? "sm:order-last" : ""}`}>
+    <div className="group grid min-h-[28rem] overflow-hidden border-y border-border/60 bg-secondary/20 lg:grid-cols-[1.05fr_0.95fr]">
+      <div className={`relative min-h-[18rem] ${flip ? "lg:order-last" : ""}`}>
         <img
           src={image}
           alt=""
           aria-hidden
           loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover opacity-70 transition-transform duration-[1200ms] group-hover:scale-105"
+          className="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-[1200ms] group-hover:scale-105"
         />
         <div
           aria-hidden
           className={`absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent ${
-            flip ? "sm:bg-gradient-to-l" : "sm:bg-gradient-to-r"
+            flip ? "lg:bg-gradient-to-l" : "lg:bg-gradient-to-r"
           }`}
         />
       </div>
-      <div className="p-8 sm:p-9">
-        <h3 className="text-2xl">{title}</h3>
+      <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16">
+        <h3 className="text-3xl sm:text-4xl">{title}</h3>
         <AnimatedList className="mt-6 space-y-3.5">
           {items.map((item) => (
             <span key={item} className="flex items-start gap-3 text-sm text-muted-foreground">
@@ -82,7 +82,7 @@ export function AudienceSection() {
   return (
     <section className="relative overflow-hidden">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-25" />
-      <div className="relative mx-auto max-w-7xl px-4 py-28 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 lg:py-32">
         <Reveal>
           <SectionHeading
             align="center"
@@ -93,7 +93,7 @@ export function AudienceSection() {
             )}
           />
         </Reveal>
-        <div className="mt-16 grid gap-5 lg:grid-cols-2">
+        <div className="mt-16 space-y-6">
           <Reveal>
             <AudiencePanel
               title={t("For individuals", "Pentru persoane")}

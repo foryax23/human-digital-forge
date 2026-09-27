@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { Reveal } from "@/components/cinematic/Reveal";
@@ -56,23 +57,21 @@ export function PortfolioPreview() {
   ];
 
   return (
-    <section className="relative isolate mx-auto max-w-7xl overflow-hidden px-4 py-28 sm:px-6 lg:px-8">
+    <section className="relative isolate mx-auto max-w-7xl overflow-hidden px-4 py-24 sm:px-6 lg:px-8 lg:py-32">
       <ParticlesBackground className="-z-10" count={40} />
-      <Reveal>
-        <SectionHeading
-          eyebrow={t("Selected work", "Lucrări selectate")}
-          title={t("Selected work and digital possibilities.", "Lucrări selectate și posibilități digitale.")}
-        />
-      </Reveal>
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <Reveal><SectionHeading eyebrow={t("Selected work", "Lucrări selectate")} title={t("Work designed around an outcome.", "Lucrări proiectate în jurul unui rezultat.")} /></Reveal>
+        <Link to="/portfolio" className="inline-flex items-center gap-2 text-sm font-semibold text-teal transition-colors hover:text-foreground">{t("View the portfolio", "Vezi portofoliul")}<ArrowUpRight className="h-4 w-4" /></Link>
+      </div>
       <div className="mt-16 grid gap-5 sm:grid-cols-4">
         {projects.map((project, i) => (
           <Reveal key={project.title} delay={i * 0.08} className={project.span}>
-            <article className="group relative flex h-full flex-col justify-end overflow-hidden rounded-[1.75rem] bento-panel p-7 transition-transform duration-500 hover:-translate-y-1.5">
+            <article className="group relative flex h-full flex-col justify-end overflow-hidden rounded-lg border border-border bg-card p-7 transition-transform duration-500 hover:-translate-y-1">
               <img
                 src={project.image}
                 alt={project.title}
                 loading="lazy"
-                className="absolute inset-0 h-full w-full object-cover opacity-45 transition-all duration-[1200ms] group-hover:scale-105 group-hover:opacity-60"
+                className="absolute inset-0 h-full w-full object-cover opacity-65 transition-all duration-[1200ms] group-hover:scale-105 group-hover:opacity-80"
               />
               <div
                 aria-hidden

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Inbox, FileStack, CalendarClock, Boxes } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
 import { Eyebrow } from "@/components/shared/SectionHeading";
@@ -11,7 +11,6 @@ import { useI18n } from "@/i18n";
 import aiImg from "@/assets/home/ai-spotlight.jpg";
 
 export function AISpotlight() {
-  const reduce = useReducedMotion();
   const { t } = useI18n();
 
   const useCases = [
@@ -24,12 +23,12 @@ export function AISpotlight() {
   return (
     <section className="relative overflow-hidden">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-40" />
-      <SilkBackground />
+      <SilkBackground className="opacity-60" />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-ink/70 via-ink/40 to-ink/70"
       />
-      <div className="relative mx-auto max-w-7xl px-4 py-28 sm:px-6 lg:px-8">
+       <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8 lg:py-32">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <Reveal>
             <div>
@@ -55,11 +54,7 @@ export function AISpotlight() {
           </Reveal>
 
           <div className="relative">
-            <div
-              aria-hidden
-              className="absolute -inset-6 rounded-[2.25rem] bg-gradient-brand opacity-20 blur-3xl animate-glow-pulse"
-            />
-            <div className="relative overflow-hidden rounded-[1.75rem] bento-panel">
+            <div className="relative overflow-hidden rounded-lg border border-border bg-card/70">
 
               <img
                 src={aiImg}
@@ -67,22 +62,22 @@ export function AISpotlight() {
                 loading="lazy"
                 width={1024}
                 height={1024}
-                className="absolute inset-0 h-full w-full object-cover opacity-30"
+                className="absolute inset-0 h-full w-full object-cover opacity-48"
               />
               {/* Animated beam connecting the use-case cards */}
               <motion.div
                 aria-hidden
                 className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-gradient-to-b from-transparent via-teal to-transparent"
-                initial={reduce ? false : { scaleY: 0, opacity: 0 }}
-                whileInView={reduce ? undefined : { scaleY: 1, opacity: 1 }}
+                initial={{ scaleY: 0, opacity: 0 }}
+                whileInView={{ scaleY: 1, opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
               />
               <div className="relative grid gap-px p-px sm:grid-cols-2">
                 {useCases.map((useCase, i) => (
                   <Reveal key={useCase.label} delay={i * 0.1}>
-                    <div className="h-full bg-card/40 p-6 backdrop-blur-sm">
-                      <span className="grid h-11 w-11 place-items-center rounded-lg bg-teal/20 text-teal glow-teal">
+                    <div className="h-full min-h-44 bg-card/70 p-6 backdrop-blur-md">
+                      <span className="grid h-11 w-11 place-items-center rounded-lg bg-teal/15 text-teal">
                         <useCase.icon className="h-5 w-5" />
                       </span>
                       <p className="mt-4 text-sm font-medium text-foreground">{useCase.label}</p>

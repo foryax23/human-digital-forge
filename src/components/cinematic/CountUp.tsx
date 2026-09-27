@@ -22,10 +22,14 @@ export function CountUp({
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
   const reduce = useReducedMotion();
-  const [value, setValue] = useState(reduce ? to : from);
+  const [value, setValue] = useState(from);
 
   useEffect(() => {
-    if (reduce || !inView) return;
+    if (reduce) {
+      setValue(to);
+      return;
+    }
+    if (!inView) return;
     let raf = 0;
     const start = performance.now();
     const tick = (now: number) => {

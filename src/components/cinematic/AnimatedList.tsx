@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -17,14 +17,8 @@ export function AnimatedList({
   delay?: number;
   as?: "ul" | "div";
 }) {
-  const reduce = useReducedMotion();
   const Container = Tag === "ul" ? motion.ul : motion.div;
   const Item = Tag === "ul" ? motion.li : motion.div;
-
-  if (reduce) {
-    const Plain = Tag;
-    return <Plain className={className}>{children}</Plain>;
-  }
 
   return (
     <Container
