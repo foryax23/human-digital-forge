@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { toast } from "sonner";
 
 import { useI18n } from "@/i18n";
 import { gsap, prefersReducedMotion, useGsap } from "./gsap";
@@ -95,18 +94,9 @@ export function HeroSection() {
 
   const [roleEn, roleRo] = ROLES[roleIndex];
 
-  // Until the Vortex Scan engine ships, a search hands the visitor to a person.
+  // Until the Vortex Scan engine ships, a search becomes a scan request.
   const handleSearch = (query: string) => {
-    toast(t("Vortex Scan is almost ready", "Vortex Scan este aproape gata"), {
-      description: t(
-        `We'll analyse “${query}” for you — leave us a message and we'll send the audit.`,
-        `Analizăm „${query}” pentru tine — lasă-ne un mesaj și îți trimitem auditul.`,
-      ),
-      action: {
-        label: t("Contact us", "Contactează-ne"),
-        onClick: () => navigate({ to: "/contact" }),
-      },
-    });
+    navigate({ to: "/contact", search: { scan: query } });
   };
 
   return (
