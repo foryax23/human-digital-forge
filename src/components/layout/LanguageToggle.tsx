@@ -4,12 +4,12 @@ import { useI18n, type Language } from "@/i18n";
 const languages: Language[] = ["en", "ro"];
 
 export function LanguageToggle({ className }: { className?: string }) {
-  const { lang, setLang } = useI18n();
+  const { lang, setLang, t } = useI18n();
 
   return (
     <div
       role="group"
-      aria-label="Select language"
+      aria-label={t("Select language", "Selectează limba")}
       className={cn(
         "inline-flex items-center rounded-md border border-border p-0.5 text-xs font-medium",
         className,
@@ -22,7 +22,7 @@ export function LanguageToggle({ className }: { className?: string }) {
           aria-pressed={lang === code}
           onClick={() => setLang(code)}
           className={cn(
-            "rounded px-2.5 py-1 uppercase transition-colors",
+            "rounded px-2.5 py-1 uppercase transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             lang === code
               ? "bg-gradient-brand text-primary-foreground"
               : "text-muted-foreground hover:text-foreground",

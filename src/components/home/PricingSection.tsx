@@ -1,26 +1,40 @@
-import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { useState, type ReactNode } from "react";
+import { MotionConfig, motion } from "motion/react";
 import { Check, Loader2, MessageCircle, Sparkles, Rocket, Crown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { SectionHeading } from "@/components/shared/SectionHeading";
-import { Reveal } from "@/components/cinematic/Reveal";
+import { Em, SectionHeader } from "@/components/landing/SectionHeader";
+import { RingButton } from "@/components/landing/RingButton";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { SquaresBackground } from "@/components/backgrounds/SquaresBackground";
 import { useI18n } from "@/i18n";
 import { createCheckoutSession } from "@/lib/checkout.functions";
 import { PLAN_PRICING, type PlanId } from "@/lib/plans";
 import { cn } from "@/lib/utils";
+
+const EASE = [0.25, 0.1, 0.25, 1] as const;
+
+/** Same entrance as SectionHeader: fade up 30px once, 1 s. */
+function fadeUp(delay = 0) {
+  return {
+    initial: { opacity: 0, y: 30 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-100px" },
+    transition: { duration: 1, delay, ease: EASE },
+  } as const;
+}
 
 function formatPrice(minor: number, lang: "en" | "ro") {
   const major = minor / 100;
   return lang === "ro" ? `${major} LEI` : `${major} EUR`;
 }
 
-function FeatureItem({ children }: { children: React.ReactNode }) {
+function FeatureItem({ children }: { children: ReactNode }) {
   return (
     <li className="flex items-start gap-3">
-      <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal/20 text-teal">
+      <span
+        aria-hidden
+        className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/10 text-foreground"
+      >
         <Check className="h-3 w-3" strokeWidth={3} />
       </span>
       <span className="text-sm text-muted-foreground">{children}</span>
@@ -28,6 +42,19 @@ function FeatureItem({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Checkout buttons stay real <Button>s (disabled + spinner) but wear the
+// RingButton faces so they match the link CTAs around them.
+const checkoutFace = {
+  solid:
+    "bg-foreground text-background group-hover:bg-background group-hover:text-foreground group-focus-visible:bg-background group-focus-visible:text-foreground",
+  outline:
+    "border-2 border-border bg-background text-foreground group-hover:border-transparent group-focus-visible:border-transparent",
+};
+
+/**
+ * Plans & pricing (#pricing): the free conversation plus the three monthly
+ * plans, each paid plan starting a Stripe checkout in the active currency.
+ */
 export function PricingSection() {
   const { t, lang } = useI18n();
   const { user } = useAuth();
@@ -75,9 +102,15 @@ export function PricingSection() {
       name: t("Starter", "Starter"),
       tagline: t("For up to 1 focused goal", "Pentru până la 1 obiectiv concentrat"),
       features: [
-        t("30 minutes of live Zoom consultation each month", "30 de minute de consultanță live pe Zoom în fiecare lună"),
+        t(
+          "30 minutes of live Zoom consultation each month",
+          "30 de minute de consultanță live pe Zoom în fiecare lună",
+        ),
         t("1 month access to our AI tools", "1 lună de acces la instrumentele noastre AI"),
-        t("Personalised next-step recommendations", "Recomandări personalizate pentru următorul pas"),
+        t(
+          "Personalised next-step recommendations",
+          "Recomandări personalizate pentru următorul pas",
+        ),
         t("Email support during your subscription", "Suport prin email pe durata abonamentului"),
       ],
     },
@@ -89,7 +122,10 @@ export function PricingSection() {
       highlight: true,
       features: [
         t("2 hours of live Zoom consultation", "2 ore de consultanță live pe Zoom"),
-        t("Expanded access to our AIs and programs", "Acces extins la AI-urile și programele noastre"),
+        t(
+          "Expanded access to our AIs and programs",
+          "Acces extins la AI-urile și programele noastre",
+        ),
         t("Priority scheduling for sessions", "Programare prioritară a sesiunilor"),
         t("Guided setup of your digital workflow", "Configurare ghidată a fluxului tău digital"),
         t("Priority email support", "Suport prin email prioritar"),
@@ -102,7 +138,10 @@ export function PricingSection() {
       tagline: t("For full, hands-on partnership", "Pentru un parteneriat complet, implicat"),
       features: [
         t("Full access to our complete program", "Acces complet la întregul nostru program"),
-        t("Unlimited live support from our team", "Suport live nelimitat din partea echipei noastre"),
+        t(
+          "Unlimited live support from our team",
+          "Suport live nelimitat din partea echipei noastre",
+        ),
         t("Unlimited access to all AI tools", "Acces nelimitat la toate instrumentele AI"),
         t("Hands-on help with your projects", "Ajutor practic pentru proiectele tale"),
         t("Direct priority line to us", "Linie directă prioritară către noi"),
@@ -110,138 +149,199 @@ export function PricingSection() {
     },
   ];
 
+  const planLabel = "text-xs leading-normal uppercase tracking-[0.3em] text-muted-foreground";
+  const featuresLabel = "text-xs uppercase tracking-[0.3em] text-foreground/80";
+  const price = "font-display text-4xl font-semibold tracking-tight md:text-5xl xl:text-4xl";
+
   return (
-    <section id="pricing" className="relative overflow-hidden scroll-mt-24">
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-aurora opacity-20" />
-      <SquaresBackground className="opacity-90" />
-      <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
-        <Reveal>
-          <SectionHeading
+    <section
+      id="pricing"
+      aria-labelledby="pricing-heading"
+      className="scroll-mt-24 bg-background py-16 md:py-24"
+    >
+      {/* Reduced motion: entrances keep the fade but skip the slide. */}
+      <MotionConfig reducedMotion="user">
+        <div className="mx-auto max-w-[1200px] px-6 md:px-10 lg:px-16">
+          <SectionHeader
             align="center"
+            headingId="pricing-heading"
             eyebrow={t("Plans & pricing", "Planuri și prețuri")}
-            title={t("Choose your plan", "Alege-ți planul")}
+            title={
+              lang === "ro" ? (
+                <>
+                  Alege-ți <Em>planul</Em>
+                </>
+              ) : (
+                <>
+                  Choose your <Em>plan</Em>
+                </>
+              )
+            }
             description={t(
               "Our plans are designed to be affordable, flexible and tailored to your goals. Start free, or subscribe monthly and cancel anytime.",
               "Planurile noastre sunt accesibile, flexibile și adaptate obiectivelor tale. Începe gratuit sau abonează-te lunar și anulează oricând.",
             )}
           />
-        </Reveal>
 
-        {error && (
-          <p className="mx-auto mt-6 max-w-xl rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-center text-sm text-destructive">
-            {error}
-          </p>
-        )}
+          {error && (
+            <p
+              role="alert"
+              className="mx-auto mb-10 max-w-xl rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-center text-sm text-destructive"
+            >
+              {error}
+            </p>
+          )}
 
-        <div className="mt-16 grid grid-cols-1 items-stretch gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {/* Free plan */}
-          <Reveal>
-            <div className="flex h-full flex-col rounded-lg border border-border bg-card/60 p-6 backdrop-blur-sm">
-              <span className="grid h-11 w-11 place-items-center rounded-xl bg-muted text-muted-foreground">
-                <MessageCircle className="h-5 w-5" />
-              </span>
-              <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                {t("Free", "Gratuit")}
-              </p>
-              <div className="mt-3 flex items-end gap-2">
-                <span className="text-4xl font-bold tracking-tight">{formatPrice(0, lang)}</span>
-              </div>
-              <p className="mt-3 text-sm text-muted-foreground">
-                {t("Talk to us, no commitment", "Vorbește cu noi, fără obligații")}
-              </p>
-
-              <p className="mt-7 text-xs font-semibold uppercase tracking-[0.2em] text-foreground/80">
-                {t("Features", "Beneficii")}
-              </p>
-              <ul className="mt-4 flex-1 space-y-3.5">
-                <FeatureItem>{t("A conversation with our team", "O conversație cu echipa noastră")}</FeatureItem>
-                <FeatureItem>{t("Build a plan for your future business", "Construiește un plan pentru viitoarea ta afacere")}</FeatureItem>
-                <FeatureItem>{t("Clear, practical advice", "Sfaturi clare și practice")}</FeatureItem>
-              </ul>
-
-              <Button asChild variant="outline" className="mt-7 h-12 w-full rounded-xl border-border">
-                <Link to="/contact">{t("Talk to us", "Vorbește cu noi")}</Link>
-              </Button>
-            </div>
-          </Reveal>
-
-          {/* Paid plans */}
-          {paidPlans.map((plan, i) => (
-            <Reveal key={plan.id} delay={(i + 1) * 0.08}>
-              <div
-                className={cn(
-                  "relative flex h-full flex-col rounded-lg border p-6 backdrop-blur-sm",
-                  plan.highlight
-                    ? "border-primary/60 bg-card glow-soft lg:-my-4 lg:py-10"
-                    : "border-border bg-card/60",
-                )}
-              >
-                {plan.highlight && (
-                  <span className="absolute right-6 top-6 rounded-full bg-gradient-brand px-3 py-1 text-xs font-semibold text-primary-foreground">
-                    {t("Most popular", "Cel mai popular")}
-                  </span>
-                )}
+          {/* Four columns only from xl, where each card is wide enough for the RON prices. */}
+          <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-4 xl:gap-5">
+            {/* Free plan */}
+            <motion.div {...fadeUp()}>
+              <div className="flex h-full flex-col rounded-3xl border border-border bg-card/60 p-6 transition-colors duration-300 hover:bg-card md:p-8 xl:p-6">
                 <span
-                  className={cn(
-                    "grid h-11 w-11 place-items-center rounded-xl",
-                    plan.highlight
-                      ? "bg-gradient-brand text-primary-foreground"
-                      : "bg-primary/15 text-primary",
-                  )}
+                  aria-hidden
+                  className="grid h-11 w-11 place-items-center rounded-full border border-border bg-white/5 text-muted-foreground"
                 >
-                  <plan.icon className="h-5 w-5" />
+                  <MessageCircle className="h-5 w-5" />
                 </span>
-                <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  {plan.name}
-                </p>
-                <div className="mt-3 flex items-end gap-2">
-                  <span className="text-4xl font-bold tracking-tight sm:text-5xl">
-                    {formatPrice(PLAN_PRICING[plan.id][currency], lang)}
-                  </span>
-                  <span className="pb-1 text-xs text-muted-foreground">
-                    {t("/ month", "/ lună")}
-                  </span>
+                <h3 className={cn("mt-5", planLabel)}>{t("Free", "Gratuit")}</h3>
+                <div className="mt-3 flex flex-wrap items-end gap-x-2 gap-y-1">
+                  <span className={price}>{formatPrice(0, lang)}</span>
                 </div>
-                <p className="mt-3 text-sm text-muted-foreground">{plan.tagline}</p>
-
-                <p className="mt-7 text-xs font-semibold uppercase tracking-[0.2em] text-foreground/80">
-                  {t("Features", "Beneficii")}
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {t("Talk to us, no commitment", "Vorbește cu noi, fără obligații")}
                 </p>
+
+                <div aria-hidden className="mt-6 h-px bg-border" />
+                <p className={cn("mt-6", featuresLabel)}>{t("Features", "Beneficii")}</p>
                 <ul className="mt-4 flex-1 space-y-3.5">
-                  {plan.features.map((f) => (
-                    <FeatureItem key={f}>{f}</FeatureItem>
-                  ))}
+                  <FeatureItem>
+                    {t("A conversation with our team", "O conversație cu echipa noastră")}
+                  </FeatureItem>
+                  <FeatureItem>
+                    {t(
+                      "Build a plan for your future business",
+                      "Construiește un plan pentru viitoarea ta afacere",
+                    )}
+                  </FeatureItem>
+                  <FeatureItem>
+                    {t("Clear, practical advice", "Sfaturi clare și practice")}
+                  </FeatureItem>
                 </ul>
 
-                <Button
-                  className={cn(
-                    "mt-7 h-12 w-full rounded-xl",
-                    plan.highlight
-                      ? "bg-gradient-brand text-primary-foreground hover:opacity-90"
-                      : "",
-                  )}
-                  variant={plan.highlight ? "default" : "outline"}
-                  disabled={loadingPlan !== null}
-                  onClick={() => handleSubscribe(plan.id)}
+                <RingButton
+                  to="/contact"
+                  variant="outline"
+                  className="mt-7 w-full hover:scale-100"
+                  innerClassName="h-12 w-full py-0"
                 >
-                  {loadingPlan === plan.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    t("Get started", "Începe acum")
-                  )}
-                </Button>
+                  {t("Talk to us", "Vorbește cu noi")}
+                </RingButton>
               </div>
-            </Reveal>
-          ))}
-        </div>
+            </motion.div>
 
-        <p className="mt-10 text-center text-xs text-muted-foreground">
-          {t(
-            "Secure payment handled by Stripe. You can cancel your subscription at any time.",
-            "Plată securizată prin Stripe. Poți anula abonamentul în orice moment.",
-          )}
-        </p>
-      </div>
+            {/* Paid plans */}
+            {paidPlans.map((plan, i) => (
+              <motion.div
+                key={plan.id}
+                {...fadeUp((i + 1) * 0.1)}
+                className={cn(plan.highlight && "xl:-my-4")}
+              >
+                {/* The highlighted plan gets a 1px brand-gradient frame. */}
+                <div
+                  className={cn(
+                    "h-full rounded-3xl",
+                    plan.highlight && "accent-gradient glow-soft p-px",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "flex h-full flex-col p-6 transition-colors duration-300 md:p-8 xl:p-6",
+                      plan.highlight
+                        ? "rounded-[23px] bg-card xl:py-10"
+                        : "rounded-3xl border border-border bg-card/60 hover:bg-card",
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "grid h-11 w-11 shrink-0 place-items-center rounded-full",
+                          plan.highlight
+                            ? "accent-gradient text-background"
+                            : "border border-border bg-white/5 text-foreground",
+                        )}
+                      >
+                        <plan.icon className="h-5 w-5" />
+                      </span>
+                      {plan.highlight && (
+                        <span className="accent-gradient-animated rounded-full p-px">
+                          <span className="block rounded-full bg-background px-3 py-1 text-xs font-medium text-foreground">
+                            {t("Most popular", "Cel mai popular")}
+                          </span>
+                        </span>
+                      )}
+                    </div>
+                    <h3 className={cn("mt-5", planLabel)}>{plan.name}</h3>
+                    <div className="mt-3 flex flex-wrap items-end gap-x-2 gap-y-1">
+                      <span className={price}>
+                        {formatPrice(PLAN_PRICING[plan.id][currency], lang)}
+                      </span>
+                      <span className="pb-1 text-xs text-muted-foreground">
+                        {t("/ month", "/ lună")}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm text-muted-foreground">{plan.tagline}</p>
+
+                    <div aria-hidden className="mt-6 h-px bg-border" />
+                    <p className={cn("mt-6", featuresLabel)}>{t("Features", "Beneficii")}</p>
+                    <ul className="mt-4 flex-1 space-y-3.5">
+                      {plan.features.map((f) => (
+                        <FeatureItem key={f}>{f}</FeatureItem>
+                      ))}
+                    </ul>
+
+                    <Button
+                      variant="ghost"
+                      className="group relative mt-7 h-12 w-full rounded-full p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 active:translate-y-0"
+                      disabled={loadingPlan !== null}
+                      aria-busy={loadingPlan === plan.id}
+                      onClick={() => handleSubscribe(plan.id)}
+                    >
+                      <span
+                        aria-hidden
+                        className="accent-gradient-animated pointer-events-none absolute -inset-[2px] rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
+                      />
+                      <span
+                        className={cn(
+                          "relative z-10 inline-flex h-full w-full items-center justify-center rounded-full text-sm font-medium transition-colors duration-300",
+                          plan.highlight ? checkoutFace.solid : checkoutFace.outline,
+                        )}
+                      >
+                        {loadingPlan === plan.id ? (
+                          <>
+                            <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
+                            {/* Keeps the button's accessible name while the spinner shows. */}
+                            <span className="sr-only">{t("Get started", "Începe acum")}</span>
+                          </>
+                        ) : (
+                          t("Get started", "Începe acum")
+                        )}
+                      </span>
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <p className="mt-12 text-center text-xs text-muted-foreground">
+            {t(
+              "Secure payment handled by Stripe. You can cancel your subscription at any time.",
+              "Plată securizată prin Stripe. Poți anula abonamentul în orice moment.",
+            )}
+          </p>
+        </div>
+      </MotionConfig>
     </section>
   );
 }

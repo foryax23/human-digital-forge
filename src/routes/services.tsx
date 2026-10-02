@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Palette, Globe, Workflow, ArrowRight } from "lucide-react";
+import { Palette, Globe, Workflow, Lightbulb, ArrowRight } from "lucide-react";
 
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
@@ -8,7 +8,7 @@ import { useI18n } from "@/i18n";
 
 const title = "Services | Vortex Hub";
 const description =
-  "Digital products, websites and AI automation services for individuals and businesses.";
+  "Digital products, websites, AI automation and consultancy for individuals and businesses.";
 
 export const Route = createFileRoute("/services")({
   head: () => ({
@@ -32,7 +32,7 @@ function ServicesPage() {
       title: t("Digital Products", "Produse digitale"),
       description: t(
         "Posters, social graphics, presentation design, branded documents, digital templates and professional document formatting.",
-        "Postere, grafice pentru social media, design de prezentări, documente de marcă, șabloane digitale și formatare profesională de documente."
+        "Postere, grafice pentru social media, design de prezentări, documente de marcă, șabloane digitale și formatare profesională de documente.",
       ),
       to: "/digital-products",
       linkLabel: t("Explore digital products", "Explorează produsele digitale"),
@@ -42,20 +42,30 @@ function ServicesPage() {
       title: t("Websites and Digital Solutions", "Site-uri web și soluții digitale"),
       description: t(
         "Landing pages, business and portfolio websites, website redesign and simple client portals built around your goals.",
-        "Pagini de destinație, site-uri de afaceri și de portofoliu, redesign de site-uri și portaluri simple pentru clienți, construite în jurul obiectivelor tale."
+        "Pagini de destinație, site-uri de afaceri și de portofoliu, redesign de site-uri și portaluri simple pentru clienți, construite în jurul obiectivelor tale.",
       ),
       to: "/websites",
       linkLabel: t("Explore websites", "Explorează site-urile web"),
     },
     {
       icon: Workflow,
-      title: t("AI Automation and Consultancy", "Automatizare AI și Consultanță"),
+      title: t("AI Automation", "Automatizare AI"),
       description: t(
-        "Workflow automation, AI-assisted enquiry handling, document organisation and one-to-one practical AI guidance.",
-        "Automatizarea fluxurilor de lucru, gestionarea cererilor cu ajutorul AI, organizarea documentelor și îndrumare practică AI unu-la-unu."
+        "Workflow automation, AI-assisted enquiry handling and document organisation.",
+        "Automatizarea fluxurilor de lucru, gestionarea cererilor cu ajutorul AI și organizarea documentelor.",
       ),
       to: "/ai-automation",
       linkLabel: t("Explore AI services", "Explorează serviciile AI"),
+    },
+    {
+      icon: Lightbulb,
+      title: t("Consultancy", "Consultanță"),
+      description: t(
+        "One-to-one sessions to plan a digital idea, a website or an automation, with clear advice on the next practical step.",
+        "Sesiuni individuale pentru a planifica o idee digitală, un site sau o automatizare, cu sfaturi clare despre următorul pas practic.",
+      ),
+      to: "/consultancy",
+      linkLabel: t("Explore consultancy", "Explorează consultanța"),
     },
   ];
 
@@ -65,11 +75,11 @@ function ServicesPage() {
         eyebrow={t("Our services", "Serviciile noastre")}
         title={t(
           "Clear digital services, from a single design to a complete workflow.",
-          "Servicii digitale clare, de la un singur design până la un flux de lucru complet."
+          "Servicii digitale clare, de la un singur design până la un flux de lucru complet.",
         )}
         description={t(
-          "Vortex Hub focuses on three core areas. Each one starts with understanding what you actually need, then moves to careful, well-communicated delivery.",
-          "Vortex Hub se concentrează pe trei domenii principale. Fiecare începe prin înțelegerea a ceea ce ai cu adevărat nevoie, apoi trece la o livrare atentă și bine comunicată."
+          "Vortex Hub focuses on four core areas. Each one starts with understanding what you actually need, then moves to careful, well-communicated delivery.",
+          "Vortex Hub se concentrează pe patru domenii principale. Fiecare începe prin înțelegerea a ceea ce ai cu adevărat nevoie, apoi trece la o livrare atentă și bine comunicată.",
         )}
       />
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
@@ -103,7 +113,7 @@ function ServicesPage() {
         title={t("Not sure which service fits?", "Nu ești sigur ce serviciu ți se potrivește?")}
         description={t(
           "Start a project or book a consultation and we will help you shape it clearly.",
-          "Începe un proiect sau programează o consultanță și te vom ajuta să-l conturezi clar."
+          "Începe un proiect sau programează o consultanță și te vom ajuta să-l conturezi clar.",
         )}
         primaryLabel={t("Start a project", "Începe un proiect")}
         primaryTo="/contact"

@@ -242,9 +242,16 @@
 
   --gradient-brand: linear-gradient(135deg, oklch(0.585 0.225 282), oklch(0.83 0.13 174));
 
-  background-color: var(--background);
-  color: var(--foreground);
   color-scheme: dark;
+}
+
+/* Layered so utilities (bg-card, text-*) still win on portalled Sheet/Dialog
+   content that opts into the tokens with the `cinematic` class. */
+@layer base {
+  .cinematic {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
 }
 
 @layer utilities {
@@ -421,6 +428,196 @@
   .gradient-travel {
     background-size: 240% auto;
     animation: shine 7s ease-in-out infinite;
+  }
+}
+
+/*
+ * Landing homepage (portfolio-template layout, Vortex brand).
+ * Accent gradient = the brand gradient (violet → mint); used on the logo ring,
+ * hover border rings and the intro progress bar.
+ */
+@layer utilities {
+  .accent-gradient {
+    background-image: var(--gradient-brand);
+  }
+  /* Travelling gradient for animated borders (logo ring, hover rings, labels) */
+  .accent-gradient-animated {
+    background-image: linear-gradient(
+      90deg,
+      oklch(0.585 0.225 282),
+      oklch(0.83 0.13 174),
+      oklch(0.585 0.225 282)
+    );
+    background-size: 200% 200%;
+    animation: gradient-shift 6s ease infinite;
+  }
+  .animate-gradient-shift {
+    background-size: 200% 200%;
+    animation: gradient-shift 6s ease infinite;
+  }
+  .animate-gradient-shift-reverse {
+    background-size: 200% 200%;
+    animation: gradient-shift 6s ease infinite reverse;
+  }
+  .animate-scroll-down {
+    animation: scroll-down 1.5s ease-in-out infinite;
+  }
+  .animate-role-fade-in {
+    animation: role-fade-in 0.4s ease-out both;
+  }
+  .animate-marquee-x {
+    animation: marquee 40s linear infinite;
+  }
+  /* 4×4px halftone dot screen laid over imagery */
+  .halftone {
+    background-image: radial-gradient(circle, #000 1px, transparent 1px);
+    background-size: 4px 4px;
+  }
+  .animate-pulse-dot {
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+}
+
+/*
+ * Search-first hero (Vortex Scan mockup): violet → blue accents, a glass search
+ * pill with a breathing rim, and a drifting asteroid field. Every animation here
+ * freezes under the pause switch and reduced motion (rules below / at the end).
+ */
+@layer utilities {
+  .text-gradient-hero {
+    background-image: linear-gradient(100deg, #7b6cf6 0%, #6b84f0 55%, #72aef5 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-gradient-hero-button {
+    background-image: linear-gradient(135deg, #7a85f7 0%, #89cbf6 100%);
+  }
+  .vortex-search-rim {
+    background-image: linear-gradient(
+      100deg,
+      rgb(124 108 246 / 0.75) 0%,
+      rgb(150 140 255 / 0.95) 45%,
+      rgb(108 140 240 / 0.8) 70%,
+      rgb(124 108 246 / 0.6) 100%
+    );
+    animation: search-breathe 4.5s ease-in-out infinite;
+  }
+  .animate-twinkle {
+    animation: twinkle 3.6s ease-in-out infinite;
+  }
+  .animate-asteroid-drift {
+    animation: asteroid-drift 26s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes search-breathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgb(124 108 246 / 0.25),
+      0 0 28px 2px rgb(108 99 255 / 0.28),
+      0 0 70px 6px rgb(91 140 240 / 0.12);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px rgb(124 108 246 / 0.35),
+      0 0 40px 4px rgb(108 99 255 / 0.42),
+      0 0 90px 10px rgb(91 140 240 / 0.2);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes asteroid-drift {
+  from {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  to {
+    transform: translate3d(var(--drift-x, 12px), var(--drift-y, -18px), 0)
+      rotate(var(--drift-r, 8deg));
+  }
+}
+
+/* Sections receive focus from the in-page nav (scrollToSection); the jump
+   itself is the feedback, so no ring around the whole section. */
+.cinematic section[tabindex="-1"]:focus,
+.cinematic footer[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* Page-wide "pause animations" switch (MotionPauseToggle). */
+html[data-motion="paused"] *,
+html[data-motion="paused"] *::before,
+html[data-motion="paused"] *::after {
+  animation-play-state: paused !important;
+}
+
+/* Intro loader is hidden unless the head script opted this page load into it
+   (JS on, first visit this session, motion allowed). The failsafe fades it out
+   if hydration never completes. */
+.intro-loader {
+  display: none;
+  animation: intro-failsafe 0.5s ease 10s forwards;
+}
+
+@keyframes scroll-down {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(200%);
+  }
+}
+
+@keyframes role-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes intro-failsafe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
   }
 }
 
