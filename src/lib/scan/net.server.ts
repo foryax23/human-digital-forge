@@ -1,12 +1,15 @@
+import { SCAN_USER_AGENT } from "@/lib/scan/legal/bot";
+
 /**
  * Outbound HTTP for Vortex Scan. Every request to a visitor-supplied address
- * goes through safeFetch: public http(s) hosts only (re-checked on every
- * redirect hop and against DNS-over-HTTPS answers), hard timeouts, a body cap
- * and an honest User-Agent. Fetch/Web APIs only, so it runs on Workers.
+ * goes through safeFetch: public http(s) hosts on the standard ports only
+ * (re-checked on every redirect hop and against DNS-over-HTTPS answers), hard
+ * timeouts, a body cap and an honest User-Agent that links to the page
+ * explaining the bot and how to block it. Fetch/Web APIs only, so it runs on
+ * Workers.
  */
 
-export const SCAN_USER_AGENT =
-  "Mozilla/5.0 (compatible; VortexScan/1.0; +https://vortexhub.dev/scan)";
+export { SCAN_USER_AGENT };
 
 /** Product token matched against robots.txt user-agent lines. */
 const ROBOTS_AGENT = "vortexscan";
@@ -14,7 +17,7 @@ const ROBOTS_AGENT = "vortexscan";
 export const MAX_BODY_BYTES = 2 * 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_REDIRECTS = 5;
-const ALLOWED_PORTS = new Set(["", "80", "443", "8080", "8443"]);
+const ALLOWED_PORTS = new Set(["", "80", "443"]);
 
 export type SafeFetchErrorCode =
   | "blocked"
@@ -469,6 +472,12 @@ export type RobotsPolicy = {
   sitemaps: string[];
   /** Our own rules (VortexScan group, else "*"). */
   isAllowed: (pathWithQuery: string) => boolean;
+  /**
+   * The site names VortexScan in robots.txt and disallows "/" for it: the
+   * owner's explicit no. Nothing is fetched then, not even the homepage the
+   * visitor asked for (which otherwise skips robots.txt).
+   */
+  optsOut: boolean;
   /** Whether Googlebot may fetch a path (for the "blocks Google" check). */
   isAllowedFor: (agent: string, pathWithQuery: string) => boolean;
 };
@@ -518,7 +527,7 @@ export function parseRobotsTxt(text: string): Omit<RobotsPolicy, "found" | "stat
   const rulesFor = (agent: string): RobotsRule[] => {
     const name = agent.toLowerCase();
     const specific = groups.filter((group) =>
-      group.agents.some((ua) => ua !== "*" && name.startsWith(ua)),
+      group.agents.some((ua) => ua && ua !== "*" && name.startsWith(ua)),
     );
     const chosen = specific.length ? specific : groups.filter((g) => g.agents.includes("*"));
     return chosen.flatMap((group) => group.rules);
@@ -540,10 +549,14 @@ export function parseRobotsTxt(text: string): Omit<RobotsPolicy, "found" | "stat
   };
 
   const ownRules = rulesFor(ROBOTS_AGENT);
+  const namesUs = groups.some((group) =>
+    group.agents.some((ua) => ua && ua !== "*" && ROBOTS_AGENT.startsWith(ua)),
+  );
   return {
     sitemaps,
     isAllowed: (path) => check(ownRules, path),
     isAllowedFor: (agent, path) => check(rulesFor(agent), path),
+    optsOut: namesUs && !check(ownRules, "/"),
   };
 }
 
@@ -552,6 +565,7 @@ const allowAll: RobotsPolicy = {
   sitemaps: [],
   isAllowed: () => true,
   isAllowedFor: () => true,
+  optsOut: false,
 };
 
 /** Fetches and parses robots.txt for an origin (4xx = allow all, 5xx/error = crawl nothing). */

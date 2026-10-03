@@ -8,6 +8,7 @@ import { runPageSpeed } from "@/lib/scan/audit/pagespeed.server";
 import { buildRulesBlueprint } from "@/lib/scan/blueprint";
 import { discoverWebsite } from "@/lib/scan/discover.server";
 import { detectPresence } from "@/lib/scan/presence.server";
+import { LEAD_NOTICE_VERSION, leadConsentRecord } from "@/lib/scan/legal/lead-notice";
 import type { Blueprint, CompanyProfile, OnlinePresence, WebsiteAudit } from "@/lib/scan/types";
 
 /*
@@ -56,8 +57,8 @@ export const scanPageSpeed = createServerFn({ method: "POST" })
   .handler(async ({ data }) => runPageSpeed(data.url, "mobile"));
 
 /**
- * Online presence: social profiles linked from the site, plus the Google
- * rating when GOOGLE_PLACES_API_KEY is configured. Metrics are real or absent.
+ * Online presence: the company's own site plus the social profiles it links
+ * to. Social networks and Google Places are not queried (presence.server.ts).
  */
 export const scanPresence = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
@@ -115,20 +116,34 @@ const leadSchema = z.object({
   email: z.string().email().max(200),
   fullName: z.string().max(120).optional(),
   company: z.string().max(200).optional(),
-  consent: z.literal(true),
+  /** The information notice the dialog showed; an outdated client fails here. */
+  noticeVersion: z.literal(LEAD_NOTICE_VERSION),
+  /** The optional, unticked box. The PDF is delivered either way. */
+  marketingConsent: z.boolean(),
+  /** The language the dialog (and so the notice) was shown in. */
   lang: z.enum(["en", "ro"]),
   blueprintId: z.string().max(80),
   summary: z.object({
     businessType: z.string().max(120),
     digitalMaturity: z.number().min(0).max(100),
-    monthlySavingsRon: z.object({ low: z.number(), high: z.number() }),
+    monthlySavingsRon: z.object({
+      low: z.number(),
+      high: z.number(),
+      mid: z.number().optional(),
+    }),
     recommendedPlan: z.enum(["starter", "growth", "pro", "project"]),
     website: z.string().max(2048).optional(),
     cui: cuiSchema.optional(),
   }),
 });
 
-/** Stores the visitor who downloads the blueprint (consent required). */
+/**
+ * Stores the visitor who downloads the blueprint, with a record of the notice
+ * they saw and their marketing choice. audit_leads has no consent columns, so
+ * the record lives in `answers` (JSON): `marketingConsent` is the flag to
+ * filter on (rows saved before it count as false) and `consentRecord` holds
+ * the version, the exact texts in the shown language and the server time.
+ */
 export const saveScanLead = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => leadSchema.parse(input))
   .handler(async ({ data }) => {
@@ -140,7 +155,12 @@ export const saveScanLead = createServerFn({ method: "POST" })
       score: Math.round(data.summary.digitalMaturity),
       recommended_tier: data.summary.recommendedPlan,
       recommendation: `Vortex Scan blueprint ${data.blueprintId}`,
-      answers: { source: "vortex-scan", consent: true, ...data.summary },
+      answers: {
+        source: "vortex-scan",
+        ...data.summary,
+        marketingConsent: data.marketingConsent,
+        consentRecord: leadConsentRecord(data.lang, data.marketingConsent),
+      },
     });
     if (error) {
       console.error("[scan] lead insert failed", error);

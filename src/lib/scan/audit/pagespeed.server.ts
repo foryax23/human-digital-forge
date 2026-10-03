@@ -1,12 +1,14 @@
 import process from "node:process";
 
-import { urlBlockReason } from "@/lib/scan/net.server";
+import { fetchRobots, normalizeInputUrl, urlBlockReason } from "@/lib/scan/net.server";
 import type { PageSpeedResult } from "@/lib/scan/types";
 
 /**
  * Lighthouse scores, lab Core Web Vitals, real-user (CrUX) data and the
  * final screenshot from the PageSpeed Insights API. Works without a key
  * (shared quota); PAGESPEED_API_KEY raises the quota. Null on any failure.
+ * Lighthouse ignores robots.txt, so a site that tells VortexScan to stay away
+ * is not sent to it either.
  */
 
 const ENDPOINT = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed";
@@ -31,6 +33,8 @@ export async function runPageSpeed(
   strategy: "mobile" | "desktop" = "mobile",
 ): Promise<(PageSpeedResult & { screenshot?: string }) | null> {
   if (urlBlockReason(url)) return null;
+  const origin = normalizeInputUrl(url)?.origin;
+  if (!origin || (await fetchRobots(origin)).optsOut) return null;
 
   const params = new URLSearchParams({ url, strategy });
   for (const category of ["performance", "accessibility", "best-practices", "seo"]) {

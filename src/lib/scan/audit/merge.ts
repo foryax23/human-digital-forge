@@ -37,8 +37,8 @@ function pageSpeedFindings(psi: PageSpeedResult): AuditFinding[] {
         `Elementul principal apare după ${time.ro} în testul Google pe ${device.ro} (ideal sub 2,5 s).`,
       ),
       recommendation: bi(
-        "Compress and resize the hero image, serve WebP/AVIF, preload it and defer non-critical scripts.",
-        "Comprimă și redimensionează imaginea principală, folosește WebP/AVIF, preîncarc-o și amână scripturile neesențiale.",
+        "We shrink the main image and load what's visible first; the other scripts wait until after.",
+        "Micșorăm poza principală și încărcăm întâi ce se vede; restul scripturilor vin după.",
       ),
       evidence: `LCP ${time.en} (Lighthouse, ${psi.strategy})`,
     });
@@ -51,12 +51,12 @@ function pageSpeedFindings(psi: PageSpeedResult): AuditFinding[] {
       effort: "quick",
       title: bi("Page jumps while loading", "Pagina „sare” în timpul încărcării"),
       detail: bi(
-        `Content moves around as the page loads (layout shift ${psi.cls.toFixed(2)}; good is under 0.1), so visitors tap the wrong thing.`,
-        `Conținutul se mută în timpul încărcării (layout shift ${psi.cls.toFixed(2).replace(".", ",")}; ideal sub 0,1), deci vizitatorii apasă pe altceva decât voiau.`,
+        "Content moves around as the page loads, so visitors tap the wrong thing.",
+        "Conținutul se mută în timpul încărcării, deci vizitatorii apasă pe altceva decât voiau.",
       ),
       recommendation: bi(
-        "Reserve space for images, embeds and banners (width/height or aspect-ratio) and avoid inserting content above what's already shown.",
-        "Rezervă spațiu pentru imagini, elemente încorporate și bannere (width/height sau aspect-ratio) și nu insera conținut deasupra celui deja afișat.",
+        "We reserve room for images, maps and banners in advance, so nothing pushes the page while it loads.",
+        "Rezervăm dinainte loc pentru poze, hărți și bannere, ca nimic să nu împingă pagina cât se încarcă.",
       ),
       evidence: `CLS ${psi.cls.toFixed(3)} (Lighthouse, ${psi.strategy})`,
     });
@@ -69,12 +69,12 @@ function pageSpeedFindings(psi: PageSpeedResult): AuditFinding[] {
       effort: "medium",
       title: bi("Page is slow to respond to taps", "Pagina reacționează greu la atingeri"),
       detail: bi(
-        `Scripts keep the browser busy for ${Math.round(psi.tbtMs)} ms while loading (good is under 200 ms), so the first taps feel ignored.`,
-        `Scripturile țin browserul ocupat ${Math.round(psi.tbtMs)} ms în timpul încărcării (ideal sub 200 ms), deci primele atingeri par ignorate.`,
+        `Scripts keep the browser busy for ${secs(psi.tbtMs).en} while loading (good is under 0.2 s), so the first taps feel ignored.`,
+        `Scripturile țin browserul ocupat ${secs(psi.tbtMs).ro} în timpul încărcării (ideal sub 0,2 s), deci primele atingeri par ignorate.`,
       ),
       recommendation: bi(
-        "Remove unused JavaScript and plugins, delay chat/tracking widgets until interaction, and split large bundles.",
-        "Elimină JavaScript-ul și pluginurile nefolosite, întârzie widgeturile de chat/tracking până la prima interacțiune și împarte pachetele mari.",
+        "We remove unused code and plugins and start the chat and tracking only after the first tap.",
+        "Scoatem codul și modulele nefolosite și pornim chatul și urmărirea abia după prima atingere.",
       ),
       evidence: `TBT ${Math.round(psi.tbtMs)} ms (Lighthouse, ${psi.strategy})`,
     });
@@ -92,8 +92,8 @@ function pageSpeedFindings(psi: PageSpeedResult): AuditFinding[] {
         `Datele de la utilizatorii Chrome arată că, la 1 din 4 vizite, conținutul principal apare după ${time.ro} (ideal sub 2,5 s).`,
       ),
       recommendation: bi(
-        "Start with the hero image and server response time; re-check the field data after 28 days.",
-        "Începe cu imaginea principală și timpul de răspuns al serverului; verifică din nou datele reale după 28 de zile.",
+        "We start with the main image and the server's speed, then check the real visitors' data again after 28 days.",
+        "Începem cu poza principală și viteza serverului, apoi verificăm din nou datele vizitatorilor reali după 28 de zile.",
       ),
       evidence: `CrUX LCP p75 ${time.en}`,
     });
@@ -110,8 +110,8 @@ function pageSpeedFindings(psi: PageSpeedResult): AuditFinding[] {
         `Datele de la utilizatorii Chrome arată că un click sau o atingere primește răspuns după ${Math.round(psi.fieldInpMs)} ms (ideal sub 200 ms).`,
       ),
       recommendation: bi(
-        "Reduce heavy scripts and third-party widgets that run on every interaction.",
-        "Redu scripturile grele și widgeturile externe care rulează la fiecare interacțiune.",
+        "We cut the heavy scripts and outside widgets that run on every tap.",
+        "Reducem scripturile grele și modulele externe care rulează la fiecare atingere.",
       ),
       evidence: `CrUX INP p75 ${Math.round(psi.fieldInpMs)} ms`,
     });
@@ -131,8 +131,8 @@ function pageSpeedFindings(psi: PageSpeedResult): AuditFinding[] {
         `Google Lighthouse acordă accesibilității paginii ${psi.accessibility}/100 (probleme precum contrast slab al textului, nume sau etichete lipsă).`,
       ),
       recommendation: bi(
-        "Fix the items in Lighthouse's accessibility report, starting with colour contrast and form labels.",
-        "Rezolvă punctele din raportul de accesibilitate Lighthouse, începând cu contrastul culorilor și etichetele formularelor.",
+        "We fix the accessibility problems Google's test lists, starting with text contrast and form labels.",
+        "Rezolvăm problemele de accesibilitate din testul Google, începând cu contrastul textului și etichetele formularelor.",
       ),
       evidence: `Lighthouse accessibility ${psi.accessibility}`,
     });

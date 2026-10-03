@@ -107,6 +107,8 @@ export type SitemapInfo = {
   childSitemaps?: number;
   /** urlCount covers only some child sitemaps. */
   partial?: boolean;
+  /** Not looked for: the site answered with a bot check or a refusal. */
+  skipped?: boolean;
 };
 
 export type ImageProbe = { url: string; bytes?: number; contentType?: string };

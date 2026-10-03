@@ -2,7 +2,14 @@ import process from "node:process";
 
 import { extractPage, foldText } from "@/lib/scan/audit/extract";
 import { findCuiInText } from "@/lib/scan/audit/signals";
-import { normalizeInputUrl, resolveHost, safeFetch, urlBlockReason } from "@/lib/scan/net.server";
+import {
+  createRobotsCache,
+  normalizeInputUrl,
+  resolveHost,
+  safeFetch,
+  urlBlockReason,
+  type RobotsCache,
+} from "@/lib/scan/net.server";
 import type { WebsiteDiscovery } from "@/lib/scan/types";
 
 /**
@@ -10,7 +17,8 @@ import type { WebsiteDiscovery } from "@/lib/scan/types";
  * registry/visitor URL first, then guess domains from the name (DNS first, so
  * non-existent guesses cost nothing), then Brave Search when keyed. A site
  * counts only when the page itself backs it up — the CUI printed on it
- * (strong) or the company name, plus the city (weaker).
+ * (strong) or the company name, plus the city (weaker). Only homepages are
+ * opened, and never on a site whose robots.txt tells VortexScan to stay away.
  */
 
 export { foldText };
@@ -130,11 +138,13 @@ async function verifyCandidate(
   input: DiscoverInput,
   origin: string,
   timeoutMs: number,
+  robots: RobotsCache,
   /** The URL came from the registry or the visitor, so a namesake is unlikely. */
   trusted = false,
 ): Promise<Verification | null> {
   let result;
   try {
+    if ((await robots.get(new URL(url).origin)).optsOut) return null;
     result = await safeFetch(url, { timeoutMs, maxBytes: 1024 * 1024 });
   } catch {
     return null;
@@ -268,6 +278,7 @@ const ACCEPT = 0.45;
 
 export async function discoverWebsite(input: DiscoverInput): Promise<WebsiteDiscovery | null> {
   let fallback: WebsiteDiscovery | null = null;
+  const robots = createRobotsCache();
   // DNS for the name guesses runs while the listed site is checked; it never touches the sites.
   const resolving = Promise.all(
     domainGuesses(input.name).map(async (domain) => {
@@ -285,6 +296,7 @@ export async function discoverWebsite(input: DiscoverInput): Promise<WebsiteDisc
         input,
         "Website listed for this company",
         8000,
+        robots,
         true,
       );
       if (match && match.confidence >= 0.6) return toDiscovery(match);
@@ -314,7 +326,13 @@ export async function discoverWebsite(input: DiscoverInput): Promise<WebsiteDisc
     .slice(0, 4);
   const guessed = await Promise.all(
     live.map((domain) =>
-      verifyCandidate(`https://${domain}/`, input, `Guessed from the name: ${domain}`, 6000),
+      verifyCandidate(
+        `https://${domain}/`,
+        input,
+        `Guessed from the name: ${domain}`,
+        6000,
+        robots,
+      ),
     ),
   );
   const pick = (matches: Array<Verification | null>) =>
@@ -330,7 +348,9 @@ export async function discoverWebsite(input: DiscoverInput): Promise<WebsiteDisc
   if (searched.length) {
     const top = pick(
       await Promise.all(
-        searched.map((origin) => verifyCandidate(origin, input, "Found via web search", 6000)),
+        searched.map((origin) =>
+          verifyCandidate(origin, input, "Found via web search", 6000, robots),
+        ),
       ),
     );
     if (top) return toDiscovery(top);

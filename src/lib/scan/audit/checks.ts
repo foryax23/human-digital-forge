@@ -130,8 +130,8 @@ const CHECKS: Check[] = [
           `Serverul a avut nevoie de ${time.ro} ca să înceapă să trimită pagina principală (ideal sub 0,8 s). Fiecare vizită așteaptă acest timp înainte să apară ceva.`,
         ),
         recommendation: bi(
-          "Enable page caching (or a CDN such as Cloudflare), and check the hosting plan, slow plugins and database queries.",
-          "Activează cache-ul pentru pagini (sau un CDN precum Cloudflare) și verifică planul de hosting, pluginurile lente și interogările bazei de date.",
+          "We turn on page caching (or a CDN such as Cloudflare) and check the hosting plan and slow plugins.",
+          "Activăm memorarea paginilor (cache sau un CDN precum Cloudflare) și verificăm planul de găzduire și modulele lente.",
         ),
         evidence: `Time to first byte: ${ctx.ttfbMs} ms`,
       };
@@ -154,8 +154,8 @@ const CHECKS: Check[] = [
           `Doar codul HTML al paginii principale are ${weight.ro}, fără imagini, stiluri și scripturi (o pagină obișnuită are sub 100 KB). Codul inline voluminos sau marcajul generat de page buildere încetinește prima afișare, mai ales pe telefon.`,
         ),
         recommendation: bi(
-          "Move inline scripts and styles into cached files, remove unused sections and simplify page-builder nesting.",
-          "Mută scripturile și stilurile inline în fișiere separate (cu cache), elimină secțiunile nefolosite și simplifică structura din page builder.",
+          "We move the code inside the page into separate files, remove unused sections and simplify the page editor's layout.",
+          "Mutăm codul din pagină în fișiere separate, scoatem secțiunile nefolosite și simplificăm structura din editorul de pagini.",
         ),
         evidence: `HTML ${Math.round(bytes / 1024)} KB (uncompressed)`,
       };
@@ -177,8 +177,8 @@ const CHECKS: Check[] = [
           `Serverul trimite pagina principală de ${weight.ro} fără compresie gzip sau Brotli, deci vizitatorii descarcă de 3–5 ori mai multe date decât e nevoie.`,
         ),
         recommendation: bi(
-          "Turn on Brotli or gzip compression on the server or CDN (a single setting on most hosts).",
-          "Activează compresia Brotli sau gzip pe server sau în CDN (o singură setare la majoritatea furnizorilor).",
+          "We turn on compression on the server (a single setting with most hosts).",
+          "Activăm compresia pe server (o singură setare la majoritatea furnizorilor).",
         ),
         evidence: "No Content-Encoding header on the homepage",
       };
@@ -208,8 +208,8 @@ const CHECKS: Check[] = [
           `${blocking.length} ${de(blocking.length)}scripturi din antetul paginii se încarcă înainte să se afișeze ceva (fără async/defer). Browserul trebuie să le descarce și să le ruleze mai întâi.`,
         ),
         recommendation: bi(
-          "Add defer (or async) to non-critical scripts or move them to the end of the page; load jQuery plugins after the content.",
-          "Adaugă defer (sau async) scripturilor neesențiale ori mută-le la finalul paginii; încarcă pluginurile jQuery după conținut.",
+          "We load the non-essential scripts after the content, so the page shows first.",
+          "Încărcăm scripturile neesențiale după conținut, ca pagina să apară întâi.",
         ),
         evidence: list(blocking.map((script) => basename(script.src!))),
       };
@@ -231,8 +231,8 @@ const CHECKS: Check[] = [
           `Pagina principală încarcă ${count} ${de(count)}fișiere CSS separate; fiecare întârzie prima afișare.`,
         ),
         recommendation: bi(
-          "Combine and minify CSS, and stop loading styles of plugins that aren't used on the page.",
-          "Combină și minifică fișierele CSS și nu mai încărca stilurile pluginurilor nefolosite pe pagină.",
+          "We combine and shrink the style files and stop loading the styles of unused plugins.",
+          "Combinăm și micșorăm fișierele de stil și nu mai încărcăm stilurile modulelor nefolosite.",
         ),
         evidence: `${count} stylesheets`,
       };
@@ -257,8 +257,8 @@ const CHECKS: Check[] = [
           `${heavy.length === 1 ? "Una" : heavy.length} din cele ${ctx.images.length} ${de(ctx.images.length)}imagini verificate ${heavy.length === 1 ? "are" : "au"} peste 300 KB (cea mai mare: ${largest.ro}). Imaginile grele sunt cea mai des întâlnită cauză a încărcării lente pe telefon.`,
         ),
         recommendation: bi(
-          "Resize images to the size they're displayed at and compress them (WebP/AVIF at about 75% quality).",
-          "Redimensionează imaginile la mărimea la care sunt afișate și comprimă-le (WebP/AVIF la aproximativ 75% calitate).",
+          "We resize the images to the size they're shown at and compress them.",
+          "Micșorăm pozele la mărimea la care sunt afișate și le comprimăm.",
         ),
         evidence: `${basename(heavy[0].url)} (${Math.round(heavy[0].bytes! / 1024)} KB)`,
       };
@@ -282,12 +282,12 @@ const CHECKS: Check[] = [
         effort: "quick",
         title: bi("Images use older formats", "Imaginile folosesc formate vechi"),
         detail: bi(
-          `${legacy.length} images are served as JPEG/PNG and none as WebP or AVIF, which are typically 25–50% smaller at the same quality.`,
-          `${legacy.length} ${de(legacy.length)}imagini sunt servite ca JPEG/PNG și niciuna ca WebP sau AVIF, formate de obicei cu 25–50% mai mici la aceeași calitate.`,
+          `${legacy.length} images use older formats (JPEG/PNG); modern formats are usually 25–50% smaller at the same quality.`,
+          `${legacy.length} ${de(legacy.length)}imagini sunt în formate vechi (JPEG/PNG); formatele moderne sunt de obicei cu 25–50% mai mici, la aceeași calitate.`,
         ),
         recommendation: bi(
-          "Serve WebP/AVIF versions (most CMSs, image plugins and CDNs convert automatically).",
-          "Servește versiuni WebP/AVIF (majoritatea CMS-urilor, pluginurilor de imagini și CDN-urilor le convertesc automat).",
+          "We switch the images to lighter, modern formats (most site platforms do it automatically).",
+          "Trecem pozele în formate moderne, mai ușoare (majoritatea platformelor o fac automat).",
         ),
         evidence: basename(legacy[0].src),
       };
@@ -309,8 +309,8 @@ const CHECKS: Check[] = [
           `Toate cele ${images.length} ${de(images.length)}imagini de pe pagina principală se încarcă imediat, chiar și cele aflate mult sub primul ecran.`,
         ),
         recommendation: bi(
-          'Add loading="lazy" to images below the first screen (keep the main hero image loading eagerly).',
-          'Adaugă loading="lazy" imaginilor de sub primul ecran (păstrează încărcarea imediată pentru imaginea principală).',
+          "We load the images below the first screen only when the visitor scrolls to them.",
+          "Încărcăm pozele de sub primul ecran doar când vizitatorul ajunge la ele.",
         ),
         evidence: `${images.length} <img> without loading="lazy"`,
       };
@@ -332,8 +332,8 @@ const CHECKS: Check[] = [
           `${missing.length} ${de(missing.length)}imagini nu au width/height, așa că pagina „sare” în timp ce se încarcă (layout shift).`,
         ),
         recommendation: bi(
-          "Set width and height (or a CSS aspect-ratio) on every image.",
-          "Setează width și height (sau aspect-ratio din CSS) pentru fiecare imagine.",
+          "We set each image's size in advance, so the page doesn't jump while it loads.",
+          "Stabilim dinainte mărimea fiecărei poze, ca pagina să nu sară cât se încarcă.",
         ),
         evidence: basename(missing[0].src),
       };
@@ -366,8 +366,8 @@ const CHECKS: Check[] = [
           `Fișierele statice, precum ${basename(sample.url)}, sunt trimise ${header ? `cu „Cache-Control: ${header}”` : "fără antetul Cache-Control"}, deci vizitatorii care revin le descarcă din nou.`,
         ),
         recommendation: bi(
-          "Cache versioned CSS, JS and images for at least 30 days (max-age=2592000, or immutable for hashed files).",
-          "Setează cache de cel puțin 30 de zile pentru CSS, JS și imaginile versionate (max-age=2592000 sau immutable pentru fișierele cu hash).",
+          "We let browsers keep the site's files for at least 30 days, so return visits load faster.",
+          "Lăsăm browserele să păstreze fișierele site-ului cel puțin 30 de zile, ca vizitele următoare să se încarce mai repede.",
         ),
         evidence: `${basename(sample.url)}: ${header ?? "no Cache-Control"}`,
       };
@@ -387,8 +387,8 @@ const CHECKS: Check[] = [
           `Deschiderea ${ctx.requestedUrl} trece prin ${ctx.redirects.length} redirecționări până la încărcarea paginii, ceea ce adaugă o întârziere la fiecare primă vizită.`,
         ),
         recommendation: bi(
-          "Redirect straight to the final address (https + your preferred www or non-www) in one step.",
-          "Redirecționează direct către adresa finală (https + varianta preferată, cu sau fără www) într-un singur pas.",
+          "We send visitors straight to the final address, in one step.",
+          "Trimitem vizitatorii direct la adresa finală, dintr-un singur pas.",
         ),
         evidence: [ctx.requestedUrl, ...ctx.redirects].join(" → "),
       };
@@ -415,8 +415,8 @@ const CHECKS: Check[] = [
           `Pagina principală încarcă scripturi de la ${hosts.size} ${de(hosts.size)}servicii externe. Fiecare adaugă timp de încărcare și poate încetini interacțiunea.`,
         ),
         recommendation: bi(
-          "Remove tags you no longer use and load the rest through one tag manager, after consent.",
-          "Elimină scripturile pe care nu le mai folosești și încarcă-le pe celelalte printr-un singur tag manager, după consimțământ.",
+          "We remove the tracking scripts you no longer use and load the rest from one place, after consent.",
+          "Scoatem scripturile de urmărire pe care nu le mai folosești și le încărcăm pe celelalte dintr-un singur loc, după acord.",
         ),
         evidence: list([...hosts], 4),
       };
@@ -439,8 +439,8 @@ const CHECKS: Check[] = [
           `${weight.ro} de JavaScript sunt incluși direct în HTML-ul paginii principale, deci nu pot fi păstrați în cache între pagini.`,
         ),
         recommendation: bi(
-          "Move large inline scripts (page-builder data, tracking, JSON) into cached files, or load them only where they're needed.",
-          "Mută scripturile inline mari (date din page builder, tracking, JSON) în fișiere cu cache sau încarcă-le doar unde e nevoie.",
+          "We move the large blocks of code inside the page into separate files, or load them only where they're needed.",
+          "Mutăm blocurile mari de cod din pagină în fișiere separate sau le încărcăm doar unde e nevoie.",
         ),
         evidence: `${Math.round(bytes / 1024)} KB inline <script>`,
       };
@@ -467,8 +467,8 @@ const CHECKS: Check[] = [
           `Pagina este construită de un fișier JavaScript de ${atLeast.ro}${weight.ro} (necomprimat), pe care telefoanele trebuie să-l descarce și să-l ruleze înainte să afișeze orice conținut.`,
         ),
         recommendation: bi(
-          "Split the bundle by page (load routes on demand), drop unused libraries and pre-render the public pages.",
-          "Împarte pachetul pe pagini (încărcare la cerere a rutelor), elimină bibliotecile nefolosite și pre-randează paginile publice.",
+          "We split the app's code by page, drop unused libraries and prepare the public pages in advance.",
+          "Împărțim codul aplicației pe pagini, scoatem bibliotecile nefolosite și pregătim dinainte paginile publice.",
         ),
         evidence: `${basename(bundle.url)} (${Math.round(bundle.bytes / 1024)} KB${bundle.truncated ? "+" : ""})`,
       };
@@ -494,8 +494,8 @@ const CHECKS: Check[] = [
           "Google Fonts este încărcat fără display=swap, așa că textul poate rămâne invizibil până se descarcă fontul.",
         ),
         recommendation: bi(
-          "Add &display=swap to the Google Fonts URL, or self-host the fonts with font-display: swap.",
-          "Adaugă &display=swap la adresa Google Fonts sau găzduiește fonturile local cu font-display: swap.",
+          "We make the text show at once, while the fonts load.",
+          "Facem ca textul să apară imediat, cât se încarcă fonturile.",
         ),
         evidence: clip(font, 90),
       };
@@ -519,8 +519,8 @@ const CHECKS: Check[] = [
               "Eticheta <title> lipsește, deci rezultatele Google și filele browserului afișează doar adresa în locul numelui și ofertei tale.",
             ),
             recommendation: bi(
-              "Add a unique title of 30–60 characters: what you do + city + brand.",
-              "Adaugă un titlu unic de 30–60 de caractere: ce faci + oraș + brand.",
+              "We write a unique title of 30–60 characters: what you do, the city and your name.",
+              "Scriem un titlu unic de 30–60 de caractere: ce faci, orașul și numele firmei.",
             ),
           },
   },
@@ -550,8 +550,8 @@ const CHECKS: Check[] = [
               `Titlul paginii are ${length} ${de(length)}caractere; Google îl taie după aproximativ 60, deci finalul nu apare în rezultate.`,
             ),
         recommendation: bi(
-          "Aim for 30–60 characters: main service + city + brand.",
-          "Ideal ar fi 30–60 de caractere: serviciul principal + oraș + brand.",
+          "We bring it to 30–60 characters: main service, city and your name.",
+          "Îl aducem la 30–60 de caractere: serviciul principal, orașul și numele firmei.",
         ),
         evidence: clip(title, 90),
       };
@@ -573,8 +573,8 @@ const CHECKS: Check[] = [
               "Fără descriere, Google alege un text oarecare din pagină pentru fragmentul din rezultatele căutării.",
             ),
             recommendation: bi(
-              "Write a 120–155 character description with your main service, location and a reason to click.",
-              "Scrie o descriere de 120–155 de caractere, cu serviciul principal, locația și un motiv să dea clic.",
+              "We write a 120–155 character summary with your main service, location and a reason to click.",
+              "Scriem o descriere de 120–155 de caractere, cu serviciul principal, locul și un motiv să dea clic.",
             ),
           },
   },
@@ -599,8 +599,8 @@ const CHECKS: Check[] = [
           `Are ${length} ${de(length)}caractere (ideal 120–155), deci fragmentul din căutare ${short ? "spune prea puțin despre tine" : "este tăiat"}.`,
         ),
         recommendation: bi(
-          "Rewrite it in 120–155 characters with your main service, location and a reason to click.",
-          "Rescrie-o în 120–155 de caractere, cu serviciul principal, locația și un motiv să dea clic.",
+          "We rewrite it in 120–155 characters, with your main service, location and a reason to click.",
+          "O rescriem în 120–155 de caractere, cu serviciul principal, locul și un motiv să dea clic.",
         ),
         evidence: clip(description, 90),
       };
@@ -622,8 +622,8 @@ const CHECKS: Check[] = [
               "Pagina principală nu are H1, titlul folosit de motoarele de căutare și de cititoarele de ecran pentru a înțelege subiectul paginii.",
             ),
             recommendation: bi(
-              "Add one H1 that states your main service and city, e.g. “Dental clinic in Timișoara”.",
-              "Adaugă un singur H1 care spune serviciul principal și orașul, de exemplu „Clinică stomatologică în Timișoara”.",
+              "We add one main heading with your service and city, e.g. “Dental clinic in Timișoara”.",
+              "Adăugăm un singur titlu principal, cu serviciul și orașul, de exemplu „Clinică stomatologică în Timișoara”.",
             ),
           },
   },
@@ -637,14 +637,14 @@ const CHECKS: Check[] = [
       return {
         severity: "low",
         effort: "quick",
-        title: bi("Several H1 headings", "Mai multe titluri H1"),
+        title: bi("Several main headings (H1)", "Mai multe titluri principale (H1)"),
         detail: bi(
           `The homepage has ${headings.length} H1 headings, which dilutes its main topic.`,
           `Pagina principală are ${headings.length} titluri H1, ceea ce îi diluează subiectul principal.`,
         ),
         recommendation: bi(
-          "Keep one H1 and turn the others into H2.",
-          "Păstrează un singur H1 și transformă-le pe celelalte în H2.",
+          "We keep one main heading and turn the others into subheadings.",
+          "Păstrăm un singur titlu principal și le facem pe celelalte subtitluri.",
         ),
         evidence: list(headings.map((heading) => clip(heading, 40))),
       };
@@ -660,14 +660,14 @@ const CHECKS: Check[] = [
         : {
             severity: "low",
             effort: "quick",
-            title: bi("No canonical URL", "Lipsește URL-ul canonic"),
+            title: bi("No preferred address for Google", "Lipsește adresa preferată pentru Google"),
             detail: bi(
               "Without a canonical tag, Google may index duplicates of your pages (with or without www, with tracking parameters).",
               "Fără eticheta canonical, Google poate indexa duplicate ale paginilor (cu sau fără www, cu parametri de tracking).",
             ),
             recommendation: bi(
-              'Add <link rel="canonical"> pointing to the preferred address of each page.',
-              'Adaugă <link rel="canonical"> către adresa preferată a fiecărei pagini.',
+              "We tell Google the preferred address of each page, so it doesn't count copies.",
+              "Îi spunem lui Google adresa preferată a fiecărei pagini, ca să nu numere copiile.",
             ),
           },
   },
@@ -696,8 +696,8 @@ const CHECKS: Check[] = [
           `Pagina principală declară ${ctx.home.canonical} drept versiune principală, deci Google poate indexa acea adresă în locul ${ctx.finalUrl.href}.`,
         ),
         recommendation: bi(
-          "Point the canonical tag to this page's own https address.",
-          "Setează eticheta canonical către adresa https a acestei pagini.",
+          "We point Google to this page's own secure address.",
+          "Îi arătăm lui Google adresa securizată a acestei pagini.",
         ),
         evidence: `canonical: ${ctx.home.canonical}`,
       };
@@ -707,19 +707,19 @@ const CHECKS: Check[] = [
     id: "seo.no-sitemap",
     category: "seo",
     run: (ctx) =>
-      ctx.sitemap.found
+      ctx.sitemap.found || ctx.sitemap.skipped
         ? null
         : {
             severity: "medium",
             effort: "quick",
-            title: bi("No XML sitemap", "Lipsește sitemap-ul XML"),
+            title: bi("No list of pages for Google", "Lipsește lista paginilor pentru Google"),
             detail: bi(
               "We found no sitemap.xml (and none listed in robots.txt), so search engines have to discover pages by following links.",
               "Nu am găsit sitemap.xml (nici declarat în robots.txt), deci motoarele de căutare trebuie să descopere paginile urmărind linkurile.",
             ),
             recommendation: bi(
-              "Generate a sitemap (most CMSs and SEO plugins do it automatically), list it in robots.txt and submit it in Google Search Console.",
-              "Generează un sitemap (majoritatea CMS-urilor și pluginurilor SEO o fac automat), declară-l în robots.txt și trimite-l în Google Search Console.",
+              "We create the list of pages for Google (most platforms do it automatically) and send it to Google.",
+              "Facem lista paginilor pentru Google (majoritatea platformelor o fac automat) și o trimitem la Google.",
             ),
           },
   },
@@ -738,8 +738,8 @@ const CHECKS: Check[] = [
               "Site-ul nu are robots.txt. Nu este obligatoriu, dar acolo indici sitemap-ul și ții paginile de administrare în afara căutărilor.",
             ),
             recommendation: bi(
-              "Add a robots.txt with a Sitemap: line.",
-              "Adaugă un fișier robots.txt cu o linie Sitemap:.",
+              "We add the robots.txt file that points Google to the list of pages.",
+              "Adăugăm fișierul robots.txt, care îi arată lui Google lista paginilor.",
             ),
             evidence: `robots.txt → HTTP ${ctx.robots.status ?? "no response"}`,
           },
@@ -758,8 +758,8 @@ const CHECKS: Check[] = [
               "Fișierul robots.txt le cere motoarelor de căutare să nu acceseze pagina principală, deci site-ul poate dispărea din Google.",
             ),
             recommendation: bi(
-              'Remove "Disallow: /" for all crawlers (it is often left over from development).',
-              "Elimină „Disallow: /” pentru toți roboții (de obicei a rămas din perioada de dezvoltare).",
+              "We remove the rule that blocks search engines (it is often left over from development).",
+              "Scoatem regula care blochează motoarele de căutare (de obicei a rămas din perioada de dezvoltare).",
             ),
             evidence: ctx.robots.blocksEveryone
               ? "User-agent: * / Disallow: /"
@@ -784,8 +784,8 @@ const CHECKS: Check[] = [
           "Pagina are directiva „noindex”, deci nu va apărea în rezultatele căutării.",
         ),
         recommendation: bi(
-          "Remove noindex (check the CMS setting that discourages search engines).",
-          "Elimină noindex (verifică setarea din CMS care descurajează motoarele de căutare).",
+          "We remove the setting that hides the site from search engines.",
+          "Scoatem setarea care ascunde site-ul de motoarele de căutare.",
         ),
         evidence: header ? `X-Robots-Tag: ${header}` : `meta robots: ${meta}`,
       };
@@ -803,17 +803,17 @@ const CHECKS: Check[] = [
             effort: "quick",
             title: bi("No business details for Google", "Fără date structurate pentru Google"),
             detail: bi(
-              "The site has no schema.org markup, so Google can't show your address, hours, ratings or prices as rich results.",
-              "Site-ul nu are marcaj schema.org, deci Google nu poate afișa în rezultate adresa, programul, evaluările sau prețurile.",
+              "The site doesn't give Google its details in a form it reads directly, so Google can't show your address, hours, ratings or prices in the results.",
+              "Site-ul nu îi dă lui Google datele firmei într-o formă pe care o citește direct, deci Google nu poate afișa în rezultate adresa, programul, evaluările sau prețurile.",
             ),
             recommendation: ctx.signals.hasEcommerce
               ? bi(
-                  "Add JSON-LD for your organisation and Product markup (price, stock, reviews) on product pages.",
-                  "Adaugă JSON-LD pentru organizație și marcaj Product (preț, stoc, recenzii) pe paginile de produs.",
+                  "We give Google your business details and, on product pages, the price, stock and reviews.",
+                  "Îi dăm lui Google datele firmei și, pe paginile de produs, prețul, stocul și recenziile.",
                 )
               : bi(
-                  "Add JSON-LD LocalBusiness markup (or your exact type) with address, opening hours, phone and logo.",
-                  "Adaugă marcaj JSON-LD LocalBusiness (sau tipul exact al afacerii) cu adresă, program, telefon și logo.",
+                  "We give Google your address, opening hours, phone and logo in a form it reads directly.",
+                  "Îi dăm lui Google adresa, programul, telefonul și sigla, într-o formă pe care o citește direct.",
                 ),
           },
   },
@@ -836,8 +836,8 @@ const CHECKS: Check[] = [
           `Site-ul folosește date structurate (${list(types)}), dar nu descrie afacerea propriu-zisă, deci Google nu poate lega numele, logo-ul și datele de contact.`,
         ),
         recommendation: bi(
-          "Add an Organization or LocalBusiness block with name, logo, address, phone and social profiles (sameAs).",
-          "Adaugă un bloc Organization sau LocalBusiness cu nume, logo, adresă, telefon și profiluri sociale (sameAs).",
+          "We give Google your name, logo, address, phone and social profiles in a form it reads directly.",
+          "Îi dăm lui Google numele, sigla, adresa, telefonul și profilurile sociale, într-o formă pe care o citește direct.",
         ),
         evidence: list(types),
       };
@@ -863,8 +863,8 @@ const CHECKS: Check[] = [
           "Pagina principală nu are etichete Open Graph complete, deci linkurile distribuite pe Facebook, WhatsApp sau LinkedIn apar fără imagine sau cu text greșit.",
         ),
         recommendation: bi(
-          "Add og:title, og:description and a 1200×630 og:image.",
-          "Adaugă og:title, og:description și o imagine og:image de 1200×630.",
+          "We add a title, a description and a 1200×630 image for when the site is shared.",
+          "Adăugăm un titlu, o descriere și o imagine de 1200×630 pentru când site-ul e distribuit.",
         ),
         evidence: `Missing: ${missing.join(", ")}`,
       };
@@ -890,8 +890,8 @@ const CHECKS: Check[] = [
           `${count} dintre paginile analizate au același titlu „${clip(title)}”, deci Google nu le poate diferenția.`,
         ),
         recommendation: bi(
-          "Give each page its own title that describes that page.",
-          "Dă fiecărei pagini un titlu propriu, care o descrie.",
+          "We give each page its own title that describes it.",
+          "Dăm fiecărei pagini un titlu propriu, care o descrie.",
         ),
         evidence: clip(title, 80),
       };
@@ -913,8 +913,8 @@ const CHECKS: Check[] = [
           `Pagina principală are aproximativ ${words} ${de(words)}cuvinte. Motoarele de căutare au nevoie de text ca să înțeleagă ce oferi și unde.`,
         ),
         recommendation: bi(
-          "Add a short section about your services, the areas you serve and why clients choose you.",
-          "Adaugă o secțiune scurtă despre servicii, zonele deservite și motivele pentru care clienții te aleg.",
+          "We add a short section about your services, the areas you serve and why clients choose you.",
+          "Adăugăm o secțiune scurtă despre servicii, zonele în care lucrezi și de ce te aleg clienții.",
         ),
         evidence: `${words} words`,
       };
@@ -938,8 +938,8 @@ const CHECKS: Check[] = [
               "HTML-ul paginii principale este aproape gol, iar conținutul se construiește în browser. Google îl procesează cu întârziere, dar mulți roboți, asistenți AI și previzualizări de linkuri văd o pagină goală.",
             ),
             recommendation: bi(
-              "Use server-side rendering or pre-rendering for public pages (or a static export of the key pages).",
-              "Folosește randare pe server sau pre-randare pentru paginile publice (ori un export static al paginilor importante).",
+              "We make the public pages arrive with their text already in them, so Google and slow phones can read them.",
+              "Facem ca paginile publice să ajungă deja cu textul în ele, ca Google și telefoanele lente să le poată citi.",
             ),
             evidence: `${ctx.home.wordCount} words in the HTML`,
           }
@@ -961,8 +961,8 @@ const CHECKS: Check[] = [
               "Pagina nu are eticheta meta viewport, deci telefoanele o afișează ca pe o pagină de desktop micșorată. Google indexează mai întâi versiunea pentru mobil.",
             ),
             recommendation: bi(
-              'Add <meta name="viewport" content="width=device-width, initial-scale=1"> and check the layout on a phone.',
-              'Adaugă <meta name="viewport" content="width=device-width, initial-scale=1"> și verifică aspectul pe telefon.',
+              "We make the site fit phone screens and check how it looks on a phone.",
+              "Potrivim site-ul pe ecranul telefonului și verificăm cum arată pe telefon.",
             ),
           },
   },
@@ -976,14 +976,14 @@ const CHECKS: Check[] = [
         : {
             severity: "low",
             effort: "quick",
-            title: bi("No favicon", "Lipsește favicon-ul"),
+            title: bi("No site icon", "Lipsește pictograma site-ului"),
             detail: bi(
               "The site has no favicon, so browser tabs, bookmarks and Google's mobile results show a generic icon.",
               "Site-ul nu are favicon, deci filele browserului, marcajele și rezultatele Google pe mobil afișează o pictogramă generică.",
             ),
             recommendation: bi(
-              "Add a favicon (at least 48×48 px) and an apple-touch-icon.",
-              "Adaugă un favicon (minimum 48×48 px) și un apple-touch-icon.",
+              "We add the small site icon shown in browser tabs and on Google.",
+              "Adăugăm pictograma mică a site-ului, afișată în filele browserului și pe Google.",
             ),
           },
   },
@@ -1007,8 +1007,8 @@ const CHECKS: Check[] = [
           `Site-ul este disponibil în ${names}, dar nu are etichete hreflang, deci Google poate afișa versiunea în limba greșită.`,
         ),
         recommendation: bi(
-          "Add hreflang links between each page and its translations (multilingual plugins can do this).",
-          "Adaugă linkuri hreflang între fiecare pagină și traducerile ei (pluginurile multilingve pot face asta).",
+          "We link each page to its translations, so Google shows the right language.",
+          "Legăm fiecare pagină de traducerile ei, ca Google să arate limba potrivită.",
         ),
         evidence: `Languages: ${languages.join(", ")}`,
       };
@@ -1041,8 +1041,8 @@ const CHECKS: Check[] = [
                 `${missing.length} din ${images.length} ${de(images.length)}imagini nu au atributul alt, deci cititoarele de ecran le ignoră, iar Google nu le poate înțelege.`,
               ),
         recommendation: bi(
-          'Describe meaningful images in alt; use alt="" for purely decorative ones.',
-          'Descrie imaginile importante în alt; folosește alt="" pentru cele pur decorative.',
+          "We describe the important images for screen readers and Google.",
+          "Descriem imaginile importante pentru cititoarele de ecran și pentru Google.",
         ),
         evidence: basename(missing[0].src),
       };
@@ -1069,8 +1069,8 @@ const CHECKS: Check[] = [
             : `${unlabeled} ${de(unlabeled)}câmpuri din formulare nu au etichetă, deci utilizatorii de cititoare de ecran nu știu ce să completeze.`,
         ),
         recommendation: bi(
-          "Give every field a visible <label> (or at least an aria-label).",
-          "Adaugă fiecărui câmp o etichetă <label> vizibilă (sau măcar aria-label).",
+          "We give every form field a visible label.",
+          "Punem o etichetă vizibilă la fiecare câmp din formulare.",
         ),
       };
     },
@@ -1091,8 +1091,8 @@ const CHECKS: Check[] = [
               "Eticheta <html> nu are atributul lang, deci cititoarele de ecran pot citi textul românesc cu voce în engleză (și invers).",
             ),
             recommendation: bi(
-              'Add lang="ro" (or the page\'s language) to the <html> tag.',
-              'Adaugă lang="ro" (sau limba paginii) la eticheta <html>.',
+              "We mark the page's language, so browsers and screen readers read it correctly.",
+              "Marcăm limba paginii, ca browserele și cititoarele de ecran să o citească corect.",
             ),
           },
   },
@@ -1113,8 +1113,8 @@ const CHECKS: Check[] = [
           "Setarea viewport îi împiedică pe vizitatori să mărească pagina, lucru de care depind persoanele cu vedere slabă.",
         ),
         recommendation: bi(
-          "Remove user-scalable=no and maximum-scale from the viewport meta tag.",
-          "Elimină user-scalable=no și maximum-scale din eticheta meta viewport.",
+          "We let visitors zoom in on phones again.",
+          "Lăsăm din nou vizitatorii să mărească pagina pe telefon.",
         ),
         evidence: clip(viewport, 90),
       };
@@ -1136,8 +1136,8 @@ const CHECKS: Check[] = [
               "Pagina nu marchează conținutul principal cu <main>, deci utilizatorii de tastatură și cititoare de ecran nu pot sări direct la el.",
             ),
             recommendation: bi(
-              "Wrap the main content in <main> and use <header>, <nav> and <footer> for the rest.",
-              "Încadrează conținutul principal în <main> și folosește <header>, <nav> și <footer> pentru restul.",
+              "We mark the page's main parts (header, menu, content, footer) for screen readers.",
+              "Marcăm părțile paginii (antet, meniu, conținut, subsol) pentru cititoarele de ecran.",
             ),
           },
   },
@@ -1157,8 +1157,8 @@ const CHECKS: Check[] = [
           `${count} ${de(count)}linkuri (de obicei pictograme sociale sau de meniu) nu au text sau etichetă, deci cititoarele de ecran anunță doar „link”.`,
         ),
         recommendation: bi(
-          'Add an aria-label (e.g. "Facebook") or visually hidden text to icon links.',
-          "Adaugă aria-label (de ex. „Facebook”) sau text ascuns vizual linkurilor cu pictograme.",
+          "We give the icon links a name screen readers can read out, e.g. “Facebook”.",
+          "Dăm linkurilor cu pictograme un nume pe care cititoarele de ecran îl pot citi, de exemplu „Facebook”.",
         ),
       };
     },
@@ -1185,8 +1185,8 @@ const CHECKS: Check[] = [
                 `${total} ${de(total)}butoane (de ex. meniul sau săgețile de slider) nu au text sau etichetă.`,
               ),
         recommendation: bi(
-          'Add aria-label to icon buttons, e.g. aria-label="Open menu".',
-          'Adaugă aria-label butoanelor cu pictograme, de ex. aria-label="Deschide meniul".',
+          "We give the icon buttons a name, e.g. “Open menu”.",
+          "Dăm butoanelor cu pictograme un nume, de exemplu „Deschide meniul”.",
         ),
       };
     },
@@ -1220,8 +1220,8 @@ const CHECKS: Check[] = [
                 `${untitled.length} ${de(untitled.length)}cadre încorporate (hărți, video, formulare) nu au titlu, deci tehnologiile asistive nu pot spune ce conțin.`,
               ),
         recommendation: bi(
-          'Add a short title to each iframe, e.g. title="Map to our office".',
-          'Adaugă un titlu scurt fiecărui iframe, de ex. title="Harta către sediu".',
+          "We give each embedded map or video a short title, e.g. “Map to our office”.",
+          "Dăm fiecărei hărți sau fiecărui video încorporat un titlu scurt, de exemplu „Harta către sediu”.",
         ),
         evidence: clip(untitled[0].src ?? "", 80),
       };
@@ -1248,8 +1248,8 @@ const CHECKS: Check[] = [
           `Titlurile sar peste niveluri de ${skips.length} ${de(skips.length)}ori (de ex. H${from} → H${to}), ceea ce face structura greu de urmărit cu un cititor de ecran.`,
         ),
         recommendation: bi(
-          "Use headings in order (H1 → H2 → H3) and size them with CSS rather than choosing a level for its look.",
-          "Folosește titlurile în ordine (H1 → H2 → H3) și dimensionează-le din CSS, nu alege nivelul după aspect.",
+          "We put the headings in order and set their size in the design, not by level.",
+          "Punem titlurile în ordine și le stabilim mărimea din design, nu după nivel.",
         ),
       };
     },
@@ -1271,8 +1271,8 @@ const CHECKS: Check[] = [
                 : `${ctx.home.positiveTabindex} ${de(ctx.home.positiveTabindex)}elemente folosesc tabindex pozitiv, ceea ce strică ordinea naturală la navigarea cu tastatura.`,
             ),
             recommendation: bi(
-              'Use tabindex="0" (or none) and order elements in the HTML instead.',
-              'Folosește tabindex="0" (sau deloc) și ordonează elementele direct în HTML.',
+              "We fix the order in which the keyboard moves through the page.",
+              "Corectăm ordinea în care tastatura trece prin pagină.",
             ),
           }
         : null,
@@ -1295,8 +1295,8 @@ const CHECKS: Check[] = [
               "Un fișier audio sau video pornește singur, fără să fie pe mut, ceea ce deranjează cititoarele de ecran și surprinde vizitatorii.",
             ),
             recommendation: bi(
-              "Mute autoplaying video (muted playsinline) or let visitors start it.",
-              "Pune pe mut videoclipurile care pornesc automat (muted playsinline) sau lasă vizitatorii să le pornească.",
+              "We mute the videos that start on their own, or let visitors start them.",
+              "Punem pe mut videoclipurile care pornesc singure sau îi lăsăm pe vizitatori să le pornească.",
             ),
           }
         : null,
@@ -1318,8 +1318,8 @@ const CHECKS: Check[] = [
               "Site-ul se încarcă prin HTTP simplu. Browserele îl marchează „Nesigur”, datele din formulare circulă necriptat, iar Google îl clasează mai jos.",
             ),
             recommendation: bi(
-              "Install a free Let's Encrypt certificate and redirect every page to https://.",
-              "Instalează un certificat gratuit Let's Encrypt și redirecționează toate paginile către https://.",
+              "We install a free security certificate and send every page to its secure https:// address.",
+              "Instalăm un certificat de securitate gratuit și trimitem toate paginile la adresa securizată https://.",
             ),
             evidence: ctx.finalUrl.href,
           },
@@ -1341,8 +1341,8 @@ const CHECKS: Check[] = [
               `http://${ctx.finalUrl.host} încă servește site-ul fără să redirecționeze către versiunea securizată, deci unii vizitatori și linkurile vechi folosesc site-ul necriptat.`,
             ),
             recommendation: bi(
-              "Add a permanent (301) redirect from http:// to https:// for all pages.",
-              "Adaugă o redirecționare permanentă (301) de la http:// la https:// pentru toate paginile.",
+              "We send every http:// page permanently to its https:// address.",
+              "Trimitem permanent fiecare pagină http:// la adresa ei https://.",
             ),
           }
         : null,
@@ -1355,14 +1355,17 @@ const CHECKS: Check[] = [
         ? {
             severity: "low",
             effort: "quick",
-            title: bi("No HSTS header", "Lipsește antetul HSTS"),
+            title: bi(
+              "Browsers aren't told to stay on HTTPS",
+              "Browserelor nu li se cere să rămână pe HTTPS",
+            ),
             detail: bi(
               "Browsers aren't told to always use HTTPS, so a first visit can be downgraded to HTTP on public Wi-Fi.",
               "Browserelor nu li se cere să folosească mereu HTTPS, deci o primă vizită poate fi forțată pe HTTP într-o rețea Wi-Fi publică.",
             ),
             recommendation: bi(
-              "Send Strict-Transport-Security: max-age=31536000 (add includeSubDomains once every subdomain uses HTTPS).",
-              "Trimite Strict-Transport-Security: max-age=31536000 (adaugă includeSubDomains când toate subdomeniile folosesc HTTPS).",
+              "We tell browsers to always use the secure connection (the HSTS setting on the server).",
+              "Le cerem browserelor să folosească mereu conexiunea securizată (setarea HSTS de pe server).",
             ),
             evidence: "Strict-Transport-Security header missing",
           }
@@ -1385,8 +1388,8 @@ const CHECKS: Check[] = [
               "Niciun antet CSP nu limitează ce scripturi pot rula, deci un script injectat (de exemplu printr-un plugin vulnerabil) rulează fără nicio restricție.",
             ),
             recommendation: bi(
-              "Start with a Content-Security-Policy-Report-Only header, review the reports, then enforce it.",
-              "Începe cu antetul Content-Security-Policy-Report-Only, analizează rapoartele, apoi aplică politica.",
+              "We add a rule that limits which scripts the site may load: first in test mode, then for real.",
+              "Adăugăm o regulă care limitează ce scripturi poate încărca site-ul: întâi în mod de test, apoi definitiv.",
             ),
             evidence: "Content-Security-Policy header missing",
           },
@@ -1406,8 +1409,8 @@ const CHECKS: Check[] = [
               "Fără nosniff, browserele pot ghici tipul fișierelor, iar atacatorii pot folosi asta pentru a rula fișiere încărcate ca scripturi.",
             ),
             recommendation: bi(
-              "Send X-Content-Type-Options: nosniff on every response.",
-              "Trimite X-Content-Type-Options: nosniff la fiecare răspuns.",
+              "We add the standard setting that stops browsers from guessing file types.",
+              "Adăugăm setarea standard care oprește browserele să ghicească tipul fișierelor.",
             ),
           },
   },
@@ -1429,8 +1432,8 @@ const CHECKS: Check[] = [
           "Nu există X-Frame-Options sau frame-ancestors, deci alt site poate încărca site-ul tău într-un cadru ascuns (clickjacking).",
         ),
         recommendation: bi(
-          "Send X-Frame-Options: SAMEORIGIN or a CSP frame-ancestors 'self' rule.",
-          "Trimite X-Frame-Options: SAMEORIGIN sau regula CSP frame-ancestors 'self'.",
+          "We stop other sites from showing yours inside a frame.",
+          "Oprim alte site-uri să afișeze site-ul tău într-un cadru.",
         ),
       };
     },
@@ -1451,8 +1454,8 @@ const CHECKS: Check[] = [
           `${insecure.length === 1 ? "Un fișier (imagine, script sau stil) se încarcă" : `${insecure.length} ${de(insecure.length)}fișiere (imagini, scripturi sau stiluri) se încarcă`} prin http:// pe pagini HTTPS. Browserele ${insecure.length === 1 ? "îl blochează sau îl semnalează" : "le blochează sau le semnalează"}, ceea ce poate strica aspectul ori afișa un avertisment.`,
         ),
         recommendation: bi(
-          "Change those URLs to https:// (a search-and-replace in the database usually fixes it).",
-          "Schimbă acele adrese în https:// (de obicei se rezolvă cu o căutare și înlocuire în baza de date).",
+          "We change those addresses to https:// (usually one search-and-replace).",
+          "Schimbăm acele adrese în https:// (de obicei, o singură căutare și înlocuire).",
         ),
         evidence: clip(insecure[0], 90),
       };
@@ -1474,8 +1477,8 @@ const CHECKS: Check[] = [
           "Un formular de pe site trimite datele către o adresă http://, deci ce scriu vizitatorii circulă necriptat.",
         ),
         recommendation: bi(
-          "Point the form action to https://.",
-          "Setează acțiunea formularului către o adresă https://.",
+          "We send the form's data to a secure https:// address.",
+          "Trimitem datele din formular la o adresă securizată https://.",
         ),
         evidence: clip(actions[0], 90),
       };
@@ -1497,12 +1500,12 @@ const CHECKS: Check[] = [
           "Urmărirea vizitatorilor fără acord pentru cookie-uri",
         ),
         detail: bi(
-          `${names} load${trackers.length === 1 ? "s" : ""} and we found no consent banner, which conflicts with GDPR and the ePrivacy rules (Law 506/2004 in Romania).`,
-          `${names} se încarcă și nu am găsit un banner de consimțământ, ceea ce contravine GDPR și regulilor ePrivacy (Legea 506/2004 în România).`,
+          `${names} load${trackers.length === 1 ? "s" : ""} and we found no consent banner, which goes against GDPR and the cookie law (Law 506/2004 in Romania).`,
+          `${names} se încarcă și nu am găsit un banner de acord pentru cookie-uri, ceea ce contravine GDPR și legii cookie-urilor (Legea 506/2004).`,
         ),
         recommendation: bi(
-          "Add a consent banner and load analytics and pixels only after consent (Google Consent Mode v2).",
-          "Adaugă un banner de consimțământ și încarcă analytics și pixelii doar după acord (Google Consent Mode v2).",
+          "We add a consent banner and start the visitor statistics and ad tracking only after the visitor agrees.",
+          "Adăugăm un banner de acord și pornim statisticile de trafic și urmărirea pentru reclame doar după ce vizitatorul acceptă.",
         ),
         evidence: names,
       };
@@ -1529,12 +1532,12 @@ const CHECKS: Check[] = [
           "Scripturile de urmărire pot porni înainte de acord",
         ),
         detail: bi(
-          "Tracking scripts are included directly in the page and we found no Google Consent Mode or script blocking, so they may run before the visitor answers the cookie banner.",
-          "Scripturile de urmărire sunt incluse direct în pagină și nu am găsit Google Consent Mode sau blocarea scripturilor, deci pot rula înainte ca vizitatorul să răspundă la bannerul de cookie-uri.",
+          "Tracking scripts are included directly in the page and nothing holds them back, so they may run before the visitor answers the cookie banner.",
+          "Scripturile de urmărire sunt incluse direct în pagină și nimic nu le oprește, deci pot rula înainte ca vizitatorul să răspundă la bannerul de cookie-uri.",
         ),
         recommendation: bi(
-          "Check in the browser's developer tools that no tracking cookies are set before consent; enable the banner's auto-blocking or Consent Mode v2.",
-          "Verifică în instrumentele pentru dezvoltatori ale browserului că nu se setează cookie-uri de urmărire înainte de acord; activează blocarea automată din banner sau Consent Mode v2.",
+          "We check that no tracking cookies are set before consent and turn on the banner's automatic blocking.",
+          "Verificăm că nu se pun cookie-uri de urmărire înainte de acord și activăm blocarea automată din banner.",
         ),
         evidence: basename(direct[0].src!),
       };
@@ -1560,8 +1563,8 @@ const CHECKS: Check[] = [
           "Nu am găsit un link către politica de confidențialitate, deși site-ul colectează date personale (formulare sau scripturi de urmărire). GDPR cere să le spui vizitatorilor ce date colectezi și de ce.",
         ),
         recommendation: bi(
-          "Publish a privacy policy (who you are, what data, why, for how long, visitors' rights) and link it in the footer and next to every form.",
-          "Publică o politică de confidențialitate (cine ești, ce date, de ce, cât timp, drepturile vizitatorilor) și pune linkul în subsol și lângă fiecare formular.",
+          "We publish a privacy policy (who you are, what data, why, for how long, visitors' rights) and link it in the footer and by every form.",
+          "Publicăm o politică de confidențialitate (cine ești, ce date, de ce, cât timp, drepturile vizitatorilor) și punem linkul în subsol și lângă fiecare formular.",
         ),
       };
     },
@@ -1584,8 +1587,8 @@ const CHECKS: Check[] = [
               "Magazinele online din România trebuie să afișeze informațiile ANPC despre soluționarea alternativă a litigiilor (SAL), cu link către anpc.ro; nu am găsit un astfel de link.",
             ),
             recommendation: bi(
-              "Add the ANPC SAL badge linking to https://anpc.ro/ce-este-sal/ in the footer.",
-              "Adaugă în subsol pictograma ANPC SAL cu link către https://anpc.ro/ce-este-sal/.",
+              "We add the ANPC SAL badge, with its link, to the footer.",
+              "Adăugăm în subsol pictograma ANPC SAL, cu linkul ei.",
             ),
           }
         : null,
@@ -1605,8 +1608,8 @@ const CHECKS: Check[] = [
               "Site-ul are link către platforma europeană de soluționare online a litigiilor (SOL), închisă de UE pe 20 iulie 2025, deci linkul duce acum la un anunț de închidere.",
             ),
             recommendation: bi(
-              "Remove or update the SOL badge and keep the ANPC SAL information.",
-              "Elimină sau actualizează pictograma SOL și păstrează informațiile ANPC SAL.",
+              "We remove or update the SOL badge and keep the ANPC SAL information.",
+              "Scoatem sau actualizăm pictograma SOL și păstrăm informațiile ANPC SAL.",
             ),
             evidence: "ec.europa.eu/consumers/odr",
           }
@@ -1627,8 +1630,8 @@ const CHECKS: Check[] = [
               "Magazinul nu are un link vizibil către termeni și condiții (comandă, livrare, retur), lucru cerut de legislația de protecție a consumatorilor înainte de cumpărare.",
             ),
             recommendation: bi(
-              "Publish terms covering ordering, prices, delivery, the 14-day withdrawal right and returns; link them in the footer and at checkout.",
-              "Publică termeni care acoperă comanda, prețurile, livrarea, dreptul de retragere de 14 zile și returul; pune linkul în subsol și la finalizarea comenzii.",
+              "We publish terms for ordering, prices, delivery, the 14-day withdrawal right and returns, linked in the footer and at checkout.",
+              "Publicăm termeni pentru comandă, prețuri, livrare, dreptul de retragere de 14 zile și retur, cu link în subsol și la finalizarea comenzii.",
             ),
           }
         : null,
@@ -1649,8 +1652,8 @@ const CHECKS: Check[] = [
               `Nu am găsit codul fiscal (CUI) al firmei ${ctx.pages.length === 1 ? "pe pagina analizată" : `în cele ${ctx.pages.length} pagini analizate`}. Legea 365/2002 cere site-urilor să afișeze denumirea, adresa, numărul de înregistrare și CUI-ul firmei, iar clienții le folosesc ca să verifice cu cine au de-a face.`,
             ),
             recommendation: bi(
-              "Add the company name, CUI, Trade Register number and address to the footer or the contact page.",
-              "Adaugă în subsol sau pe pagina de contact denumirea firmei, CUI-ul, numărul de la Registrul Comerțului și adresa.",
+              "We add the company name, CUI, Trade Register number and address to the footer or the contact page.",
+              "Adăugăm în subsol sau pe pagina de contact denumirea firmei, CUI-ul, numărul de la Registrul Comerțului și adresa.",
             ),
           },
   },
@@ -1674,8 +1677,8 @@ const CHECKS: Check[] = [
           `Anteturile răspunsului dezvăluie „${clip(values.join(", "), 60)}”, ceea ce îi ajută pe atacatori să caute vulnerabilități cunoscute.`,
         ),
         recommendation: bi(
-          "Hide version numbers (e.g. ServerTokens Prod, expose_php = Off).",
-          "Ascunde numerele de versiune (de ex. ServerTokens Prod, expose_php = Off).",
+          "We hide the software version numbers the server shows.",
+          "Ascundem numerele de versiune pe care le arată serverul.",
         ),
         evidence: values.join(", "),
       };
@@ -1693,14 +1696,14 @@ const CHECKS: Check[] = [
       return {
         severity: "low",
         effort: "quick",
-        title: bi("Cookies without the Secure flag", "Cookie-uri fără atributul Secure"),
+        title: bi("Cookies not marked as secure", "Cookie-uri nemarcate ca securizate"),
         detail: bi(
           `The site sets ${insecure.length} cookie${insecure.length === 1 ? "" : "s"} without the Secure flag (${list(insecure)}), so ${insecure.length === 1 ? "it" : "they"} can be sent over unencrypted connections.`,
           `Site-ul setează ${insecure.length === 1 ? "un cookie" : `${insecure.length} cookie-uri`} fără atributul Secure (${list(insecure)}), care pot fi trimise prin conexiuni necriptate.`,
         ),
         recommendation: bi(
-          "Add Secure (and HttpOnly + SameSite for session cookies) in the server or CMS settings.",
-          "Adaugă Secure (și HttpOnly + SameSite pentru cookie-urile de sesiune) din setările serverului sau ale CMS-ului.",
+          "We mark the site's cookies as secure, in the server or platform settings.",
+          "Marcăm cookie-urile site-ului ca securizate, din setările serverului sau ale platformei.",
         ),
         evidence: list(insecure),
       };
@@ -1727,8 +1730,8 @@ const CHECKS: Check[] = [
               "Partea de sus a paginii principale nu are un buton sau link evident care să le spună vizitatorilor ce să facă mai departe (să sune, să se programeze, să ceară o ofertă).",
             ),
             recommendation: bi(
-              "Add one prominent button next to the headline, e.g. “Book a visit” or “Get a quote”, plus a tap-to-call link on mobile.",
-              "Adaugă un buton vizibil lângă titlu, de ex. „Programează-te” sau „Cere ofertă”, plus un link de apel rapid pe mobil.",
+              "We add one clear button next to the headline, e.g. “Book a visit” or “Get a quote”, plus tap-to-call on phones.",
+              "Adăugăm un buton vizibil lângă titlu, de exemplu „Programează-te” sau „Cere ofertă”, plus apel direct de pe telefon.",
             ),
           },
   },
@@ -1754,8 +1757,8 @@ const CHECKS: Check[] = [
           "Vizitatorii nu îți pot trimite un mesaj de pe site; cei care nu vor să sune sau să scrie un e-mail în acel moment pur și simplu pleacă.",
         ),
         recommendation: bi(
-          "Add a short form (name, phone or email, message) that also sends an automatic confirmation.",
-          "Adaugă un formular scurt (nume, telefon sau e-mail, mesaj) care trimite și o confirmare automată.",
+          "We add a short form (name, phone or email, message) that also sends an automatic confirmation.",
+          "Adăugăm un formular scurt (nume, telefon sau e-mail, mesaj), care trimite și o confirmare automată.",
         ),
         evidence: `${ctx.pages.length} page${ctx.pages.length === 1 ? "" : "s"} analysed`,
       };
@@ -1777,8 +1780,8 @@ const CHECKS: Check[] = [
               "Nu am găsit un număr de telefon în paginile analizate, deși mulți clienți preferă încă un apel pentru primul contact.",
             ),
             recommendation: bi(
-              "Show the phone number in the header and footer as a tap-to-call (tel:) link.",
-              "Afișează numărul de telefon în antet și în subsol, ca link de apel (tel:).",
+              "We show the phone number in the header and footer, tappable to call.",
+              "Afișăm numărul de telefon în antet și în subsol, cu apel direct la atingere.",
             ),
           },
   },
@@ -1800,8 +1803,8 @@ const CHECKS: Check[] = [
               "Numărul de telefon apare ca text simplu, deci vizitatorii de pe mobil trebuie să-l copieze manual în loc să atingă pentru apel.",
             ),
             recommendation: bi(
-              'Wrap it in a tel: link, e.g. <a href="tel:+40712345678">.',
-              'Pune-l într-un link tel:, de ex. <a href="tel:+40712345678">.',
+              "We make the number tappable, so a tap starts the call.",
+              "Facem numărul apelabil: o atingere pornește apelul.",
             ),
           }
         : null,
@@ -1822,8 +1825,8 @@ const CHECKS: Check[] = [
               "Nu există o adresă de e-mail vizibilă; unii clienți (și majoritatea companiilor) preferă să scrie decât să sune.",
             ),
             recommendation: bi(
-              "Show an address on your own domain (e.g. contact@yourbusiness.ro) as a mailto: link.",
-              "Afișează o adresă pe domeniul tău (de ex. contact@afacereata.ro) ca link mailto:.",
+              "We show an address on your own domain (e.g. contact@yourbusiness.ro) that opens an email.",
+              "Afișăm o adresă pe domeniul tău (de exemplu contact@afacereata.ro), care deschide direct un e-mail.",
             ),
           },
   },
@@ -1843,8 +1846,8 @@ const CHECKS: Check[] = [
               "Nu există opțiunea de chat rapid pe WhatsApp. Mulți clienți preferă un mesaj scurt în locul unui apel, mai ales în afara programului.",
             ),
             recommendation: bi(
-              "Add a WhatsApp Business button (wa.me link) with quick replies for prices and availability.",
-              "Adaugă un buton WhatsApp Business (link wa.me) cu răspunsuri rapide pentru prețuri și disponibilitate.",
+              "We add a WhatsApp Business button with quick replies for prices and availability.",
+              "Adăugăm un buton WhatsApp Business, cu răspunsuri rapide pentru prețuri și disponibilitate.",
             ),
           },
   },
@@ -1869,8 +1872,8 @@ const CHECKS: Check[] = [
               "Clienții nu pot face programări sau rezervări online. Dacă lucrezi pe bază de programare, o pagină de rezervări le permite să se programeze la orice oră.",
             ),
         recommendation: bi(
-          "Add a booking calendar with real availability, automatic confirmations and reminders.",
-          "Adaugă un calendar de programări cu disponibilitate reală, confirmări și reamintiri automate.",
+          "We add a booking calendar with real free slots, automatic confirmations and reminders.",
+          "Adăugăm un calendar de programări cu locuri libere reale, confirmări și reamintiri automate.",
         ),
       };
     },
@@ -1891,8 +1894,8 @@ const CHECKS: Check[] = [
               "Vizitatorii cu o întrebare rapidă (preț, disponibilitate, locație) nu pot primi un răspuns imediat pe site.",
             ),
             recommendation: bi(
-              "Add a chat widget or an AI assistant trained on your services that hands over to a person when needed.",
-              "Adaugă un widget de chat sau un asistent AI pregătit cu informații despre serviciile tale, care transferă conversația unui coleg când e nevoie.",
+              "We add a chat or an AI assistant that knows your services and hands over to a colleague when needed.",
+              "Adăugăm un chat sau un asistent AI care îți cunoaște serviciile și transferă conversația unui coleg când e nevoie.",
             ),
           },
   },
@@ -1912,8 +1915,8 @@ const CHECKS: Check[] = [
               "Nu am găsit recenzii, testimoniale sau un widget de evaluări. Părerile altor clienți sunt unul dintre cele mai puternice motive pentru care vizitatorii noi au încredere într-o afacere.",
             ),
             recommendation: bi(
-              "Show your real Google reviews (via a widget) and automatically ask happy customers for a review after each visit or order.",
-              "Afișează recenziile tale reale din Google (printr-un widget) și cere automat o recenzie clienților mulțumiți după fiecare vizită sau comandă.",
+              "We show your real Google reviews on the site and automatically ask happy customers for a review after each visit or order.",
+              "Afișăm pe site recenziile tale reale din Google și le cerem automat clienților mulțumiți o recenzie după fiecare vizită sau comandă.",
             ),
           },
   },
@@ -1933,8 +1936,8 @@ const CHECKS: Check[] = [
               "Nu am găsit prețuri în paginile analizate. Vizitatorii care nu pot estima costul pleacă adesea să compare în altă parte sau sună doar ca să întrebe.",
             ),
             recommendation: bi(
-              "Publish indicative or “from” prices for your main services.",
-              "Publică prețuri orientative sau „de la” pentru serviciile principale.",
+              "We publish indicative or “from” prices for your main services.",
+              "Publicăm prețuri orientative sau „de la” pentru serviciile principale.",
             ),
           },
   },
@@ -1956,8 +1959,8 @@ const CHECKS: Check[] = [
               "Magazinul nu afișează securitatea plății, garanțiile de livrare sau de retur acolo unde le caută cumpărătorii.",
             ),
             recommendation: bi(
-              "Show accepted payment methods, secure-payment and return-policy badges near the cart and in the footer.",
-              "Afișează metodele de plată acceptate, plata securizată și politica de retur lângă coș și în subsol.",
+              "We show the payment methods, secure payment and the return policy near the cart and in the footer.",
+              "Afișăm metodele de plată, plata securizată și politica de retur lângă coș și în subsol.",
             ),
           }
         : null,
@@ -1978,8 +1981,8 @@ const CHECKS: Check[] = [
           "Site-ul nu are linkuri către profiluri sociale, deci vizitatorii nu pot verifica acolo activitatea și recenziile tale recente.",
         ),
         recommendation: bi(
-          "Link your active profiles (Facebook, Instagram, LinkedIn…) in the footer and add them to your structured data (sameAs).",
-          "Pune în subsol linkuri către profilurile active (Facebook, Instagram, LinkedIn…) și adaugă-le în datele structurate (sameAs).",
+          "We link your active profiles (Facebook, Instagram, LinkedIn…) in the footer and tell Google about them.",
+          "Punem în subsol linkuri către profilurile active (Facebook, Instagram, LinkedIn…) și îi spunem lui Google de ele.",
         ),
       };
     },
@@ -2001,8 +2004,8 @@ const CHECKS: Check[] = [
           `Pictogramele ${list(names, 4)} de pe pagina principală trimit către „#”, deci vizitatorii care se așteaptă să vadă profilul tău rămân pe aceeași pagină.`,
         ),
         recommendation: bi(
-          "Link each icon to the real profile, or remove the icons for networks you don't use.",
-          "Leagă fiecare pictogramă de profilul real sau elimină pictogramele rețelelor pe care nu le folosești.",
+          "We link each icon to the real profile, or remove the icons of networks you don't use.",
+          "Legăm fiecare pictogramă de profilul real sau scoatem pictogramele rețelelor pe care nu le folosești.",
         ),
         evidence: dead
           .slice(0, 3)
@@ -2026,8 +2029,8 @@ const CHECKS: Check[] = [
               "Site-ul afișează o adresă, dar nu și o hartă sau un link Google Maps, deci vizitatorii trebuie să o copieze ca să te găsească.",
             ),
             recommendation: bi(
-              "Link the address to your Google Business Profile or embed a map on the contact page.",
-              "Leagă adresa de profilul Google Business sau încorporează o hartă pe pagina de contact.",
+              "We link the address to your Google Business profile or put a map on the contact page.",
+              "Legăm adresa de profilul Google Business sau punem o hartă pe pagina de contact.",
             ),
           }
         : null,
@@ -2047,8 +2050,8 @@ const CHECKS: Check[] = [
               "Magazinul nu are formular de abonare, deci vizitatorii care nu cumpără azi pleacă fără un motiv să revină.",
             ),
             recommendation: bi(
-              "Add a sign-up with a small incentive and an automatic welcome email sequence.",
-              "Adaugă un formular de abonare cu un mic beneficiu și o serie automată de e-mailuri de bun venit.",
+              "We add a sign-up with a small incentive and an automatic series of welcome emails.",
+              "Adăugăm un formular de abonare cu un mic beneficiu și o serie automată de e-mailuri de bun venit.",
             ),
           }
         : null,
@@ -2072,8 +2075,8 @@ const CHECKS: Check[] = [
           "Site-ul este doar în limba română. Turiștii, expații și partenerii străini care caută în engleză nu îl pot folosi.",
         ),
         recommendation: bi(
-          "Add an English version of the key pages (services, prices, contact) with hreflang tags.",
-          "Adaugă o versiune în engleză a paginilor importante (servicii, prețuri, contact), cu etichete hreflang.",
+          "We add an English version of the key pages (services, prices, contact), linked to the Romanian ones for Google.",
+          "Adăugăm o versiune în engleză a paginilor importante (servicii, prețuri, contact), legată de cea în română pentru Google.",
         ),
         evidence: `Languages found: ${languages.join(", ")}`,
       };
@@ -2096,8 +2099,8 @@ const CHECKS: Check[] = [
           "Site-ul nu are versiune în română, deși afacerea este românească, deci clienții locali care caută în română îl găsesc și au încredere în el mai greu.",
         ),
         recommendation: bi(
-          "Publish Romanian versions of the main pages, linked with hreflang.",
-          "Publică versiuni în română ale paginilor principale, legate prin hreflang.",
+          "We publish Romanian versions of the main pages, linked to the others for Google.",
+          "Publicăm versiuni în română ale paginilor principale, legate de celelalte pentru Google.",
         ),
         evidence: `Languages found: ${languages.join(", ")}`,
       };
@@ -2119,8 +2122,8 @@ const CHECKS: Check[] = [
               "Nu există o secțiune de blog, noutăți sau ghiduri. Prin articole utile, afacerile mici apar în Google la întrebările pe care le caută clienții.",
             ),
             recommendation: bi(
-              "Publish one practical article a month that answers a real customer question (prices, how it works, before/after).",
-              "Publică lunar un articol practic care răspunde la o întrebare reală a clienților (prețuri, cum funcționează, înainte/după).",
+              "We publish one practical article a month that answers a real customer question (prices, how it works, before and after).",
+              "Publicăm lunar un articol practic care răspunde la o întrebare reală a clienților (prețuri, cum funcționează, înainte și după).",
             ),
           },
   },
@@ -2150,8 +2153,8 @@ const CHECKS: Check[] = [
           `Cel mai recent conținut datat pe care l-am găsit este din ${when.ro}. Un blog inactiv poate face ca afacerea însăși să pară inactivă.`,
         ),
         recommendation: bi(
-          "Publish regularly, or hide dates and the blog link until you can.",
-          "Publică regulat sau ascunde datele și linkul către blog până când poți.",
+          "We plan regular posts, or hide the dates and the blog link until there are some.",
+          "Planificăm articole regulate sau ascundem datele și linkul către blog până apar.",
         ),
         evidence: latest.slice(0, 10),
       };
@@ -2173,8 +2176,8 @@ const CHECKS: Check[] = [
           `Subsolul afișează © ${year}, ceea ce face site-ul să pară neîntreținut.`,
         ),
         recommendation: bi(
-          "Update the year (or generate it automatically) and check the content for other outdated details.",
-          "Actualizează anul (sau generează-l automat) și verifică dacă mai există informații învechite.",
+          "We update the year (or make it update itself) and check the content for other outdated details.",
+          "Actualizăm anul (sau îl facem să se actualizeze singur) și verificăm dacă mai sunt informații învechite.",
         ),
         evidence: `© ${year}`,
       };
@@ -2202,8 +2205,8 @@ const CHECKS: Check[] = [
             `Am găsit text din șablon („${match[0]}”) pe ${whereRo}, ceea ce le arată vizitatorilor că site-ul nu este terminat.`,
           ),
           recommendation: bi(
-            "Replace the template text with real content or remove the section.",
-            "Înlocuiește textul din șablon cu conținut real sau elimină secțiunea.",
+            "We replace the template text with real content or remove the section.",
+            "Înlocuim textul din șablon cu conținut real sau scoatem secțiunea.",
           ),
           evidence: `${match[0]} · ${page.url}`,
         };
@@ -2230,8 +2233,8 @@ const CHECKS: Check[] = [
           `${broken.length === 1 ? "Una" : broken.length} dintre paginile cu link de pe pagina principală returnează o eroare (${evidence}).`,
         ),
         recommendation: bi(
-          "Fix or redirect these links; broken pages lose visitors and waste Google's crawl.",
-          "Repară sau redirecționează aceste linkuri; paginile nefuncționale pierd vizitatori și irosesc vizitele roboților Google.",
+          "We fix or redirect these links; broken pages lose visitors and Google's attention.",
+          "Reparăm sau redirecționăm aceste linkuri; paginile care nu merg pierd vizitatori și atenția lui Google.",
         ),
         evidence,
       };
@@ -2259,8 +2262,8 @@ const CHECKS: Check[] = [
           "Linkurile către site afișează imaginea implicită a platformei în locul brandului tău.",
         ),
         recommendation: bi(
-          "Upload your own 1200×630 share image and set it as og:image.",
-          "Încarcă o imagine proprie de 1200×630 și seteaz-o ca og:image.",
+          "We add your own 1200×630 image for when the site is shared.",
+          "Punem o imagine proprie de 1200×630 pentru când site-ul e distribuit.",
         ),
         evidence: clip(image, 90),
       };
@@ -2284,8 +2287,8 @@ const CHECKS: Check[] = [
           `Site-ul încarcă jQuery ${version}; versiunile mai vechi de 3.5 au vulnerabilități de securitate cunoscute (XSS).`,
         ),
         recommendation: bi(
-          "Update jQuery (and the plugins that depend on it), or remove it if it's no longer needed.",
-          "Actualizează jQuery (și pluginurile care depind de el) sau elimină-l dacă nu mai este necesar.",
+          "We update the old jQuery library and the plugins that use it, or remove it if it's no longer needed.",
+          "Actualizăm biblioteca jQuery veche și modulele care o folosesc sau o scoatem dacă nu mai e necesară.",
         ),
         evidence: `jQuery ${version}`,
       };
@@ -2307,8 +2310,8 @@ const CHECKS: Check[] = [
           `Site-ul raportează WordPress ${version}, o versiune mai veche de doi ani. Instalările neactualizate sunt cea mai des întâlnită cale prin care site-urile firmelor mici sunt sparte.`,
         ),
         recommendation: bi(
-          "Back up, then update WordPress, the theme and all plugins; enable automatic minor updates.",
-          "Fă o copie de siguranță (backup), apoi actualizează WordPress, tema și toate pluginurile; activează actualizările automate minore.",
+          "We back up the site, then update WordPress, the theme and all plugins, and turn on automatic minor updates.",
+          "Facem o copie de siguranță, apoi actualizăm WordPress, tema și toate modulele și pornim actualizările automate minore.",
         ),
         evidence: `WordPress ${version}`,
       };
@@ -2329,8 +2332,8 @@ const CHECKS: Check[] = [
           `Serverul raportează PHP ${version}, care nu mai primește actualizări de securitate.`,
         ),
         recommendation: bi(
-          "Ask your host to switch to PHP 8.3 or newer (test the site on a staging copy first).",
-          "Cere furnizorului de hosting trecerea la PHP 8.3 sau mai nou (testează mai întâi site-ul pe o copie).",
+          "We move the site to PHP 8.3 or newer with your host, after testing it on a copy.",
+          "Mutăm site-ul pe PHP 8.3 sau mai nou, împreună cu furnizorul de găzduire, după ce îl testăm pe o copie.",
         ),
         evidence: `X-Powered-By: PHP/${version}`,
       };
@@ -2352,8 +2355,8 @@ const CHECKS: Check[] = [
               "Nu am găsit niciun instrument de analiză, deci nu poți vedea câți oameni vizitează site-ul, de unde vin sau ce pagini aduc clienți.",
             ),
             recommendation: bi(
-              "Install Google Analytics 4 (with Consent Mode) or a privacy-friendly tool such as Plausible, and track calls and form submissions as conversions.",
-              "Instalează Google Analytics 4 (cu Consent Mode) sau un instrument care respectă confidențialitatea, precum Plausible, și urmărește apelurile și formularele trimise ca conversii.",
+              "We set up visitor statistics (Google Analytics 4, started only after consent, or a privacy-friendly tool such as Plausible) and count calls and form messages.",
+              "Punem statistici de trafic (Google Analytics 4, pornit doar după acord, sau un instrument care respectă confidențialitatea, precum Plausible) și numărăm apelurile și mesajele din formulare.",
             ),
           },
   },
@@ -2377,8 +2380,8 @@ const CHECKS: Check[] = [
               "Site-ul folosește încă Universal Analytics (UA-), oprit de Google în iulie 2023, deci vizitele nu mai sunt înregistrate.",
             ),
             recommendation: bi(
-              "Set up Google Analytics 4 and remove the old UA code.",
-              "Configurează Google Analytics 4 și elimină vechiul cod UA.",
+              "We set up Google Analytics 4 and remove the old code.",
+              "Configurăm Google Analytics 4 și scoatem codul vechi.",
             ),
             evidence: ctx.technologies.find((t) => t.name === "Universal Analytics")?.evidence,
           }
@@ -2399,8 +2402,8 @@ const CHECKS: Check[] = [
               "Magazinul nu are pixel Meta, Google Ads sau TikTok, deci nu poți măsura vânzările din reclame și nici nu poți readuce vizitatorii care nu au cumpărat.",
             ),
             recommendation: bi(
-              "Add the pixels of the platforms you advertise on (after consent) and send purchase events.",
-              "Adaugă pixelii platformelor pe care faci reclamă (după consimțământ) și trimite evenimentele de cumpărare.",
+              "We add the tracking of the ad platforms you use (after consent) and record purchases.",
+              "Adăugăm urmărirea platformelor de reclamă pe care le folosești (după acord) și înregistrăm cumpărăturile.",
             ),
           }
         : null,
@@ -2479,8 +2482,8 @@ export function unreachableFinding(host: string, reason: ReachFailure): AuditFin
           `${host} nu are înregistrări DNS, deci nimeni nu îl poate deschide. Domeniul poate fi expirat sau setările DNS lipsesc.`,
         ),
         recommendation: bi(
-          "Check the domain renewal and DNS records with your registrar (ROTLD for .ro domains).",
-          "Verifică reînnoirea domeniului și înregistrările DNS la registrar (ROTLD pentru domeniile .ro).",
+          "We check the domain renewal and its settings with your registrar (ROTLD for .ro domains).",
+          "Verificăm reînnoirea domeniului și setările lui la registrar (ROTLD pentru domeniile .ro).",
         ),
         evidence: `DNS lookup failed for ${host}`,
       };
@@ -2506,8 +2509,8 @@ export function unreachableFinding(host: string, reason: ReachFailure): AuditFin
           `Certificatul HTTPS al ${host} este invalid sau expirat, deci browserele afișează un avertisment de securitate pe tot ecranul în locul site-ului.`,
         ),
         recommendation: bi(
-          "Renew or reinstall the certificate (free with Let's Encrypt) and enable automatic renewal.",
-          "Reînnoiește sau reinstalează certificatul (gratuit cu Let's Encrypt) și activează reînnoirea automată.",
+          "We renew the security certificate (free with Let's Encrypt) and turn on automatic renewal.",
+          "Reînnoim certificatul de securitate (gratuit cu Let's Encrypt) și pornim reînnoirea automată.",
         ),
         evidence: "TLS handshake failed",
       };
@@ -2520,8 +2523,8 @@ export function unreachableFinding(host: string, reason: ReachFailure): AuditFin
           `${host} redirecționează la nesfârșit fără să afișeze vreo pagină, deci browserele se opresc cu o eroare.`,
         ),
         recommendation: bi(
-          "Check the https/www redirect rules on the server, CDN and CMS: two of them are usually fighting.",
-          "Verifică regulile de redirecționare https/www din server, CDN și CMS: de obicei, două dintre ele se contrazic.",
+          "We check the address rules on the server, the CDN and the site platform: usually two of them contradict each other.",
+          "Verificăm regulile de redirecționare din server, CDN și platforma site-ului: de obicei, două dintre ele se contrazic.",
         ),
         evidence: "More than 5 redirects",
       };
@@ -2570,10 +2573,30 @@ export function homepageErrorFinding(status: number): AuditFinding {
       `Pagina principală a răspuns cu HTTP ${status}, deci vizitatorii văd o pagină de eroare în locul site-ului.`,
     ),
     recommendation: bi(
-      "Check the server logs and hosting status, or the homepage setting in your CMS.",
-      "Verifică jurnalele serverului și starea hostingului sau setarea paginii principale din CMS.",
+      "We check the server logs, the hosting status and the homepage setting of the site platform.",
+      "Verificăm jurnalele serverului, starea găzduirii și setarea paginii principale din platforma site-ului.",
     ),
     evidence: `HTTP ${status}`,
+  };
+}
+
+/** The site's robots.txt names VortexScan and disallows "/": nothing was fetched. */
+export function scanOptOutFinding(host: string): AuditFinding {
+  return {
+    id: "technology.scan-opt-out",
+    category: "technology",
+    severity: "low",
+    effort: "quick",
+    title: bi("The site asks not to be scanned", "Site-ul cere să nu fie scanat"),
+    detail: bi(
+      `The robots.txt file of ${host} tells VortexScan not to visit, so we didn't open any page. That is the site owner's choice and we respect it.`,
+      `Fișierul robots.txt al ${host} îi cere robotului VortexScan să nu viziteze site-ul, așa că nu am deschis nicio pagină. Este alegerea proprietarului și o respectăm.`,
+    ),
+    recommendation: bi(
+      "If this is your site and you want the analysis, remove the VortexScan rule from robots.txt and scan again.",
+      "Dacă site-ul este al tău și vrei analiza, scoate regula pentru VortexScan din robots.txt și scanează din nou.",
+    ),
+    evidence: "robots.txt: User-agent: VortexScan, Disallow: /",
   };
 }
 
@@ -2589,8 +2612,8 @@ export function scanBlockedFinding(status: number, challenge: boolean): AuditFin
       `Serverul a răspuns scanerului nostru cu HTTP ${status}${challenge ? " și o verificare anti-bot" : ""}, așa că verificările de conținut au fost omise. Vizitatorii reali pot vedea site-ul normal, dar unele motoare de căutare, asistenți AI și previzualizări de linkuri pot fi blocați la fel.`,
     ),
     recommendation: bi(
-      "Make sure your firewall or bot protection lets Google, Bing and link-preview crawlers through.",
-      "Asigură-te că firewall-ul sau protecția anti-bot permite accesul Google, Bing și al roboților de previzualizare.",
+      "We make sure the firewall or bot protection lets Google, Bing and link previews through.",
+      "Ne asigurăm că protecția anti-bot lasă să treacă Google, Bing și previzualizările de linkuri.",
     ),
     evidence: `HTTP ${status}${challenge ? " (challenge)" : ""}`,
   };

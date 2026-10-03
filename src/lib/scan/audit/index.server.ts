@@ -16,6 +16,7 @@ import {
   homepageErrorFinding,
   runChecks,
   scanBlockedFinding,
+  scanOptOutFinding,
   sortFindings,
   unreachableFinding,
   type ReachFailure,
@@ -27,15 +28,17 @@ import { buildSignals } from "./signals";
 import { detectTechnologies, toDetectedTechnologies } from "./technologies";
 
 /**
- * Website audit: the homepage, robots.txt, the sitemap and up to five
- * well-chosen internal pages, all inside a ~15 s budget with at most four
- * requests in flight to the site. Everything after the homepage is optional:
- * whatever finishes in time is used, the rest is skipped.
+ * Website audit: robots.txt, the homepage, the sitemap and up to five
+ * well-chosen internal pages, all inside a ~15 s budget with at most two
+ * requests in flight (the politeness limit stated on /privacy#vortex-scan-bot).
+ * Everything after the homepage is optional: whatever finishes in time is
+ * used, the rest is skipped. The homepage the visitor asked for skips
+ * robots.txt, unless robots.txt names VortexScan and disallows "/".
  */
 
 const TOTAL_BUDGET_MS = 15_000;
 const MAX_EXTRA_PAGES = 5;
-const MAX_IN_FLIGHT = 4;
+const MAX_IN_FLIGHT = 2;
 const HTML_FOR_FINGERPRINTS = 1_500_000;
 const EXTRA_HTML_FOR_FINGERPRINTS = 300_000;
 
@@ -486,8 +489,16 @@ export async function auditWebsite(input: AuditInput): Promise<WebsiteAudit> {
     signal: controller.signal,
     limit: createLimiter(MAX_IN_FLIGHT),
   };
+  const robotsCache = createRobotsCache(run.signal);
 
   try {
+    // The owner's explicit no comes before the visitor's request.
+    if ((await robotsCache.get(start.origin)).optsOut) {
+      return unreachableAudit(start.href, start.hostname, fetchedAt, [
+        scanOptOutFinding(start.hostname),
+      ]);
+    }
+
     let homepage: Awaited<ReturnType<typeof fetchHomepage>>;
     try {
       homepage = await fetchHomepage(input.url, start, run);
@@ -516,15 +527,24 @@ export async function auditWebsite(input: AuditInput): Promise<WebsiteAudit> {
     const home = extractPage(looksLikeHtml ? result.body : "", finalUrl.href, result.status);
     const challengeOn200 = result.status < 400 && home.wordCount < 80 && CHALLENGE.test(home.text);
     const contentAvailable = result.status < 400 && looksLikeHtml && !challenge && !challengeOn200;
+    // A bot check or a refusal is a "no": nothing more is requested from the host.
+    const blockedByBot = challenge || challengeOn200 || [401, 403, 429].includes(result.status);
 
     const origin = finalUrl.origin;
-    const robotsCache = createRobotsCache(run.signal);
+    // A redirect to another origin (www., another domain) gets the same test.
+    if (origin !== start.origin && (await robotsCache.get(origin)).optsOut) {
+      return unreachableAudit(start.href, finalUrl.hostname, fetchedAt, [
+        scanOptOutFinding(finalUrl.hostname),
+      ]);
+    }
     const robotsPromise = run.limit(() => robotsCache.get(origin));
     const [robots, sitemap, httpRedirectsToHttps, crawl, images, assets, faviconFound, appBundle] =
       await Promise.all([
         robotsPromise,
-        robotsPromise.then((policy) => fetchSitemap(run, origin, policy.sitemaps)),
-        https ? checkHttpRedirect(run, finalUrl) : Promise.resolve(undefined),
+        blockedByBot
+          ? Promise.resolve<SitemapInfo>({ found: false, skipped: true })
+          : robotsPromise.then((policy) => fetchSitemap(run, origin, policy.sitemaps)),
+        https && !blockedByBot ? checkHttpRedirect(run, finalUrl) : Promise.resolve(undefined),
         contentAvailable
           ? robotsPromise.then((policy) => crawlPages(run, home, finalUrl, policy))
           : Promise.resolve({ pages: [], broken: [] }),
@@ -605,7 +625,6 @@ export async function auditWebsite(input: AuditInput): Promise<WebsiteAudit> {
     };
 
     if (!contentAvailable) {
-      const blockedByBot = challenge || challengeOn200 || [401, 403, 429].includes(result.status);
       const explanation = blockedByBot
         ? scanBlockedFinding(result.status, challenge || challengeOn200)
         : homepageErrorFinding(result.status);

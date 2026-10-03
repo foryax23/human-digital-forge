@@ -4,9 +4,12 @@ import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { CompanyDetails } from "@/components/shared/CompanyDetails";
 import { useI18n } from "@/i18n";
+import { LEAD_RETENTION_MONTHS, PRIVACY_EMAIL } from "@/lib/scan/legal/lead-notice";
+import { SCAN_USER_AGENT } from "@/lib/scan/legal/bot";
 
 const title = "Privacy Policy | Vortex Hub";
-const description = "How Vortex Hub collects, uses and protects personal data, and your rights under GDPR.";
+const description =
+  "How Vortex Hub collects, uses and protects personal data, what Vortex Scan reads about a company, and your rights under GDPR.";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
@@ -22,12 +25,66 @@ export const Route = createFileRoute("/privacy")({
   component: PrivacyPage,
 });
 
-function Section({ heading, children }: { heading: string; children: React.ReactNode }) {
+function Section({
+  id,
+  heading,
+  children,
+}: {
+  id?: string;
+  heading: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="space-y-3">
-      <h2 className="font-serif text-xl text-foreground">{heading}</h2>
-      <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">{children}</div>
+    <div id={id} className="scroll-mt-24 space-y-3">
+      <h2 className="type-h3 text-fg">{heading}</h2>
+      <div className="type-body space-y-3 text-fg-2">{children}</div>
     </div>
+  );
+}
+
+function Subsection({
+  id,
+  heading,
+  children,
+}: {
+  id?: string;
+  heading: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div id={id} className="scroll-mt-24 space-y-2 pt-2">
+      <h3 className="type-h4 text-fg">{heading}</h3>
+      {children}
+    </div>
+  );
+}
+
+function List({ items }: { items: string[] }) {
+  return (
+    <ul className="list-disc space-y-1.5 pl-5 marker:text-fg-3">
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+function Code({ children }: { children: string }) {
+  return (
+    <pre className="whitespace-pre-wrap rounded-lg border border-line-2 bg-s1 px-4 py-3 type-code text-xs text-fg [overflow-wrap:anywhere]">
+      {children}
+    </pre>
+  );
+}
+
+function Mail() {
+  return (
+    <a
+      className="text-fg underline decoration-fg/30 underline-offset-4 hover:decoration-fg"
+      href={`mailto:${PRIVACY_EMAIL}`}
+    >
+      {PRIVACY_EMAIL}
+    </a>
   );
 }
 
@@ -37,120 +94,394 @@ function PrivacyPage() {
   return (
     <SiteLayout>
       <PageHero
-        eyebrow={t("Legal", "Legal")}
+        kicker={t("Legal", "Legal")}
         title={t("Privacy Policy", "Politica de confidențialitate")}
         description={t(
-          "This policy explains how we process your personal data in line with the EU General Data Protection Regulation (GDPR) and applicable Romanian law. Please review it with your legal advisor before launch.",
-          "Această politică explică modul în care prelucrăm datele tale cu caracter personal în conformitate cu Regulamentul general UE privind protecția datelor (GDPR) și legislația română aplicabilă. Te rugăm să o revizuiești cu consilierul tău juridic înainte de lansare.",
+          "How we process personal data on vortexhub.dev, including in Vortex Scan, under the EU General Data Protection Regulation (GDPR) and Romanian law, and what rights you have. Last updated: 3 October 2026.",
+          "Cum prelucrăm datele cu caracter personal pe vortexhub.dev, inclusiv în Vortex Scan, conform Regulamentului general privind protecția datelor (GDPR) și legislației române, și ce drepturi ai. Ultima actualizare: 3 octombrie 2026.",
         )}
       />
-      <section className="mx-auto max-w-3xl space-y-10 px-4 py-16 sm:px-6 lg:px-8">
-        <Section heading={t("1. Data controller", "1. Operatorul de date")}>
-          <p>
-            {t(
-              "The controller responsible for processing your personal data is:",
-              "Operatorul responsabil pentru prelucrarea datelor tale cu caracter personal este:",
-            )}
-          </p>
-          <CompanyDetails />
-        </Section>
+      <section className="container-vx section-y">
+        <div className="max-w-3xl space-y-10">
+          <Section heading={t("1. Data controller", "1. Operatorul de date")}>
+            <p>
+              {t(
+                "The controller responsible for processing your personal data is:",
+                "Operatorul responsabil pentru prelucrarea datelor tale cu caracter personal este:",
+              )}
+            </p>
+            <CompanyDetails />
+            <p>
+              {t(
+                "Vortex Hub S.R.L. is represented by Mihai Dandea, Director.",
+                "Vortex Hub S.R.L. este reprezentată de Mihai Dandea, Director.",
+              )}
+            </p>
+          </Section>
 
-        <Section heading={t("2. Data we collect", "2. Datele pe care le colectăm")}>
-          <p>
-            {t(
-              "We collect: identification and contact data you provide through forms (name, email, phone, company); account data when you register; the content of your messages and project requests; files you upload to your account; and technical data such as IP address, device and browser information and usage data collected via cookies.",
-              "Colectăm: date de identificare și contact pe care le furnizezi prin formulare (nume, email, telefon, companie); date de cont la înregistrare; conținutul mesajelor și al solicitărilor de proiect; fișierele pe care le încarci în cont; și date tehnice precum adresa IP, informații despre dispozitiv și browser și date de utilizare colectate prin cookie-uri.",
-            )}
-          </p>
-        </Section>
+          <Section heading={t("2. Data we collect", "2. Datele pe care le colectăm")}>
+            <p>
+              {t(
+                "We collect: identification and contact data you provide through forms (name, email, phone, company); account data when you register; the content of your messages and project requests; files you upload to your account; and technical data such as IP address, device and browser information and usage data collected via cookies.",
+                "Colectăm: date de identificare și contact pe care le furnizezi prin formulare (nume, email, telefon, companie); date de cont la înregistrare; conținutul mesajelor și al solicitărilor de proiect; fișierele pe care le încarci în cont; și date tehnice precum adresa IP, informații despre dispozitiv și browser și date de utilizare colectate prin cookie-uri.",
+              )}
+            </p>
+            <p>
+              {t(
+                "What Vortex Scan reads about a company, and what we keep when you download a report, is explained in section 4.",
+                "Ce citește Vortex Scan despre o firmă și ce păstrăm când descarci un raport explicăm în secțiunea 4.",
+              )}
+            </p>
+          </Section>
 
-        <Section heading={t("3. Purposes and legal bases", "3. Scopuri și temeiuri legale")}>
-          <p>
-            {t(
-              "We process your data to: respond to enquiries and provide our services (performance of a contract); manage accounts and deliver projects (contract); send service communications and, where permitted, marketing (consent or legitimate interest); comply with legal and accounting obligations (legal obligation); and secure and improve the platform (legitimate interest).",
-              "Prelucrăm datele tale pentru a: răspunde solicitărilor și a furniza serviciile noastre (executarea unui contract); gestiona conturile și livra proiecte (contract); trimite comunicări de serviciu și, unde este permis, marketing (consimțământ sau interes legitim); respecta obligațiile legale și contabile (obligație legală); și securiza și îmbunătăți platforma (interes legitim).",
-            )}
-          </p>
-        </Section>
+          <Section heading={t("3. Purposes and legal bases", "3. Scopuri și temeiuri legale")}>
+            <p>
+              {t(
+                "We process your data to: respond to enquiries and provide our services (performance of a contract); manage accounts and deliver projects (contract); send service communications and, where permitted, marketing (consent or legitimate interest); comply with legal and accounting obligations (legal obligation); and secure and improve the platform (legitimate interest).",
+                "Prelucrăm datele tale pentru a: răspunde solicitărilor și a furniza serviciile noastre (executarea unui contract); gestiona conturile și livra proiecte (contract); trimite comunicări de serviciu și, unde este permis, marketing (consimțământ sau interes legitim); respecta obligațiile legale și contabile (obligație legală); și securiza și îmbunătăți platforma (interes legitim).",
+              )}
+            </p>
+          </Section>
 
-        <Section heading={t("4. Uploaded files", "4. Fișiere încărcate")}>
-          <p>
-            {t(
-              "Files you upload are treated as confidential. They are stored securely and are never sent to third-party AI tools or other external services without a clear, separate consent process.",
-              "Fișierele pe care le încarci sunt tratate ca fiind confidențiale. Sunt stocate în siguranță și nu sunt trimise niciodată instrumentelor AI terțe sau altor servicii externe fără un proces clar și separat de consimțământ.",
-            )}
-          </p>
-        </Section>
+          <Section
+            id="vortex-scan"
+            heading={t("4. Vortex Scan: analysing a company", "4. Vortex Scan: analiza unei firme")}
+          >
+            <p>
+              {t(
+                "Vortex Scan (vortexhub.dev/scan) analyses a Romanian company when a visitor asks for it: the official records, the website and the online presence, plus an improvement plan. This section explains which data we use, where it comes from and what you can do if you don't want your company or your name to appear. It is also the notice required by article 14 GDPR for data we don't receive from you directly.",
+                "Vortex Scan (vortexhub.dev/scan) analizează o firmă românească atunci când un vizitator o cere: datele oficiale, site-ul și prezența online, plus un plan de îmbunătățire. Secțiunea aceasta explică ce date folosim, de unde le luăm și ce poți face dacă nu vrei să apară firma sau numele tău. Ține loc și de informarea cerută de articolul 14 din GDPR pentru datele pe care nu le primim direct de la tine.",
+              )}
+            </p>
 
-        <Section heading={t("5. Sharing and processors", "5. Partajare și persoane împuternicite")}>
-          <p>
-            {t(
-              "We share data only with trusted service providers acting on our behalf (such as hosting, database, email and payment providers), bound by data processing agreements. We do not sell your personal data.",
-              "Partajăm date doar cu furnizori de servicii de încredere care acționează în numele nostru (precum furnizori de găzduire, baze de date, email și plăți), obligați prin acorduri de prelucrare a datelor. Nu vindem datele tale cu caracter personal.",
-            )}
-          </p>
-        </Section>
+            <Subsection
+              heading={t("What we read from public sources", "Ce citim din surse publice")}
+            >
+              <List
+                items={[
+                  t(
+                    "Trade Register: name, fiscal code (CUI), county, locality, status and the website the company declared, from the ONRC open data (CC BY 4.0 licence).",
+                    "Registrul comerțului: denumirea, codul fiscal (CUI), județul, localitatea, starea firmei și site-ul declarat, din datele deschise ONRC (licență CC BY 4.0).",
+                  ),
+                  t(
+                    "ANAF: legal form, registration number and date, main activity (CAEN), registered address, phone, VAT status and inactive status, from ANAF's public web service. The average headcount from the latest balance sheet ANAF publishes is used only to decide whether we show the registry phone number.",
+                    "ANAF: forma juridică, numărul și data înregistrării, activitatea principală (CAEN), adresa sediului, telefonul, plata TVA și starea de inactivitate, din serviciul web public al ANAF. Numărul mediu de angajați din ultimul bilanț publicat de ANAF îl folosim doar ca să decidem dacă afișăm telefonul din registru.",
+                  ),
+                  t(
+                    "The company's website: the homepage, robots.txt, the sitemap and at most 5 internal pages (contact, services, about, prices, terms), plus the links to social networks published on the site.",
+                    "Site-ul firmei: pagina principală, robots.txt, sitemap-ul și cel mult 5 pagini interne (contact, servicii, despre noi, prețuri, termeni), plus linkurile către rețelele sociale publicate pe site.",
+                  ),
+                  t(
+                    "Website speed, measured by Google PageSpeed Insights.",
+                    "Viteza site-ului, măsurată de Google PageSpeed Insights.",
+                  ),
+                  t(
+                    "When we don't know the website, we look for it: we try addresses made from the company name and may ask the Brave Search engine with the company name and town.",
+                    "Când nu știm site-ul, îl căutăm: încercăm adrese formate din numele firmei și putem întreba motorul de căutare Brave Search cu numele firmei și localitatea.",
+                  ),
+                ]}
+              />
+            </Subsection>
 
-        <Section heading={t("6. International transfers", "6. Transferuri internaționale")}>
-          <p>
-            {t(
-              "Where data is transferred outside the European Economic Area, we ensure appropriate safeguards are in place, such as adequacy decisions or Standard Contractual Clauses.",
-              "Atunci când datele sunt transferate în afara Spațiului Economic European, ne asigurăm că există garanții adecvate, precum decizii privind caracterul adecvat sau Clauze Contractuale Standard.",
-            )}
-          </p>
-        </Section>
+            <Subsection
+              heading={t("What we protect and what we don't do", "Ce protejăm și ce nu facem")}
+            >
+              <List
+                items={[
+                  t(
+                    "For sole traders (PFA), individual and family businesses (II, IF) and individual practices we show only the name, legal form, status, activity and county. No address, locality, phone or registration number.",
+                    "La PFA, întreprinderi individuale și familiale (II, IF) și cabinete individuale afișăm doar numele, forma juridică, starea, activitatea și județul. Fără adresă, localitate, telefon sau număr de înregistrare.",
+                  ),
+                  t(
+                    "The registry phone number appears only for companies with at least 10 employees in the latest balance sheet; for smaller ones it is often the owner's personal number.",
+                    "Telefonul din registru apare doar la firmele cu cel puțin 10 angajați în ultimul bilanț; la cele mici este adesea numărul personal al proprietarului.",
+                  ),
+                  t(
+                    "When the registered office is in a flat, we show only the locality and county.",
+                    "Când sediul este într-un apartament, afișăm doar localitatea și județul.",
+                  ),
+                  t(
+                    "We don't open pages on Facebook, Instagram, LinkedIn, X, YouTube or TikTok, and we don't use Google Maps. We only note the links the company publishes on its own site.",
+                    "Nu deschidem pagini de pe Facebook, Instagram, LinkedIn, X, YouTube sau TikTok și nu folosim Google Maps. Notăm doar linkurile pe care firma le publică pe propriul site.",
+                  ),
+                  t(
+                    "We don't collect employee names, personal emails or data about people from other sources, we don't search by person and we don't build profiles.",
+                    "Nu colectăm nume de angajați, e-mailuri personale sau date despre persoane din alte surse, nu căutăm după persoane și nu facem profiluri.",
+                  ),
+                  t(
+                    "The scan doesn't use artificial intelligence and makes no automated decisions about people.",
+                    "Scanarea nu folosește inteligență artificială și nu ia decizii automate despre persoane.",
+                  ),
+                  t(
+                    "We don't contact a company because someone else scanned it, and we don't tell it who asked for the report.",
+                    "Nu contactăm o firmă pentru că a scanat-o altcineva și nu îi spunem cine a cerut raportul.",
+                  ),
+                ]}
+              />
+            </Subsection>
 
-        <Section heading={t("7. Retention", "7. Păstrarea datelor")}>
-          <p>
-            {t(
-              "We keep personal data only as long as necessary for the purposes above or as required by law (for example, accounting records). When no longer needed, data is securely deleted or anonymised.",
-              "Păstrăm datele cu caracter personal doar atât timp cât este necesar pentru scopurile de mai sus sau conform cerințelor legale (de exemplu, evidențele contabile). Când nu mai sunt necesare, datele sunt șterse în siguranță sau anonimizate.",
-            )}
-          </p>
-        </Section>
+            <Subsection heading={t("Purpose and legal basis", "Scop și temei legal")}>
+              <p>
+                {t(
+                  "The purpose is a business report requested by the visitor and, if they want one, an offer from us. The legal basis for the data about the analysed company is legitimate interest (article 6(1)(f) GDPR). Company data is mostly about a legal person; GDPR applies when it identifies a person, for example the name of a sole trader.",
+                  "Scopul este un raport de afaceri cerut de vizitator și, dacă își dorește, o ofertă de la noi. Temeiul pentru datele firmei analizate este interesul legitim (art. 6 alin. (1) lit. f GDPR). Datele unei firme privesc în general o persoană juridică; GDPR se aplică atunci când ele identifică o persoană, de exemplu numele unui PFA.",
+                )}
+              </p>
+              <p>
+                {t(
+                  "Our legitimate interest assessment, in short:",
+                  "Evaluarea interesului legitim, pe scurt:",
+                )}
+              </p>
+              <List
+                items={[
+                  t(
+                    "Interest: to offer, on request, an analysis of a company's online presence with concrete ideas to improve it.",
+                    "Interesul: să oferim, la cerere, o analiză a prezenței online a unei firme, cu idei concrete de îmbunătățire.",
+                  ),
+                  t(
+                    "Necessity: we use only company data published by the official registers or by the company on its own site; the analysis can't be done without it.",
+                    "Necesitatea: folosim doar date despre firmă publicate de registrele oficiale sau de firmă pe propriul site; fără ele analiza nu se poate face.",
+                  ),
+                  t(
+                    "Balance: the data is professional, not sensitive and already public; we cut it to the minimum with the rules above, respect robots.txt and every objection, and send no commercial messages to the companies we analyse.",
+                    "Echilibrul: datele sunt profesionale, nu sunt sensibile și sunt deja publice; le reducem la minimum prin regulile de mai sus, respectăm robots.txt și orice opoziție și nu trimitem mesaje comerciale firmelor analizate.",
+                  ),
+                ]}
+              />
+              <p>
+                {t(
+                  "We send the full assessment on request.",
+                  "Evaluarea completă o trimitem la cerere.",
+                )}
+              </p>
+            </Subsection>
 
-        <Section heading={t("8. Your rights", "8. Drepturile tale")}>
-          <p>
-            {t(
-              "Under GDPR you have the right to access, rectify, erase and restrict processing of your data, the right to data portability, the right to object, and the right to withdraw consent at any time. To exercise any of these rights, contact us using the details below.",
-              "Conform GDPR ai dreptul de acces, rectificare, ștergere și restricționare a prelucrării datelor, dreptul la portabilitatea datelor, dreptul de a te opune și dreptul de a-ți retrage consimțământul oricând. Pentru a exercita oricare dintre aceste drepturi, contactează-ne folosind datele de mai jos.",
-            )}
-          </p>
-          <p>
-            {t(
-              "You also have the right to lodge a complaint with the Romanian supervisory authority (ANSPDCP, www.dataprotection.ro).",
-              "Ai de asemenea dreptul de a depune o plângere la autoritatea de supraveghere din România (ANSPDCP, www.dataprotection.ro).",
-            )}
-          </p>
-        </Section>
+            <Subsection
+              id="vortex-scan-pdf"
+              heading={t("If you download the PDF report", "Dacă descarci raportul PDF")}
+            >
+              <p>
+                {t(
+                  "To download the report we ask for your email and, optionally, your name. We keep them with the analysed company and the scan summary (business type, digital score, estimated savings, recommended plan, website and CUI), together with a record of the information notice you saw (version, text, time) and of your marketing choice.",
+                  "Ca să descarci raportul îți cerem e-mailul și, opțional, numele. Le păstrăm împreună cu firma analizată și rezumatul scanării (tipul afacerii, scorul digital, economia estimată, planul recomandat, site-ul și CUI-ul), plus o evidență a notei de informare pe care ai văzut-o (versiunea, textul, ora) și a alegerii tale privind marketingul.",
+                )}
+              </p>
+              <List
+                items={[
+                  t(
+                    "Legal basis: your request to receive the report (article 6(1)(b) GDPR) and our legitimate interest in keeping a record of the reports downloaded (article 6(1)(f)).",
+                    "Temei: cererea ta de a primi raportul (art. 6 alin. (1) lit. b GDPR) și interesul nostru legitim de a ține evidența rapoartelor descărcate (lit. f).",
+                  ),
+                  t(
+                    "The report is created in your browser and downloaded right away; we don't email it.",
+                    "Raportul se creează în browserul tău și se descarcă imediat; nu îl trimitem pe e-mail.",
+                  ),
+                  t(
+                    "We send ideas and offers by email only if you tick the optional box in the form (article 6(1)(a) GDPR and article 12 of Law 506/2004). You get the report either way, and you can withdraw your consent at any time by writing to us.",
+                    "Îți trimitem idei și oferte pe e-mail doar dacă bifezi căsuța opțională din formular (art. 6 alin. (1) lit. a GDPR și art. 12 din Legea 506/2004). Primești raportul oricum și îți poți retrage acordul oricând, cu un mesaj către noi.",
+                  ),
+                  t(
+                    "Requests saved before 3 October 2026 are treated as having no marketing consent.",
+                    "Cererile salvate înainte de 3 octombrie 2026 le tratăm ca fiind fără acord de marketing.",
+                  ),
+                ]}
+              />
+            </Subsection>
 
-        <Section heading={t("9. Security", "9. Securitate")}>
-          <p>
-            {t(
-              "We apply appropriate technical and organisational measures to protect your data against unauthorised access, loss or alteration.",
-              "Aplicăm măsuri tehnice și organizatorice adecvate pentru a-ți proteja datele împotriva accesului neautorizat, pierderii sau alterării.",
-            )}
-          </p>
-        </Section>
+            <Subsection heading={t("How long we keep it", "Cât păstrăm")}>
+              <List
+                items={[
+                  t(
+                    "The scan result stays in your browser until you close the tab. Our servers don't save it.",
+                    "Rezultatul scanării rămâne în browserul tău până închizi fila. Serverele noastre nu îl salvează.",
+                  ),
+                  t(
+                    "ANAF answers stay in server memory for at most 10 minutes, so we don't ask ANAF twice about the same company.",
+                    "Răspunsurile ANAF stau în memoria serverului cel mult 10 minute, ca să nu întrebăm ANAF de două ori despre aceeași firmă.",
+                  ),
+                  t(
+                    `Report requests (email, name, summary): ${LEAD_RETENTION_MONTHS} months from the last contact, then we delete them.`,
+                    `Cererile de raport (e-mail, nume, rezumat): ${LEAD_RETENTION_MONTHS} de luni de la ultimul contact, apoi le ștergem.`,
+                  ),
+                  t(
+                    "Marketing consent: until you withdraw it. The record of the consent is kept as long as the request.",
+                    "Acordul de marketing: până îl retragi. Evidența acordului o păstrăm cât păstrăm cererea.",
+                  ),
+                ]}
+              />
+            </Subsection>
 
-        <Section heading={t("10. Cookies", "10. Cookie-uri")}>
-          <p>
-            {t(
-              "We use cookies as described in our Cookie Policy, where you can also manage your preferences.",
-              "Folosim cookie-uri conform Politicii noastre de cookie-uri, unde îți poți gestiona și preferințele.",
-            )}
-          </p>
-        </Section>
+            <Subsection heading={t("Objection and removal", "Opoziție și eliminare")}>
+              <p>
+                {t(
+                  "Do you represent a company that doesn't want to be analysed, are you named in a report, or do you want us to delete your data? Write to ",
+                  "Reprezinți o firmă care nu vrea să fie analizată, apari într-un raport sau vrei să îți ștergem datele? Scrie-ne la ",
+                )}
+                <Mail />
+                {t(
+                  " with the subject “Vortex Scan removal” and tell us the CUI or the domain.",
+                  " cu subiectul „Eliminare Vortex Scan” și spune-ne CUI-ul sau domeniul.",
+                )}
+              </p>
+              <List
+                items={[
+                  t(
+                    "For a company, write from an address on its domain (for example office@company.ro) so we know you represent it. If you don't have one, we give you a verification code to place on the site.",
+                    "Pentru o firmă, scrie de pe o adresă de pe domeniul ei (de exemplu office@firma.ro), ca să știm că o reprezinți. Dacă nu ai o astfel de adresă, îți dăm un cod de verificare pe care îl pui pe site.",
+                  ),
+                  t(
+                    "We answer within one month, as GDPR requires. We delete the data from the report requests, take the company out of the site search at the next index update and confirm when it's done.",
+                    "Răspundem în cel mult o lună, cum cere GDPR. Ștergem datele din cererile de raport, scoatem firma din căutarea de pe site la următoarea actualizare a indexului și îți confirmăm când am terminat.",
+                  ),
+                  t(
+                    "For a website, the quickest way is a rule in robots.txt (below): the robot stops on its own, without you writing to us.",
+                    "Pentru un site, cea mai rapidă cale este o regulă în robots.txt (mai jos): robotul se oprește singur, fără să ne scrii.",
+                  ),
+                  t(
+                    "You can also complain to the Romanian supervisory authority, ANSPDCP (www.dataprotection.ro).",
+                    "Poți depune și o plângere la ANSPDCP, autoritatea de supraveghere din România (www.dataprotection.ro).",
+                  ),
+                ]}
+              />
+            </Subsection>
 
-        <Section heading={t("11. Contact", "11. Contact")}>
-          <p>
-            {t("For any privacy question, contact us at", "Pentru orice întrebare privind confidențialitatea, contactează-ne la")}{" "}
-            <a className="text-primary underline-offset-4 hover:underline" href="mailto:hello@vortexhub.ro">
-              hello@vortexhub.ro
-            </a>
-            .
-          </p>
-        </Section>
+            <Subsection
+              id="vortex-scan-bot"
+              heading={t("The VortexScan robot", "Robotul VortexScan")}
+            >
+              <p>
+                {t(
+                  "When someone analyses a website, our server visits it with this identifier:",
+                  "Când cineva analizează un site, serverul nostru îl vizitează cu acest identificator:",
+                )}
+              </p>
+              <Code>{SCAN_USER_AGENT}</Code>
+              <List
+                items={[
+                  t(
+                    "It reads robots.txt first. If the rules for VortexScan forbid the whole site, it stops there.",
+                    "Citește întâi robots.txt. Dacă regulile pentru VortexScan interzic tot site-ul, se oprește acolo.",
+                  ),
+                  t(
+                    "It opens the homepage once, at the visitor's request, then the sitemap and at most 5 internal pages that robots.txt allows (the VortexScan rules or, without them, the rules for all robots).",
+                    "Deschide pagina principală o singură dată, la cererea vizitatorului, apoi sitemap-ul și cel mult 5 pagini interne pe care robots.txt le permite (regulile pentru VortexScan sau, în lipsa lor, cele pentru toți roboții).",
+                  ),
+                  t(
+                    "It checks the size of a few images and files with HEAD requests.",
+                    "Verifică dimensiunea câtorva imagini și fișiere prin cereri HEAD.",
+                  ),
+                  t(
+                    "It makes at most 2 requests at a time to a site and stops after about 15 seconds.",
+                    "Face cel mult 2 cereri simultane către un site și se oprește după aproximativ 15 secunde.",
+                  ),
+                  t(
+                    "It stops at logins, CAPTCHAs and bot checks and never tries to get around them. It uses no proxies and never hides its identity.",
+                    "Se oprește la autentificare, CAPTCHA sau verificări anti-bot și nu încearcă să le ocolească. Nu folosește proxy-uri și nu își ascunde identitatea.",
+                  ),
+                  t(
+                    "Speed is measured by Google PageSpeed Insights, with Google's Lighthouse robot. If you block VortexScan, we don't send your site there either.",
+                    "Viteza o măsoară Google PageSpeed Insights, cu robotul Lighthouse al Google. Dacă blochezi VortexScan, nu trimitem site-ul nici acolo.",
+                  ),
+                ]}
+              />
+              <p>
+                {t(
+                  "To block the robot completely, add this to robots.txt:",
+                  "Ca să blochezi complet robotul, adaugă în robots.txt:",
+                )}
+              </p>
+              <Code>{"User-agent: VortexScan\nDisallow: /"}</Code>
+            </Subsection>
+          </Section>
+
+          <Section heading={t("5. Uploaded files", "5. Fișiere încărcate")}>
+            <p>
+              {t(
+                "Files you upload are treated as confidential. They are stored securely and are never sent to third-party AI tools or other external services without a clear, separate consent process.",
+                "Fișierele pe care le încarci sunt tratate ca fiind confidențiale. Sunt stocate în siguranță și nu sunt trimise niciodată instrumentelor AI terțe sau altor servicii externe fără un proces clar și separat de consimțământ.",
+              )}
+            </p>
+          </Section>
+
+          <Section
+            heading={t("6. Sharing and processors", "6. Partajare și persoane împuternicite")}
+          >
+            <p>
+              {t(
+                "We share data only with trusted service providers acting on our behalf (such as hosting, database, email and payment providers), bound by data processing agreements. We do not sell your personal data.",
+                "Partajăm date doar cu furnizori de servicii de încredere care acționează în numele nostru (precum furnizori de găzduire, baze de date, email și plăți), obligați prin acorduri de prelucrare a datelor. Nu vindem datele tale cu caracter personal.",
+              )}
+            </p>
+            <p>
+              {t(
+                "For Vortex Scan: Lovable and Cloudflare host the site and answer the DNS lookups; Supabase stores the report requests; Google PageSpeed Insights receives the address of the analysed website; Brave Search receives the company name and town when we look for a website. ANAF and ONRC are public sources, not processors.",
+                "Pentru Vortex Scan: Lovable și Cloudflare găzduiesc site-ul și răspund la interogările DNS; Supabase stochează cererile de raport; Google PageSpeed Insights primește adresa site-ului analizat; Brave Search primește numele firmei și localitatea când căutăm un site. ANAF și ONRC sunt surse publice, nu persoane împuternicite.",
+              )}
+            </p>
+          </Section>
+
+          <Section heading={t("7. International transfers", "7. Transferuri internaționale")}>
+            <p>
+              {t(
+                "Where data is transferred outside the European Economic Area, we ensure appropriate safeguards are in place, such as adequacy decisions or Standard Contractual Clauses.",
+                "Atunci când datele sunt transferate în afara Spațiului Economic European, ne asigurăm că există garanții adecvate, precum decizii privind caracterul adecvat sau Clauze Contractuale Standard.",
+              )}
+            </p>
+          </Section>
+
+          <Section heading={t("8. Retention", "8. Păstrarea datelor")}>
+            <p>
+              {t(
+                "We keep personal data only as long as necessary for the purposes above or as required by law (for example, accounting records). When no longer needed, data is securely deleted or anonymised. The Vortex Scan periods are listed in section 4.",
+                "Păstrăm datele cu caracter personal doar atât timp cât este necesar pentru scopurile de mai sus sau conform cerințelor legale (de exemplu, evidențele contabile). Când nu mai sunt necesare, datele sunt șterse în siguranță sau anonimizate. Termenele pentru Vortex Scan sunt în secțiunea 4.",
+              )}
+            </p>
+          </Section>
+
+          <Section heading={t("9. Your rights", "9. Drepturile tale")}>
+            <p>
+              {t(
+                "Under GDPR you have the right to access, rectify, erase and restrict processing of your data, the right to data portability, the right to object, and the right to withdraw consent at any time. To exercise any of these rights, contact us using the details below.",
+                "Conform GDPR ai dreptul de acces, rectificare, ștergere și restricționare a prelucrării datelor, dreptul la portabilitatea datelor, dreptul de a te opune și dreptul de a-ți retrage consimțământul oricând. Pentru a exercita oricare dintre aceste drepturi, contactează-ne folosind datele de mai jos.",
+              )}
+            </p>
+            <p>
+              {t(
+                "You also have the right to lodge a complaint with the Romanian supervisory authority (ANSPDCP, www.dataprotection.ro).",
+                "Ai de asemenea dreptul de a depune o plângere la autoritatea de supraveghere din România (ANSPDCP, www.dataprotection.ro).",
+              )}
+            </p>
+          </Section>
+
+          <Section heading={t("10. Security", "10. Securitate")}>
+            <p>
+              {t(
+                "We apply appropriate technical and organisational measures to protect your data against unauthorised access, loss or alteration.",
+                "Aplicăm măsuri tehnice și organizatorice adecvate pentru a-ți proteja datele împotriva accesului neautorizat, pierderii sau alterării.",
+              )}
+            </p>
+          </Section>
+
+          <Section heading={t("11. Cookies", "11. Cookie-uri")}>
+            <p>
+              {t(
+                "We use cookies as described in our Cookie Policy, where you can also manage your preferences.",
+                "Folosim cookie-uri conform Politicii noastre de cookie-uri, unde îți poți gestiona și preferințele.",
+              )}
+            </p>
+          </Section>
+
+          <Section heading={t("12. Contact", "12. Contact")}>
+            <p>
+              {t(
+                "For any privacy question or request, write to",
+                "Pentru orice întrebare sau cerere privind datele personale, scrie-ne la",
+              )}{" "}
+              <Mail />.
+            </p>
+          </Section>
+        </div>
       </section>
     </SiteLayout>
   );
