@@ -186,69 +186,194 @@ export async function discoverSocial(env: StepEnv): Promise<FoundProfile[] | nul
       found.set(match.platform, { platform: match.platform, url: normalizeSocialUrl(m[1]), via: "linkhub" });
     }
   }
-  // Search engines often refuse server traffic; Claude's web search finds the brand's real
-  // channels (also when the trade name differs from the legal name) within the run budget.
-  if (found.size < 3 && env.llm) {
-    const extra = await claudeSocialSearch(env, brand);
-    if (extra) {
-      answered = true;
-      for (const p of extra) if (!found.has(p.platform)) found.set(p.platform, p);
-    }
-  }
   if (!answered) return null;
   return [...found.values()];
 }
 
-async function claudeSocialSearch(env: StepEnv, brand: string): Promise<FoundProfile[] | null> {
+/** Brand + site domain merged with what the AI profile found (search links win per platform). */
+export function mergeSocial(
+  a: FoundProfile[] | null,
+  b: FoundProfile[] | undefined,
+): FoundProfile[] | null {
+  if (!a && !b) return null;
+  const out = new Map<string, FoundProfile>();
+  for (const p of [...(a ?? []), ...(b ?? [])]) if (!out.has(p.platform)) out.set(p.platform, p);
+  return [...out.values()];
+}
+
+export type ProfileItem = { text: string; source: string };
+export type CompanyProfile = {
+  social: FoundProfile[];
+  tradeNames: ProfileItem[];
+  people: Array<ProfileItem & { role: string }>;
+  customers: ProfileItem[];
+  reviews: ProfileItem[];
+  ads: ProfileItem[];
+  events: ProfileItem[];
+};
+
+function siteDomain(env: StepEnv): string | undefined {
+  const raw = env.identity.registrySite ?? env.identity.hintSite;
+  if (!raw) return undefined;
+  try {
+    return new URL(raw.includes("://") ? raw : `https://${raw}`).hostname.replace(/^www\./, "");
+  } catch {
+    return undefined;
+  }
+}
+
+/** URLs the web search really returned (every claim must cite one of them). */
+function searchedUrls(content: Array<Record<string, unknown>>): Set<string> {
+  const urls = new Set<string>();
+  for (const block of content) {
+    if (block.type !== "web_search_tool_result" || !Array.isArray(block.content)) continue;
+    for (const r of block.content as Array<Record<string, unknown>>)
+      if (typeof r.url === "string") urls.add(r.url.replace(/\/+$/, ""));
+  }
+  return urls;
+}
+
+/**
+ * One Claude call with web search (max 5 searches, billed through the run ledger): the brand's
+ * social profiles, trade names, public key people, who its customers are, review standing,
+ * ads and notable events. Anything without a source the search really returned is dropped.
+ */
+export async function claudeProfile(env: StepEnv): Promise<CompanyProfile | null> {
   const llm = env.llm;
-  if (!llm || env.deadline - env.now() < 12_000) return null;
+  if (!llm || env.deadline - env.now() < 15_000) return null;
   const model = llm.models.extraction;
+  const brand = brandOf(env.identity.name);
   const where = [env.identity.city, env.identity.county].filter(Boolean).join(", ");
-  const prompt = `Find the official social media profiles of the Romanian company "${env.identity.name}" (CUI ${env.cui}${where ? `, based in ${where}` : ""}). Its trade name may be "${brand}" or a different brand. Search the web. Reply ONLY with one profile URL per line (Instagram, Facebook, TikTok, LinkedIn company page, YouTube), only profiles you are confident belong to this company. If none, reply NONE.`;
+  const domain = siteDomain(env);
+  const prompt = `Research the Romanian company "${env.identity.name}" (CUI ${env.cui}${where ? `, ${where}` : ""}${domain ? `, website ${domain}` : ""}). Its trade name may be "${brand}" or a different brand${domain ? ` (try "${domain}" too)` : ""}. Use web search. Only report what the search results show about THIS company (same city, website, CUI or activity); ignore lookalikes abroad.
+Reply with ONLY this JSON, every item citing the exact result URL it came from:
+{"social":[{"url":"profile url (instagram/facebook/tiktok/linkedin company/youtube)"}],
+"tradeNames":[{"text":"brand","source":"url"}],
+"people":[{"role":"administrator/founder/CEO...","text":"name and one public fact","source":"url"}],
+"customers":[{"text":"who buys (B2B/B2C, segment, price level)","source":"url"}],
+"reviews":[{"text":"rating/review standing with numbers if shown","source":"url"}],
+"ads":[{"text":"advertising seen (Meta, Google, campaigns)","source":"url"}],
+"events":[{"text":"notable event with date","source":"url"}]}
+Use empty arrays when unknown. Max 4 items per list, each text under 160 characters.`;
   try {
     const outcome = await paidCall({
       ledger: env.ledger,
       runId: env.runId,
       step: env.step,
-      idemKey: `${env.runId}|${env.step}|social-search`,
-      plan: { model, inputTokens: 25_000, maxTokens: 800, fallback: false },
-      floor: 400,
+      idemKey: `${env.runId}|${env.step}|profile-search`,
+      plan: { model, inputTokens: 40_000, maxTokens: 1500, fallback: false },
+      floor: 800,
       exec: (maxTokens) =>
         llm.transport.create(
           {
             model,
             max_tokens: maxTokens,
             messages: [{ role: "user", content: prompt }],
-            tools: [
-              {
-                type: "web_search_20250305",
-                name: "web_search",
-                max_uses: 3,
-              },
-            ],
+            tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 }],
           },
-          { timeoutMs: Math.max(8000, env.deadline - env.now() - 2000) },
+          { timeoutMs: Math.max(10_000, env.deadline - env.now() - 2000) },
         ),
       deadline: env.deadline,
       now: env.now,
       log: env.log,
     });
     if (outcome.kind !== "ok") return null;
-    const text = outcome.message.content
+    const content = outcome.message.content as Array<Record<string, unknown>>;
+    const seen = searchedUrls(content);
+    const text = content
       .map((b) => (b.type === "text" && typeof b.text === "string" ? b.text : ""))
       .join("\n");
-    const out: FoundProfile[] = [];
-    for (const m of text.matchAll(/https?:\/\/[^\s)\]>"']+/g)) {
-      const match = classifySocialUrl(m[0]);
-      if (!match?.profile || out.some((p) => p.platform === match.platform)) continue;
-      out.push({ platform: match.platform, url: normalizeSocialUrl(m[0]), via: "ai_search" });
+    const json = text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1);
+    let raw: Record<string, unknown> = {};
+    try {
+      raw = JSON.parse(json);
+    } catch {
+      return null;
     }
-    return out;
+    const cited = (u: unknown) =>
+      typeof u === "string" && seen.has(u.replace(/\/+$/, "")) ? u.slice(0, 600) : null;
+    const list = (key: string, withRole = false) =>
+      (Array.isArray(raw[key]) ? (raw[key] as Array<Record<string, unknown>>) : [])
+        .slice(0, 4)
+        .flatMap((i) => {
+          const source = cited(i.source);
+          const t = typeof i.text === "string" ? i.text.trim().slice(0, 200) : "";
+          if (!source || !t) return [];
+          const role = typeof i.role === "string" ? i.role.trim().slice(0, 60) : "";
+          if (withRole && !role) return [];
+          return [{ text: t, source, ...(withRole ? { role } : {}) }];
+        });
+    const social: FoundProfile[] = [];
+    for (const i of Array.isArray(raw.social) ? (raw.social as Array<Record<string, unknown>>) : []) {
+      if (typeof i.url !== "string") continue;
+      const match = classifySocialUrl(i.url);
+      // A profile counts when the search returned it (or a page on it).
+      const url = normalizeSocialUrl(i.url);
+      const returned = [...seen].some((s) => normalizeSocialUrl(s).startsWith(url));
+      if (!match?.profile || !returned || social.some((p) => p.platform === match.platform)) continue;
+      social.push({ platform: match.platform, url, via: "ai_search" });
+    }
+    return {
+      social,
+      tradeNames: list("tradeNames"),
+      people: list("people", true) as CompanyProfile["people"],
+      customers: list("customers"),
+      reviews: list("reviews"),
+      ads: list("ads"),
+      events: list("events"),
+    };
   } catch (error) {
-    env.log({ intel: "claude-search", error: String((error as Error)?.message ?? error) });
+    env.log({ intel: "claude-profile", error: String((error as Error)?.message ?? error) });
     return null;
   }
 }
+
+const PROFILE_PARTS: Array<{
+  key: Exclude<keyof CompanyProfile, "social">;
+  section: "identity" | "people" | "presence" | "risk";
+  label: [string, string];
+}> = [
+  { key: "tradeNames", section: "identity", label: ["Trade name", "Nume comercial"] },
+  { key: "people", section: "people", label: ["Key person", "Persoană-cheie"] },
+  { key: "customers", section: "presence", label: ["Customers", "Clienți"] },
+  { key: "reviews", section: "presence", label: ["Reviews", "Recenzii"] },
+  { key: "ads", section: "presence", label: ["Advertising", "Publicitate"] },
+  { key: "events", section: "presence", label: ["Event", "Eveniment"] },
+];
+
+export function profileFacts(profile: CompanyProfile | null, today: string): Fact[] {
+  if (!profile) return [];
+  const facts: Fact[] = [];
+  for (const part of PROFILE_PARTS) {
+    profile[part.key].forEach((item, i) => {
+      const role = "role" in item ? `${(item as { role: string }).role}: ` : "";
+      facts.push(
+        fact({
+          id: `profile.${part.key}.${i}`,
+          section: part.section,
+          predicate: `profile.${part.key}`,
+          value: { text: item.text, source: item.source },
+          display: bi(`${role}${item.text}`, `${role}${item.text}`),
+          source: "web_search",
+          asOf: today,
+          confidence: "probabil",
+          score: 0.7,
+          method: "llm",
+          gdpr: part.key === "people" ? "G1" : "G0",
+          evidence: {
+            url: item.source,
+            note: bi(
+              "Found by AI web search, with the page it came from; check at the source.",
+              "Găsit prin căutare web cu AI, cu pagina-sursă; verifică la sursă.",
+            ),
+          },
+        }),
+      );
+    });
+  }
+  return facts;
+}
+
 
 const PLATFORM: Record<string, string> = {
   facebook: "Facebook",
