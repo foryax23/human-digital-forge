@@ -12,6 +12,8 @@ import {
   LogOut,
   Bell,
   Menu,
+  ShieldCheck,
+  Telescope,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,7 +33,9 @@ type NavItem = {
     | "/dashboard/files"
     | "/dashboard/consultations"
     | "/dashboard/billing"
-    | "/dashboard/settings";
+    | "/dashboard/settings"
+    | "/dashboard/admin"
+    | "/scan";
 };
 
 const navItems: NavItem[] = [
@@ -41,16 +45,21 @@ const navItems: NavItem[] = [
   { label: "Messages", icon: MessagesSquare, to: "/dashboard/messages" },
   { label: "Files", icon: Files, to: "/dashboard/files" },
   { label: "Consultations", icon: CalendarCheck, to: "/dashboard/consultations" },
+  { label: "Deep research", icon: Telescope, to: "/scan" },
   { label: "Billing", icon: CreditCard, to: "/dashboard/billing" },
   { label: "Settings", icon: Settings, to: "/dashboard/settings" },
 ];
 
 function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: () => void }) {
   const { pathname } = useLocation();
+  const { isAdmin } = useAuth();
+  const items: NavItem[] = isAdmin
+    ? [...navItems, { label: "Admin panel", icon: ShieldCheck, to: "/dashboard/admin" }]
+    : navItems;
 
   return (
     <nav className="flex flex-1 flex-col gap-1" aria-label="Dashboard">
-      {navItems.map((item) => {
+      {items.map((item) => {
         const active = pathname === item.to;
         return (
           <Link
