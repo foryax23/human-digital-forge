@@ -261,7 +261,7 @@ Use empty arrays when unknown. Max 4 items per list, each text under 160 charact
       runId: env.runId,
       step: env.step,
       idemKey: `${env.runId}|${env.step}|profile-search`,
-      plan: { model, inputTokens: 40_000, maxTokens: 1500, fallback: false },
+      plan: { model, inputTokens: 65_000, maxTokens: 1500, fallback: false },
       floor: 800,
       exec: (maxTokens) =>
         llm.transport.create(
