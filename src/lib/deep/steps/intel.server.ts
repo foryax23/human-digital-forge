@@ -224,7 +224,6 @@ async function claudeSocialSearch(env: StepEnv, brand: string): Promise<FoundPro
                 type: "web_search_20250305",
                 name: "web_search",
                 max_uses: 3,
-                user_location: { type: "approximate", country: "RO" },
               },
             ],
           },
