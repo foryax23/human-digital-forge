@@ -119,6 +119,298 @@ export type Database = {
         }
         Relationships: []
       }
+      deep_breaker: {
+        Row: {
+          id: number
+          reason: string | null
+          until: string
+        }
+        Insert: {
+          id?: number
+          reason?: string | null
+          until?: string
+        }
+        Update: {
+          id?: number
+          reason?: string | null
+          until?: string
+        }
+        Relationships: []
+      }
+      deep_call_requests: {
+        Row: {
+          call_when: string
+          created_at: string
+          cui: string | null
+          email: string | null
+          id: string
+          lang: string | null
+          phone: string
+          run_id: string
+          user_id: string
+        }
+        Insert: {
+          call_when: string
+          created_at?: string
+          cui?: string | null
+          email?: string | null
+          id?: string
+          lang?: string | null
+          phone: string
+          run_id: string
+          user_id: string
+        }
+        Update: {
+          call_when?: string
+          created_at?: string
+          cui?: string | null
+          email?: string | null
+          id?: string
+          lang?: string | null
+          phone?: string
+          run_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deep_call_requests_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "deep_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deep_calls: {
+        Row: {
+          attempt: number
+          created_at: string
+          id: string
+          idem_key: string
+          kind: string | null
+          model: string | null
+          reserved_usd: number
+          result: Json | null
+          run_id: string
+          status: string
+          step: string | null
+          usage: Json | null
+          usd: number
+        }
+        Insert: {
+          attempt: number
+          created_at?: string
+          id?: string
+          idem_key: string
+          kind?: string | null
+          model?: string | null
+          reserved_usd?: number
+          result?: Json | null
+          run_id: string
+          status?: string
+          step?: string | null
+          usage?: Json | null
+          usd?: number
+        }
+        Update: {
+          attempt?: number
+          created_at?: string
+          id?: string
+          idem_key?: string
+          kind?: string | null
+          model?: string | null
+          reserved_usd?: number
+          result?: Json | null
+          run_id?: string
+          status?: string
+          step?: string | null
+          usage?: Json | null
+          usd?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deep_calls_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "deep_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deep_claims: {
+        Row: {
+          exclusive: boolean
+          id: string
+          key: string
+          run_id: string
+          units: number
+        }
+        Insert: {
+          exclusive?: boolean
+          id?: string
+          key: string
+          run_id: string
+          units: number
+        }
+        Update: {
+          exclusive?: boolean
+          id?: string
+          key?: string
+          run_id?: string
+          units?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deep_claims_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "deep_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deep_feedback: {
+        Row: {
+          created_at: string
+          fact_id: string | null
+          id: string
+          kind: string
+          message: string | null
+          run_id: string
+          user_id: string
+          value: Json | null
+        }
+        Insert: {
+          created_at?: string
+          fact_id?: string | null
+          id?: string
+          kind: string
+          message?: string | null
+          run_id: string
+          user_id: string
+          value?: Json | null
+        }
+        Update: {
+          created_at?: string
+          fact_id?: string | null
+          id?: string
+          kind?: string
+          message?: string | null
+          run_id?: string
+          user_id?: string
+          value?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deep_feedback_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "deep_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deep_runs: {
+        Row: {
+          ai_mode: string
+          budget_usd: number
+          company_name: string | null
+          consent: Json | null
+          created_at: string
+          cui: string
+          error: string | null
+          id: string
+          lang: string
+          last_activity_at: string
+          metrics: Json | null
+          relationship: string | null
+          report: Json | null
+          report_att: string | null
+          reserved_usd: number
+          spent_usd: number
+          status: string
+          user_id: string
+          verify_code: string | null
+          via: string
+        }
+        Insert: {
+          ai_mode?: string
+          budget_usd?: number
+          company_name?: string | null
+          consent?: Json | null
+          created_at?: string
+          cui: string
+          error?: string | null
+          id?: string
+          lang?: string
+          last_activity_at?: string
+          metrics?: Json | null
+          relationship?: string | null
+          report?: Json | null
+          report_att?: string | null
+          reserved_usd?: number
+          spent_usd?: number
+          status?: string
+          user_id: string
+          verify_code?: string | null
+          via: string
+        }
+        Update: {
+          ai_mode?: string
+          budget_usd?: number
+          company_name?: string | null
+          consent?: Json | null
+          created_at?: string
+          cui?: string
+          error?: string | null
+          id?: string
+          lang?: string
+          last_activity_at?: string
+          metrics?: Json | null
+          relationship?: string | null
+          report?: Json | null
+          report_att?: string | null
+          reserved_usd?: number
+          spent_usd?: number
+          status?: string
+          user_id?: string
+          verify_code?: string | null
+          via?: string
+        }
+        Relationships: []
+      }
+      deep_slots: {
+        Row: {
+          in_flight_at: string | null
+          key: string
+          result: Json | null
+          run_id: string
+          used: number
+        }
+        Insert: {
+          in_flight_at?: string | null
+          key: string
+          result?: Json | null
+          run_id: string
+          used?: number
+        }
+        Update: {
+          in_flight_at?: string | null
+          key?: string
+          result?: Json | null
+          run_id?: string
+          used?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deep_slots_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "deep_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount_cents: number
@@ -363,15 +655,87 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_admin_role: { Args: never; Returns: boolean }
+      deep_claim_step: {
+        Args: {
+          p_exclusive: boolean
+          p_key: string
+          p_max: number
+          p_run: string
+          p_units: number
+          p_user: string
+        }
+        Returns: Json
+      }
+      deep_finish: {
+        Args: {
+          p_att: string
+          p_code: string
+          p_error: string
+          p_metrics: Json
+          p_report: Json
+          p_run: string
+          p_status: string
+        }
+        Returns: undefined
+      }
+      deep_reserve: {
+        Args: {
+          p_day_cap: number
+          p_day_start: string
+          p_key: string
+          p_kind: string
+          p_model: string
+          p_run: string
+          p_step: string
+          p_usd: number
+        }
+        Returns: Json
+      }
+      deep_settle: {
+        Args: { p_call: string; p_result: Json; p_usage: Json; p_usd: number }
+        Returns: undefined
+      }
+      deep_settle_step: {
+        Args: { p_claim: string; p_result: Json; p_run: string; p_used: number }
+        Returns: undefined
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -498,6 +862,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
