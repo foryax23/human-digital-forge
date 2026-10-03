@@ -112,7 +112,8 @@ export function readDeepConfig(
   const extractKnown = Boolean(extract && PRICES[extract]);
   const assetOrigin = source.DEEP_ASSET_ORIGIN?.trim();
   return {
-    mode: known ? (raw as DeepMode) : "admin",
+    // Unset: paid plans and admins only. An unknown value fails closed to admin-only.
+    mode: raw === "" ? "premium" : known ? (raw as DeepMode) : "admin",
     unknownMode: raw && !known ? raw : undefined,
     adminUserIds: list(source.DEEP_RESEARCH_ADMIN_USER_IDS).map((s) => s.toLowerCase()),
     adminEmails: list(source.DEEP_RESEARCH_ADMIN_EMAILS).map((s) => s.toLowerCase()),
@@ -168,6 +169,8 @@ export async function provisionalAccess(
   args: {
     userId: string | null;
     testCode?: string;
+    /** An active Growth/Pro (DEEP_RESEARCH_PREMIUM_TIERS) subscription. */
+    premium?: boolean;
     persistence: StoreKind | "memory" | "unavailable";
     todayUsd?: number;
     userRunsToday?: number;
@@ -217,6 +220,7 @@ export async function provisionalAccess(
     case "open":
       return allow("open");
     case "premium":
+      if (args.premium) return allow("premium");
       return codeOk ? allow("code") : deny("premium_required");
     default:
       return deny("admin_only");

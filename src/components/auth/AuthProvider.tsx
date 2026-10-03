@@ -25,6 +25,7 @@ interface AuthContextValue {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
+  isAdmin: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const loadProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
@@ -44,6 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq("id", userId)
       .maybeSingle();
     setProfile((data as Profile) ?? null);
+    // Grants the owner account its admin role on first sign-in; returns the role for anyone.
+    const { data: admin } = await supabase.rpc("claim_admin_role");
+    setIsAdmin(Boolean(admin));
   }, []);
 
   useEffect(() => {
@@ -58,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTimeout(() => loadProfile(nextSession.user.id), 0);
       } else {
         setProfile(null);
+        setIsAdmin(false);
       }
     });
 
@@ -76,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setProfile(null);
+    setIsAdmin(false);
   }, []);
 
   const refreshProfile = useCallback(async () => {
@@ -83,8 +90,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, loadProfile]);
 
   const value = useMemo(
-    () => ({ session, user, profile, loading, signOut, refreshProfile }),
-    [session, user, profile, loading, signOut, refreshProfile],
+    () => ({ session, user, profile, loading, isAdmin, signOut, refreshProfile }),
+    [session, user, profile, loading, isAdmin, signOut, refreshProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
