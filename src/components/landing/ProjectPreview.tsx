@@ -91,7 +91,7 @@ export function ProjectPreview({ projects, index, onIndexChange }: ProjectPrevie
                   className="flex flex-col gap-5 p-6 sm:p-8 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-14"
                 >
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-[0.68rem] uppercase tracking-[0.2em] text-muted-foreground">
+                    <span className="type-label inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-muted-foreground">
                       <span
                         aria-hidden
                         className="h-2 w-2 rounded-full"
@@ -99,34 +99,33 @@ export function ProjectPreview({ projects, index, onIndexChange }: ProjectPrevie
                       />
                       {pick(current.category)}
                     </span>
-                    <span className="text-xs tabular-nums text-muted-foreground">
+                    <span className="type-label tabular-nums text-muted-foreground">
                       {String(position + 1).padStart(2, "0")} /{" "}
                       {String(projects.length).padStart(2, "0")}
                     </span>
                   </div>
 
                   <div>
-                    <DialogTitle className="break-words font-display text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-3xl xl:text-4xl">
-                      {projectTitle(current, lang)}
+                    {/* Roles on inner spans: the dialog primitives' own sizes would win. */}
+                    <DialogTitle className="break-words">
+                      <span className="type-h3 block">{projectTitle(current, lang)}</span>
                     </DialogTitle>
-                    <DialogDescription className="mt-3 text-sm text-muted-foreground">
-                      {pick(current.tagline)}
+                    <DialogDescription className="mt-2">
+                      <span className="type-body-sm">{pick(current.tagline)}</span>
                     </DialogDescription>
                   </div>
 
-                  <p className="text-sm leading-relaxed text-foreground/85">
-                    {pick(current.summary)}
-                  </p>
+                  <p className="type-body-sm text-foreground/85">{pick(current.summary)}</p>
 
                   <div>
-                    <p className="text-[0.68rem] uppercase tracking-[0.25em] text-muted-foreground">
+                    <p className="type-label text-muted-foreground">
                       {t("What we built", "Ce am construit")}
                     </p>
                     <ul className="mt-3 space-y-2.5">
                       {pickList(current.built).map((item) => (
                         <li
                           key={item}
-                          className="flex items-start gap-3 text-sm text-foreground/85"
+                          className="type-body-sm flex items-start gap-3 text-foreground/85"
                         >
                           <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal/15 text-teal">
                             <Check className="h-3 w-3" strokeWidth={3} />
@@ -141,14 +140,14 @@ export function ProjectPreview({ projects, index, onIndexChange }: ProjectPrevie
                     {pickList(current.highlights).map((chip) => (
                       <li
                         key={chip}
-                        className="rounded-full bg-white/[0.06] px-3 py-1.5 text-xs text-foreground/90"
+                        className="type-micro rounded-full bg-white/[0.06] px-3 py-1.5 text-foreground/90"
                       >
                         {chip}
                       </li>
                     ))}
                   </ul>
 
-                  <p className="text-xs text-muted-foreground">
+                  <p className="type-micro text-muted-foreground">
                     {t("Languages", "Limbi")}: {current.languages.join(" · ")}
                   </p>
                 </motion.div>
@@ -160,7 +159,7 @@ export function ProjectPreview({ projects, index, onIndexChange }: ProjectPrevie
                   <button
                     type="button"
                     onClick={() => onIndexChange(related)}
-                    className="group inline-flex items-center gap-2 rounded-full text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="type-micro group inline-flex items-center gap-2 rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     {t("Same client:", "Același client:")}{" "}
                     <span className="text-foreground underline-offset-4 group-hover:underline">
@@ -311,10 +310,10 @@ function PreviewStage({ project, title }: { project: Project; title: string }) {
           <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]/80" />
           <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]/80" />
         </div>
-        <div className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-white/[0.06] px-3 py-1.5 text-xs text-muted-foreground">
+        <div className="type-micro flex min-w-0 flex-1 items-center gap-2 rounded-full bg-white/[0.06] px-3 py-1.5 text-muted-foreground">
           <Lock aria-hidden className="h-3 w-3 shrink-0" />
           <span className="truncate">{project.domain}</span>
-          <span className="ml-auto hidden shrink-0 items-center gap-1.5 text-[0.65rem] uppercase tracking-[0.2em] text-emerald-400 sm:inline-flex">
+          <span className="type-label ml-auto hidden shrink-0 items-center gap-1.5 text-emerald-400 sm:inline-flex">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-dot" />
             {t("Live", "Live")}
           </span>
@@ -425,7 +424,7 @@ function PreviewStage({ project, title }: { project: Project; title: string }) {
         )}
 
         {project.access !== "public" && (
-          <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-[0.68rem] text-foreground backdrop-blur">
+          <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 type-micro text-foreground backdrop-blur">
             {project.access === "private" ? (
               <>
                 <Lock aria-hidden className="h-3 w-3" />
@@ -449,7 +448,7 @@ function PreviewStage({ project, title }: { project: Project; title: string }) {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 6 }}
-              className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/70 px-3 py-1.5 text-[0.68rem] text-foreground/90 backdrop-blur"
+              className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/70 px-3 py-1.5 type-micro text-foreground/90 backdrop-blur"
             >
               {t(
                 "Auto-preview · scroll to explore",

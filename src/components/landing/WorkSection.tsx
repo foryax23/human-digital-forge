@@ -48,8 +48,8 @@ export function WorkSection() {
             </>
           }
           description={t(
-            "Live products we've designed, built and launched — from student-recruitment platforms to private dashboards. Open any of them for a quick look.",
-            "Produse live pe care le-am proiectat, construit și lansat — de la platforme de recrutare a studenților la aplicații private. Deschide oricare dintre ele pentru o privire rapidă.",
+            "Live products we've designed, built and launched, from student-recruitment platforms to private dashboards. Open any of them for a quick look.",
+            "Produse live pe care le-am proiectat, construit și lansat, de la platforme de recrutare a studenților la aplicații private. Deschide oricare dintre ele pentru o privire rapidă.",
           )}
           action={{ label: t("View all work", "Vezi toate lucrările"), to: "/portfolio" }}
         />
@@ -129,7 +129,7 @@ function WorkCard({
 
         <span
           aria-hidden
-          className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1 text-[0.65rem] uppercase tracking-[0.2em] text-white/90 backdrop-blur md:left-5 md:top-5"
+          className="type-label absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1 text-white/90 backdrop-blur md:left-5 md:top-5"
         >
           {project.access === "private" ? (
             <>
@@ -144,19 +144,17 @@ function WorkCard({
           )}
         </span>
 
-        {/* Always-visible caption for touch screens; gives way to the hover label. */}
-        <span className="pointer-events-none absolute inset-x-0 bottom-0 block bg-gradient-to-t from-background/95 via-background/60 to-transparent px-5 pb-5 pt-16 transition-opacity duration-500 group-hover:opacity-0 group-focus-visible:opacity-0 md:px-6 md:pb-6 md:pt-20">
-          <span
-            id={metaId}
-            className="block text-[0.68rem] font-medium uppercase tracking-[0.2em] text-muted-foreground"
-          >
-            {category} · {project.domain}
-          </span>
-          <span
-            id={titleId}
-            className="mt-1.5 block font-display text-base font-semibold leading-snug text-foreground md:text-lg"
-          >
+        {/* Always-visible caption for touch screens; gives way to the hover label.
+            The category as a mono label above the title, the domain as a caption
+            under it, so neither cuts the other off on narrow cards. */}
+        <span className="pointer-events-none absolute inset-x-0 bottom-0 block bg-gradient-to-t from-background via-background/80 to-transparent px-5 pb-5 pt-16 transition-opacity duration-500 group-hover:opacity-0 group-focus-visible:opacity-0 md:px-6 md:pb-6 md:pt-20">
+          <span className="type-label block truncate text-muted-foreground">{category}</span>
+          <span id={titleId} className="type-h3 mt-1.5 block text-foreground">
             {title}
+          </span>
+          <span id={metaId} className="type-micro mt-1 block truncate text-muted-foreground">
+            <span className="sr-only">{category} · </span>
+            {project.domain}
           </span>
         </span>
 
@@ -165,10 +163,10 @@ function WorkCard({
           className="absolute inset-0 grid place-items-center bg-background/70 p-6 opacity-0 backdrop-blur-lg transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100"
         >
           <span className="accent-gradient-animated inline-flex max-w-full rounded-full p-[1.5px]">
-            <span className="inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-center text-sm text-background">
+            <span className="type-button inline-flex items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-center text-background">
               <Eye className="h-4 w-4 shrink-0" />
               <span>
-                {t("Peek", "Privește")} — <span className="font-semibold">{title}</span>
+                {t("Peek at", "Vezi")} <span className="font-semibold">{title}</span>
               </span>
             </span>
           </span>

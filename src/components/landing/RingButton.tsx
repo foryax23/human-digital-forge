@@ -25,9 +25,9 @@ type RingButtonProps = {
 );
 
 const faces: Record<Variant, string> = {
-  // Light pill that inverts to dark on hover, revealing the gradient ring.
-  solid:
-    "bg-foreground text-background group-hover:bg-background group-hover:text-foreground group-focus-visible:bg-background group-focus-visible:text-foreground",
+  // The site's one primary: solid brand violet (as the nav's CTA), lifting on hover
+  // as the gradient ring shows.
+  solid: "bg-[#5b52f0] text-white group-hover:bg-[#6a62f6] group-focus-visible:bg-[#6a62f6]",
   // Dark pill with a stroke that gives way to the gradient ring on hover.
   outline:
     "border-2 border-border bg-background text-foreground group-hover:border-transparent group-focus-visible:border-transparent",
@@ -36,8 +36,8 @@ const faces: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  md: "px-7 py-3.5 text-sm",
-  sm: "px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm",
+  md: "px-7 py-3.5",
+  sm: "px-3 py-1.5 sm:px-4 sm:py-2",
 };
 
 /**
@@ -72,7 +72,7 @@ export function RingButton(props: RingButtonProps) {
       />
       <span
         className={cn(
-          "relative z-10 inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-300",
+          "type-button relative z-10 inline-flex items-center justify-center gap-2 rounded-full transition-colors duration-300",
           sizes[size],
           faces[variant],
           innerClassName,

@@ -1,0 +1,65 @@
+/* The hero's perimeter grid (HeroTelemetry). Static; the only transitions
+   answer the hero's state and are flattened by the reduced-motion rules in
+   styles.css. */
+
+.root {
+  --grid-line: rgb(150 162 255 / 0.05);
+  --grid-cell: 48px;
+  /* The grid's clear oval around the copy: wide on phones, where the copy spans the screen. */
+  --grid-rx: 100%;
+  --grid-ry: 46%;
+  --grid-clear: 72%;
+}
+
+@media (min-width: 1024px) {
+  .root {
+    --grid-line: rgb(150 162 255 / 0.07);
+    --grid-rx: 46%;
+    --grid-ry: 52%;
+    --grid-clear: 62%;
+  }
+}
+
+/* Faint grid that fades in away from the centre, never under the copy, and out
+   towards the nav and the page below. */
+.grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: var(--grid-cell) var(--grid-cell);
+  background-position: center;
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse var(--grid-rx) var(--grid-ry) at var(--vortex-x, 50%) var(--vortex-y, 50%),
+      transparent var(--grid-clear),
+      black 100%
+    ),
+    linear-gradient(to bottom, transparent 0%, black 14%, black 74%, transparent 100%);
+  mask-image:
+    radial-gradient(
+      ellipse var(--grid-rx) var(--grid-ry) at var(--vortex-x, 50%) var(--vortex-y, 50%),
+      transparent var(--grid-clear),
+      black 100%
+    ),
+    linear-gradient(to bottom, transparent 0%, black 14%, black 74%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  transform-origin: var(--vortex-x, 50%) var(--vortex-y, 50%);
+  opacity: 0.8;
+  transition:
+    opacity 0.6s ease,
+    scale 0.8s cubic-bezier(0.5, 0, 0.75, 0);
+}
+
+.root[data-state="focus"] .grid,
+.root[data-state="typing"] .grid {
+  opacity: 1;
+}
+
+/* Submit: the grid is drawn in towards the eye. */
+.root[data-state="scanning"] .grid {
+  opacity: 1;
+  scale: 0.95;
+}

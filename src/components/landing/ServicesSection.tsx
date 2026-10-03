@@ -4,10 +4,10 @@ import { motion, useReducedMotion, type Variants } from "motion/react";
 
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import aiImg from "@/assets/home/thumbs/service-ai-160.webp";
-import productsImg from "@/assets/home/thumbs/service-products-160.webp";
-import websitesImg from "@/assets/home/thumbs/service-websites-160.webp";
-import consultationImg from "@/assets/home/thumbs/consultation-160.webp";
+import aiImg from "@/assets/home/thumbs/service-ai-256x160.webp";
+import productsImg from "@/assets/home/thumbs/service-products-256x160.webp";
+import websitesImg from "@/assets/home/thumbs/service-websites-256x160.webp";
+import consultationImg from "@/assets/home/thumbs/consultation-256x160.webp";
 import { RingButton } from "./RingButton";
 import { Em, SectionHeader } from "./SectionHeader";
 
@@ -108,8 +108,8 @@ export function ServicesSection() {
             </>
           }
           description={t(
-            "Pick the service that fits — or combine them into one system.",
-            "Alege serviciul potrivit — sau combină-le într-un singur sistem.",
+            "Pick the service that fits, or combine them into one system.",
+            "Alege serviciul potrivit sau combină-le într-un singur sistem.",
           )}
           action={{ label: t("All services", "Toate serviciile"), to: "/services" }}
         />
@@ -131,52 +131,52 @@ export function ServicesSection() {
                   aria-labelledby={titleId}
                   aria-describedby={descriptionId}
                   className={cn(
-                    "group flex items-center gap-4 rounded-[40px] border border-border bg-card/30 p-4 transition-colors duration-300 sm:gap-6 sm:rounded-full",
+                    "group flex items-center gap-4 rounded-2xl border border-border bg-card/30 p-4 transition-colors duration-300 sm:gap-6 sm:p-5",
                     "hover:bg-card focus-visible:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                   )}
                 >
-                  <span className="h-16 w-16 shrink-0 overflow-hidden rounded-full sm:h-20 sm:w-20">
+                  <span
+                    aria-hidden
+                    className="type-label hidden w-6 shrink-0 tabular-nums text-muted-foreground sm:block"
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+
+                  <span className="aspect-[16/10] w-20 shrink-0 overflow-hidden rounded-[10px] sm:w-32">
                     <img
                       src={service.image}
                       alt=""
-                      width={80}
+                      width={128}
                       height={80}
                       loading="lazy"
                       decoding="async"
-                      className="h-full w-full rounded-full object-cover transition-transform duration-500 motion-safe:group-hover:scale-110"
+                      className="h-full w-full object-cover transition-transform duration-500 motion-safe:group-hover:scale-105"
                     />
                   </span>
 
                   <div className="min-w-0 flex-1">
-                    <h3
-                      id={titleId}
-                      className="font-display text-lg font-semibold tracking-tight text-foreground md:text-2xl"
-                    >
+                    <h3 id={titleId} className="type-h3 text-foreground">
                       {service.title}
                     </h3>
                     <p
                       id={descriptionId}
-                      className="mt-1 line-clamp-2 text-sm text-muted-foreground sm:line-clamp-none"
+                      className="type-body-sm mt-1 line-clamp-2 text-muted-foreground sm:line-clamp-none"
                     >
                       {service.description}
                     </p>
                   </div>
 
-                  {/* Template "read time" / "date" slots: tag line and index. */}
-                  <div
-                    aria-hidden
-                    className="hidden shrink-0 flex-col items-end gap-1.5 whitespace-nowrap text-xs uppercase tracking-[0.2em] text-muted-foreground lg:flex"
-                  >
-                    <span>{service.tags}</span>
-                    <span className="tabular-nums">{String(index + 1).padStart(2, "0")}</span>
-                  </div>
-
                   <span
                     aria-hidden
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border text-foreground transition-colors duration-300 group-hover:border-transparent group-hover:bg-foreground group-hover:text-background group-focus-visible:border-transparent group-focus-visible:bg-foreground group-focus-visible:text-background sm:h-12 sm:w-12"
+                    className="type-label hidden shrink-0 whitespace-nowrap text-muted-foreground lg:block"
                   >
-                    <ArrowRight className="h-4 w-4 transition-transform duration-300 motion-safe:group-hover:-rotate-45 motion-safe:group-focus-visible:-rotate-45 sm:h-5 sm:w-5" />
+                    {service.tags}
                   </span>
+
+                  <ArrowRight
+                    aria-hidden
+                    className="h-5 w-5 shrink-0 text-muted-foreground transition-[translate,color] duration-300 group-hover:text-foreground group-focus-visible:text-foreground motion-safe:group-hover:translate-x-0.5 motion-safe:group-focus-visible:translate-x-0.5"
+                  />
                 </Link>
               </motion.li>
             );

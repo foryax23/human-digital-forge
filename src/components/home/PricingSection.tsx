@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { MotionConfig, motion } from "motion/react";
-import { Check, Loader2, MessageCircle, Sparkles, Rocket, Crown } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Em, SectionHeader } from "@/components/landing/SectionHeader";
@@ -23,9 +23,17 @@ function fadeUp(delay = 0) {
   } as const;
 }
 
-function formatPrice(minor: number, lang: "en" | "ro") {
-  const major = minor / 100;
-  return lang === "ro" ? `${major} LEI` : `${major} EUR`;
+/** The amount as a big figure with its currency (and period) as a quiet line under it. */
+function Price({ minor, lang, period }: { minor: number; lang: "en" | "ro"; period?: string }) {
+  return (
+    <p className="mt-3 flex flex-col gap-1">
+      <span className="type-h2 tabular-nums text-foreground">{minor / 100}</span>
+      <span className="type-body-sm text-muted-foreground">
+        {lang === "ro" ? "lei" : "EUR"}
+        {period && ` ${period}`}
+      </span>
+    </p>
+  );
 }
 
 function FeatureItem({ children }: { children: ReactNode }) {
@@ -37,7 +45,7 @@ function FeatureItem({ children }: { children: ReactNode }) {
       >
         <Check className="h-3 w-3" strokeWidth={3} />
       </span>
-      <span className="text-sm text-muted-foreground">{children}</span>
+      <span className="type-body-sm text-muted-foreground">{children}</span>
     </li>
   );
 }
@@ -45,8 +53,7 @@ function FeatureItem({ children }: { children: ReactNode }) {
 // Checkout buttons stay real <Button>s (disabled + spinner) but wear the
 // RingButton faces so they match the link CTAs around them.
 const checkoutFace = {
-  solid:
-    "bg-foreground text-background group-hover:bg-background group-hover:text-foreground group-focus-visible:bg-background group-focus-visible:text-foreground",
+  solid: "bg-[#5b52f0] text-white group-hover:bg-[#6a62f6] group-focus-visible:bg-[#6a62f6]",
   outline:
     "border-2 border-border bg-background text-foreground group-hover:border-transparent group-focus-visible:border-transparent",
 };
@@ -90,7 +97,6 @@ export function PricingSection() {
 
   const paidPlans: {
     id: PlanId;
-    icon: typeof Sparkles;
     name: string;
     tagline: string;
     features: string[];
@@ -98,7 +104,6 @@ export function PricingSection() {
   }[] = [
     {
       id: "starter",
-      icon: Sparkles,
       name: t("Starter", "Starter"),
       tagline: t("For up to 1 focused goal", "Pentru până la 1 obiectiv concentrat"),
       features: [
@@ -116,7 +121,6 @@ export function PricingSection() {
     },
     {
       id: "growth",
-      icon: Rocket,
       name: t("Growth", "Growth"),
       tagline: t("For people building momentum", "Pentru cei care construiesc avânt"),
       highlight: true,
@@ -133,7 +137,6 @@ export function PricingSection() {
     },
     {
       id: "pro",
-      icon: Crown,
       name: t("Pro", "Pro"),
       tagline: t("For full, hands-on partnership", "Pentru un parteneriat complet, implicat"),
       features: [
@@ -149,9 +152,8 @@ export function PricingSection() {
     },
   ];
 
-  const planLabel = "text-xs leading-normal uppercase tracking-[0.3em] text-muted-foreground";
-  const featuresLabel = "text-xs uppercase tracking-[0.3em] text-foreground/80";
-  const price = "font-display text-4xl font-semibold tracking-tight md:text-5xl xl:text-4xl";
+  const planLabel = "type-label text-muted-foreground";
+  const featuresLabel = "type-label text-foreground/80";
 
   return (
     <section
@@ -186,7 +188,7 @@ export function PricingSection() {
           {error && (
             <p
               role="alert"
-              className="mx-auto mb-10 max-w-xl rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-center text-sm text-destructive"
+              className="type-body-sm mx-auto mb-10 max-w-xl rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-center text-destructive"
             >
               {error}
             </p>
@@ -197,17 +199,11 @@ export function PricingSection() {
             {/* Free plan */}
             <motion.div {...fadeUp()}>
               <div className="flex h-full flex-col rounded-3xl border border-border bg-card/60 p-6 transition-colors duration-300 hover:bg-card md:p-8 xl:p-6">
-                <span
-                  aria-hidden
-                  className="grid h-11 w-11 place-items-center rounded-full border border-border bg-white/5 text-muted-foreground"
-                >
-                  <MessageCircle className="h-5 w-5" />
-                </span>
-                <h3 className={cn("mt-5", planLabel)}>{t("Free", "Gratuit")}</h3>
-                <div className="mt-3 flex flex-wrap items-end gap-x-2 gap-y-1">
-                  <span className={price}>{formatPrice(0, lang)}</span>
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground">
+                {/* Same height as the paid plans' badge row, so the names line up. */}
+                <div aria-hidden className="h-4" />
+                <h3 className={cn("mt-3", planLabel)}>{t("Free", "Gratuit")}</h3>
+                <Price minor={0} lang={lang} />
+                <p className="type-body-sm mt-3 text-muted-foreground">
                   {t("Talk to us, no commitment", "Vorbește cu noi, fără obligații")}
                 </p>
 
@@ -246,51 +242,30 @@ export function PricingSection() {
                 {...fadeUp((i + 1) * 0.1)}
                 className={cn(plan.highlight && "xl:-my-4")}
               >
-                {/* The highlighted plan gets a 1px brand-gradient frame. */}
-                <div
-                  className={cn(
-                    "h-full rounded-3xl",
-                    plan.highlight && "accent-gradient glow-soft p-px",
-                  )}
-                >
+                {/* The highlighted plan: a plain violet 1px border, no glow. */}
+                <div className="h-full">
                   <div
                     className={cn(
-                      "flex h-full flex-col p-6 transition-colors duration-300 md:p-8 xl:p-6",
+                      "flex h-full flex-col rounded-3xl border p-6 transition-colors duration-300 md:p-8 xl:p-6",
                       plan.highlight
-                        ? "rounded-[23px] bg-card xl:py-10"
-                        : "rounded-3xl border border-border bg-card/60 hover:bg-card",
+                        ? "border-[rgb(139_124_246/0.6)] bg-card xl:py-10"
+                        : "border-border bg-card/60 hover:bg-card",
                     )}
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <span
-                        aria-hidden
-                        className={cn(
-                          "grid h-11 w-11 shrink-0 place-items-center rounded-full",
-                          plan.highlight
-                            ? "accent-gradient text-background"
-                            : "border border-border bg-white/5 text-foreground",
-                        )}
-                      >
-                        <plan.icon className="h-5 w-5" />
-                      </span>
-                      {plan.highlight && (
-                        <span className="accent-gradient-animated rounded-full p-px">
-                          <span className="block rounded-full bg-background px-3 py-1 text-xs font-medium text-foreground">
-                            {t("Most popular", "Cel mai popular")}
-                          </span>
-                        </span>
-                      )}
-                    </div>
-                    <h3 className={cn("mt-5", planLabel)}>{plan.name}</h3>
-                    <div className="mt-3 flex flex-wrap items-end gap-x-2 gap-y-1">
-                      <span className={price}>
-                        {formatPrice(PLAN_PRICING[plan.id][currency], lang)}
-                      </span>
-                      <span className="pb-1 text-xs text-muted-foreground">
-                        {t("/ month", "/ lună")}
-                      </span>
-                    </div>
-                    <p className="mt-3 text-sm text-muted-foreground">{plan.tagline}</p>
+                    {plan.highlight ? (
+                      <p className="type-label h-4 text-[#c4b5fd]">
+                        {t("Most popular", "Cel mai popular")}
+                      </p>
+                    ) : (
+                      <div aria-hidden className="h-4" />
+                    )}
+                    <h3 className={cn("mt-3", planLabel)}>{plan.name}</h3>
+                    <Price
+                      minor={PLAN_PRICING[plan.id][currency]}
+                      lang={lang}
+                      period={t("/ month", "/ lună")}
+                    />
+                    <p className="type-body-sm mt-3 text-muted-foreground">{plan.tagline}</p>
 
                     <div aria-hidden className="mt-6 h-px bg-border" />
                     <p className={cn("mt-6", featuresLabel)}>{t("Features", "Beneficii")}</p>
@@ -313,7 +288,7 @@ export function PricingSection() {
                       />
                       <span
                         className={cn(
-                          "relative z-10 inline-flex h-full w-full items-center justify-center rounded-full text-sm font-medium transition-colors duration-300",
+                          "type-button relative z-10 inline-flex h-full w-full items-center justify-center rounded-full transition-colors duration-300",
                           plan.highlight ? checkoutFace.solid : checkoutFace.outline,
                         )}
                       >
@@ -334,7 +309,7 @@ export function PricingSection() {
             ))}
           </div>
 
-          <p className="mt-12 text-center text-xs text-muted-foreground">
+          <p className="type-micro mt-12 text-center text-muted-foreground">
             {t(
               "Secure payment handled by Stripe. You can cancel your subscription at any time.",
               "Plată securizată prin Stripe. Poți anula abonamentul în orice moment.",

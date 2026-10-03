@@ -2,13 +2,12 @@ import type { ReactNode } from "react";
 import type { LinkProps } from "@tanstack/react-router";
 import { motion } from "motion/react";
 
-import { GradientText } from "@/components/cinematic/GradientText";
 import { cn } from "@/lib/utils";
 import { RingButton } from "./RingButton";
 
-/** Emphasised word inside a heading — the brand gradient (no serif in the Vortex type system). */
+/** Emphasised word inside a heading: the site's one static lavender accent, as in the hero. */
 export function Em({ children }: { children: ReactNode }) {
-  return <GradientText>{children}</GradientText>;
+  return <span className="heading-accent">{children}</span>;
 }
 
 /** Thin rule + uppercase label used above every section heading. */
@@ -16,7 +15,7 @@ export function Eyebrow({ children, className }: { children: ReactNode; classNam
   return (
     <div className={cn("flex items-center gap-3", className)}>
       <span aria-hidden className="h-px w-8 bg-border" />
-      <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{children}</span>
+      <span className="type-label text-muted-foreground">{children}</span>
     </div>
   );
 }
@@ -58,14 +57,11 @@ export function SectionHeader({
     >
       <div className={cn("max-w-2xl", align === "center" && "flex flex-col items-center")}>
         <Eyebrow>{eyebrow}</Eyebrow>
-        <h2
-          id={headingId}
-          className="mt-5 font-display text-4xl font-semibold tracking-tight text-foreground md:text-5xl lg:text-6xl"
-        >
+        <h2 id={headingId} className="type-h2 mt-5 text-balance text-foreground">
           {title}
         </h2>
         {description && (
-          <p className="mt-4 max-w-xl text-sm text-muted-foreground md:text-base">{description}</p>
+          <p className="type-lead mt-4 max-w-xl text-muted-foreground">{description}</p>
         )}
       </div>
       {action && (

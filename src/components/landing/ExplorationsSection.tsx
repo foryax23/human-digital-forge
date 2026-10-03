@@ -246,16 +246,13 @@ export function ExplorationsSection() {
             className="flex flex-col items-center"
           >
             <Eyebrow>{t("Explorations", "Explorări")}</Eyebrow>
-            <h2
-              id="explorations-heading"
-              className="mt-5 font-display text-5xl font-semibold tracking-tight text-foreground md:text-7xl"
-            >
+            <h2 id="explorations-heading" className="type-h2 mt-5 text-foreground">
               {t("Ideas in", "Idei în")} <Em>{t("motion", "mișcare")}</Em>
             </h2>
-            <p className="mt-5 max-w-md text-sm text-muted-foreground md:text-base">
+            <p className="type-lead mt-5 max-w-md text-muted-foreground">
               {t(
-                "A look at the visuals, interfaces and systems we explore — for clients and for ourselves.",
-                "O privire asupra imaginilor, interfețelor și sistemelor pe care le explorăm — pentru clienți și pentru noi.",
+                "A look at the visuals, interfaces and systems we explore, for clients and for ourselves.",
+                "O privire asupra imaginilor, interfețelor și sistemelor pe care le explorăm, pentru clienți și pentru noi.",
               )}
             </p>
             <RingButton to="/portfolio" variant="outline" arrow="up-right" className="mt-8">
@@ -305,8 +302,9 @@ export function ExplorationsSection() {
           }}
           className="cinematic w-max max-w-[min(calc(100vw-2rem),72rem)] gap-4 rounded-3xl border-border p-4 text-foreground shadow-2xl shadow-black/50 sm:rounded-3xl md:p-6"
         >
-          <DialogTitle className="pr-10 font-display text-base font-semibold leading-snug md:text-lg">
-            {active.caption}
+          {/* The role sits on a span: DialogTitle's own text-lg/leading-none would win. */}
+          <DialogTitle className="pr-10">
+            <span className="type-h3 block">{active.caption}</span>
           </DialogTitle>
           <img
             src={active.src}
@@ -359,7 +357,7 @@ function ExplorationCard({
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-background/90 via-background/50 to-transparent p-3 pt-10 text-left text-xs font-medium text-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 sm:p-4 sm:pt-12 sm:text-sm"
+        className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-background/90 via-background/50 to-transparent p-3 pt-10 text-left type-body-sm text-foreground opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100 sm:p-4 sm:pt-12"
       >
         <span className="line-clamp-2">{item.caption}</span>
         <Expand className="h-4 w-4 shrink-0" />

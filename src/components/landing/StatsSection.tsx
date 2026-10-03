@@ -107,23 +107,19 @@ export function StatsSection() {
               className="flex flex-col sm:px-6 sm:first:pl-0 sm:last:pr-0 lg:px-10"
             >
               {/* DOM order is label → value → caption (dt before dd); `order` puts the number on top visually. */}
-              <dt className="order-2 mt-5 text-sm uppercase tracking-[0.2em] text-muted-foreground">
-                {stat.label}
-              </dt>
+              <dt className="type-label order-2 mt-5 text-muted-foreground">{stat.label}</dt>
               <dd className="order-1">
                 {/* Screen readers get the static value, never the count-up. */}
                 <span
                   aria-hidden
                   data-count-to={stat.value}
-                  className="inline-block font-display text-6xl font-semibold leading-none tracking-tight tabular-nums text-gradient-brand md:text-7xl lg:text-8xl"
+                  className="type-h2 inline-block tabular-nums text-white"
                 >
                   {stat.value}
                 </span>
                 <span className="sr-only">{stat.value}</span>
               </dd>
-              <dd className="order-3 mt-3 max-w-xs text-sm leading-relaxed text-foreground/80 md:text-base">
-                {stat.caption}
-              </dd>
+              <dd className="type-body order-3 mt-3 max-w-xs text-foreground/80">{stat.caption}</dd>
             </motion.div>
           ))}
         </dl>

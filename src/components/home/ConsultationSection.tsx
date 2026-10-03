@@ -31,7 +31,7 @@ export function ConsultationSection() {
       ...unsplash("1586717791821-3f44a563fa4c"),
     },
     {
-      title: t("AI Automation Assessment", "Evaluare Automatizare AI"),
+      title: t("AI Automation Assessment", "Evaluarea automatizării cu AI"),
       description: t(
         "For businesses wanting to identify tasks that could be improved through automation.",
         "Pentru afaceri care doresc să identifice sarcini ce ar putea fi îmbunătățite prin automatizare.",

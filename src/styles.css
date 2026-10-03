@@ -6,7 +6,9 @@
 
 /*
  * Vortex Hub design system.
- * Colors defined in oklch. Headings use Instrument Serif, UI/body use Inter.
+ * Colors defined in oklch. Headings use Space Grotesk, UI/body use DM Sans, and
+ * labels, telemetry and the ASCII vortex use JetBrains Mono. Text styles come
+ * from the type-* roles below.
  */
 
 @theme inline {
@@ -22,7 +24,7 @@
   --font-body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -61,6 +63,92 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/*
+ * Type roles. Every piece of text on the site uses one of these instead of
+ * ad-hoc sizes and tracking, so eyebrows, labels and paragraphs read the same
+ * everywhere. Named type-* (not text-*) so tailwind-merge never mistakes them
+ * for text colours. Colour and opacity stay separate utilities.
+ */
+/* The hero title (the only display text). Sized to the reference's title-to-search
+   proportion: about 62 px at 1440 wide and 76 px at 1920, smaller on short screens so the
+   hero fits 1280 x 720, and narrow enough on phones for two lines. */
+@utility type-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.9rem, min(8.6vw, 1.25rem + 2.9vw, 7.6vh), 4.75rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+}
+@utility type-h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2rem, 1rem + 2vw, 3.25rem);
+  line-height: 1.04;
+  letter-spacing: -0.025em;
+}
+/* Card, panel and dialog titles; small enough for the dense scan report too. */
+@utility type-h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.125rem, 1.02rem + 0.35vw, 1.375rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+@utility type-lead {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: clamp(1rem, 0.875rem + 0.5vw, 1.25rem);
+  line-height: 1.55;
+  letter-spacing: 0;
+}
+@utility type-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 1.6;
+  letter-spacing: 0;
+}
+@utility type-body-sm {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+@utility type-micro {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
+/* Uppercase mono: eyebrows, section labels, tags, step numbers, scroll cue.
+   Kept tight on purpose: the owner found wider tracking (0.14-0.16em) too spaced. */
+@utility type-label {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+/* Smaller, quieter mono for decorative telemetry and coordinates. */
+@utility type-tech {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.625rem;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+@utility type-button {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  line-height: 1.2;
+  letter-spacing: 0;
 }
 
 :root {
@@ -177,7 +265,10 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     font-weight: 600;
     letter-spacing: 0;
@@ -189,7 +280,6 @@
     letter-spacing: 0;
   }
 }
-
 
 @layer utilities {
   .bg-gradient-brand {
@@ -229,8 +319,8 @@
   --accent: oklch(0.235 0.075 283);
   --accent-foreground: oklch(0.985 0.006 275);
 
-  /* Bright cool secondary — periwinkle, cooler than the indigo accent */
-  --teal: oklch(0.83 0.13 174);
+  /* Bright cool secondary: a cold blue, cooler than the indigo accent (never mint) */
+  --teal: oklch(0.8 0.11 228);
   --teal-foreground: oklch(0.115 0.032 285);
 
   --ink: oklch(0.07 0.02 286);
@@ -240,7 +330,7 @@
   --input: oklch(1 0 0 / 13%);
   --ring: oklch(0.585 0.225 282);
 
-  --gradient-brand: linear-gradient(135deg, oklch(0.585 0.225 282), oklch(0.83 0.13 174));
+  --gradient-brand: linear-gradient(135deg, oklch(0.585 0.225 282), oklch(0.72 0.14 250));
 
   color-scheme: dark;
 }
@@ -259,12 +349,12 @@
   .glow-soft {
     box-shadow:
       0 0 0 1px oklch(1 0 0 / 5%),
-       0 30px 80px -34px oklch(0.585 0.225 282 / 58%);
+      0 30px 80px -34px oklch(0.585 0.225 282 / 58%);
   }
   .glow-teal {
     box-shadow:
       0 0 0 1px oklch(1 0 0 / 5%),
-       0 30px 80px -34px oklch(0.83 0.13 174 / 42%);
+      0 30px 80px -34px oklch(0.8 0.11 228 / 42%);
   }
   /* Frosted glass panel for the cinematic surface */
   .glass-panel {
@@ -274,13 +364,12 @@
   }
   /* Deeper bento surface — used for the large redesigned tiles */
   .bento-panel {
-    background:
-      linear-gradient(
-        160deg,
-        oklch(1 0 0 / 7%) 0%,
-        oklch(1 0 0 / 2.5%) 40%,
-        oklch(1 0 0 / 1%) 100%
-      );
+    background: linear-gradient(
+      160deg,
+      oklch(1 0 0 / 7%) 0%,
+      oklch(1 0 0 / 2.5%) 40%,
+      oklch(1 0 0 / 1%) 100%
+    );
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
     border: 1px solid oklch(1 0 0 / 8%);
@@ -309,18 +398,17 @@
 
   /* One continuous vertical gradient so sections flow into each other */
   .cinematic-flow {
-    background:
-      linear-gradient(
-        180deg,
-        oklch(0.1 0.028 286) 0%,
-        oklch(0.145 0.055 285) 16%,
-        oklch(0.13 0.05 275) 32%,
-        oklch(0.115 0.035 288) 46%,
-        oklch(0.16 0.07 283) 60%,
-        oklch(0.13 0.05 262) 74%,
-        oklch(0.11 0.032 286) 88%,
-        oklch(0.085 0.026 286) 100%
-      );
+    background: linear-gradient(
+      180deg,
+      oklch(0.1 0.028 286) 0%,
+      oklch(0.145 0.055 285) 16%,
+      oklch(0.13 0.05 275) 32%,
+      oklch(0.115 0.035 288) 46%,
+      oklch(0.16 0.07 283) 60%,
+      oklch(0.13 0.05 262) 74%,
+      oklch(0.11 0.032 286) 88%,
+      oklch(0.085 0.026 286) 100%
+    );
   }
 
   /* Soft floating glow orb that bridges section boundaries */
@@ -337,7 +425,6 @@
   .flow-orb-teal {
     background: radial-gradient(circle, oklch(0.75 0.13 250 / 45%), transparent 70%);
   }
-
 
   /* ---- Animated trust icons ---- */
   /* Shared: make SVG group transforms pivot from their own center */
@@ -387,13 +474,6 @@
     );
   }
 
-  /* Display type for the hero statement */
-  .text-hero {
-    font-size: clamp(2.75rem, 8.6vw, 8rem);
-    line-height: 0.92;
-    letter-spacing: -0.05em;
-  }
-
   /* Display type for the split hero statement */
   .text-hero-split {
     font-size: clamp(2.8rem, 6vw, 5.8rem);
@@ -433,7 +513,7 @@
 
 /*
  * Landing homepage (portfolio-template layout, Vortex brand).
- * Accent gradient = the brand gradient (violet → mint); used on the logo ring,
+ * Accent gradient = the brand gradient (violet → cold blue); used on the logo ring,
  * hover border rings and the intro progress bar.
  */
 @layer utilities {
@@ -445,7 +525,7 @@
     background-image: linear-gradient(
       90deg,
       oklch(0.585 0.225 282),
-      oklch(0.83 0.13 174),
+      oklch(0.72 0.14 250),
       oklch(0.585 0.225 282)
     );
     background-size: 200% 200%;
@@ -458,9 +538,6 @@
   .animate-gradient-shift-reverse {
     background-size: 200% 200%;
     animation: gradient-shift 6s ease infinite reverse;
-  }
-  .animate-scroll-down {
-    animation: scroll-down 1.5s ease-in-out infinite;
   }
   .animate-role-fade-in {
     animation: role-fade-in 0.4s ease-out both;
@@ -479,71 +556,18 @@
 }
 
 /*
- * Search-first hero (Vortex Scan mockup): violet → blue accents, a glass search
- * pill with a breathing rim, and a drifting asteroid field. Every animation here
- * freezes under the pause switch and reduced motion (rules below / at the end).
+ * The one accent for an emphasised word in a heading (hero title, section
+ * headings, /scan step titles): a static soft lavender, violet-300 → violet-200.
+ * Not text-* on purpose, so tailwind-merge never drops it as a text colour.
  */
 @layer utilities {
-  .text-gradient-hero {
-    background-image: linear-gradient(100deg, #7b6cf6 0%, #6b84f0 55%, #72aef5 100%);
+  .heading-accent {
+    background-image: linear-gradient(90deg, #a996fb, #b4a6fc 50%, #c4b8fd);
     -webkit-background-clip: text;
     background-clip: text;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
     color: transparent;
-  }
-  .bg-gradient-hero-button {
-    background-image: linear-gradient(135deg, #7a85f7 0%, #89cbf6 100%);
-  }
-  .vortex-search-rim {
-    background-image: linear-gradient(
-      100deg,
-      rgb(124 108 246 / 0.75) 0%,
-      rgb(150 140 255 / 0.95) 45%,
-      rgb(108 140 240 / 0.8) 70%,
-      rgb(124 108 246 / 0.6) 100%
-    );
-    animation: search-breathe 4.5s ease-in-out infinite;
-  }
-  .animate-twinkle {
-    animation: twinkle 3.6s ease-in-out infinite;
-  }
-  .animate-asteroid-drift {
-    animation: asteroid-drift 26s ease-in-out infinite alternate;
-  }
-}
-
-@keyframes search-breathe {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 1px rgb(124 108 246 / 0.25),
-      0 0 28px 2px rgb(108 99 255 / 0.28),
-      0 0 70px 6px rgb(91 140 240 / 0.12);
-  }
-  50% {
-    box-shadow:
-      0 0 0 1px rgb(124 108 246 / 0.35),
-      0 0 40px 4px rgb(108 99 255 / 0.42),
-      0 0 90px 10px rgb(91 140 240 / 0.2);
-  }
-}
-
-@keyframes twinkle {
-  0%,
-  100% {
-    opacity: 0.35;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-@keyframes asteroid-drift {
-  from {
-    transform: translate3d(0, 0, 0) rotate(0deg);
-  }
-  to {
-    transform: translate3d(var(--drift-x, 12px), var(--drift-y, -18px), 0)
-      rotate(var(--drift-r, 8deg));
   }
 }
 
@@ -651,7 +675,6 @@ html[data-motion="paused"] *::after {
   }
 }
 
-
 @keyframes ti-aura-pulse {
   0%,
   100% {
@@ -750,10 +773,16 @@ html[data-motion="paused"] *::after {
 @keyframes aurora-drift {
   0%,
   100% {
-    background-position: 0% 0%, 100% 0%, 50% 100%;
+    background-position:
+      0% 0%,
+      100% 0%,
+      50% 100%;
   }
   50% {
-    background-position: 30% 40%, 60% 30%, 40% 60%;
+    background-position:
+      30% 40%,
+      60% 30%,
+      40% 60%;
   }
 }
 

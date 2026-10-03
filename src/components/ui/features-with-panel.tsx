@@ -74,7 +74,7 @@ function FeatureMedia({ item, tone }: { item: FeatureItem; tone: "brand" | "none
   } else {
     media = (
       <div className="flex h-full w-full items-center justify-center p-8">
-        <p className="text-sm leading-relaxed text-muted-foreground">{content}</p>
+        <p className="type-body-sm text-muted-foreground">{content}</p>
       </div>
     );
   }
@@ -129,41 +129,53 @@ export default function FeaturesWithPanel({
   const rootRef = React.useRef<HTMLDivElement>(null);
   const barRef = React.useRef<HTMLSpanElement>(null);
   const pausedRef = React.useRef(false);
-  const inViewRef = React.useRef(false);
 
   const cycling = autoplay && Boolean(autoAdvanceMs) && !reduced && !paused;
 
+  // Advance after autoAdvanceMs of visible, un-hovered time, filling the bar. The
+  // frame loop only runs while the list is on screen and the tab is visible.
   React.useEffect(() => {
     const root = rootRef.current;
-    if (!root || !cycling) return;
-    const observer = new IntersectionObserver(([entry]) => {
-      inViewRef.current = entry.isIntersecting;
-    });
-    observer.observe(root);
-    return () => observer.disconnect();
-  }, [cycling]);
-
-  // Advance after autoAdvanceMs of visible, un-hovered time, filling the bar.
-  React.useEffect(() => {
-    if (!cycling || !autoAdvanceMs) return;
+    if (!root || !cycling || !autoAdvanceMs) return;
     let frame = 0;
-    let last = performance.now();
+    let last = 0;
     let elapsed = 0;
+    let inView = false;
     const tick = (now: number) => {
-      const dt = now - last;
+      const dt = Math.max(0, now - last);
       last = now;
-      if (!pausedRef.current && inViewRef.current && !document.hidden) elapsed += dt;
+      if (!pausedRef.current) elapsed += dt;
       if (barRef.current) {
         barRef.current.style.transform = `scaleX(${Math.min(1, elapsed / autoAdvanceMs)})`;
       }
       if (elapsed >= autoAdvanceMs) {
+        frame = 0;
         setActive((index) => (index + 1) % items.length);
         return;
       }
       frame = requestAnimationFrame(tick);
     };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    const sync = () => {
+      const run = inView && !document.hidden;
+      if (run && !frame) {
+        last = performance.now();
+        frame = requestAnimationFrame(tick);
+      } else if (!run && frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      sync();
+    });
+    observer.observe(root);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", sync);
+      cancelAnimationFrame(frame);
+    };
   }, [active, cycling, autoAdvanceMs, items.length]);
 
   const select = (index: number) => {
@@ -212,19 +224,18 @@ export default function FeaturesWithPanel({
                     aria-controls={isActive ? `${panelId}-${index}` : undefined}
                     className="flex w-full items-center gap-4 rounded-2xl px-4 py-3.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                   >
+                    {/* A plain index, lavender while active (no disc). */}
                     <span
                       className={cn(
-                        "grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold tabular-nums transition-colors duration-300",
-                        isActive
-                          ? "accent-gradient text-[oklch(0.12_0.03_286)]"
-                          : "bg-white/[0.06] text-muted-foreground",
+                        "type-label w-8 shrink-0 tabular-nums transition-colors duration-300",
+                        isActive ? "text-[#c4b5fd]" : "text-muted-foreground",
                       )}
                     >
                       {String(index + 1).padStart(2, "0")}
                     </span>
                     <span
                       className={cn(
-                        "font-display text-base font-medium transition-colors duration-300 md:text-lg",
+                        "type-h3 transition-colors duration-300",
                         isActive ? "text-foreground" : "text-muted-foreground",
                       )}
                     >
@@ -244,9 +255,7 @@ export default function FeaturesWithPanel({
                       >
                         <div className="px-4 pb-4 pl-16">
                           {item.description && (
-                            <p className="text-sm leading-relaxed text-muted-foreground">
-                              {item.description}
-                            </p>
+                            <p className="type-body-sm text-muted-foreground">{item.description}</p>
                           )}
                         </div>
                         <div className="px-4 pb-4 lg:hidden">
@@ -298,7 +307,7 @@ export default function FeaturesWithPanel({
               className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-3 p-6"
             >
               <span className="h-px w-8 bg-foreground/40" />
-              <span className="text-xs tabular-nums tracking-[0.2em] text-foreground/80">
+              <span className="type-label tabular-nums text-foreground/80">
                 {String(active + 1).padStart(2, "0")} / {String(items.length).padStart(2, "0")}
               </span>
             </div>

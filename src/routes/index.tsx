@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
     ],
     links: [
       { rel: "canonical", href: "/" },
-      { rel: "preload", as: "image", href: "/media/vortex-swirl/poster.jpg" },
+      { rel: "preload", as: "image", href: "/media/swirl-loop/poster.jpg" },
       { rel: "preconnect", href: "https://images.unsplash.com" },
     ],
     scripts: [
