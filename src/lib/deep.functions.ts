@@ -28,7 +28,7 @@ import {
   type DeepConfig,
 } from "@/lib/deep/env.server";
 import { createAnthropicTransport } from "@/lib/deep/llm/anthropic.server";
-import { createMemoryStore, type MemoryStore } from "@/lib/deep/llm/ledger-memory.server";
+import { createTableStore, userEntitlements } from "@/lib/deep/persist.server";
 import type { LlmClient } from "@/lib/deep/llm/types";
 import { engineStart, engineStep, type EngineDeps } from "@/lib/deep/steps/dispatch.server";
 import { provisionalReportParts } from "@/lib/deep/steps/report-fallback.server";
@@ -81,19 +81,32 @@ const bodyLimit = createMiddleware({ type: "function" }).server(async ({ next, d
 
 /* ---------------------------------------------------------------- stores */
 
-let memoryStore: MemoryStore | undefined;
-/** The development ledger (one per isolate); see the seams above. */
-function memory(): MemoryStore {
-  memoryStore ??= createMemoryStore();
-  return memoryStore;
+let tableStore: DeepStore | undefined;
+/** The persistent ledger (database tables). */
+function tables(): DeepStore {
+  tableStore ??= createTableStore();
+  return tableStore;
 }
 
-function storeForNewRun(): { store: DeepStore; kind: "memory" } {
-  return { store: memory(), kind: "memory" };
+function storeForNewRun(): { store: DeepStore; kind: "tables" } {
+  return { store: tables(), kind: "tables" };
 }
 
 function storeFor(_kind: "stopgap" | "tables" | "memory"): DeepStore {
-  return memory();
+  return tables();
+}
+
+/** The config with this user's admin role (from the roles table) and paid plan applied. */
+async function configFor(userId: string | null): Promise<{ config: DeepConfig; premium: boolean }> {
+  const config = readDeepConfig();
+  if (!userId) return { config, premium: false };
+  const ent = await userEntitlements(userId, config.premiumTiers).catch(() => ({
+    isAdmin: false,
+    premium: false,
+  }));
+  if (ent.isAdmin && !config.adminUserIds.includes(userId.toLowerCase()))
+    config.adminUserIds = [...config.adminUserIds, userId.toLowerCase()];
+  return { config, premium: ent.premium };
 }
 
 /* -------------------------------------------------------------- helpers */
@@ -136,9 +149,7 @@ async function runGuard(
 ): Promise<{ ok: true; store: DeepStore } | { ok: false; reason: AccessReason }> {
   const config = readDeepConfig();
   if (config.mode === "disabled") return { ok: false, reason: "mode_disabled" };
-  const { store, kind } = storeForNewRun();
-  if (kind === "memory" && !config.adminUserIds.includes(userId.toLowerCase()))
-    return { ok: false, reason: "admin_only" };
+  const { store } = storeForNewRun();
   const run = await store.getRun(runId, userId).catch(() => null);
   if (!run) return { ok: false, reason: "run_not_found" };
   return { ok: true, store };
@@ -306,31 +317,22 @@ export const getDeepAccess = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }): Promise<DeepAccess> => {
-    const config = readDeepConfig();
     const userId = await optionalUserId();
+    const { config, premium } = await configFor(userId);
     const { store } = storeForNewRun();
     const stats = userId ? await store.dayStats(userId).catch(() => null) : null;
     const access = await provisionalAccess(config, {
       userId,
       testCode: data?.testCode,
-      persistence: "memory",
+      premium,
+      persistence: "tables",
       todayUsd: stats?.allUsd,
       userRunsToday: stats?.userRuns,
     });
-    // The in-memory ledger is acceptable for admins only (fail closed elsewhere).
-    if (access.allowed && access.via !== "admin") {
-      return { ...access, allowed: false, reason: "ledger_unavailable", via: undefined };
-    }
-    // Its day cap holds per isolate: AI only by explicit opt-in (DEEP_MEMORY_LEDGER_AI=on).
     return {
       ...access,
-      ai: access.ai && config.memoryLedgerAi,
       admin: access.admin
-        ? {
-            ...access.admin,
-            ledger: config.memoryLedgerAi ? "memory_ai_per_isolate" : "memory_rules_only",
-            unknownExtractModel: config.unknownExtractModel,
-          }
+        ? { ...access.admin, unknownExtractModel: config.unknownExtractModel }
         : undefined,
     };
   });
@@ -353,7 +355,7 @@ export const startDeepRun = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<StartDeepRunOutput> => {
-    const config = readDeepConfig();
+    const { config, premium } = await configFor(context.userId);
     const secret = await resolveRunSecret(config);
     if (!secret) return { ok: false, reason: "ledger_unavailable" };
     const { store, kind } = storeForNewRun();
@@ -362,13 +364,12 @@ export const startDeepRun = createServerFn({ method: "POST" })
     const access = await provisionalAccess(config, {
       userId: context.userId,
       testCode: data.testCode,
+      premium,
       persistence: kind,
       todayUsd: stats.allUsd,
       userRunsToday: stats.userRuns,
     });
     if (!access.allowed || !access.via) return { ok: false, reason: access.reason ?? "admin_only" };
-    if (kind === "memory" && access.via !== "admin")
-      return { ok: false, reason: "ledger_unavailable" };
     return engineStart(engineDeps(config, secret), {
       uid: context.userId,
       via: access.via,
@@ -384,7 +385,7 @@ export const deepStep = createServerFn({ method: "POST" })
   .middleware([bodyLimit, requireSupabaseAuth])
   .inputValidator((input: unknown) => stepInput.parse(input))
   .handler(async ({ data, context }): Promise<DeepStepOutput> => {
-    const config = readDeepConfig();
+    const { config } = await configFor(context.userId);
     if (config.mode === "disabled") return { kind: "refused", reason: "mode_disabled" };
     const secret = await resolveRunSecret(config);
     if (!secret) return { kind: "refused", reason: "ledger_unavailable" };
@@ -405,7 +406,7 @@ export const resumeDeepRun = createServerFn({ method: "POST" })
       data,
       context,
     }): Promise<{ ok: true; ticket: string } | { ok: false; reason: AccessReason }> => {
-      const config = readDeepConfig();
+      const { config } = await configFor(context.userId);
       if (config.mode === "disabled") return { ok: false, reason: "mode_disabled" };
       const secret = await resolveRunSecret(config);
       if (!secret || !data.ticket) return { ok: false, reason: "run_not_found" };
