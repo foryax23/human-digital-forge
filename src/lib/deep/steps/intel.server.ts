@@ -4,6 +4,8 @@ import { bi, count } from "../parse/format";
 import { fold } from "../parse/text";
 import { classifySocialUrl, normalizeSocialUrl } from "@/lib/scan/audit/social";
 
+import { paidCall } from "../llm/paid.server";
+
 import { fact, gap } from "./common.server";
 
 /*
@@ -45,7 +47,7 @@ export type NewsItem = { title: string; url: string; date: string; outlet?: stri
 const RISK_WORDS =
   /insolven|faliment|amend|sanc[tț]i|anchet|perchezi|dosar|fraud|evaziun|scandal|reclama[tț]i|anpc|inchis|închis|concedier|datori|executare|controvers/i;
 const GROWTH_WORDS =
-  /investi|lanseaz|lansare|extinde|deschide|achizi|finan[tț]are|cre[sș]tere|record|premiu|parteneriat|export|fonduri|angajeaz|nou magazin|inaugur/i;
+  /investi|lanseaz|lansare|extinde|deschide|achizi|finan[tț]are|cre[sș]tere|record|premiu|parteneriat|export|fonduri|angajeaz|nou magazin|inaugur|dezvolt|complex comercial/i;
 
 export function parseNewsRss(xml: string, tokens: string[], sinceMs: number): NewsItem[] {
   const out: NewsItem[] = [];
@@ -131,7 +133,7 @@ export function parseSearchLinks(html: string): string[] {
   return out;
 }
 
-export type FoundProfile = { platform: string; url: string; via: "search" | "linkhub" };
+export type FoundProfile = { platform: string; url: string; via: "search" | "linkhub" | "ai_search" };
 
 const SOCIAL_SITES = ["instagram.com", "facebook.com", "tiktok.com", "linkedin.com/company", "youtube.com"];
 const LINKHUB = /^https?:\/\/(www\.)?(linktr\.ee|bio\.site|beacons\.ai|campsite\.bio)\/[^/?#]+/i;
@@ -184,8 +186,69 @@ export async function discoverSocial(env: StepEnv): Promise<FoundProfile[] | nul
       found.set(match.platform, { platform: match.platform, url: normalizeSocialUrl(m[1]), via: "linkhub" });
     }
   }
+  // Search engines often refuse server traffic; Claude's web search finds the brand's real
+  // channels (also when the trade name differs from the legal name) within the run budget.
+  if (found.size < 3 && env.llm) {
+    const extra = await claudeSocialSearch(env, brand);
+    if (extra) {
+      answered = true;
+      for (const p of extra) if (!found.has(p.platform)) found.set(p.platform, p);
+    }
+  }
   if (!answered) return null;
   return [...found.values()];
+}
+
+async function claudeSocialSearch(env: StepEnv, brand: string): Promise<FoundProfile[] | null> {
+  const llm = env.llm;
+  if (!llm || env.deadline - env.now() < 12_000) return null;
+  const model = llm.models.extraction;
+  const where = [env.identity.city, env.identity.county].filter(Boolean).join(", ");
+  const prompt = `Find the official social media profiles of the Romanian company "${env.identity.name}" (CUI ${env.cui}${where ? `, based in ${where}` : ""}). Its trade name may be "${brand}" or a different brand. Search the web. Reply ONLY with one profile URL per line (Instagram, Facebook, TikTok, LinkedIn company page, YouTube), only profiles you are confident belong to this company. If none, reply NONE.`;
+  try {
+    const outcome = await paidCall({
+      ledger: env.ledger,
+      runId: env.runId,
+      step: env.step,
+      idemKey: `${env.runId}|${env.step}|social-search`,
+      plan: { model, inputTokens: 25_000, maxTokens: 800, fallback: false },
+      floor: 400,
+      exec: (maxTokens) =>
+        llm.transport.create(
+          {
+            model,
+            max_tokens: maxTokens,
+            messages: [{ role: "user", content: prompt }],
+            tools: [
+              {
+                type: "web_search_20250305",
+                name: "web_search",
+                max_uses: 3,
+                user_location: { type: "approximate", country: "RO" },
+              },
+            ],
+          },
+          { timeoutMs: Math.max(8000, env.deadline - env.now() - 2000) },
+        ),
+      deadline: env.deadline,
+      now: env.now,
+      log: env.log,
+    });
+    if (outcome.kind !== "ok") return null;
+    const text = outcome.message.content
+      .map((b) => (b.type === "text" && typeof b.text === "string" ? b.text : ""))
+      .join("\n");
+    const out: FoundProfile[] = [];
+    for (const m of text.matchAll(/https?:\/\/[^\s)\]>"']+/g)) {
+      const match = classifySocialUrl(m[0]);
+      if (!match?.profile || out.some((p) => p.platform === match.platform)) continue;
+      out.push({ platform: match.platform, url: normalizeSocialUrl(m[0]), via: "ai_search" });
+    }
+    return out;
+  } catch (error) {
+    env.log({ intel: "claude-search", error: String((error as Error)?.message ?? error) });
+    return null;
+  }
 }
 
 const PLATFORM: Record<string, string> = {
