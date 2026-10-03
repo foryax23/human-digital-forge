@@ -780,6 +780,13 @@ export const KNOWN_PREDICATES = [
   "presence.social_profile",
   "presence.news.count",
   "presence.news.item",
+  // AI web-search profile (each item cites a returned search result)
+  "profile.tradeNames",
+  "profile.people",
+  "profile.customers",
+  "profile.reviews",
+  "profile.ads",
+  "profile.events",
   // risk (courts, TED)
   "risk.courts.checked",
   "risk.courts.as_plaintiff",
