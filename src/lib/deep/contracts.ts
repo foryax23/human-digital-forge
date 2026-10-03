@@ -124,6 +124,8 @@ export type SourceId =
   | "dns"
   | "google_places"
   | "competitor_site"
+  | "news"
+  | "web_search"
   | "calc"
   | "user";
 export type Confidence = "confirmat" | "probabil" | "calculat" | "estimare" | "declarat";
@@ -774,6 +776,10 @@ export const KNOWN_PREDICATES = [
   "presence.social_linked",
   "presence.google_profile_linked",
   "presence.social_only",
+  "presence.social_found",
+  "presence.social_profile",
+  "presence.news.count",
+  "presence.news.item",
   // risk (courts, TED)
   "risk.courts.checked",
   "risk.courts.as_plaintiff",

@@ -12,6 +12,7 @@ import { bi, count } from "../parse/format";
 import { parseTed, tedQuery, type TedSummary } from "../parse/ted";
 
 import { fact, gap, isoDay, type StepDraft } from "./common.server";
+import { discoverSocial, intelFacts, searchNews } from "./intel.server";
 
 /*
  * Step 3, "signals" (plan A3, D7, A9): court cases from portal.just.ro (up to
@@ -242,10 +243,15 @@ export async function runSignals(env: StepEnv): Promise<StepDraft> {
   const facts: Fact[] = [];
   const gaps: Gap[] = [];
   let sourcesOk = 0;
-  const [courts, ted] = await Promise.all([
+  const [courts, ted, news, social] = await Promise.all([
     env.sources.courts ? searchCourts(env) : Promise.resolve(null),
     env.sources.ted ? searchTed(env) : Promise.resolve(null),
+    searchNews(env).catch(() => null),
+    discoverSocial(env).catch(() => null),
   ]);
+  const intel = intelFacts(news, social, today);
+  facts.push(...intel.facts);
+  gaps.push(...intel.gaps);
   if (courts) {
     sourcesOk++;
     facts.push(...courtFacts(courts.summary, today));

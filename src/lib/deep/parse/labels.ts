@@ -137,6 +137,10 @@ const PREDICATE_LABELS: Record<string, Bilingual> = {
     "Profil Google legat de pe site",
   ),
   "presence.social_only": bi("Only social pages (declared)", "Doar pagini sociale (declarat)"),
+  "presence.social_found": bi("Social profiles found by web search", "Profiluri sociale găsite prin căutare"),
+  "presence.social_profile": bi("Social profile (found by search)", "Profil social (găsit prin căutare)"),
+  "presence.news.count": bi("Press coverage, last 24 months", "Apariții în presă, ultimele 24 de luni"),
+  "presence.news.item": bi("Press article", "Articol de presă"),
   "risk.courts.checked": bi("Court portal checked", "Portalul instanțelor verificat"),
   "risk.courts.as_plaintiff": bi(
     "Cases the company opened (36 months)",
@@ -201,6 +205,8 @@ export const SOURCE_LABELS: Record<SourceId, Bilingual> = {
   dns: bi("Public DNS records", "Înregistrări DNS publice"),
   google_places: bi("Google (displayed only)", "Google (doar afișat)"),
   competitor_site: bi("The rival's website", "Site-ul concurentului"),
+  news: bi("Press articles (Google News)", "Articole de presă (Google News)"),
+  web_search: bi("Public web search", "Căutare web publică"),
   calc: bi("Our calculation on official figures", "Calculul nostru pe cifre oficiale"),
   user: bi("Declared by you", "Declarat de tine"),
 };
@@ -221,4 +227,5 @@ export const SOURCE_URLS: Partial<Record<SourceId, string>> = {
   courts: "https://portal.just.ro",
   ted: "https://ted.europa.eu",
   pagespeed: "https://pagespeed.web.dev",
+  news: "https://news.google.com",
 };
