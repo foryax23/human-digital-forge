@@ -141,6 +141,12 @@ const PREDICATE_LABELS: Record<string, Bilingual> = {
   "presence.social_profile": bi("Social profile (found by search)", "Profil social (găsit prin căutare)"),
   "presence.news.count": bi("Press coverage, last 24 months", "Apariții în presă, ultimele 24 de luni"),
   "presence.news.item": bi("Press article", "Articol de presă"),
+  "profile.tradeNames": bi("Trade name (web search)", "Nume comercial (căutare web)"),
+  "profile.people": bi("Key person (public source)", "Persoană-cheie (sursă publică)"),
+  "profile.customers": bi("Who the customers are", "Cine sunt clienții"),
+  "profile.reviews": bi("Review standing", "Recenzii și reputație"),
+  "profile.ads": bi("Advertising seen", "Publicitate observată"),
+  "profile.events": bi("Notable event", "Eveniment notabil"),
   "risk.courts.checked": bi("Court portal checked", "Portalul instanțelor verificat"),
   "risk.courts.as_plaintiff": bi(
     "Cases the company opened (36 months)",
