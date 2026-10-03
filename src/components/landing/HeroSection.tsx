@@ -4,6 +4,7 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import type { AsciiVortexState, OrbitSector } from "./ascii";
 import { gsap, prefersReducedMotion, useGsap } from "./gsap";
+import { WarpWords } from "./hero/WarpWords";
 import { HeroPillars } from "./hero/HeroPillars";
 import { ReticleMark } from "./hero/icons";
 import { HeroCosmos, VORTEX_CENTRE } from "./HeroCosmos";
@@ -154,10 +155,12 @@ export function HeroSection() {
             className="type-display name-reveal mb-5 text-balance text-white [text-shadow:0_2px_30px_rgb(0_2_15/0.6)] lg:mb-[clamp(1rem,2.6vh,1.5rem)]"
           >
             <span className="block">{t("Discover the potential", "Descoperă potențialul")}</span>
-            {/* The site's heading accent (soft lavender); pb keeps the descenders inside the clip. */}
-            <span className="hero-heading-accent inline-block pb-[0.06em] [text-shadow:none]">
-              {t("of your business.", "afacerii tale.")}
-            </span>
+            {/* The site's heading accent (soft lavender), gently warped; pb keeps the descenders inside the clip. */}
+            <WarpWords
+              text={t("of your business.", "afacerii tale.")}
+              className="pb-[0.06em] [text-shadow:none]"
+              textClassName="hero-heading-accent"
+            />
           </h1>
 
           <p
@@ -213,7 +216,7 @@ export function HeroSection() {
 
         <button
           type="button"
-          onClick={() => scrollToSection("work")}
+          onClick={() => scrollToSection("services")}
           className="type-label group/scroll hidden flex-col items-center gap-2.5 rounded-md px-3 py-1 text-white/45 transition-colors hover:text-white/85 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-hero-lilac/60 md:flex"
         >
           {t("Scroll to explore", "Derulează")}
