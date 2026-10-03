@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WebsitesRouteImport } from './routes/websites'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as ScanRouteImport } from './routes/scan'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -53,6 +54,11 @@ const TermsRoute = TermsRouteImport.update({
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScanRoute = ScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/scan': typeof ScanRoute
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/websites': typeof WebsitesRoute
@@ -240,6 +247,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/scan': typeof ScanRoute
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/websites': typeof WebsitesRoute
@@ -273,6 +281,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/scan': typeof ScanRoute
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
   '/websites': typeof WebsitesRoute
@@ -307,6 +316,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/register'
     | '/reset-password'
+    | '/scan'
     | '/services'
     | '/terms'
     | '/websites'
@@ -338,6 +348,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/register'
     | '/reset-password'
+    | '/scan'
     | '/services'
     | '/terms'
     | '/websites'
@@ -370,6 +381,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/register'
     | '/reset-password'
+    | '/scan'
     | '/services'
     | '/terms'
     | '/websites'
@@ -403,6 +415,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ScanRoute: typeof ScanRoute
   ServicesRoute: typeof ServicesRoute
   TermsRoute: typeof TermsRoute
   WebsitesRoute: typeof WebsitesRoute
@@ -434,6 +447,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scan': {
+      id: '/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof ScanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -669,6 +689,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ScanRoute: ScanRoute,
   ServicesRoute: ServicesRoute,
   TermsRoute: TermsRoute,
   WebsitesRoute: WebsitesRoute,
