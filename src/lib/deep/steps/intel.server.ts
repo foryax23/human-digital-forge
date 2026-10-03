@@ -118,12 +118,15 @@ export async function searchNews(env: StepEnv): Promise<NewsItem[] | null> {
 /** Result links from DuckDuckGo's HTML page (redirect links unwrapped). */
 export function parseSearchLinks(html: string): string[] {
   const out: string[] = [];
-  for (const m of html.matchAll(/<a[^>]+class="[^"]*result__a[^"]*"[^>]+href="([^"]+)"/g)) {
-    let href = decode(m[1]);
-    const uddg = href.match(/[?&]uddg=([^&]+)/);
-    if (uddg) href = decodeURIComponent(uddg[1]);
-    if (href.startsWith("//")) href = `https:${href}`;
-    out.push(href);
+  for (const m of html.matchAll(/href=["']([^"']*[?&]uddg=[^"']+)["']/g)) {
+    const uddg = decode(m[1]).match(/[?&]uddg=([^&]+)/);
+    if (!uddg) continue;
+    try {
+      const href = decodeURIComponent(uddg[1]);
+      if (!out.includes(href)) out.push(href);
+    } catch {
+      // malformed link
+    }
   }
   return out;
 }
@@ -134,9 +137,15 @@ const SOCIAL_SITES = ["instagram.com", "facebook.com", "tiktok.com", "linkedin.c
 const LINKHUB = /^https?:\/\/(www\.)?(linktr\.ee|bio\.site|beacons\.ai|campsite\.bio)\/[^/?#]+/i;
 
 function handleMatches(url: string, tokens: string[]): boolean {
-  const path = fold(decodeURIComponent(new URL(url).pathname)).replace(/[^a-z0-9]/g, "");
+  // The handle must start with the brand and add little else (rejects "brandvenezia" lookalikes
+  // only partly, so profiles stay "probabil" with a check-at-source note).
+  const segment = fold(decodeURIComponent(new URL(url).pathname))
+    .split("/")
+    .filter((p) => p && !["company", "pages", "channel", "c", "user"].includes(p))[0]
+    ?.replace(/[^a-z0-9]/g, "");
+  if (!segment) return false;
   const joined = tokens.join("");
-  return path.includes(joined) || tokens.filter((t) => t.length >= 4).some((t) => path.includes(t));
+  return segment.startsWith(joined) && segment.length <= joined.length + 6;
 }
 
 export async function discoverSocial(env: StepEnv): Promise<FoundProfile[] | null> {
@@ -148,11 +157,10 @@ export async function discoverSocial(env: StepEnv): Promise<FoundProfile[] | nul
   const hubs: string[] = [];
   const q = `"${brand}" (${SOCIAL_SITES.map((s) => `site:${s}`).join(" OR ")})`;
   for (const query of [q, `${brand} instagram facebook tiktok`]) {
-    const html = await fetchText(env, "https://html.duckduckgo.com/html/", {
-      method: "POST",
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-      body: `q=${encodeURIComponent(query)}&kl=ro-ro`,
-    });
+    const html = await fetchText(
+      env,
+      `https://lite.duckduckgo.com/lite/?q=${encodeURIComponent(query)}&kl=ro-ro`,
+    );
     if (html === null) continue;
     answered = true;
     for (const link of parseSearchLinks(html)) {
