@@ -1,12 +1,13 @@
-import { useId, useMemo } from "react";
+import { useMemo } from "react";
 
 import { cn } from "@/lib/utils";
 import { ARC_HUBS, landDots, toVector, type LatLon } from "./geo";
 
 /*
- * SVG stand-in for the 3D globe (phones, reduced motion, no WebGL, and the
+ * SVG stand-in for the 3D globe (tablets, reduced motion, no WebGL, and the
  * first paint before three.js loads): the same dotted Earth, orthographic,
- * turned to the same pose, with static arcs and the home marker.
+ * turned to the same pose, with static arcs and the home marker. Neutral dots on
+ * a solid disc; no halo or rim glow.
  */
 
 const SIZE = 400;
@@ -47,8 +48,6 @@ export function StaticGlobe({
   showDots?: boolean;
   className?: string;
 }) {
-  const id = useId().replace(/:/g, "");
-
   const shape = useMemo(() => {
     if (!showDots) return null;
     const project = makeProjector(home);
@@ -101,68 +100,38 @@ export function StaticGlobe({
     };
   }, [home, showDots]);
 
-  const accent = done ? "#5fe3d0" : "#89cbf6";
-
+  // One accent: Romania and the home marker in the brand line; the rest is neutral.
   return (
     <svg
       viewBox={`0 0 ${SIZE} ${SIZE}`}
       aria-hidden
+      data-done={done || undefined}
       className={cn("h-full w-full overflow-visible", className)}
     >
-      <defs>
-        <radialGradient id={`${id}-halo`} cx="50%" cy="50%" r="50%">
-          <stop offset={`${(R / (R * 1.24)) * 100 - 6}%`} stopColor="#6c63ff" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="#5b8cf0" stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id={`${id}-body`} cx="42%" cy="38%" r="65%">
-          <stop offset="0%" stopColor="#0b1033" />
-          <stop offset="70%" stopColor="#04061a" />
-          <stop offset="100%" stopColor="#1b1957" />
-        </radialGradient>
-        <linearGradient id={`${id}-dots`} x1="0" y1="1" x2="1" y2="0">
-          <stop offset="0%" stopColor="#6c63ff" />
-          <stop offset="55%" stopColor="#5b8cf0" />
-          <stop offset="100%" stopColor="#89cbf6" />
-        </linearGradient>
-        <linearGradient id={`${id}-arc`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#89cbf6" stopOpacity="0.7" />
-          <stop offset="100%" stopColor="#6c63ff" stopOpacity="0.15" />
-        </linearGradient>
-      </defs>
-
-      <circle cx={CENTRE} cy={CENTRE} r={R * 1.24} fill={`url(#${id}-halo)`} />
-      <circle
-        cx={CENTRE}
-        cy={CENTRE}
-        r={R}
-        fill={`url(#${id}-body)`}
-        stroke="#6c63ff"
-        strokeOpacity="0.35"
-      />
+      <circle cx={CENTRE} cy={CENTRE} r={R} className="fill-s1 stroke-line-2" strokeWidth="1" />
 
       {shape && (
         <>
           <path
             d={shape.limb}
-            stroke={`url(#${id}-dots)`}
+            className="stroke-fg-4"
             strokeWidth="1.7"
             strokeLinecap="round"
-            opacity="0.4"
+            opacity="0.6"
           />
+          <path d={shape.front} className="stroke-fg-3" strokeWidth="2" strokeLinecap="round" />
           <path
-            d={shape.front}
-            stroke={`url(#${id}-dots)`}
-            strokeWidth="2"
+            d={shape.romania}
+            className="stroke-brand-line"
+            strokeWidth="2.4"
             strokeLinecap="round"
-            opacity="0.85"
           />
-          <path d={shape.romania} stroke={accent} strokeWidth="2.4" strokeLinecap="round" />
           {shape.arcs.map((d, i) => (
-            <path key={i} d={d} fill="none" stroke={`url(#${id}-arc)`} strokeWidth="0.9" />
+            <path key={i} d={d} fill="none" className="stroke-line-3" strokeWidth="0.9" />
           ))}
           <g transform={`translate(${fmt(shape.home.x)} ${fmt(shape.home.y)})`}>
-            <circle r="9" fill="none" stroke={accent} strokeOpacity="0.45" />
-            <circle r="4" fill={accent} />
+            <circle r="9" fill="none" className="stroke-brand-line" strokeOpacity="0.45" />
+            <circle r="4" className="fill-brand-line" />
           </g>
         </>
       )}

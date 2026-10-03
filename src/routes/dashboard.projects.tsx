@@ -25,9 +25,9 @@ function ProjectCard({ project }: { project: ProjectRow }) {
   const total = TIMELINE_STEPS.length - 1;
   const pct = Math.round((Math.min(project.current_step, total) / total) * 100);
   return (
-    <div className="rounded-2xl border border-border bg-card p-6">
+    <div className="rounded-xl border border-border bg-card p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium capitalize text-primary">
+        <span className="rounded-sm bg-brand-tint px-1.5 py-0.5 text-xs font-medium capitalize text-brand-fg">
           {project.service_type?.replace("-", " ") || t("Project", "Proiect")}
         </span>
         <span className="text-xs text-muted-foreground">
@@ -45,11 +45,12 @@ function ProjectCard({ project }: { project: ProjectRow }) {
           </span>
         )}
       </div>
-      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div className="h-full rounded-full bg-gradient-brand" style={{ width: `${pct}%` }} />
+      <div className="mt-4 h-0.5 w-full overflow-hidden bg-line-2">
+        <div className="h-full bg-brand" style={{ width: `${pct}%` }} />
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        {t("Step", "Pasul")} {Math.min(project.current_step + 1, TIMELINE_STEPS.length)} {t("of", "din")} {TIMELINE_STEPS.length}
+        {t("Step", "Pasul")} {Math.min(project.current_step + 1, TIMELINE_STEPS.length)}{" "}
+        {t("of", "din")} {TIMELINE_STEPS.length}
       </p>
     </div>
   );
@@ -74,10 +75,12 @@ function ProjectsPage() {
       if (!active) return;
       if (err) {
         console.error("[projects] load failed", err);
-        setError(t(
-          "We couldn't load your projects. Please refresh to try again.",
-          "Nu am putut încărca proiectele tale. Te rugăm să reîmprospătezi pagina.",
-        ));
+        setError(
+          t(
+            "We couldn't load your projects. Please refresh to try again.",
+            "Nu am putut încărca proiectele tale. Te rugăm să reîmprospătezi pagina.",
+          ),
+        );
       } else {
         setProjects((data as ProjectRow[]) ?? []);
       }
@@ -115,13 +118,13 @@ function ProjectsPage() {
       )}
 
       {!loading && error && (
-        <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+        <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
           {error}
         </div>
       )}
 
       {!loading && !error && projects.length === 0 && (
-        <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+        <div className="mt-8 rounded-xl border border-dashed border-border bg-card p-10 text-center">
           <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
             <FolderKanban className="h-6 w-6" />
           </span>

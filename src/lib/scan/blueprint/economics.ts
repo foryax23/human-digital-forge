@@ -1,7 +1,9 @@
 import type {
   AutomationOpportunity,
   Bilingual,
+  BreakEven,
   Blueprint,
+  Estimate,
   ProjectionPoint,
   Range,
   RoadmapPhase,
@@ -9,16 +11,19 @@ import type {
 } from "@/lib/scan/types";
 
 import {
-  addRanges,
+  addEstimates,
+  centred,
   formatNumber,
-  formatRange,
-  mapRange,
+  mapEstimate,
+  midOf,
+  midpoint,
   roCount,
   roNeedsDe,
   roundCount,
   roundHours,
   roundMonths,
   roundRon,
+  shareWords,
 } from "./format";
 import { bi, clamp, type OpportunityTemplate, type SignalContext, type VolumeModel } from "./model";
 import type { ResolvedOpportunity } from "./playbooks";
@@ -76,8 +81,17 @@ export const PRICE_BOOK = {
   measurement: Range;
 };
 
-/** Paybacks longer than this are shown as this many months (with a note). */
+/**
+ * Caps the deprecated corner-paired `paybackMonths` ranges. Never displayed:
+ * the screens and the PDF show the break-even month from the projection.
+ */
 export const PAYBACK_CAP_MONTHS = 36;
+
+/** The window the plan, the chart and the break-even look at. */
+export const PROJECTION_MONTHS = 24;
+
+/** Volume scenarios behind the break-even note: ±20%, cost kept at the central quote. */
+export const VOLUME_SCENARIOS = { higher: 1.2, lower: 0.8 } as const;
 
 /** Automation never claims more than this share of the team's working time. */
 const MAX_SHARE_OF_TEAM_TIME = 0.2;
@@ -89,6 +103,10 @@ export type HourlyCost = {
   basis: Bilingual;
   /** CAEN division the figure comes from, when not the national average. */
   division?: string;
+  /** The gross monthly earnings the hourly cost is built from (RON). */
+  grossRon: number;
+  /** The sector the gross figure belongs to; absent for the national average. */
+  sector?: Bilingual;
 };
 
 const loaded = (gross: number) => Math.round((gross * (1 + CAM_RATE)) / HOURS_PER_MONTH);
@@ -111,7 +129,7 @@ export function hourlyCostFor(caen: string | undefined, type: BusinessTypeDef): 
   const sentence = (lead: Bilingual, hourly: number) =>
     bi(
       `${lead.en}, plus the 2.25% employer contribution (CAM), over ${HOURS_PER_MONTH} working hours a month = ${hourly} RON/hour. ${source.en}`,
-      `${lead.ro}, plus contribuția asiguratorie pentru muncă (CAM) de 2,25%, împărțit la ${HOURS_PER_MONTH} de ore lucrate pe lună = ${hourly} lei/oră. ${source.ro}`,
+      `${lead.ro}, plus contribuția asiguratorie pentru muncă (CAM) de 2,25%, împărțit la ${HOURS_PER_MONTH} de ore lucrate pe lună = ${hourly} lei pe oră. ${source.ro}`,
     );
   const national = fmt(NATIONAL_GROSS_RON);
 
@@ -119,6 +137,7 @@ export function hourlyCostFor(caen: string | undefined, type: BusinessTypeDef): 
     const hourly = loaded(NATIONAL_GROSS_RON);
     return {
       hourlyCostRon: hourly,
+      grossRon: NATIONAL_GROSS_RON,
       basis: sentence(
         bi(
           `National average gross monthly earnings (INS, ${WAGE_SOURCE.month.en}): ${national.en} RON`,
@@ -136,6 +155,7 @@ export function hourlyCostFor(caen: string | undefined, type: BusinessTypeDef): 
     return {
       hourlyCostRon: hourly,
       division,
+      grossRon: NATIONAL_GROSS_RON,
       basis: sentence(
         bi(
           `Your sector (${label.en}, CAEN division ${division}) averages ${g.en} RON gross a month (INS, ${WAGE_SOURCE.month.en}), above the national average, so we use the national ${national.en} RON because the work being automated is routine admin`,
@@ -149,6 +169,8 @@ export function hourlyCostFor(caen: string | undefined, type: BusinessTypeDef): 
   return {
     hourlyCostRon: hourly,
     division,
+    grossRon: gross,
+    sector: label,
     basis: sentence(
       bi(
         `INS average gross monthly earnings in ${label.en} (CAEN Rev.3 division ${division}), ${WAGE_SOURCE.month.en}: ${g.en} RON`,
@@ -175,41 +197,48 @@ export function estimateTeamSize(
   ctx: SignalContext,
 ): { range: Range; typical: number; notes: Bilingual[] } {
   let factor = 1;
-  const reasons: Bilingual[] = [];
+  // Why the estimate moved, as "we lowered it a little because …" clauses.
+  const down: Bilingual[] = [];
+  const up: Bilingual[] = [];
   if (!ctx.hasWebsite) {
     factor *= 0.8;
-    reasons.push(
-      bi("no website, so likely on the smaller side", "fără site, deci probabil mai mică"),
-    );
+    down.push(bi("the business has no website", "firma nu are site"));
   } else if ((ctx.signals?.languages.length ?? 0) > 1) {
     factor *= 1.15;
-    reasons.push(bi("a site in several languages", "un site în mai multe limbi"));
+    up.push(bi("the site is in several languages", "site-ul e în mai multe limbi"));
   }
   const reviews = ctx.presence?.googleRating?.reviews;
   if (reviews !== undefined && reviews >= 300) {
     factor *= 1.2;
-    reasons.push(bi("many Google reviews", "multe recenzii Google"));
+    up.push(bi("it has many Google reviews", "are multe recenzii pe Google"));
   } else if (reviews !== undefined && reviews < 20) {
     factor *= 0.85;
-    reasons.push(bi("few Google reviews", "puține recenzii Google"));
+    down.push(bi("it has few Google reviews", "are puține recenzii pe Google"));
   }
   const low = Math.max(1, Math.round(type.teamSize.low * factor));
   const high = Math.max(low + 1, Math.round(type.teamSize.high * factor));
   const range = { low, high };
   const typical = Math.max(1, Math.round(Math.sqrt(low * high)));
-  const adjusted = reasons.length
-    ? bi(
-        `, adjusted for ${reasons.map((x) => x.en).join(" and ")}`,
-        `, ajustată în funcție de ${reasons.map((x) => x.ro).join(" și ")}`,
-      )
-    : bi("", "");
+  const people = bi(
+    `${low}–${high} people`,
+    `${low}–${high} ${roNeedsDe(high) ? "de " : ""}persoane`,
+  );
+  const because = (list: Bilingual[], en: string, ro: string) =>
+    list.length
+      ? bi(
+          ` ${en} because ${list.map((x) => x.en).join(" and ")}.`,
+          ` ${ro} pentru că ${list.map((x) => x.ro).join(" și ")}.`,
+        )
+      : bi("", "");
+  const lowered = because(down, "We lowered the estimate a little", "Am redus puțin estimarea");
+  const raised = because(up, "We raised the estimate a little", "Am mărit puțin estimarea");
   return {
     range,
     typical,
     notes: [
       bi(
-        `Team size is an estimate for a typical ${type.label.en.toLowerCase()} (${low}–${high} people${adjusted.en}), not data. Set your real team size in the simulation.`,
-        `Mărimea echipei este o estimare pentru o afacere tipică de tipul „${type.label.ro}” (${low}–${high} ${roNeedsDe(high) ? "de " : ""}persoane${adjusted.ro}), nu o cifră reală. Poți introduce numărul real de oameni în simulare.`,
+        `Team size is an estimate, not data: ${people.en} for a typical ${type.label.en.toLowerCase()}.${lowered.en}${raised.en} Set your real team size in the simulation.`,
+        `Mărimea echipei e o estimare, nu o cifră reală: ${people.ro} pentru o afacere de tipul „${type.label.ro}”.${lowered.ro}${raised.ro} Poți pune numărul real de oameni în simulare.`,
       ),
     ],
   };
@@ -233,11 +262,16 @@ export function occurrences(
   return volume.perMonth * scale * inputs.volumeFactor * adjust;
 }
 
-/** Hours of manual work removed a month (unrounded). */
-export function rawHours(volume: VolumeModel, count: number): Range {
+/**
+ * Hours of manual work removed a month (unrounded). The central value is the
+ * product of the driver midpoints (minutes × automatable share), not the
+ * midpoint of the corner products, which would lean on the generous corner.
+ */
+export function rawHours(volume: VolumeModel, count: number): Estimate & { mid: number } {
   return {
     low: (count * volume.minutes.low * volume.automatable.low) / 60,
     high: (count * volume.minutes.high * volume.automatable.high) / 60,
+    mid: (count * midpoint(volume.minutes) * midpoint(volume.automatable)) / 60,
   };
 }
 
@@ -290,11 +324,12 @@ function formatFlexRange(range: Range, lang: "en" | "ro") {
   return range.low === range.high ? one(range.low) : `${one(range.low)}–${one(range.high)}`;
 }
 
+/** The automatable share in words: an assumption, never printed as a percentage. */
 function shareLine(share: Range): Bilingual {
-  const pct = mapRange(share, (x) => Math.round(x * 100));
+  const words = shareWords(midpoint(share));
   return bi(
-    `${formatRange(pct, "en")}% of that work handled automatically`,
-    `${formatRange(pct, "ro")}% din această muncă este preluată automat`,
+    `${words.en[0].toUpperCase()}${words.en.slice(1)} of that work handled automatically`,
+    `${words.ro[0].toUpperCase()}${words.ro.slice(1)} din această muncă se face automat`,
   );
 }
 
@@ -303,11 +338,11 @@ function costLine(ctx: EconomicsContext): Bilingual {
   return ctx.hourlyIsIns
     ? bi(
         `Loaded staff cost ${h} RON/hour (INS average earnings, ${WAGE_SOURCE.month.en})`,
-        `Cost total angajator: ${h} lei/oră (câștigul salarial mediu INS, ${WAGE_SOURCE.month.ro})`,
+        `Cost total angajator: ${h} lei pe oră (câștigul salarial mediu INS, ${WAGE_SOURCE.month.ro})`,
       )
     : bi(
         `Staff cost ${h} RON/hour (your figure)`,
-        `Cost total angajator: ${h} lei/oră (valoarea introdusă de tine)`,
+        `Cost total angajator: ${h} lei pe oră (valoarea introdusă de tine)`,
       );
 }
 
@@ -330,14 +365,16 @@ export function computeOpportunities(
   const opportunities = items.map((item, i): AutomationOpportunity => {
     const { template, volume } = item.resolved;
     const count = counts[i] * cappedBy;
-    const hours = mapRange(raw[i], (h) => roundHours(h * cappedBy));
-    const savings = mapRange(raw[i], (h) => roundRon(h * cappedBy * ctx.inputs.hourlyCostRon));
-    const setup = template.setupRon ?? PRICE_BOOK.automationSetup[template.complexity];
+    const hours = mapEstimate(raw[i], (h) => roundHours(h * cappedBy));
+    const savings = mapEstimate(raw[i], (h) => roundRon(h * cappedBy * ctx.inputs.hourlyCostRon));
+    // Setup at the central price-book quote; tools at the middle of base + usage.
+    const setup = centred(template.setupRon ?? PRICE_BOOK.automationSetup[template.complexity]);
     const baseTools = template.monthlyToolsRon ?? PRICE_BOOK.automationTools[template.complexity];
     const usage = template.usageCostRon ?? { low: 0, high: 0 };
     const tools = {
       low: roundRon(baseTools.low + usage.low * count),
       high: roundRon(baseTools.high + usage.high * count),
+      mid: roundRon(midpoint(baseTools) + midpoint(usage) * count),
     };
     const payback = paybackMonths(setup, savings, tools);
 
@@ -347,11 +384,11 @@ export function computeOpportunities(
       costLine(ctx),
     ];
     if (template.usageCostRon) {
-      const monthly = mapRange(usage, (x) => roundRon(x * count));
+      const monthly = roundRon(midpoint(usage) * count);
       assumptions.push(
         bi(
-          `Tools include about ${formatRange(monthly, "en")} RON a month of messages or AI usage (${formatFlexCost(usage, "en")} RON each)`,
-          `Costul instrumentelor include aproximativ ${formatRange(monthly, "ro")} lei pe lună pentru mesaje sau AI (câte ${formatFlexCost(usage, "ro")} lei fiecare)`,
+          `Tools include about ${formatNumber(monthly, "en")} RON a month of messages or AI usage (${formatFlexCost(usage, "en")} RON each)`,
+          `Costul instrumentelor include cam ${formatNumber(monthly, "ro")} lei pe lună pentru mesaje sau AI (câte ${formatFlexCost(usage, "ro")} lei fiecare)`,
         ),
       );
     }
@@ -372,14 +409,6 @@ export function computeOpportunities(
         ),
       );
     }
-    if (payback.high >= PAYBACK_CAP_MONTHS) {
-      assumptions.push(
-        bi(
-          `In the cautious case this takes ${PAYBACK_CAP_MONTHS}+ months to pay back`,
-          `În varianta prudentă, investiția se recuperează în peste ${PAYBACK_CAP_MONTHS} de luni`,
-        ),
-      );
-    }
     if (template.note) assumptions.push(template.note);
 
     return {
@@ -392,7 +421,7 @@ export function computeOpportunities(
       complexity: template.complexity,
       hoursSavedPerMonth: hours,
       monthlySavingsRon: savings,
-      setupCostRon: { ...setup },
+      setupCostRon: setup,
       monthlyToolCostRon: tools,
       paybackMonths: payback,
       tools: [...template.tools],
@@ -410,17 +439,25 @@ function formatFlexCost(range: Range, lang: "en" | "ro") {
 /* ---------------------------------------------------------------- totals */
 
 export function computeTotals(opportunities: AutomationOpportunity[]): Blueprint["totals"] {
-  const hours = addRanges(opportunities.map((o) => o.hoursSavedPerMonth));
-  const savings = addRanges(opportunities.map((o) => o.monthlySavingsRon));
-  const setup = addRanges(opportunities.map((o) => o.setupCostRon));
-  const tools = addRanges(opportunities.map((o) => o.monthlyToolCostRon));
+  const hours = addEstimates(opportunities.map((o) => o.hoursSavedPerMonth));
+  const savings = addEstimates(opportunities.map((o) => o.monthlySavingsRon));
+  const setup = addEstimates(opportunities.map((o) => o.setupCostRon));
+  const tools = addEstimates(opportunities.map((o) => o.monthlyToolCostRon));
   return {
-    hoursSavedPerMonth: mapRange(hours, roundHours),
-    monthlySavingsRon: mapRange(savings, roundRon),
-    annualSavingsRon: mapRange(savings, (x) => roundRon(x * 12)),
-    setupCostRon: mapRange(setup, roundRon),
+    hoursSavedPerMonth: mapEstimate(hours, roundHours),
+    monthlySavingsRon: mapEstimate(savings, roundRon),
+    annualSavingsRon: mapEstimate(savings, (x) => roundRon(x * 12)),
+    setupCostRon: mapEstimate(setup, roundRon),
     paybackMonths: paybackMonths(setup, savings, tools),
   };
+}
+
+/** Totals with the break-even attached (one shape for the builder and the simulation). */
+export function withBreakEven(
+  totals: Blueprint["totals"],
+  breakEven: BreakEven,
+): Blueprint["totals"] {
+  return { ...totals, breakEven };
 }
 
 /* ------------------------------------------------------------ projection */
@@ -438,34 +475,101 @@ const RAMP = [0.5, 1];
 export function computeProjection(
   opportunities: AutomationOpportunity[],
   roadmap: RoadmapPhase[],
-  months = 24,
+  months = PROJECTION_MONTHS,
 ): ProjectionPoint[] {
   const startOf = (id: string) =>
     roadmap.find((phase) => phase.opportunityIds.includes(id))?.startMonth ?? 1;
   const points: ProjectionPoint[] = [];
-  const savings = { low: 0, high: 0 };
-  const cost = { low: 0, high: 0 };
+  const savings = { low: 0, high: 0, mid: 0 };
+  const cost = { low: 0, high: 0, mid: 0 };
   for (let month = 1; month <= months; month++) {
     for (const o of opportunities) {
       const start = startOf(o.id);
       if (month === start) {
         cost.low += o.setupCostRon.low;
         cost.high += o.setupCostRon.high;
+        cost.mid += midOf(o.setupCostRon);
       }
       const live = month - (start + BUILD_MONTHS);
       if (live >= 0) {
         const ramp = RAMP[Math.min(live, RAMP.length - 1)];
         savings.low += o.monthlySavingsRon.low * ramp;
         savings.high += o.monthlySavingsRon.high * ramp;
+        savings.mid += midOf(o.monthlySavingsRon) * ramp;
         cost.low += o.monthlyToolCostRon.low;
         cost.high += o.monthlyToolCostRon.high;
+        cost.mid += midOf(o.monthlyToolCostRon);
       }
     }
     points.push({
       month,
-      cumulativeSavingsRon: mapRange(savings, roundRon),
-      cumulativeCostRon: mapRange(cost, roundRon),
+      cumulativeSavingsRon: mapEstimate(savings, roundRon),
+      cumulativeCostRon: mapEstimate(cost, roundRon),
     });
   }
   return points;
+}
+
+/* ------------------------------------------------------------ break-even */
+
+/**
+ * The first plan month whose cumulative central value covers the cumulative
+ * central cost; months where nothing is spent or earned yet are skipped. Null
+ * when it doesn't happen within the projection. `value` swaps in a scenario's
+ * value series (cost stays the one in `points`).
+ */
+export function breakEvenMonth(
+  points: ProjectionPoint[],
+  value: (point: ProjectionPoint, index: number) => number = (p) => midOf(p.cumulativeSavingsRon),
+): number | null {
+  for (let i = 0; i < points.length; i++) {
+    const saved = value(points[i], i);
+    const spent = midOf(points[i].cumulativeCostRon);
+    if (spent <= 0 && saved <= 0) continue;
+    if (saved >= spent) return points[i].month;
+  }
+  return null;
+}
+
+/**
+ * Where the central value and cost lines cross, interpolated between month
+ * ends. For drawing the chart's break-even line only; the month a visitor
+ * reads is `breakEvenMonth`.
+ */
+export function crossingMonth(points: ProjectionPoint[]): number | null {
+  let prev: { month: number; gap: number } | null = null;
+  for (const point of points) {
+    const saved = midOf(point.cumulativeSavingsRon);
+    const spent = midOf(point.cumulativeCostRon);
+    if (spent <= 0 && saved <= 0) continue;
+    const gap = saved - spent;
+    if (gap >= 0) {
+      if (!prev) return point.month;
+      return prev.month + (-prev.gap / (gap - prev.gap)) * (point.month - prev.month);
+    }
+    prev = { month: point.month, gap };
+  }
+  return null;
+}
+
+/**
+ * The break-even month and its volume scenarios. `scenario(factor)` returns
+ * the projection with volumes × factor; only its value series is used, so the
+ * cost stays at the central quote (a range on our own price reads as hedging).
+ */
+export function computeBreakEven(
+  projection: ProjectionPoint[],
+  scenario: (factor: number) => ProjectionPoint[],
+): BreakEven {
+  const at = (factor: number) => {
+    const values = scenario(factor);
+    return breakEvenMonth(projection, (_, i) =>
+      values[i] ? midOf(values[i].cumulativeSavingsRon) : 0,
+    );
+  };
+  return {
+    month: breakEvenMonth(projection),
+    higherVolume: at(VOLUME_SCENARIOS.higher),
+    lowerVolume: at(VOLUME_SCENARIOS.lower),
+  };
 }

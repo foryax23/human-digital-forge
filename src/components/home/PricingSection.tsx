@@ -1,66 +1,38 @@
-import { useState, type ReactNode } from "react";
-import { MotionConfig, motion } from "motion/react";
-import { Check, Loader2 } from "lucide-react";
+import { useId, useState, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Em, SectionHeader } from "@/components/landing/SectionHeader";
-import { RingButton } from "@/components/landing/RingButton";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { Button, ButtonLink, SectionHeader } from "@/components/system";
 import { useI18n } from "@/i18n";
 import { createCheckoutSession } from "@/lib/checkout.functions";
 import { PLAN_PRICING, type PlanId } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
-const EASE = [0.25, 0.1, 0.25, 1] as const;
-
-/** Same entrance as SectionHeader: fade up 30px once, 1 s. */
-function fadeUp(delay = 0) {
-  return {
-    initial: { opacity: 0, y: 30 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true, margin: "-100px" },
-    transition: { duration: 1, delay, ease: EASE },
-  } as const;
-}
-
-/** The amount as a big figure with its currency (and period) as a quiet line under it. */
-function Price({ minor, lang, period }: { minor: number; lang: "en" | "ro"; period?: string }) {
-  return (
-    <p className="mt-3 flex flex-col gap-1">
-      <span className="type-h2 tabular-nums text-foreground">{minor / 100}</span>
-      <span className="type-body-sm text-muted-foreground">
-        {lang === "ro" ? "lei" : "EUR"}
-        {period && ` ${period}`}
-      </span>
-    </p>
-  );
-}
-
-function FeatureItem({ children }: { children: ReactNode }) {
-  return (
-    <li className="flex items-start gap-3">
-      <span
-        aria-hidden
-        className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/10 text-foreground"
-      >
-        <Check className="h-3 w-3" strokeWidth={3} />
-      </span>
-      <span className="type-body-sm text-muted-foreground">{children}</span>
-    </li>
-  );
-}
-
-// Checkout buttons stay real <Button>s (disabled + spinner) but wear the
-// RingButton faces so they match the link CTAs around them.
-const checkoutFace = {
-  solid: "bg-[#5b52f0] text-white group-hover:bg-[#6a62f6] group-focus-visible:bg-[#6a62f6]",
-  outline:
-    "border-2 border-border bg-background text-foreground group-hover:border-transparent group-focus-visible:border-transparent",
+type Plan = {
+  id: PlanId | "free";
+  name: string;
+  /** One plain line on who the plan is for. */
+  descriptor: string;
+  features: string[];
+  /** The recommended column: a 2 px violet top rule and the primary button, nothing else. */
+  recommended?: boolean;
 };
 
+/** "1.000" in Romanian, "1,000" in English: grouped by hand so server and browser agree. */
+function grouped(value: number, lang: "en" | "ro") {
+  return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, lang === "ro" ? "." : ",");
+}
+
+/*
+ * Column dividers per position: md shows two columns (dividers on the 2nd and 4th
+ * plan), xl four (dividers on all but the first).
+ */
+const DIVIDERS = ["", "md:border-l", "xl:border-l", "md:border-l"];
+
 /**
- * Plans & pricing (#pricing): the free conversation plus the three monthly
- * plans, each paid plan starting a Stripe checkout in the active currency.
+ * Plans & pricing (#pricing): the free conversation plus the three monthly plans as
+ * one sheet of columns on hairline dividers, no card fills. Each paid plan starts a
+ * Stripe checkout in the active currency (lei in Romanian, euro in English).
  */
 export function PricingSection() {
   const { t, lang } = useI18n();
@@ -95,17 +67,25 @@ export function PricingSection() {
     }
   }
 
-  const paidPlans: {
-    id: PlanId;
-    name: string;
-    tagline: string;
-    features: string[];
-    highlight?: boolean;
-  }[] = [
+  // The scan's offer (src/lib/scan/blueprint/offer.ts) restates these features for the report's plan.
+  const plans: Plan[] = [
+    {
+      id: "free",
+      name: t("Free", "Gratuit"),
+      descriptor: t("A first conversation, no commitment.", "O primă discuție, fără obligații."),
+      features: [
+        t("A conversation with our team", "O conversație cu echipa noastră"),
+        t("A plan for your business", "Un plan pentru afacerea ta"),
+        t("Clear, practical advice", "Sfaturi clare și practice"),
+      ],
+    },
     {
       id: "starter",
-      name: t("Starter", "Starter"),
-      tagline: t("For up to 1 focused goal", "Pentru până la 1 obiectiv concentrat"),
+      name: "Starter",
+      descriptor: t(
+        "For one focused goal, with support every month.",
+        "Pentru un singur obiectiv, cu sprijin în fiecare lună.",
+      ),
       features: [
         t(
           "30 minutes of live Zoom consultation each month",
@@ -114,209 +94,188 @@ export function PricingSection() {
         t("1 month access to our AI tools", "1 lună de acces la instrumentele noastre AI"),
         t(
           "Personalised next-step recommendations",
-          "Recomandări personalizate pentru următorul pas",
+          "Recomandări personalizate pentru pașii următori",
         ),
-        t("Email support during your subscription", "Suport prin email pe durata abonamentului"),
+        t("Email support during your subscription", "Suport pe e-mail pe durata abonamentului"),
       ],
     },
     {
       id: "growth",
-      name: t("Growth", "Growth"),
-      tagline: t("For people building momentum", "Pentru cei care construiesc avânt"),
-      highlight: true,
+      name: "Growth",
+      recommended: true,
+      descriptor: t(
+        "For businesses setting up their digital workflow.",
+        "Pentru afacerile care își pun la punct procesele digitale.",
+      ),
       features: [
         t("2 hours of live Zoom consultation", "2 ore de consultanță live pe Zoom"),
         t(
-          "Expanded access to our AIs and programs",
-          "Acces extins la AI-urile și programele noastre",
+          "Guided setup of your digital workflow",
+          "Configurare ghidată a proceselor tale digitale",
         ),
-        t("Priority scheduling for sessions", "Programare prioritară a sesiunilor"),
-        t("Guided setup of your digital workflow", "Configurare ghidată a fluxului tău digital"),
-        t("Priority email support", "Suport prin email prioritar"),
+        t(
+          "Expanded access to our AIs and programs",
+          "Acces extins la instrumentele și programele noastre AI",
+        ),
+        t("Priority scheduling and email support", "Programări cu prioritate și suport pe e-mail"),
       ],
     },
     {
       id: "pro",
-      name: t("Pro", "Pro"),
-      tagline: t("For full, hands-on partnership", "Pentru un parteneriat complet, implicat"),
+      name: "Pro",
+      descriptor: t(
+        "For a full partnership, with hands-on help on projects.",
+        "Pentru un parteneriat complet, cu ajutor practic la proiecte.",
+      ),
       features: [
-        t("Full access to our complete program", "Acces complet la întregul nostru program"),
+        t("Hands-on help with your projects", "Ajutor practic pentru proiectele tale"),
         t(
           "Unlimited live support from our team",
           "Suport live nelimitat din partea echipei noastre",
         ),
         t("Unlimited access to all AI tools", "Acces nelimitat la toate instrumentele AI"),
-        t("Hands-on help with your projects", "Ajutor practic pentru proiectele tale"),
-        t("Direct priority line to us", "Linie directă prioritară către noi"),
+        t("Direct priority line to us", "Legătură directă, cu prioritate, cu echipa noastră"),
       ],
     },
   ];
 
-  const planLabel = "type-label text-muted-foreground";
-  const featuresLabel = "type-label text-foreground/80";
+  return (
+    <section id="pricing" aria-labelledby="pricing-heading" className="section-y scroll-mt-20">
+      <div className="container-vx">
+        <SectionHeader
+          headingId="pricing-heading"
+          kicker={t("Pricing", "Prețuri")}
+          // A plain title: the two-tone device stays on Work only.
+          title={t("Pick a plan.", "Alege planul potrivit.")}
+          lead={t(
+            "All plans are monthly and you can cancel anytime. Start with a free call and move to a subscription when you need one.",
+            "Toate planurile sunt lunare și poți anula oricând. Începi cu o discuție gratuită și treci la un abonament când ai nevoie.",
+          )}
+        />
+
+        {error && (
+          <p role="alert" className="type-body-sm mb-6 text-bad">
+            {error}
+          </p>
+        )}
+
+        <div className="grid grid-cols-1 gap-y-8 md:-mx-6 md:grid-cols-2 md:gap-y-12 xl:grid-cols-4">
+          {plans.map((plan, index) => {
+            const amount = plan.id === "free" ? 0 : PLAN_PRICING[plan.id][currency] / 100;
+            return (
+              <PlanColumn
+                key={plan.id}
+                plan={plan}
+                className={DIVIDERS[index]}
+                price={lang === "ro" ? `${grouped(amount, "ro")} lei` : `€${grouped(amount, "en")}`}
+                period={plan.id === "free" ? null : t("a month", "pe lună")}
+                action={
+                  plan.id === "free" ? (
+                    <ButtonLink to="/contact" variant="secondary">
+                      {t("Talk to us", "Vorbește cu noi")}
+                    </ButtonLink>
+                  ) : (
+                    <Button
+                      variant={plan.recommended ? "primary" : "secondary"}
+                      disabled={loadingPlan !== null && loadingPlan !== plan.id}
+                      loading={loadingPlan === plan.id}
+                      onClick={() => handleSubscribe(plan.id as PlanId)}
+                    >
+                      {t(`Choose ${plan.name}`, `Alege ${plan.name}`)}
+                    </Button>
+                  )
+                }
+              />
+            );
+          })}
+        </div>
+
+        <p className="type-body-sm mt-10 text-fg-3">
+          {t("Payments are handled securely by Stripe.", "Plata se face securizat prin Stripe.")}
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * One plan: name, price on one baseline with its period, the line on who it is for,
+ * the button and the en-dash feature list (behind "Ce include" on phones).
+ */
+function PlanColumn({
+  plan,
+  price,
+  period,
+  action,
+  className,
+}: {
+  plan: Plan;
+  price: string;
+  period: string | null;
+  action: ReactNode;
+  className?: string;
+}) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const listId = useId();
 
   return (
-    <section
-      id="pricing"
-      aria-labelledby="pricing-heading"
-      className="scroll-mt-24 bg-background py-16 md:py-24"
-    >
-      {/* Reduced motion: entrances keep the fade but skip the slide. */}
-      <MotionConfig reducedMotion="user">
-        <div className="mx-auto max-w-[1200px] px-6 md:px-10 lg:px-16">
-          <SectionHeader
-            align="center"
-            headingId="pricing-heading"
-            eyebrow={t("Plans & pricing", "Planuri și prețuri")}
-            title={
-              lang === "ro" ? (
-                <>
-                  Alege-ți <Em>planul</Em>
-                </>
-              ) : (
-                <>
-                  Choose your <Em>plan</Em>
-                </>
-              )
-            }
-            description={t(
-              "Our plans are designed to be affordable, flexible and tailored to your goals. Start free, or subscribe monthly and cancel anytime.",
-              "Planurile noastre sunt accesibile, flexibile și adaptate obiectivelor tale. Începe gratuit sau abonează-te lunar și anulează oricând.",
-            )}
-          />
-
-          {error && (
-            <p
-              role="alert"
-              className="type-body-sm mx-auto mb-10 max-w-xl rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-center text-destructive"
-            >
-              {error}
-            </p>
-          )}
-
-          {/* Four columns only from xl, where each card is wide enough for the RON prices. */}
-          <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-2 md:gap-6 xl:grid-cols-4 xl:gap-5">
-            {/* Free plan */}
-            <motion.div {...fadeUp()}>
-              <div className="flex h-full flex-col rounded-3xl border border-border bg-card/60 p-6 transition-colors duration-300 hover:bg-card md:p-8 xl:p-6">
-                {/* Same height as the paid plans' badge row, so the names line up. */}
-                <div aria-hidden className="h-4" />
-                <h3 className={cn("mt-3", planLabel)}>{t("Free", "Gratuit")}</h3>
-                <Price minor={0} lang={lang} />
-                <p className="type-body-sm mt-3 text-muted-foreground">
-                  {t("Talk to us, no commitment", "Vorbește cu noi, fără obligații")}
-                </p>
-
-                <div aria-hidden className="mt-6 h-px bg-border" />
-                <p className={cn("mt-6", featuresLabel)}>{t("Features", "Beneficii")}</p>
-                <ul className="mt-4 flex-1 space-y-3.5">
-                  <FeatureItem>
-                    {t("A conversation with our team", "O conversație cu echipa noastră")}
-                  </FeatureItem>
-                  <FeatureItem>
-                    {t(
-                      "Build a plan for your future business",
-                      "Construiește un plan pentru viitoarea ta afacere",
-                    )}
-                  </FeatureItem>
-                  <FeatureItem>
-                    {t("Clear, practical advice", "Sfaturi clare și practice")}
-                  </FeatureItem>
-                </ul>
-
-                <RingButton
-                  to="/contact"
-                  variant="outline"
-                  className="mt-7 w-full hover:scale-100"
-                  innerClassName="h-12 w-full py-0"
-                >
-                  {t("Talk to us", "Vorbește cu noi")}
-                </RingButton>
-              </div>
-            </motion.div>
-
-            {/* Paid plans */}
-            {paidPlans.map((plan, i) => (
-              <motion.div
-                key={plan.id}
-                {...fadeUp((i + 1) * 0.1)}
-                className={cn(plan.highlight && "xl:-my-4")}
-              >
-                {/* The highlighted plan: a plain violet 1px border, no glow. */}
-                <div className="h-full">
-                  <div
-                    className={cn(
-                      "flex h-full flex-col rounded-3xl border p-6 transition-colors duration-300 md:p-8 xl:p-6",
-                      plan.highlight
-                        ? "border-[rgb(139_124_246/0.6)] bg-card xl:py-10"
-                        : "border-border bg-card/60 hover:bg-card",
-                    )}
-                  >
-                    {plan.highlight ? (
-                      <p className="type-label h-4 text-[#c4b5fd]">
-                        {t("Most popular", "Cel mai popular")}
-                      </p>
-                    ) : (
-                      <div aria-hidden className="h-4" />
-                    )}
-                    <h3 className={cn("mt-3", planLabel)}>{plan.name}</h3>
-                    <Price
-                      minor={PLAN_PRICING[plan.id][currency]}
-                      lang={lang}
-                      period={t("/ month", "/ lună")}
-                    />
-                    <p className="type-body-sm mt-3 text-muted-foreground">{plan.tagline}</p>
-
-                    <div aria-hidden className="mt-6 h-px bg-border" />
-                    <p className={cn("mt-6", featuresLabel)}>{t("Features", "Beneficii")}</p>
-                    <ul className="mt-4 flex-1 space-y-3.5">
-                      {plan.features.map((f) => (
-                        <FeatureItem key={f}>{f}</FeatureItem>
-                      ))}
-                    </ul>
-
-                    <Button
-                      variant="ghost"
-                      className="group relative mt-7 h-12 w-full rounded-full p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 active:translate-y-0"
-                      disabled={loadingPlan !== null}
-                      aria-busy={loadingPlan === plan.id}
-                      onClick={() => handleSubscribe(plan.id)}
-                    >
-                      <span
-                        aria-hidden
-                        className="accent-gradient-animated pointer-events-none absolute -inset-[2px] rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
-                      />
-                      <span
-                        className={cn(
-                          "type-button relative z-10 inline-flex h-full w-full items-center justify-center rounded-full transition-colors duration-300",
-                          plan.highlight ? checkoutFace.solid : checkoutFace.outline,
-                        )}
-                      >
-                        {loadingPlan === plan.id ? (
-                          <>
-                            <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
-                            {/* Keeps the button's accessible name while the spinner shows. */}
-                            <span className="sr-only">{t("Get started", "Începe acum")}</span>
-                          </>
-                        ) : (
-                          t("Get started", "Începe acum")
-                        )}
-                      </span>
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <p className="type-micro mt-12 text-center text-muted-foreground">
-            {t(
-              "Secure payment handled by Stripe. You can cancel your subscription at any time.",
-              "Plată securizată prin Stripe. Poți anula abonamentul în orice moment.",
-            )}
+    <div className={cn("min-w-0 border-line-1 md:px-6", className)}>
+      <div
+        className={cn(
+          plan.recommended
+            ? "border-t-2 border-brand-line pt-[19px]"
+            : "border-t border-line-2 pt-5",
+        )}
+      >
+        <div className="flex items-baseline justify-between gap-4 md:block">
+          <h3 className="type-h4 text-[1.0625rem] text-fg">{plan.name}</h3>
+          <p className="flex items-baseline gap-1.5 md:mt-3">
+            <span className="type-pnum text-[1.625rem] font-semibold leading-none text-fg md:text-[2rem]">
+              {price}
+            </span>
+            {period && <span className="text-sm text-fg-3">{period}</span>}
           </p>
         </div>
-      </MotionConfig>
-    </section>
+        <p className="type-body-sm mt-2 text-pretty text-fg-2 md:mt-3 md:min-h-[2.625rem]">
+          {plan.descriptor}
+        </p>
+
+        {/* Phones: the button and "Ce include" share one row. */}
+        <div className="mt-4 flex items-center justify-between gap-4 md:block">
+          {action}
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={listId}
+            onClick={() => setOpen((value) => !value)}
+            className="inline-flex h-7 items-center gap-1 rounded-md text-[0.8125rem] font-medium text-fg-2 outline-none hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-line/55 md:hidden"
+          >
+            {t("What's included", "Ce include")}
+            <ChevronDown
+              aria-hidden
+              className={cn(
+                "size-3.5 text-fg-3 transition-transform duration-150 motion-reduce:transition-none",
+                open && "rotate-180",
+              )}
+            />
+          </button>
+        </div>
+        <ul
+          id={listId}
+          aria-label={t(`${plan.name}: what's included`, `${plan.name}: ce include`)}
+          className={cn("mt-3 space-y-1.5 md:mt-5 md:block", open ? "block" : "hidden")}
+        >
+          {plan.features.map((feature) => (
+            <li key={feature} className="flex gap-2 text-sm leading-[1.45] text-fg-2">
+              <span aria-hidden className="text-fg-3">
+                –
+              </span>
+              {feature}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }

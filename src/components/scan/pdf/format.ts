@@ -1,4 +1,29 @@
-import type { Bilingual, Lang, Range } from "@/lib/scan/types";
+import type { Bilingual, Lang } from "@/lib/scan/types";
+
+/*
+ * Formatting for the PDF. Numbers, units and rounding come from the shared
+ * helpers the scan screens use (src/lib/scan/blueprint/format.ts, spec §3.2),
+ * so a figure reads the same on screen and on paper; only what is specific to
+ * a printed page (dates, host names, fitting long strings) lives here.
+ */
+
+export {
+  approxLei,
+  formatNumber,
+  hoursPerMonth,
+  hoursQty,
+  lei,
+  leiPerMonth,
+  MINUS,
+  monthLabel,
+  monthSpan,
+  monthsQty,
+  NBSP,
+  roNeedsDe,
+  signedLei,
+  ucFirst,
+} from "@/lib/scan/blueprint/format";
+export { withCommaBelow } from "@/lib/scan/localize";
 
 /** Picks the active language from a bilingual value. */
 export function pick(value: Bilingual | undefined, lang: Lang): string {
@@ -11,81 +36,22 @@ export function tr(lang: Lang) {
   return (en: string, ro: string) => (lang === "ro" ? ro : en);
 }
 
-const LOCALE: Record<Lang, string> = { en: "en-GB", ro: "ro-RO" };
-
-/** Whole numbers with the language's grouping (2,900 / 2.900). */
-export function formatInt(value: number, lang: Lang): string {
-  return new Intl.NumberFormat(LOCALE[lang], {
-    maximumFractionDigits: 0,
-    useGrouping: true,
-  }).format(Math.round(value));
-}
-
-/** One decimal when it matters (1.6 / 1,6), none for whole values. */
-export function formatDecimal(value: number, lang: Lang): string {
-  return new Intl.NumberFormat(LOCALE[lang], {
-    maximumFractionDigits: Math.abs(value) < 10 ? 1 : 0,
-  }).format(value);
-}
-
-/** "52–78", or a single value when both ends match. */
-export function formatRange(
-  range: Range,
-  lang: Lang,
-  format: (value: number, lang: Lang) => string = formatInt,
-): string {
-  const low = format(range.low, lang);
-  const high = format(range.high, lang);
-  return low === high ? low : `${low}–${high}`;
-}
-
-/** Currency word: "RON" in English, "lei" in Romanian prose and tables. */
-export function currency(lang: Lang): string {
-  return lang === "ro" ? "lei" : "RON";
-}
-
-/**
- * Romanian puts "de" between a number and its noun when the number ends in
- * 00 or 20–99 ("56 de lei", "120 de ore", but "15 lei", "101 lei").
- */
+/** "de " before a Romanian noun when the count needs it ("20 de ore", "15 ore"). */
 export function roDe(value: number): string {
-  const n = Math.abs(Math.round(value)) % 100;
-  return n === 0 ? (Math.round(value) === 0 ? "" : "de ") : n >= 20 ? "de " : "";
-}
-
-/**
- * A range that may dip below zero (net gain): "−8.505 până la +4.339" /
- * "−8,505 to +4,339", with a true minus sign; plain formatRange otherwise.
- */
-export function formatSignedRange(range: Range, lang: Lang): string {
-  if (range.low >= 0) return formatRange(range, lang);
-  const signed = (value: number) =>
-    value < 0 ? `−${formatInt(Math.abs(value), lang)}` : `+${formatInt(value, lang)}`;
-  return `${signed(range.low)} ${lang === "ro" ? "până la" : "to"} ${signed(range.high)}`;
-}
-
-/** Compact RON for axis labels: 12k, 1.2M. */
-export function formatCompact(value: number, lang: Lang): string {
-  return new Intl.NumberFormat(LOCALE[lang], {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
+  const n = Math.abs(Math.round(value));
+  return n >= 20 && (n % 100 === 0 || n % 100 >= 20) ? "de " : "";
 }
 
 /** Long date in the document language: "3 October 2026" / "3 octombrie 2026". */
 export function formatDate(iso: string | undefined, lang: Lang): string {
   const date = iso ? new Date(iso) : new Date();
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(LOCALE[lang], {
+  return new Intl.DateTimeFormat(lang === "ro" ? "ro-RO" : "en-GB", {
     day: "numeric",
     month: "long",
     year: "numeric",
     timeZone: "Europe/Bucharest",
   }).format(date);
-}
-
-export function midpoint(range: Range): number {
-  return (range.low + range.high) / 2;
 }
 
 /** Hostname without "www." for display. */
@@ -111,47 +77,24 @@ export function truncate(value: string, max: number): string {
   return `${head.replace(/[\s,;:·–-]+$/, "")}…`;
 }
 
-/**
- * Whole items joined with commas while they fit in `max` characters, then a
- * count of the rest ("online booking, WhatsApp +9"), so a list is never cut
- * mid-word the way truncate would.
- */
-export function fitList(items: string[], max: number): string {
-  let out = "";
-  for (let i = 0; i < items.length; i++) {
-    const next = out ? `${out}, ${items[i]}` : items[i];
-    const rest = items.length - i - 1;
-    if (out && next.length + (rest ? ` +${rest}`.length : 0) > max) {
-      return `${out} +${items.length - i}`;
-    }
-    out = next;
+/** "a, b și c" / "a, b and c", with "și încă 3" / "and 3 more" past `max` items. */
+export function listOf(items: string[], lang: Lang, max = items.length): string {
+  const shown = items.slice(0, max);
+  const rest = items.length - shown.length;
+  if (rest > 0) {
+    return `${shown.join(", ")} ${lang === "ro" ? `și încă ${rest}` : `and ${rest} more`}`;
   }
-  return out;
+  if (shown.length <= 1) return shown.join("");
+  return `${shown.slice(0, -1).join(", ")} ${lang === "ro" ? "și" : "and"} ${shown[shown.length - 1]}`;
 }
 
-const COMMA_BELOW: Record<string, string> = { ş: "ș", ţ: "ț", Ş: "Ș", Ţ: "Ț" };
-
-/**
- * Every string in a plain data tree with the legacy cedilla letters (ş ţ,
- * still common in ANAF records and older sites) spelled the correct
- * Romanian way, with a comma below (ș ț).
- */
-export function withCommaBelow<T>(value: T): T {
-  if (typeof value === "string") {
-    return value.replace(/[şţŞŢ]/g, (letter) => COMMA_BELOW[letter]) as T;
-  }
-  if (Array.isArray(value)) return value.map(withCommaBelow) as T;
-  if (value && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype) {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, item]) => [key, withCommaBelow(item)]),
-    ) as T;
-  }
-  return value;
-}
-
-/** Two-digit index: 1 → "01". */
-export function pad2(value: number): string {
-  return String(value).padStart(2, "0");
+/** Superscript digits for note references ("¹"), drawn in Space Grotesk. */
+export function superscript(n: number): string {
+  const digits = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+  return String(n)
+    .split("")
+    .map((d) => digits[Number(d)])
+    .join("");
 }
 
 /** ASCII slug for file names: "Clinica Dentară Ș.R.L." → "Clinica-Dentara-S-R-L". */

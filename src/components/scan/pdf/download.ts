@@ -8,8 +8,8 @@ import { asciiSlug } from "./format";
 import { subjectName } from "./model";
 
 /**
- * "Vortex-Blueprint-Dental-Smile-Clinic-SRL-2026-10-03.pdf", or
- * "Vortex-Plan-Digital-…" for the Romanian edition.
+ * "Vortex-Report-Dental-Smile-Clinic-SRL-2026-10-03.pdf", or
+ * "Vortex-Raport-…" for the Romanian edition.
  */
 export function blueprintFileName(blueprint: Blueprint, lang: Lang = "en"): string {
   const date = new Date(blueprint.generatedAt);
@@ -21,7 +21,7 @@ export function blueprintFileName(blueprint: Blueprint, lang: Lang = "en"): stri
     month: "2-digit",
     day: "2-digit",
   }).format(day);
-  const prefix = lang === "ro" ? "Vortex-Plan-Digital" : "Vortex-Blueprint";
+  const prefix = lang === "ro" ? "Vortex-Raport" : "Vortex-Report";
   return `${prefix}-${asciiSlug(subjectName(blueprint))}-${stamp}.pdf`;
 }
 
@@ -35,31 +35,23 @@ export async function downloadBlueprintPdf(blueprint: Blueprint, lang: Lang): Pr
     throw new Error("downloadBlueprintPdf can only run in the browser");
   }
 
-  const [
-    { pdf },
-    { BlueprintDocument },
-    { registerPdfFonts },
-    { resolvePdfAssets },
-    { withMeasurements },
-  ] = await Promise.all([
-    import("@react-pdf/renderer"),
-    import("./BlueprintDocument"),
-    import("./fonts"),
-    import("./assets"),
-    import("./measure"),
-  ]);
+  const [{ pdf }, { BlueprintDocument }, { registerPdfFonts }, { resolvePdfAssets }] =
+    await Promise.all([
+      import("@react-pdf/renderer"),
+      import("./BlueprintDocument"),
+      import("./fonts"),
+      import("./assets"),
+    ]);
 
   const origin = window.location.origin;
   registerPdfFonts(`${origin}/fonts`);
 
-  // A quick first pass measures the blocks whose page breaks we choose.
-  const props = await withMeasurements({
+  const element = createElement(BlueprintDocument, {
     blueprint,
     lang,
     reportUrl: window.location.href,
     assets: resolvePdfAssets((publicPath) => `${origin}${publicPath}`),
-  });
-  const element = createElement(BlueprintDocument, props) as unknown as ReactElement<DocumentProps>;
+  }) as unknown as ReactElement<DocumentProps>;
 
   const blob = await pdf(element).toBlob();
   const url = URL.createObjectURL(blob);

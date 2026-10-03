@@ -1,7 +1,7 @@
 import { gsap, prefersReducedMotion } from "./gsap";
 
-/** Height reserved for the floating pill nav when scrolling to a section. */
-export const NAV_OFFSET = 96;
+/** Space kept above a section when scrolling to it: the 64 px nav plus 16 px. */
+export const NAV_OFFSET = 80;
 
 /** Section ids on the homepage, in page order. "top" is the hero. */
 export const SECTION_IDS = ["top", "work", "services", "pricing", "contact"] as const;

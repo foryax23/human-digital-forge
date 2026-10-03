@@ -137,14 +137,14 @@ export function HeroSection() {
         <div className="pointer-events-auto flex w-full max-w-[48rem] flex-col items-center text-center 2xl:max-w-[52rem]">
           <p
             {...reveal}
-            className="type-label blur-in relative isolate mb-4 flex max-w-full items-center justify-center gap-2.5 text-[#c9c4ee]/90 lg:mb-[clamp(0.875rem,2.2vh,1.25rem)]"
+            className="type-caps blur-in relative isolate mb-4 flex max-w-full items-center justify-center gap-2.5 text-[#c9c4ee]/90 lg:mb-[clamp(0.875rem,2.2vh,1.25rem)]"
           >
             {/* A dark plate keeps the small type legible where the vortex's bright arm crosses it. */}
             <span
               aria-hidden
               className="pointer-events-none absolute -inset-x-8 -inset-y-6 -z-10 bg-[radial-gradient(closest-side,rgb(0_2_15/0.94),rgb(0_2_15/0.85)_60%,transparent)] sm:-inset-x-16"
             />
-            <ReticleMark className="size-4 text-[#c4b5fd]" />
+            <ReticleMark className="size-4 text-hero-lilac" />
             {t("Intelligence for your business", "Inteligență pentru afacerea ta")}
           </p>
 
@@ -155,7 +155,7 @@ export function HeroSection() {
           >
             <span className="block">{t("Discover the potential", "Descoperă potențialul")}</span>
             {/* The site's heading accent (soft lavender); pb keeps the descenders inside the clip. */}
-            <span className="heading-accent inline-block pb-[0.06em] [text-shadow:none]">
+            <span className="hero-heading-accent inline-block pb-[0.06em] [text-shadow:none]">
               {t("of your business.", "afacerii tale.")}
             </span>
           </h1>
@@ -214,11 +214,11 @@ export function HeroSection() {
         <button
           type="button"
           onClick={() => scrollToSection("work")}
-          className="type-label group/scroll hidden flex-col items-center gap-2.5 rounded-md px-3 py-1 text-white/45 transition-colors hover:text-white/85 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#c4b5fd]/60 md:flex"
+          className="type-label group/scroll hidden flex-col items-center gap-2.5 rounded-md px-3 py-1 text-white/45 transition-colors hover:text-white/85 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-hero-lilac/60 md:flex"
         >
           {t("Scroll to explore", "Derulează")}
           <span aria-hidden className="relative h-8 w-px overflow-hidden bg-white/15">
-            <span className="absolute inset-x-0 top-0 h-1/2 animate-[scroll-down_2.2s_ease-in-out_infinite] bg-gradient-to-b from-transparent via-[#c4b5fd] to-transparent" />
+            <span className="absolute inset-x-0 top-0 h-1/2 animate-[scroll-down_2.2s_ease-in-out_infinite] bg-gradient-to-b from-transparent via-hero-lilac to-transparent" />
           </span>
         </button>
 

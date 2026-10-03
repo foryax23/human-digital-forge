@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Mail, Clock, ShieldCheck, Sparkles } from "lucide-react";
 import { z } from "zod";
 
 import { SiteLayout } from "@/components/layout/SiteLayout";
@@ -30,74 +29,78 @@ function ContactPage() {
   const { t } = useI18n();
   const { scan } = Route.useSearch();
 
-  const points = [
-    { icon: Mail, text: t("Write to us at hello@vortexhub.ro", "Scrie-ne la hello@vortexhub.ro") },
+  const facts = [
     {
-      icon: Clock,
-      text: t(
-        "We aim to reply within two working days.",
-        "Ne propunem să răspundem în două zile lucrătoare.",
+      label: t("E-mail", "E-mail"),
+      value: (
+        <a
+          href="mailto:hello@vortexhub.ro"
+          className="underline decoration-fg/30 underline-offset-4 hover:decoration-fg"
+        >
+          hello@vortexhub.ro
+        </a>
       ),
     },
     {
-      icon: ShieldCheck,
-      text: t(
-        "Your details stay private and are used only to reply.",
-        "Datele tale rămân private și sunt folosite doar pentru a răspunde.",
-      ),
+      label: t("Reply", "Răspuns"),
+      value: t("usually within two working days", "de obicei în două zile lucrătoare"),
+    },
+    { label: t("Languages", "Limbi"), value: t("Romanian or English", "română sau engleză") },
+    {
+      label: t("First call", "Prima discuție"),
+      value: t("free, no commitment", "gratuită, fără obligații"),
     },
   ];
 
   return (
     <SiteLayout>
       <PageHero
-        eyebrow={t("Contact", "Contact")}
+        kicker={t("Contact", "Contact")}
         title={t(
-          "Tell us what you need. We will help you shape it clearly.",
-          "Spune-ne de ce ai nevoie. Te vom ajuta să-l conturezi clar.",
+          "Tell us what you need. We will help you shape it.",
+          "Spune-ne de ce ai nevoie. Te ajutăm să conturezi proiectul.",
         )}
         description={t(
-          "Share a few details about your idea or challenge and we will respond with a practical next step.",
-          "Împărtășește câteva detalii despre ideea sau provocarea ta și vom răspunde cu un pas practic următor.",
+          "A few details about your idea or problem are enough. We reply with a practical next step.",
+          "Câteva detalii despre idee sau problemă sunt de ajuns. Îți răspundem cu un pas practic următor.",
         )}
       />
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        {scan && (
-          <div className="mb-10 flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-5">
-            <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-            <p className="text-sm text-foreground">
+      <section className="section-y">
+        <div className="container-vx">
+          {scan && (
+            <p className="type-body mb-8 max-w-3xl border-l-2 border-brand-line pl-4 text-fg-2">
               {t(
-                `Vortex Scan request: “${scan}”. Leave your details and we'll send you the audit and a personalised plan.`,
-                `Cerere Vortex Scan: „${scan}”. Lasă-ne datele tale și îți trimitem auditul și un plan personalizat.`,
+                `Vortex Scan request: “${scan}”. Leave your details and we will send you the analysis and a plan.`,
+                `Cerere Vortex Scan: „${scan}”. Lasă-ne datele tale și îți trimitem analiza și un plan.`,
               )}
             </p>
+          )}
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
+            <ContactForm
+              key={scan ?? ""}
+              prefill={
+                scan
+                  ? t(
+                      `Please run a Vortex Scan for: ${scan}`,
+                      `Vă rog să rulați un Vortex Scan pentru: ${scan}`,
+                    )
+                  : undefined
+              }
+            />
+            <aside aria-label={t("How we reply", "Cum răspundem")}>
+              <dl className="border-t border-rule">
+                {facts.map((fact) => (
+                  <div
+                    key={fact.label}
+                    className="grid grid-cols-[7.5rem_minmax(0,1fr)] gap-4 border-b border-line-1 py-3 text-sm"
+                  >
+                    <dt className="text-fg-3">{fact.label}</dt>
+                    <dd className="text-fg">{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </aside>
           </div>
-        )}
-        <div className="grid gap-12 lg:grid-cols-[1fr_320px] lg:gap-16">
-          <ContactForm
-            key={scan ?? ""}
-            prefill={
-              scan
-                ? t(
-                    `Please run a free Vortex Scan for: ${scan}`,
-                    `Vă rog să rulați un Vortex Scan gratuit pentru: ${scan}`,
-                  )
-                : undefined
-            }
-          />
-          <aside className="space-y-4 lg:pt-2">
-            {points.map((point) => (
-              <div
-                key={point.text}
-                className="flex items-start gap-3 rounded-xl border border-border bg-card p-5"
-              >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-                  <point.icon className="h-4 w-4" />
-                </span>
-                <p className="text-sm text-muted-foreground">{point.text}</p>
-              </div>
-            ))}
-          </aside>
         </div>
       </section>
     </SiteLayout>

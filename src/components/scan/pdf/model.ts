@@ -1,3 +1,10 @@
+import {
+  displayPlan,
+  kpiCells,
+  type DisplayPlan,
+  type Horizon,
+} from "@/lib/scan/blueprint/display";
+import { compareFindings } from "@/lib/scan/blueprint/strategies";
 import type {
   AuditFinding,
   Blueprint,
@@ -9,12 +16,20 @@ import type {
 } from "@/lib/scan/types";
 
 import type { PdfAssets } from "./assets";
-import { displayHost, pick, tr, withCommaBelow } from "./format";
-import type { IconName } from "./icons";
+import { displayHost, NBSP, pick, tr, withCommaBelow } from "./format";
+import type { StatCell } from "./layout";
+import { INK, type StatusTone } from "./theme";
 
 /** Everything a page needs besides the blueprint itself. */
 export type PdfContext = {
   blueprint: Blueprint;
+  /**
+   * Every displayed figure, from the same selector as the scan screens
+   * (displayPlan), so the PDF prints exactly the numbers of the web results.
+   */
+  plan: DisplayPlan;
+  /** The chart window the results screen opens on (the smallest that shows the break-even). */
+  horizon: Horizon;
   lang: Lang;
   t: (en: string, ro: string) => string;
   /** Company or site name used in headers and the cover. */
@@ -23,48 +38,14 @@ export type PdfContext = {
   reportUrl: string;
   /** Brand images (absolute URLs in the browser, file paths in Node). */
   assets: PdfAssets;
-  /** Sections in print order, without the ones left out for lack of data. */
-  sections: SectionKey[];
-  /** Running number of a section (1, 2…), skipping sections left out. */
-  section: (key: SectionKey) => number;
-  /** Block heights from a first render (see measure.tsx); estimates stand in without them. */
+  /** The demo blueprint behind /scan?demo= (labelled "Date de exemplu"). */
+  sample: boolean;
+  /** Block heights from a first render (see measure.tsx); unused while no break is chosen by hand. */
   measured?: PdfMeasurements;
 };
 
-/** Heights in points of the blocks whose page breaks we choose ourselves. */
-export type PdfMeasurements = {
-  /** Section title and chart row above the first opportunity card. */
-  opportunityHead: number;
-  /** Each opportunity card, including its bottom margin. */
-  opportunityCards: number[];
-  /** The totals table, including its top margin. */
-  opportunityTotals: number;
-};
-
-export type SectionKey =
-  | "summary"
-  | "snapshot"
-  | "audit"
-  | "opportunities"
-  | "strategy"
-  | "roadmap"
-  | "offer"
-  | "methodology";
-
-/** Section names, used by the section eyebrows and the summary's contents strip. */
-export function sectionName(key: SectionKey, lang: Lang): string {
-  const t = tr(lang);
-  return {
-    summary: t("Executive summary", "Rezumat"),
-    snapshot: t("Company snapshot", "Profilul companiei"),
-    audit: t("Website audit", "Auditul site-ului"),
-    opportunities: t("Automation opportunities", "Ce poți automatiza"),
-    strategy: t("Strategy options", "Direcții strategice"),
-    roadmap: t("Roadmap", "Plan de implementare"),
-    offer: t("Your Vortex offer", "Oferta Vortex pentru tine"),
-    methodology: t("Methodology", "Metodologie"),
-  }[key];
-}
+/** Heights in points of blocks whose page breaks we would choose ourselves. */
+export type PdfMeasurements = Record<string, number | number[]>;
 
 export function createContext(
   source: Blueprint,
@@ -74,25 +55,24 @@ export function createContext(
   measured?: PdfMeasurements,
 ): PdfContext {
   const blueprint = withCommaBelow(source);
-  const order: SectionKey[] = [
-    "summary",
-    "snapshot",
-    ...(blueprint.audit ? (["audit"] as const) : []),
-    ...(blueprint.opportunities.length ? (["opportunities"] as const) : []),
-    "strategy",
-    "roadmap",
-    "offer",
-    "methodology",
-  ];
+  // The figures come from the blueprint as stored, exactly as the screen reads them.
+  const plan = displayPlan(source);
+  // The same choice as the results screen: the default window, if the projection reaches it.
+  const covered = Math.max(0, ...plan.series.map((p) => p.month));
+  const horizons = ([6, 12, 24] as const).filter((h) => h === 6 || covered >= h);
+  const horizon: Horizon = horizons.includes(plan.defaultHorizon)
+    ? plan.defaultHorizon
+    : horizons[horizons.length - 1];
   return {
     blueprint,
+    plan: withCommaBelow(plan),
+    horizon,
     lang,
     t: tr(lang),
     name: subjectName(blueprint),
     reportUrl,
     assets,
-    sections: order,
-    section: (key) => order.indexOf(key) + 1,
+    sample: blueprint.id.startsWith("demo-"),
     measured,
   };
 }
@@ -107,162 +87,193 @@ export function subjectName(blueprint: Blueprint): string {
   );
 }
 
+/** Months the plan spans (6 for the usual plan). */
+export function planSpan(plan: DisplayPlan): number {
+  return Math.max(6, ...plan.phases.map((p) => p.months[1]));
+}
+
+/** True when the plan has something to chart: automations and a projection. */
+export function hasImpact(ctx: PdfContext): boolean {
+  return ctx.blueprint.opportunities.length > 0 && ctx.plan.series.length >= 2;
+}
+
+/** The KPI cells of a chart window, value and unit split as on the screen. */
+export function kpiStat(ctx: PdfContext): StatCell[] {
+  const { plan, horizon, lang } = ctx;
+  return kpiCells(plan, horizon).map((cell) => {
+    const value = pick(cell.value, lang);
+    const parts = value.split(NBSP);
+    const unit = parts.length > 1 && /^(lei|RON)$/.test(parts[parts.length - 1]);
+    return {
+      label: pick(cell.label, lang),
+      value: unit ? parts.slice(0, -1).join(NBSP) : value,
+      unit: unit ? parts[parts.length - 1] : undefined,
+      note: cell.note,
+      sub: pick(cell.sub, lang),
+      swatch:
+        cell.key === "value"
+          ? { color: INK.violet }
+          : cell.key === "cost"
+            ? { color: INK.strong, opacity: 0.45 }
+            : undefined,
+    };
+  });
+}
+
 export const SEVERITY_ORDER: Severity[] = ["critical", "high", "medium", "low"];
 
-/** Website findings worth doing first, most severe first. */
+/** Website findings worth doing first, in the scan's order (compareFindings). */
 export function priorityFindings(blueprint: Blueprint): AuditFinding[] {
   const source = blueprint.websiteActions.length
     ? blueprint.websiteActions
     : (blueprint.audit?.findings ?? []);
-  return [...source].sort(
-    (a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity),
-  );
+  return [...source].sort(compareFindings);
 }
 
-export function severityCounts(findings: AuditFinding[]): Record<Severity, number> {
-  const counts: Record<Severity, number> = { critical: 0, high: 0, medium: 0, low: 0 };
-  for (const finding of findings) counts[finding.severity] += 1;
-  return counts;
-}
+export type PriorityLevel = "high" | "medium" | "low";
 
-export function severityLabel(severity: Severity, lang: Lang): string {
+/** Severity as the three-bar priority signal (critical reads "Urgent"). */
+export const PRIORITY_OF: Record<Severity, PriorityLevel> = {
+  critical: "high",
+  high: "high",
+  medium: "medium",
+  low: "low",
+};
+
+/** "Prioritate mare / medie / mică", or "Urgent" for a critical finding. */
+export function priorityLabel(severity: Severity, lang: Lang): string {
   const t = tr(lang);
+  if (severity === "critical") return t("Urgent", "Urgent");
   return {
-    critical: t("Critical", "Critic"),
-    high: t("High", "Ridicat"),
-    medium: t("Medium", "Mediu"),
-    low: t("Low", "Scăzut"),
-  }[severity];
-}
-
-export function categoryLabel(category: AuditFinding["category"], lang: Lang): string {
-  const t = tr(lang);
-  return {
-    performance: t("Performance", "Performanță"),
-    seo: "SEO",
-    accessibility: t("Accessibility", "Accesibilitate"),
-    security: t("Security & privacy", "Securitate și date personale"),
-    conversion: t("Conversion", "Conversie"),
-    content: t("Content", "Conținut"),
-    technology: t("Technology", "Tehnologie"),
-  }[category];
+    high: t("High priority", "Prioritate mare"),
+    medium: t("Medium priority", "Prioritate medie"),
+    low: t("Low priority", "Prioritate mică"),
+  }[PRIORITY_OF[severity]];
 }
 
 export function effortLabel(effort: AuditFinding["effort"], lang: Lang): string {
   const t = tr(lang);
   return {
-    quick: t("Quick fix", "Rezolvare rapidă"),
-    medium: t("Medium effort", "Efort mediu"),
-    project: t("Larger project", "Proiect separat"),
+    quick: t("little effort", "efort mic"),
+    medium: t("medium effort", "efort mediu"),
+    project: t("a lot of effort", "efort mare"),
   }[effort];
 }
 
-/** Channel names are brand names, the same in both languages. */
-export const PLATFORMS: Record<PresencePlatform, { label: string; icon: IconName }> = {
-  website: { label: "Website", icon: "globe" },
-  "google-business": { label: "Google Business", icon: "mapPinned" },
-  facebook: { label: "Facebook", icon: "facebook" },
-  instagram: { label: "Instagram", icon: "instagram" },
-  linkedin: { label: "LinkedIn", icon: "linkedin" },
-  youtube: { label: "YouTube", icon: "youtube" },
-  tiktok: { label: "TikTok", icon: "music" },
-  x: { label: "X (Twitter)", icon: "twitter" },
+/** One word set for every 0–100 score, on the scan and in the PDF: Bun / Acceptabil / Slab. */
+export function scoreTier(score: number, lang: Lang): { label: string; tone: StatusTone } {
+  const t = tr(lang);
+  if (score >= 75) return { label: t("Good", "Bun"), tone: "ok" };
+  if (score >= 50) return { label: t("Fair", "Acceptabil"), tone: "warn" };
+  return { label: t("Poor", "Slab"), tone: "bad" };
+}
+
+/** Channel names as a Romanian owner says them (brand names stay as they are). */
+export function platformLabel(platform: PresencePlatform, lang: Lang): string {
+  const t = tr(lang);
+  return {
+    website: t("Website", "Site"),
+    "google-business": t("Google Business Profile", "Profil Google Business"),
+    facebook: "Facebook",
+    instagram: "Instagram",
+    linkedin: "LinkedIn",
+    youtube: "YouTube",
+    tiktok: "TikTok",
+    x: "X",
+  }[platform];
+}
+
+/** A channel as the report shows it; "unchecked" when we couldn't look. */
+export type ChannelView = Omit<PresenceProfile, "status"> & {
+  status: PresenceProfile["status"] | "unchecked";
 };
 
-/** Channel name for labels: "Website" reads "Site" in Romanian, the rest are brand names. */
-export function platformLabel(platform: PresencePlatform, lang: Lang): string {
-  return platform === "website" ? tr(lang)("Website", "Site") : PLATFORMS[platform].label;
-}
+/** Sectors that sell mostly to other businesses: LinkedIn matters there, Instagram less. */
+const B2B_SECTORS = new Set([
+  "Professional services",
+  "Technology",
+  "Industry",
+  "Trade",
+  "Construction",
+  "Transport",
+  "Real estate",
+]);
 
-/** Presence channels in a stable order; missing core channels are listed so gaps show. */
-export function presenceProfiles(blueprint: Blueprint): PresenceProfile[] {
-  const order: PresencePlatform[] = [
-    "website",
+const SOCIAL_HOSTS: Partial<Record<PresencePlatform, RegExp>> = {
+  facebook: /facebook\.com|fb\.com/i,
+  instagram: /instagram\.com/i,
+  linkedin: /linkedin\.com/i,
+  youtube: /youtube\.com|youtu\.be/i,
+  tiktok: /tiktok\.com/i,
+  x: /(^|\/\/|\.)(x|twitter)\.com/i,
+};
+
+/**
+ * The channels worth a row, as on the overview screen: Google and Facebook
+ * always, Instagram for businesses that sell to people, LinkedIn for those
+ * that sell to firms; any other platform only when we found it.
+ */
+export function channelViews(blueprint: Blueprint): ChannelView[] {
+  const { presence, audit } = blueprint;
+  const relevant: PresencePlatform[] = [
     "google-business",
     "facebook",
-    "instagram",
-    "linkedin",
-    "youtube",
-    "tiktok",
-    "x",
+    B2B_SECTORS.has(blueprint.businessType.sector.en) ? "linkedin" : "instagram",
   ];
-  const found = blueprint.presence?.profiles ?? [];
-  return [...found].sort((a, b) => order.indexOf(a.platform) - order.indexOf(b.platform));
-}
-
-export function recommendedStrategy(blueprint: Blueprint): StrategyOption | undefined {
-  return blueprint.strategies.find((s) => s.recommended) ?? blueprint.strategies[0];
-}
-
-export function strategyIcon(strategy: StrategyOption): IconName {
-  if (strategy.id === "acquire") return "target";
-  if (strategy.id === "automate") return "workflow";
-  if (strategy.id === "assist") return "bot";
-  return "compass";
-}
-
-/** Score band wording; automation potential reads "higher = more to gain". */
-export function scoreBand(
-  kind: "maturity" | "health" | "automation",
-  value: number,
-  lang: Lang,
-): string {
-  const t = tr(lang);
-  if (kind === "automation") {
-    if (value >= 70) return t("High potential", "Potențial ridicat");
-    if (value >= 40) return t("Moderate potential", "Potențial moderat");
-    return t("Limited potential", "Potențial limitat");
+  const links = audit?.signals.socialLinks ?? [];
+  const views: ChannelView[] = relevant.map((platform) => {
+    const found = presence?.profiles.find((p) => p.platform === platform);
+    if (found) return found;
+    if (platform === "google-business" && presence?.googleRating) {
+      return { platform, status: "active" };
+    }
+    if (presence) return { platform, status: "missing" };
+    // No profile search ran: fall back to the links on the site itself.
+    const pattern = SOCIAL_HOSTS[platform];
+    const link = pattern ? links.find((url) => pattern.test(url)) : undefined;
+    if (link) return { platform, status: "detected", url: link };
+    return { platform, status: platform === "google-business" || !audit ? "unchecked" : "missing" };
+  });
+  const shown = new Set<PresencePlatform>(relevant);
+  for (const profile of presence?.profiles ?? []) {
+    if (shown.has(profile.platform) || profile.platform === "website") continue;
+    if (profile.status === "missing") continue;
+    shown.add(profile.platform);
+    views.push(profile);
   }
-  if (value >= 70) return t("Strong", "Bine");
-  if (value >= 40) return t("Developing", "Mediu");
-  return t("Needs attention", "Necesită atenție");
+  if (!presence) {
+    for (const [platform, pattern] of Object.entries(SOCIAL_HOSTS) as Array<
+      [PresencePlatform, RegExp]
+    >) {
+      if (shown.has(platform)) continue;
+      const link = links.find((url) => pattern.test(url));
+      if (!link) continue;
+      shown.add(platform);
+      views.push({ platform, status: "detected", url: link });
+    }
+  }
+  return views;
 }
 
-export function implementationLevel(level: "low" | "medium" | "high"): 1 | 2 | 3 {
-  return level === "low" ? 1 : level === "medium" ? 2 : 3;
-}
-
-export function levelLabel(level: "low" | "medium" | "high", lang: Lang): string {
+/** The category of a strategy: what kind of work it is ("Automatizare", "Site"). */
+export function strategyCategory(id: string, hasSitePhase: boolean, lang: Lang): string {
   const t = tr(lang);
-  return { low: t("Low", "Scăzut"), medium: t("Medium", "Mediu"), high: t("High", "Ridicat") }[
-    level
-  ];
+  if (id === "automate") return t("Automation", "Automatizare");
+  if (id === "assist") return t("AI assistant", "Asistent AI");
+  if (id === "acquire") return hasSitePhase ? t("Website", "Site") : t("Reviews", "Recenzii");
+  return t("Direction", "Direcție");
 }
 
-/** Complexity is feminine in Romanian: "complexitate scăzută / medie / ridicată". */
-export function complexityLabel(level: "low" | "medium" | "high", lang: Lang): string {
-  const t = tr(lang);
-  return {
-    low: t("Low", "Scăzută"),
-    medium: t("Medium", "Medie"),
-    high: t("High", "Ridicată"),
-  }[level];
-}
-
-export function tagLabel(tag: "essential" | "high-impact" | "growth", lang: Lang): string {
-  const t = tr(lang);
-  return {
-    essential: t("Essential", "Esențial"),
-    "high-impact": t("High impact", "Impact mare"),
-    growth: t("Growth", "Creștere"),
-  }[tag];
-}
-
-/** Months label: "Month 1" / "Months 2–3". */
-export function monthsLabel(start: number, end: number, lang: Lang): string {
-  const t = tr(lang);
-  return start === end
-    ? `${t("Month", "Luna")} ${start}`
-    : `${t("Months", "Lunile")} ${start}–${end}`;
+export function strategyOption(blueprint: Blueprint, id: string): StrategyOption | undefined {
+  return blueprint.strategies.find((s) => s.id === id);
 }
 
 export { pick };
 
 /**
- * True when strategy and roadmap together fit one page comfortably (one
- * direction, or a short roadmap without a projection), so they share a page.
+ * True when strategy and plan together fit one page comfortably (one
+ * direction and a short plan without a projection), so they share a page.
  */
-export function isLightPlan(blueprint: Blueprint): boolean {
-  const { strategies, roadmap, projection } = blueprint;
-  return strategies.length <= 1 && roadmap.length <= 2 && projection.length < 2;
+export function isLightPlan(ctx: PdfContext): boolean {
+  return ctx.plan.strategies.length <= 1 && ctx.plan.phases.length <= 2 && !hasImpact(ctx);
 }

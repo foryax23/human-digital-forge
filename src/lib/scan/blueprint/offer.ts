@@ -7,73 +7,126 @@ import type {
   VortexOffer,
 } from "@/lib/scan/types";
 
-import { lcFirst } from "./format";
+import { addEstimates, formatNumber, lcFirst, midOf } from "./format";
 import { bi } from "./model";
 
 /*
  * Maps the blueprint to a Vortex plan (src/lib/plans.ts, PricingSection):
- * Starter 20 EUR / 100 lei, Growth 50 EUR / 250 lei, Pro 200 EUR / 1000 lei a
- * month, or a fixed-price project when the build is large.
+ * Starter 100 lei, Growth 250 lei, Pro 1.000 lei a month, or a fixed-price
+ * project when the build is large. The tier follows the scope (how many
+ * automations, whether a new website is built), never the one-off cost, and
+ * steps down while the fee would eat the plan's central monthly gain.
  */
 
-/** Plan features, as listed on the pricing section. */
-const PLAN_INCLUDES: Record<PlanId, Bilingual[]> = {
-  starter: [
-    bi(
-      "30 minutes of live Zoom consultation each month",
-      "30 de minute de consultanță live pe Zoom în fiecare lună",
-    ),
-    bi("1 month access to our AI tools", "1 lună de acces la instrumentele noastre AI"),
-    bi("Personalised next-step recommendations", "Recomandări personalizate pentru pașii următori"),
-    bi("Email support during your subscription", "Suport pe e-mail pe durata abonamentului"),
-  ],
-  growth: [
-    bi("2 hours of live Zoom consultation", "2 ore de consultanță live pe Zoom"),
-    bi("Guided setup of your digital workflow", "Configurare ghidată a proceselor tale digitale"),
-    bi(
-      "Expanded access to our AIs and programs",
-      "Acces extins la instrumentele și programele noastre AI",
-    ),
-    bi("Priority scheduling and email support", "Programări cu prioritate și suport pe e-mail"),
-  ],
-  pro: [
-    bi("Hands-on help with your projects", "Ajutor practic pentru proiectele tale"),
-    bi("Unlimited live support from our team", "Suport live nelimitat din partea echipei noastre"),
-    bi("Unlimited access to all AI tools", "Acces nelimitat la toate instrumentele AI"),
-    bi("Direct priority line to us", "Legătură directă, cu prioritate, cu echipa noastră"),
-  ],
-};
+/**
+ * What the plan gives for this report's plan, three lines on the web and in the PDF.
+ * Each line is a pricing-section feature (PricingSection.tsx) said about this plan's
+ * stages, so nothing is promised that the plan does not include.
+ */
+function planIncludes(plan: PlanId, stages: Bilingual): Bilingual[] {
+  switch (plan) {
+    case "starter":
+      return [
+        bi(
+          "30 minutes of live consultation on Zoom each month",
+          "30 de minute de consultanță live pe Zoom în fiecare lună",
+        ),
+        bi(`Recommendations for ${stages.en}`, `Recomandări pentru ${stages.ro}`),
+        bi("Email support during your subscription", "Suport pe e-mail pe durata abonamentului"),
+      ];
+    case "growth":
+      return [
+        bi("2 hours of live consultation on Zoom", "2 ore de consultanță live pe Zoom"),
+        bi(`Guided setup of ${stages.en}`, `Configurare ghidată pentru ${stages.ro}`),
+        bi("Priority scheduling and email support", "Programări cu prioritate și suport pe e-mail"),
+      ];
+    case "pro":
+      return [
+        bi(`Hands-on help building ${stages.en}`, `Ajutor practic la construirea ${stages.ro}`),
+        bi(
+          "Unlimited live support from our team while they run",
+          "Suport live nelimitat din partea echipei noastre, cât timp rulează",
+        ),
+        bi("A direct priority line to us", "Legătură directă, cu prioritate, cu echipa noastră"),
+      ];
+  }
+}
+
+/** "the 4 stages of this plan" / "celor 4 etape din plan" (genitive after "construirea"). */
+function stagesPhrase(plan: PlanId, count: number): Bilingual {
+  const n = Math.max(1, count);
+  if (n === 1) {
+    return plan === "pro"
+      ? bi("the plan's one stage", "etapei din plan")
+      : plan === "growth"
+        ? bi("the plan's one stage", "etapa din plan")
+        : bi("the plan's stage", "etapa din plan");
+  }
+  if (plan === "pro") return bi(`the ${n} stages of the plan`, `celor ${n} etape din plan`);
+  if (plan === "growth") return bi(`the ${n} stages of the plan`, `cele ${n} etape din plan`);
+  return bi(`the ${n} stages of the plan`, `cele ${n} etape din plan`);
+}
 
 const PLAN_NAMES: Record<PlanId, string> = { starter: "Starter", growth: "Growth", pro: "Pro" };
+const TIERS: PlanId[] = ["starter", "growth", "pro"];
 
-/** Thresholds on the recommended strategy's investment (RON, high end). */
-const GROWTH_FROM_RON = 5000;
-const PRO_FROM_RON = 20000;
-/** Above this total setup (or with 2+ high-complexity builds) it's a project. */
+/** Above this central setup (or with 2+ high-complexity builds) it's a project. */
 const PROJECT_FROM_RON = 50000;
+/** Scope thresholds: automations in the plan for Growth and Pro (one less with a new website). */
+const GROWTH_FROM_AUTOMATIONS = 3;
+const PRO_FROM_AUTOMATIONS = 6;
 
+/** Monthly plan fee in lei. */
+export function planFeeRon(plan: PlanId): number {
+  return PLAN_PRICING[plan].ron / 100;
+}
+
+/**
+ * The monthly fee the offer quotes, in lei; null for a project or a fee agreed on the
+ * call (the only offers whose title is not a plan name).
+ */
+export function offerFeeRon(offer: VortexOffer): number | null {
+  if (offer.planId === "project") return null;
+  return offer.title.en === PLAN_NAMES[offer.planId] ? planFeeRon(offer.planId) : null;
+}
+
+/** The fee exactly as the pricing section shows it ("1.000 lei pe lună"), never "de la". */
 function priceNote(plan: PlanId, withSetup: boolean): Bilingual {
-  const eur = PLAN_PRICING[plan].eur / 100;
-  const ron = PLAN_PRICING[plan].ron / 100;
+  const fee = {
+    en: formatNumber(planFeeRon(plan), "en"),
+    ro: formatNumber(planFeeRon(plan), "ro"),
+  };
   return withSetup
     ? bi(
-        `From ${eur} EUR / month + one-off setup`,
-        `De la ${ron} lei / lună + cost unic de implementare`,
+        `${fee.en} RON a month, plus the setup (fixed price after a call)`,
+        `${fee.ro} lei pe lună, plus implementarea (preț fix după discuție)`,
       )
-    : bi(`${eur} EUR / month`, `${ron} lei / lună`);
+    : bi(`${fee.en} RON a month`, `${fee.ro} lei pe lună`);
+}
+
+/** The tier the scope calls for: automations in the plan and whether a website is built. */
+export function scopeTier(automations: number, highComplexity: number, newSite: boolean): PlanId {
+  const extra = newSite ? 1 : 0;
+  if (highComplexity >= 1 || automations + extra >= PRO_FROM_AUTOMATIONS) return "pro";
+  if (automations + extra >= GROWTH_FROM_AUTOMATIONS) return "growth";
+  return "starter";
 }
 
 export function buildOffer(args: {
   opportunities: AutomationOpportunity[];
   strategies: StrategyOption[];
   totals: Blueprint["totals"];
+  /** No working website today: the plan builds one. */
+  newSite?: boolean;
+  /** Stages in the plan (its roadmap phases), which the offer's lines refer to. */
+  stages?: number;
 }): VortexOffer {
-  const recommended = args.strategies.find((s) => s.recommended) ?? args.strategies[0];
   const highComplexity = args.opportunities.filter((o) => o.complexity === "high");
-  const invest = recommended?.investmentRon.high ?? 0;
   const count = args.opportunities.length;
+  const newSite = Boolean(args.newSite);
+  const stages = args.stages ?? 0;
 
-  if (args.totals.setupCostRon.high >= PROJECT_FROM_RON || highComplexity.length >= 2) {
+  if (midOf(args.totals.setupCostRon) >= PROJECT_FROM_RON || highComplexity.length >= 2) {
     const example = highComplexity[0] ?? args.opportunities[0];
     return {
       planId: "project",
@@ -106,39 +159,70 @@ export function buildOffer(args: {
     };
   }
 
-  const plan: PlanId =
-    invest >= PRO_FROM_RON || highComplexity.length === 1
-      ? "pro"
-      : invest >= GROWTH_FROM_RON
-        ? "growth"
-        : "starter";
+  // The fee must not cancel the plan's central monthly gain (value of the hours minus tools).
+  const monthlyGain =
+    midOf(args.totals.monthlySavingsRon) -
+    addEstimates(args.opportunities.map((o) => o.monthlyToolCostRon)).mid;
+  const wanted = scopeTier(count, highComplexity.length, newSite);
+  let tier = TIERS.indexOf(wanted);
+  while (tier >= 0 && monthlyGain - planFeeRon(TIERS[tier]) <= 0) tier--;
+  const withSetup = count > 0 || newSite;
 
+  if (tier < 0) {
+    return {
+      planId: "starter",
+      title: bi("Plan agreed on the call", "Abonament stabilit la discuție"),
+      why: bi(
+        "The estimated monthly gain is small, so we agree the plan fee on the call, once the volumes are confirmed.",
+        "Câștigul lunar estimat e mic, așa că abonamentul îl stabilim la discuție, după ce confirmăm volumele.",
+      ),
+      includes: planIncludes("starter", stagesPhrase("starter", stages)),
+      priceNote: withSetup
+        ? bi(
+            "Plan fee agreed on the call, plus the setup (fixed price)",
+            "Abonamentul se stabilește la discuție, plus implementarea (preț fix)",
+          )
+        : bi("Plan fee agreed on the call", "Abonamentul se stabilește la discuție"),
+    };
+  }
+
+  const plan = TIERS[tier];
+  // The stages the visitor sees above (the Gantt rows), never a count of things not listed.
+  const scope =
+    stages > 1
+      ? bi(`The plan has ${stages} stages`, `Planul are ${stages} etape`)
+      : bi("The plan has one stage", "Planul are o etapă");
   const why: Record<PlanId, Bilingual> = {
     starter: bi(
-      "Your first steps are quick wins; Starter gives you monthly guidance and our AI tools while you make them.",
-      "Primii pași aduc rezultate rapide; cu Starter primești îndrumare lunară și acces la instrumentele noastre AI cât timp îi parcurgi.",
+      "Your first steps are small; Starter gives you monthly guidance while you take them.",
+      "Primii pași sunt mici; cu Starter primești îndrumare lunară cât timp îi faci.",
     ),
     growth: bi(
-      `You have ${count} improvements worth doing; Growth covers the guided setup and ongoing support.`,
-      `Ai ${count} îmbunătățiri care merită făcute; Growth acoperă implementarea ghidată și suportul continuu.`,
+      `${scope.en}; Growth covers the guided setup and ongoing support.`,
+      `${scope.ro}; Growth acoperă implementarea ghidată și suportul continuu.`,
     ),
-    pro: bi(
-      "Several high-impact changes across your operations; Pro gives you hands-on help to build and run them.",
-      "Ai mai multe schimbări cu impact mare în activitate; cu Pro primești ajutor practic ca să le implementezi și să le ții în funcțiune.",
-    ),
+    pro:
+      stages > 1
+        ? bi(
+            `${scope.en}; with Pro we build them with you and keep them running.`,
+            `${scope.ro}; cu Pro le construim împreună și le ținem în funcțiune.`,
+          )
+        : bi(
+            `${scope.en}; with Pro we build it with you and keep it running.`,
+            `${scope.ro}; cu Pro o construim împreună și o ținem în funcțiune.`,
+          ),
   };
-
+  const steppedDown = plan !== wanted;
   return {
     planId: plan,
-    title:
-      plan === "starter"
-        ? bi("Vortex Starter", "Vortex Starter")
-        : bi(
-            `Vortex ${PLAN_NAMES[plan]} + ${recommended?.id === "acquire" ? "website and growth setup" : "automation setup"}`,
-            `Vortex ${PLAN_NAMES[plan]} + ${recommended?.id === "acquire" ? "implementare site și atragere de clienți" : "implementarea automatizărilor"}`,
-          ),
-    why: why[plan],
-    includes: PLAN_INCLUDES[plan].map((item) => ({ ...item })),
-    priceNote: priceNote(plan, plan !== "starter"),
+    title: bi(PLAN_NAMES[plan], PLAN_NAMES[plan]),
+    why: steppedDown
+      ? bi(
+          `${why[plan].en} We picked a smaller plan so the fee doesn't cancel the monthly gain.`,
+          `${why[plan].ro} Am ales un abonament mai mic, ca să nu anuleze câștigul lunar.`,
+        )
+      : why[plan],
+    includes: planIncludes(plan, stagesPhrase(plan, stages)),
+    priceNote: priceNote(plan, withSetup),
   };
 }

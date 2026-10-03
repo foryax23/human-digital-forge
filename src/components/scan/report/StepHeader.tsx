@@ -1,46 +1,51 @@
 import type { ReactNode } from "react";
-import { motion } from "motion/react";
 
-import { cn } from "@/lib/utils";
-import { EASE_OUT } from "./motion";
+import { StepHeader as SystemStepHeader } from "@/components/system";
 
-/** Title block of a scan step: eyebrow (optional), accented title, intro line. */
+/**
+ * Title block of a scan step, in the refresh's `step` look (system/section-header.tsx):
+ * company line, title, one-line lead, actions on the right, ≤ 110 px tall on desktop.
+ * Kept as a thin adapter so the steps not migrated yet keep their props: `description`
+ * is the lead, `aside` the actions, and `eyebrow` is ignored (the step bar names the step).
+ */
 export function StepHeader({
   id,
-  eyebrow,
   title,
   description,
+  lead,
   aside,
+  actions,
+  company,
+  place,
+  demo,
   className,
 }: {
   id: string;
-  /** Left out where the stepper above already names the step. */
+  /** @deprecated Not drawn: the step bar above already names the step. */
   eyebrow?: string;
   title: ReactNode;
-  description: ReactNode;
+  /** @deprecated Use `lead`. */
+  description?: ReactNode;
+  lead?: ReactNode;
+  /** @deprecated Use `actions`. */
   aside?: ReactNode;
+  actions?: ReactNode;
+  company?: ReactNode;
+  place?: ReactNode;
+  /** Adds the dashed "Date de exemplu" tag to the company line. */
+  demo?: boolean;
   className?: string;
 }) {
   return (
-    <motion.header
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: EASE_OUT }}
-      className={cn("flex flex-col gap-5 md:flex-row md:items-end md:justify-between", className)}
-    >
-      <div className="max-w-2xl">
-        {eyebrow && (
-          <p className="type-label mb-3 flex items-center gap-3 text-white/55">
-            <span aria-hidden className="h-px w-8 bg-border" />
-            {eyebrow}
-          </p>
-        )}
-        <h2 id={id} className="type-h2 text-balance text-white">
-          {title}
-        </h2>
-        <p className="type-lead mt-3 text-white/65">{description}</p>
-      </div>
-      {aside ? <div className="shrink-0">{aside}</div> : null}
-    </motion.header>
+    <SystemStepHeader
+      id={id}
+      title={title}
+      lead={lead ?? description}
+      actions={actions ?? aside}
+      company={company}
+      place={place}
+      demo={demo}
+      className={className}
+    />
   );
 }

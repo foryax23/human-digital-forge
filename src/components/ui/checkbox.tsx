@@ -4,6 +4,10 @@ import { Check } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * 16 px box, 4 px corners, 1.5 px edge; checked = solid violet with a 2 px white check.
+ * aria-invalid draws a 1 px red ring.
+ */
 const Checkbox = React.forwardRef<
   React.ElementRef<typeof CheckboxPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
@@ -11,13 +15,17 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={cn(
-      "grid place-content-center peer h-4 w-4 shrink-0 rounded-sm border border-primary shadow cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
+      "peer grid size-4 shrink-0 cursor-pointer place-content-center rounded-sm border-[1.5px] border-fg/42 bg-transparent text-white transition-colors duration-150",
+      "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-line/55",
+      "data-[state=checked]:border-brand data-[state=checked]:bg-brand",
+      "aria-invalid:ring-1 aria-invalid:ring-bad",
+      "disabled:cursor-not-allowed disabled:opacity-[0.42]",
       className,
     )}
     {...props}
   >
-    <CheckboxPrimitive.Indicator className={cn("grid place-content-center text-current")}>
-      <Check className="h-4 w-4" />
+    <CheckboxPrimitive.Indicator className="grid place-content-center text-current">
+      <Check className="size-3" strokeWidth={3.5} />
     </CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>
 ));

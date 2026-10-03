@@ -2,6 +2,7 @@ import type {
   Bilingual,
   DetectedTechnology,
   OnlinePresence,
+  PhaseKey,
   Range,
   SiteSignals,
 } from "@/lib/scan/types";
@@ -12,7 +13,7 @@ import type {
  * and the price book, so each one can be traced back to a stated assumption.
  */
 
-export type PhaseKey = "foundation" | "automation" | "assistant" | "growth";
+export type { PhaseKey };
 export type StrategyKey = "acquire" | "automate" | "assist";
 
 /**
@@ -90,7 +91,12 @@ export type OpportunityTemplate = {
   impact: "high" | "medium" | "low";
   complexity: "low" | "medium" | "high";
   tools: string[];
-  phase: PhaseKey;
+  /**
+   * Explicit roadmap override. By default the phase follows the strategy
+   * (automate → automation, assist → assistant, acquire → growth), so each
+   * strategy card, Gantt row and phase row describe the same work.
+   */
+  phase?: PhaseKey;
   strategy: StrategyKey;
   /** Default volume, optionally from the type's playbook params. */
   volume: VolumeModel | ((params: PlaybookParams) => VolumeModel);

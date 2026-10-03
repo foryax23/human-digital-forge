@@ -140,7 +140,7 @@ export function HeroCosmos({
 
           {/* Stars. */}
           <span
-            className="absolute left-0 top-0 h-px w-px rounded-full"
+            className="absolute left-0 top-0 h-px w-px rounded-full" /* dot */
             style={{ boxShadow: STAR_SHADOWS }}
           />
         </>

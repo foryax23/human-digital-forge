@@ -187,14 +187,14 @@ export function HeroPillars({
                   onBlur={() => release(index)}
                   className={cn(
                     styles.pillar,
-                    "group/pillar relative flex w-full flex-col items-center gap-2 rounded-lg px-1 pb-4 pt-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#c4b5fd]/50 sm:w-28 sm:gap-2.5 sm:px-2 2xl:w-32",
+                    "group/pillar relative flex w-full flex-col items-center gap-2 rounded-lg px-1 pb-4 pt-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-hero-lilac/50 sm:w-28 sm:gap-2.5 sm:px-2 2xl:w-32",
                   )}
                 >
                   <PillarIcon
                     sector={pillar.key}
                     className={cn(
                       // A tight dark halo instead of a heavier plate: legible on the vortex's bright arm.
-                      "size-7 drop-shadow-[0_0_6px_rgb(0_2_15/0.95)] transition-opacity duration-300 sm:size-10 2xl:size-11",
+                      "hero-icon-halo size-7 transition-opacity duration-300 sm:size-10 2xl:size-11",
                       on ? "opacity-100" : "opacity-90 group-hover/pillar:opacity-100",
                     )}
                   />
@@ -211,7 +211,7 @@ export function HeroPillars({
                       aria-hidden
                       layoutId={indicatorId}
                       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                      className="absolute inset-x-0 bottom-0 mx-auto h-0.5 w-12 rounded-full bg-gradient-to-r from-[#8b7cf6] via-[#d4c9ff] to-[#8b7cf6] shadow-[0_0_10px_1px_rgb(139_124_246/0.55)] sm:w-[4.75rem]"
+                      className="absolute inset-x-0 bottom-0 mx-auto h-0.5 w-12 rounded-[1px] bg-gradient-to-r from-[#8b7cf6] via-[#d4c9ff] to-[#8b7cf6] hero-indicator-glow sm:w-[4.75rem]"
                     />
                   )}
                 </button>

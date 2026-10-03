@@ -53,11 +53,21 @@ function NewRequestPage() {
 
     if (error) {
       console.error("[new-request] insert failed", error);
-      toast.error(t("Could not submit your request. Please try again.", "Nu am putut trimite cererea ta. Te rugăm să încerci din nou."));
+      toast.error(
+        t(
+          "Could not submit your request. Please try again.",
+          "Nu am putut trimite cererea ta. Te rugăm să încerci din nou.",
+        ),
+      );
       return;
     }
 
-    toast.success(t("Request submitted — we'll be in touch soon.", "Cerere trimisă — te vom contacta în curând."));
+    toast.success(
+      t(
+        "Request submitted — we'll be in touch soon.",
+        "Cerere trimisă — te vom contacta în curând.",
+      ),
+    );
     navigate({ to: "/dashboard" });
   }
 
@@ -81,7 +91,12 @@ function NewRequestPage() {
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
         <div className="space-y-2">
           <Label htmlFor="title">{t("Project title", "Titlul proiectului")}</Label>
-          <Input id="title" name="title" required placeholder={t("e.g. New brand website", "ex. Site nou pentru brand")} />
+          <Input
+            id="title"
+            name="title"
+            required
+            placeholder={t("e.g. New brand website", "ex. Site nou pentru brand")}
+          />
         </div>
 
         <div className="space-y-2">
@@ -91,7 +106,9 @@ function NewRequestPage() {
               <SelectValue placeholder={t("Select one", "Selectează una")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="digital-product">{t("Digital Product", "Produs digital")}</SelectItem>
+              <SelectItem value="digital-product">
+                {t("Digital Product", "Produs digital")}
+              </SelectItem>
               <SelectItem value="website">{t("Website", "Website")}</SelectItem>
               <SelectItem value="ai-automation">{t("AI Automation", "Automatizare AI")}</SelectItem>
               <SelectItem value="consultancy">{t("Consultancy", "Consultanță")}</SelectItem>
@@ -107,12 +124,24 @@ function NewRequestPage() {
 
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="budget">{t("Approximate budget (optional)", "Buget aproximativ (opțional)")}</Label>
-            <Input id="budget" name="budget" placeholder={t("e.g. €500–€1,500", "ex. €500–€1.500")} />
+            <Label htmlFor="budget">
+              {t("Approximate budget (optional)", "Buget aproximativ (opțional)")}
+            </Label>
+            <Input
+              id="budget"
+              name="budget"
+              placeholder={t("e.g. €500–€1,500", "ex. €500–€1.500")}
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="timeline">{t("Preferred timeline (optional)", "Interval preferat (opțional)")}</Label>
-            <Input id="timeline" name="timeline" placeholder={t("e.g. Within 4 weeks", "ex. În 4 săptămâni")} />
+            <Label htmlFor="timeline">
+              {t("Preferred timeline (optional)", "Interval preferat (opțional)")}
+            </Label>
+            <Input
+              id="timeline"
+              name="timeline"
+              placeholder={t("e.g. Within 4 weeks", "ex. În 4 săptămâni")}
+            />
           </div>
         </div>
 

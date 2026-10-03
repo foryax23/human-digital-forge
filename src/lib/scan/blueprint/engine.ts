@@ -15,7 +15,7 @@ import {
   typicalTeam,
   type OpportunityInput,
 } from "./economics";
-import { formatNumber, midpoint } from "./format";
+import { formatNumber, midOf } from "./format";
 import { bi, clamp, type SignalContext } from "./model";
 import { resolveOpportunity } from "./playbooks";
 import type { BusinessTypeDef } from "./taxonomy";
@@ -141,6 +141,6 @@ export function digitalMaturityOf(audit: WebsiteAudit | undefined, presence?: On
 /** How much of the team's time the plan frees: 8 % of working hours or more = 100. */
 export function automationPotentialOf(totals: Blueprint["totals"], teamSize: number) {
   const capacity = Math.max(1, teamSize) * HOURS_PER_MONTH * 0.08;
-  const ratio = Math.min(1, midpoint(totals.hoursSavedPerMonth) / capacity);
+  const ratio = Math.min(1, midOf(totals.hoursSavedPerMonth) / capacity);
   return Math.round(clamp(25 + 75 * ratio, 0, 100));
 }

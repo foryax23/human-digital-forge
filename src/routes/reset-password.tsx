@@ -52,17 +52,24 @@ function ResetPasswordPage() {
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (error) {
-      toast.error(error.message || t("Could not update your password.", "Nu s-a putut actualiza parola."));
+      toast.error(
+        error.message || t("Could not update your password.", "Nu s-a putut actualiza parola."),
+      );
       return;
     }
-    toast.success(t("Password updated. You're all set.", "Parola a fost actualizată. Totul este în regulă."));
+    toast.success(
+      t("Password updated. You're all set.", "Parola a fost actualizată. Totul este în regulă."),
+    );
     navigate({ to: "/dashboard" });
   }
 
   return (
     <AuthLayout
       heading={t("Set a new password.", "Setează o parolă nouă.")}
-      intro={t("Choose a strong password to secure your client account.", "Alegeți o parolă puternică pentru a vă securiza contul de client.")}
+      intro={t(
+        "Choose a strong password to secure your client account.",
+        "Alege o parolă puternică pentru contul tău de client.",
+      )}
       footer={
         <Link to="/login" className="text-primary underline-offset-4 hover:underline">
           {t("Back to login", "Înapoi la autentificare")}
@@ -92,7 +99,7 @@ function ResetPasswordPage() {
         <p className="text-sm text-muted-foreground">
           {t(
             "Open this page from the reset link in your email to set a new password.",
-            "Deschideți această pagină din linkul de resetare din emailul dvs. pentru a seta o parolă nouă."
+            "Deschide pagina din linkul de resetare primit pe e-mail ca să setezi o parolă nouă.",
           )}
         </p>
       )}

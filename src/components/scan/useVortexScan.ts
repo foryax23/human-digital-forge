@@ -11,6 +11,8 @@ import {
   scanWebsite,
 } from "@/lib/scan.functions";
 import { applyPageSpeed } from "@/lib/scan/audit/merge";
+import { displayPlan } from "@/lib/scan/blueprint/display";
+import { hoursQty } from "@/lib/scan/blueprint/format";
 import { classifyBusiness, competitorKeywords } from "@/lib/scan/blueprint/taxonomy";
 import { findCompanyByCui, searchCompanies } from "@/lib/scan/company-search";
 import { findCompetitors } from "@/lib/scan/competitors";
@@ -70,7 +72,7 @@ export const SCAN_STEP_LABELS: Record<ScanStepId, Bilingual> = {
   presence: L("Analysing online presence", "Analizăm prezența online"),
   competitors: L("Researching competitors", "Căutăm concurenții"),
   journey: L("Mapping customer journey", "Analizăm parcursul clientului"),
-  opportunities: L("Finding automation opportunities", "Căutăm oportunități de automatizare"),
+  opportunities: L("Finding what can be automated", "Căutăm ce se poate automatiza"),
   strategy: L("Generating strategy options", "Pregătim variantele de strategie"),
 };
 
@@ -205,8 +207,8 @@ function websiteNotes(audit: WebsiteAudit): Bilingual[] {
   const n = audit.pages.length;
   const notes = [
     L(
-      `${enNum(n)} ${n === 1 ? "page" : "pages"} analysed on ${audit.host}${audit.https ? " · HTTPS" : ""}`,
-      `${roNum(n)} ${roDe(n)}${n === 1 ? "pagină analizată" : "pagini analizate"} pe ${audit.host}${audit.https ? " · HTTPS" : ""}`,
+      `${enNum(n)} ${n === 1 ? "page" : "pages"} analysed on ${audit.host}${audit.https ? ", over HTTPS" : ""}`,
+      `${roNum(n)} ${roDe(n)}${n === 1 ? "pagină analizată" : "pagini analizate"} pe ${audit.host}${audit.https ? ", cu HTTPS" : ""}`,
     ),
   ];
   if (audit.responseMs) {
@@ -321,15 +323,19 @@ function opportunityNotes(blueprint: Blueprint): Bilingual[] {
   const hours = blueprint.totals.hoursSavedPerMonth;
   const notes = [
     L(
-      `${enNum(n)} automation ${n === 1 ? "opportunity" : "opportunities"} found`,
-      `Am găsit ${roNum(n)} ${roDe(n)}${n === 1 ? "oportunitate" : "oportunități"} de automatizare`,
+      `${enNum(n)} ${n === 1 ? "task" : "tasks"} that can be automated`,
+      n === 1
+        ? "Am găsit o activitate care se poate automatiza"
+        : `Am găsit ${roNum(n)} ${roDe(n)}activități care se pot automatiza`,
     ),
   ];
   if (n && hours.high > 0) {
+    // The same figure as the plan's headline and "Pe scurt" (displayPlan).
+    const shown = hoursQty(displayPlan(blueprint).totals.hoursPerMonth);
     notes.push(
       L(
-        `Estimated ${enNum(Math.round(hours.low))}–${enNum(Math.round(hours.high))} hours saved a month`,
-        `Estimăm ${roNum(Math.round(hours.low))}–${roNum(Math.round(hours.high))} ${roDe(Math.round(hours.high))}ore economisite pe lună`,
+        `We estimate about ${shown.en} won back a month`,
+        `Estimăm cam ${shown.ro} câștigate pe lună`,
       ),
     );
   }
@@ -641,6 +647,13 @@ function createRunner(io: IO, overrides: Overrides) {
           : state.company,
       }));
       if (!audit.reachable) {
+        // robots.txt opt-out (audit/checks.ts scanOptOutFinding): say so, not "no answer".
+        if (audit.findings.some((finding) => finding.id === "technology.scan-opt-out")) {
+          throw fail(
+            `${audit.host} asks not to be scanned (robots.txt), so we left it alone`,
+            `${audit.host} cere să nu fie scanat (robots.txt), așa că nu l-am deschis`,
+          );
+        }
         throw fail(`${audit.host} didn't respond`, `${audit.host} nu a răspuns`);
       }
       websiteNotes(audit).forEach(note);
@@ -823,8 +836,8 @@ function createRunner(io: IO, overrides: Overrides) {
         return addNote(
           "strategy",
           L(
-            "Needs the automation opportunities",
-            "Avem nevoie mai întâi de oportunitățile de automatizare",
+            "Needs the list of what can be automated first",
+            "Avem nevoie mai întâi de lista cu ce se poate automatiza",
           ),
         )(
           patchStep("strategy", {
@@ -936,7 +949,7 @@ function clearCache(key: string) {
 
 /* -------------------------------------------------------------------- demo */
 
-/** A finished scan built from the sample blueprint (for /scan?demo=1). */
+/** A finished scan built from the sample blueprint (for /scan?demo=overview). */
 export function demoScanState(): ScanState {
   const blueprint = SAMPLE_BLUEPRINT;
   const state: ScanState = {
@@ -976,6 +989,8 @@ export type VortexScan = {
   ready: boolean;
   /** True while an edit from the overview is being re-run. */
   updating: boolean;
+  /** Stops the edit being re-run and puts back the analysis as it was before it. */
+  cancelUpdate: () => void;
   /** Forgets the cached result and scans again from scratch. */
   rerun: () => void;
   /** Applies a correction and re-runs only the steps it affects. */
@@ -1008,6 +1023,8 @@ export function useVortexScan(
     runId.current += 1;
   }, []);
   const overrides = useRef<Overrides>({});
+  /** The analysis and overrides from before the edit being re-run, for cancelUpdate. */
+  const beforeEdit = useRef<{ state: ScanState; overrides: Overrides } | null>(null);
   const targetRef = useRef(target);
   targetRef.current = target;
 
@@ -1100,6 +1117,7 @@ export function useVortexScan(
           patch.city.trim() !== (overrides.current.city ?? stateRef.current.company?.city));
       if (!website && !marketChanged) return;
 
+      beforeEdit.current ??= { state: stateRef.current, overrides: overrides.current };
       overrides.current = {
         ...overrides.current,
         ...(patch.businessTypeId ? { businessTypeId: patch.businessTypeId } : {}),
@@ -1134,14 +1152,27 @@ export function useVortexScan(
         .update({ website, market: Boolean(marketChanged) })
         .catch((error) => console.error("[scan] update failed", error))
         .finally(() => {
-          if (isCurrent()) setUpdating(false);
+          if (!isCurrent()) return;
+          beforeEdit.current = null;
+          setUpdating(false);
         });
     },
     [begin, demo],
   );
 
+  const cancelUpdate = useCallback(() => {
+    const before = beforeEdit.current;
+    if (!before) return;
+    beforeEdit.current = null;
+    cancelRun();
+    overrides.current = before.overrides;
+    stateRef.current = before.state;
+    setState(before.state);
+    setUpdating(false);
+  }, [cancelRun]);
+
   return useMemo(
-    () => ({ state, origin, ready, updating, rerun, edit }),
-    [state, origin, ready, updating, rerun, edit],
+    () => ({ state, origin, ready, updating, cancelUpdate, rerun, edit }),
+    [state, origin, ready, updating, cancelUpdate, rerun, edit],
   );
 }

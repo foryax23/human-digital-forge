@@ -108,7 +108,11 @@ export const PDF_GENERATING_VIDEO = {
 
 /**
  * Brand sign-off above the footer: the wordmark with a light sweep. Plays once
- * when scrolled into view, then holds on the poster (final frame).
+ * when scrolled into view, then holds on the poster (final frame). The footer's
+ * WebM, 720p MP4 and poster are 720p with the sweep's glow crushed to pure black
+ * (ffmpeg curves 0/0 0.34/0 0.55/0.5 1/1), so `screen` blending drops the whole
+ * background and no rectangle shows; the 1080p MP4 and the portrait clip (intro)
+ * are the untouched exports.
  */
 export const SIGNOFF_VIDEO = {
   mp4_1080: "/media/brand/signoff/logo-reveal-1080.mp4",
@@ -147,11 +151,3 @@ export const BRAND_MEDIA = {
   PDF_COVER_ART,
   PDF_COVER_ART_SIZE,
 } as const;
-
-/** Unsplash photo as panel content plus responsive sources (800–1600px). */
-export const unsplash = (id: string) => ({
-  content: `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1200&q=75`,
-  srcSet: [800, 1200, 1600]
-    .map((w) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&q=75 ${w}w`)
-    .join(", "),
-});

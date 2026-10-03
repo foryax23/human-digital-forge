@@ -9,14 +9,15 @@ import {
 } from "react";
 import { Pause, Play } from "lucide-react";
 
+import { IconButton } from "@/components/system";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 /**
  * Page-wide "pause motion" switch (WCAG 2.2.2) for the homepage's looping
- * motion: background videos, the rotating hero word, the marquee, the
- * auto-advancing process panel and every CSS animation (via
- * html[data-motion="paused"]). The choice lasts for the browser session.
+ * motion: the ASCII vortex, background videos, the logo band, the brand sign-off and
+ * every CSS animation (via html[data-motion="paused"]). The choice lasts for the
+ * browser session.
  */
 
 const STORAGE_KEY = "vortex-motion-paused";
@@ -61,32 +62,36 @@ export function MotionPauseProvider({ children }: { children: ReactNode }) {
   return <MotionPauseContext.Provider value={value}>{children}</MotionPauseContext.Provider>;
 }
 
-/** Outside a provider (e.g. /portfolio) motion is never paused from here. */
+/** Outside a provider (the client area) motion is never paused from here. */
 export function useMotionPause() {
   return useContext(MotionPauseContext);
 }
 
-/** Round pause/play button for the page-wide motion switch. */
+/**
+ * Pause / play button for the page-wide motion switch: a 36 px square icon button on a
+ * solid surface, so it stays legible over the hero's vortex without blur.
+ */
 export function MotionPauseToggle({ className }: { className?: string }) {
   const { t } = useI18n();
   const { paused, setPaused } = useMotionPause();
-  const label = paused
+  // A toggle keeps one name and says its state with aria-pressed ("Oprește animațiile,
+  // apăsat"); the tooltip says what a click does next.
+  const label = t("Pause animations", "Oprește animațiile");
+  const hint = paused
     ? t("Play animations", "Pornește animațiile")
     : t("Pause animations", "Oprește animațiile");
 
   return (
-    <button
-      type="button"
+    <IconButton
+      size="md"
+      variant="secondary"
       aria-pressed={paused}
-      aria-label={label}
-      title={label}
+      label={label}
+      title={hint}
       onClick={() => setPaused(!paused)}
-      className={cn(
-        "grid h-10 w-10 place-items-center rounded-full border border-white/15 bg-black/40 text-foreground/85 backdrop-blur transition-colors hover:bg-white/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        className,
-      )}
+      className={cn("bg-s1 hover:bg-s3", className)}
     >
-      {paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-    </button>
+      {paused ? <Play aria-hidden /> : <Pause aria-hidden />}
+    </IconButton>
   );
 }

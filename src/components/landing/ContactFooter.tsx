@@ -1,73 +1,75 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { MotionConfig, motion } from "motion/react";
+import { Link, type LinkProps } from "@tanstack/react-router";
+import { Pause, Play } from "lucide-react";
 
 import { openCookieSettings } from "@/components/cookies/cookie-consent";
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { LanguageSwitch } from "@/components/layout/LanguageToggle";
+import { ButtonLink, FOCUS_RING, IconButton, Status } from "@/components/system";
 import { useI18n } from "@/i18n";
+import { COMPANY_LINE } from "@/lib/scan/legal/company";
 import { cn } from "@/lib/utils";
-import { MotionPauseToggle, useMotionPause } from "./motion-pause";
+import { useMotionPause } from "./motion-pause";
 import { prefersReducedMotion } from "./motion-prefs";
-import { HlsVideo } from "./HlsVideo";
-import { CONTACT_EMAIL, SIGNOFF_VIDEO, SWIRL_VIDEO } from "./media";
-import { RingButton } from "./RingButton";
-import { Em, Eyebrow } from "./SectionHeader";
+import { CONTACT_EMAIL, SIGNOFF_VIDEO } from "./media";
+import { TechCredits } from "./TechStack";
 
-// Same links and labels as SiteFooter.
-const footerNav = [
-  { en: "Services", ro: "Servicii", to: "/services" },
-  { en: "Websites", ro: "Site-uri web", to: "/websites" },
-  { en: "AI Automation", ro: "Automatizare AI", to: "/ai-automation" },
-  { en: "Consultancy", ro: "Consultanță", to: "/consultancy" },
-  { en: "Portfolio", ro: "Portofoliu", to: "/portfolio" },
-  { en: "Contact", ro: "Contact", to: "/contact" },
-  { en: "Login", ro: "Autentificare", to: "/login" },
-] as const;
+type FooterLink = { en: string; ro: string; to: LinkProps["to"] };
 
-const legalNav = [
-  { en: "Privacy Policy", ro: "Politica de confidențialitate", to: "/privacy" },
-  { en: "Terms and Conditions", ro: "Termeni și condiții", to: "/terms" },
-  { en: "Cookie Policy", ro: "Politica de cookie-uri", to: "/cookies" },
-] as const;
+const COLUMNS: { en: string; ro: string; links: FooterLink[] }[] = [
+  {
+    en: "Services",
+    ro: "Servicii",
+    links: [
+      { en: "Websites", ro: "Site-uri web", to: "/websites" },
+      { en: "AI automation", ro: "Automatizare AI", to: "/ai-automation" },
+      { en: "Consultancy", ro: "Consultanță", to: "/consultancy" },
+      { en: "Graphic materials", ro: "Materiale grafice", to: "/digital-products" },
+      { en: "All services", ro: "Toate serviciile", to: "/services" },
+    ],
+  },
+  {
+    en: "Company",
+    ro: "Companie",
+    links: [
+      { en: "Projects", ro: "Proiecte", to: "/portfolio" },
+      { en: "Vortex Scan", ro: "Vortex Scan", to: "/scan" },
+      { en: "Contact", ro: "Contact", to: "/contact" },
+      { en: "Log in", ro: "Autentificare", to: "/login" },
+    ],
+  },
+  {
+    en: "Legal",
+    ro: "Legal",
+    links: [
+      { en: "Privacy policy", ro: "Politica de confidențialitate", to: "/privacy" },
+      { en: "Terms and conditions", ro: "Termeni și condiții", to: "/terms" },
+      { en: "Cookie policy", ro: "Politica de cookie-uri", to: "/cookies" },
+    ],
+  },
+];
 
-const linkFocus =
-  "rounded-sm transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
-
-// LanguageToggle restyled as a quiet pill, matching the nav: mono labels and a
-// solid brand-violet active state instead of the gradient.
-const pillToggle =
-  "rounded-full border-white/10 [&>button]:type-label [&>button]:rounded-full [&>button]:outline-none [&>button:focus-visible]:ring-2 [&>button:focus-visible]:ring-ring [&>button[aria-pressed=true]]:bg-none [&>button[aria-pressed=true]]:bg-primary [&>button[aria-pressed=true]]:text-primary-foreground";
+const linkClass = cn("rounded-sm text-sm text-fg-2 transition-colors hover:text-fg", FOCUS_RING);
 
 /**
- * The brand sign-off: the wordmark with its light sweep (the owner's logo
- * animation), played once when it scrolls into view and then held on its final
- * frame. 16:9 from md up, the vertical cut on phones (picked after mount); its
- * black background drops out with `screen`. The poster is that final frame, so
- * reduced motion, the pause switch and slow networks all show the wordmark.
+ * The brand sign-off: the wordmark with its light sweep (the owner's logo animation),
+ * 240 px wide, played once when it scrolls into view and then held on its final frame.
+ * The 16:9 file is cropped to the wordmark; its black background drops out with
+ * `screen`. The poster is that final frame, so reduced motion, the pause switch and
+ * slow networks all show the wordmark.
  */
 function BrandSignoff({ className }: { className?: string }) {
   const { paused } = useMotionPause();
   const boxRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
-  // Null until mounted, so phones never fetch the 16:9 poster (and neither poster loads
-  // before the footer is near).
-  const [portrait, setPortrait] = useState<boolean | null>(null);
   const [src, setSrc] = useState<string | null>(null);
   const [near, setNear] = useState(false);
   const [inView, setInView] = useState(false);
 
   useEffect(() => {
-    const phone = window.matchMedia("(max-width: 767px)").matches;
-    setPortrait(phone);
     if (prefersReducedMotion()) return;
-    // The WebM files (VP9) are the lightest; MP4 for browsers without VP9.
+    // The WebM file (VP9) is the lightest; the 720p MP4 for browsers without VP9.
     const webm = document.createElement("video").canPlayType('video/webm; codecs="vp9"') !== "";
-    if (phone) {
-      setSrc(webm ? SIGNOFF_VIDEO.portrait.webm : SIGNOFF_VIDEO.portrait.mp4);
-    } else {
-      const large = window.innerWidth * (window.devicePixelRatio || 1) > 1600;
-      setSrc(webm ? SIGNOFF_VIDEO.webm : large ? SIGNOFF_VIDEO.mp4_1080 : SIGNOFF_VIDEO.mp4_720);
-    }
+    setSrc(webm ? SIGNOFF_VIDEO.webm : SIGNOFF_VIDEO.mp4_720);
   }, []);
 
   // Load the poster and the video when close (the poster also for reduced motion).
@@ -81,13 +83,13 @@ function BrandSignoff({ className }: { className?: string }) {
     return () => nearby.disconnect();
   }, []);
 
-  // Play when at least half of it shows.
+  // Play when it is fully on screen.
   useEffect(() => {
     const box = boxRef.current;
     if (!box || !src) return;
     const visible = new IntersectionObserver(
-      ([entry]) => setInView(entry.isIntersecting && entry.intersectionRatio >= 0.5),
-      { threshold: [0, 0.5, 1] },
+      ([entry]) => setInView(entry.isIntersecting && entry.intersectionRatio >= 0.99),
+      { threshold: [0, 0.99] },
     );
     visible.observe(box);
     return () => visible.disconnect();
@@ -107,146 +109,146 @@ function BrandSignoff({ className }: { className?: string }) {
   }, [near, src, inView, paused]);
 
   return (
-    <div
-      ref={boxRef}
-      aria-hidden
-      className={cn(
-        "relative mx-auto aspect-[5/4] w-full max-w-[26rem] md:aspect-[16/7] md:max-w-[44rem]",
-        className,
-      )}
-    >
+    <div ref={boxRef} aria-hidden className={cn("relative h-24 w-60 overflow-hidden", className)}>
+      {/* The wordmark covers about 70% of the frame's width: scale the frame up so it
+          fills the 240 px box, and shift it so the mark starts at the box's left edge. */}
       <video
         ref={videoRef}
         src={near && src ? src : undefined}
-        poster={
-          near && portrait !== null
-            ? portrait
-              ? SIGNOFF_VIDEO.portrait.poster
-              : SIGNOFF_VIDEO.poster
-            : undefined
-        }
+        poster={near ? SIGNOFF_VIDEO.poster : undefined}
         muted
         playsInline
         preload={near ? "auto" : "none"}
         disablePictureInPicture
         tabIndex={-1}
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover mix-blend-screen [mask-image:radial-gradient(ellipse_at_center,black_45%,transparent_71%)]"
+        className="pointer-events-none absolute left-[-51px] top-[-46px] aspect-video w-[343px] max-w-none mix-blend-screen"
       />
     </div>
   );
 }
 
+/** Page-wide motion switch as a quiet 28 px icon button (one name; aria-pressed says the state). */
+function PauseButton() {
+  const { t } = useI18n();
+  const { paused, setPaused } = useMotionPause();
+  return (
+    <IconButton
+      aria-pressed={paused}
+      label={t("Pause animations", "Oprește animațiile")}
+      onClick={() => setPaused(!paused)}
+    >
+      {paused ? <Play aria-hidden /> : <Pause aria-hidden />}
+    </IconButton>
+  );
+}
+
 /**
- * Contact footer (#contact): the swirl video flipped under a heavy overlay, the
- * closing call to action, page links, the brand sign-off and the legal bar.
+ * Contact footer (#contact): the closing line with the e-mail and the call to action,
+ * the brand sign-off with three link columns, and the legal bar.
+ *
+ * `compact` (the other pages, via SiteLayout, which close with their own call to action)
+ * drops the closing line and keeps the sign-off, the columns and the legal bar.
  */
-export function ContactFooter() {
+export function ContactFooter({ compact = false }: { compact?: boolean }) {
   const { t, lang } = useI18n();
 
   return (
     <footer
-      id="contact"
-      className="relative isolate scroll-mt-24 overflow-hidden bg-background pb-8 pt-24 md:pb-12 md:pt-32"
+      id={compact ? undefined : "contact"}
+      aria-labelledby={compact ? undefined : "contact-heading"}
+      className={cn(
+        "scroll-mt-20 border-t border-line-1 pb-6",
+        compact ? "pt-4" : "pt-12 md:pt-16",
+      )}
     >
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <HlsVideo
-          src={SWIRL_VIDEO.hls}
-          fallbackSrc={SWIRL_VIDEO.mp4}
-          poster={SWIRL_VIDEO.poster}
-          className="absolute inset-0 h-full w-full -scale-y-100 object-cover opacity-60"
-        />
-        <div className="absolute inset-0 bg-background/70" />
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-background to-transparent md:h-56" />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background/80 to-transparent" />
-      </div>
-
-      {/* No z-index: a stacking context would cut the sign-off's `screen` blend off from
-          the swirl behind it (its black would show). DOM order keeps it above the background. */}
-      <div className="relative mx-auto max-w-[1200px] px-6 md:px-10 lg:px-16">
-        <MotionConfig reducedMotion="user">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
-            className="flex flex-col items-center text-center"
-          >
-            <Eyebrow>Contact</Eyebrow>
-            <h2 className="type-h2 mt-5 max-w-4xl text-balance text-foreground">
-              {t("Turn the next idea into", "Transformă următoarea idee în")}{" "}
-              <Em>{t("momentum", "progres")}</Em>.
-            </h2>
-            <p className="type-lead mt-5 max-w-xl text-muted-foreground">
-              {t(
-                "Tell Vortex Hub what you would like to create, improve or automate.",
-                "Spune-ne ce vrei să creezi, să îmbunătățești sau să automatizezi.",
-              )}
-            </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <RingButton href={`mailto:${CONTACT_EMAIL}`} variant="solid" arrow="up-right">
-                {CONTACT_EMAIL}
-              </RingButton>
-              <RingButton to="/contact" variant="outline" arrow="right">
-                {t("Start a project", "Începe un proiect")}
-              </RingButton>
+      <div className="container-vx">
+        {!compact && (
+          <div className="grid gap-6 lg:grid-cols-12 lg:items-end lg:gap-12">
+            <div className="lg:col-span-7">
+              <h2 id="contact-heading" className="type-h2 text-balance text-fg">
+                {t("Let's talk about your business.", "Hai să vorbim despre afacerea ta.")}
+              </h2>
+              <p className="type-lead mt-3 max-w-[56ch] text-pretty text-fg-2">
+                {t(
+                  "Tell us what you would like to build, improve or automate.",
+                  "Spune-ne ce vrei să construiești, să îmbunătățești sau să automatizezi.",
+                )}
+              </p>
             </div>
-          </motion.div>
-        </MotionConfig>
+            <div className="flex flex-col items-start gap-4 lg:col-span-5 lg:items-end">
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className={cn(
+                  "rounded-sm font-display text-2xl font-medium leading-tight tracking-[-0.01em] text-fg underline decoration-fg/30 decoration-1 underline-offset-[6px] transition-colors hover:decoration-fg",
+                  FOCUS_RING,
+                )}
+              >
+                {CONTACT_EMAIL}
+              </a>
+              <ButtonLink to="/contact" variant="secondary">
+                {t("Book a call", "Programează o discuție")}
+              </ButtonLink>
+            </div>
+          </div>
+        )}
 
-        <nav aria-label={t("Footer", "Subsol")} className="mt-16 md:mt-24">
-          <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 md:gap-x-8">
-            {footerNav.map((item) => (
-              <li key={item.to}>
-                <Link
-                  to={item.to}
-                  className={cn("type-body-sm inline-block py-1 text-muted-foreground", linkFocus)}
-                >
-                  {lang === "ro" ? item.ro : item.en}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <BrandSignoff className="mt-10 md:mt-14" />
-
-        <div className="type-micro mt-8 flex flex-col items-center gap-6 border-t border-border pt-6 text-center text-muted-foreground md:mt-10 md:flex-row md:justify-between md:text-left">
-          <div className="flex min-w-0 flex-col items-center gap-3 md:items-start">
-            <p>
-              {t("© Vortex Hub. All rights reserved.", "© Vortex Hub. Toate drepturile rezervate.")}
-            </p>
-            <nav aria-label="Legal">
-              <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 md:justify-start">
-                {legalNav.map((item) => (
-                  <li key={item.to}>
-                    <Link to={item.to} className={cn("inline-block py-1", linkFocus)}>
-                      {lang === "ro" ? item.ro : item.en}
+        <div
+          className={cn(
+            "grid grid-cols-2 gap-x-6 gap-y-8 pt-8 sm:grid-cols-3 lg:grid-cols-[15rem_repeat(3,minmax(0,1fr))] lg:gap-x-12",
+            !compact && "mt-12 border-t border-line-1",
+          )}
+        >
+          <BrandSignoff className="col-span-2 -mt-2 sm:col-span-3 lg:col-span-1" />
+          {COLUMNS.map((column) => (
+            <nav key={column.en} aria-labelledby={`footer-${column.en.toLowerCase()}`}>
+              <h3 id={`footer-${column.en.toLowerCase()}`} className="type-label text-fg-3">
+                {lang === "ro" ? column.ro : column.en}
+              </h3>
+              <ul className="mt-3 flex flex-col items-start gap-2">
+                {column.links.map((link) => (
+                  <li key={link.en}>
+                    <Link to={link.to} className={linkClass}>
+                      {lang === "ro" ? link.ro : link.en}
                     </Link>
                   </li>
                 ))}
-                <li>
-                  <button
-                    type="button"
-                    onClick={openCookieSettings}
-                    className={cn("py-1", linkFocus)}
-                  >
-                    {t("Cookie settings", "Setări cookie-uri")}
-                  </button>
-                </li>
+                {compact && column.en === "Company" && (
+                  <li>
+                    <a href={`mailto:${CONTACT_EMAIL}`} className={linkClass}>
+                      {CONTACT_EMAIL}
+                    </a>
+                  </li>
+                )}
+                {column.en === "Legal" && (
+                  <li>
+                    <button
+                      type="button"
+                      onClick={openCookieSettings}
+                      className={cn(linkClass, "cursor-pointer")}
+                    >
+                      {t("Cookie settings", "Setări cookie-uri")}
+                    </button>
+                  </li>
+                )}
               </ul>
             </nav>
-          </div>
+          ))}
+        </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 md:shrink-0 md:flex-nowrap">
-            <p className="inline-flex items-center gap-2.5">
-              <span aria-hidden className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#67e8f9] opacity-75 motion-reduce:hidden" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#67e8f9]" />
-              </span>
-              {t("Available for new projects", "Acceptăm proiecte noi")}
-            </p>
-            <LanguageToggle className={pillToggle} />
-            <MotionPauseToggle className="h-8 w-8 bg-transparent" />
+        <div className="mt-10 flex flex-col gap-4 border-t border-line-1 pt-5 md:flex-row md:items-start md:justify-between md:gap-10">
+          <div className="flex min-w-0 flex-col gap-1.5 text-xs leading-[1.45] text-fg-3">
+            {/* Legea 365/2002 art. 5: the firm's name, CUI and trade register number on every page. */}
+            <p>{COMPANY_LINE}</p>
+            {/* Trademark note and attribution for the tech logos (TechStack.tsx): only on
+                the homepage, the one page that shows them. */}
+            {compact ? null : <TechCredits />}
+          </div>
+          <div className="flex shrink-0 items-center gap-5">
+            <Status tone="ok" shape="dot">
+              {t("Taking on new projects", "Acceptăm proiecte noi")}
+            </Status>
+            <LanguageSwitch />
+            <PauseButton />
           </div>
         </div>
       </div>

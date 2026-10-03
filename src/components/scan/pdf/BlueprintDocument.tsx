@@ -3,37 +3,41 @@ import { Document } from "@react-pdf/renderer";
 import type { Blueprint, Lang } from "@/lib/scan/types";
 
 import type { PdfAssets } from "./assets";
-import { pick } from "./format";
-import { createContext, isLightPlan, type PdfMeasurements } from "./model";
-import { AuditPage, OpportunitiesPage, SnapshotPage } from "./pages-findings";
+import { monthsQty, pick } from "./format";
+import { createContext, hasImpact, isLightPlan, planSpan, type PdfMeasurements } from "./model";
+import { AuditPage, SnapshotPage } from "./pages-findings";
 import { CoverPage, SummaryPage } from "./pages-intro";
 import {
   BackCover,
+  ImpactPage,
   MethodologyPage,
   OfferPage,
+  OpportunitiesPage,
   PlanPage,
   RoadmapPage,
-  StrategyPage,
+  WorkPage,
 } from "./pages-plan";
-import { CONTACT } from "./theme";
+import { COMPANY, CONTACT } from "./theme";
 
 export type BlueprintDocumentProps = {
   blueprint: Blueprint;
   lang: Lang;
-  /** Link to the live, animated report (the page the PDF was downloaded from). */
+  /** Link to the live report (the page the PDF was downloaded from). */
   reportUrl?: string;
   /** Brand images: absolute URLs in the browser, file paths in Node (see resolvePdfAssets). */
   assets: PdfAssets;
-  /** Block heights from measureBlueprint (see withMeasurements); estimates stand in without them. */
+  /** Block heights from a first render (see withMeasurements); optional. */
   measured?: PdfMeasurements;
 };
 
 /**
- * The personalised Vortex blueprint: cover, summary with the three scores,
- * company snapshot, website audit, automation opportunities, strategy options,
- * roadmap, the offer, the methodology and the back cover. Sections without
- * data (no website, nothing to automate) are left out instead of printing
- * empty pages. Fonts must be registered first (registerPdfFonts).
+ * The Vortex report: cover, summary, company profile, website audit, what can
+ * be automated, the directions, the plan month by month, the impact, the
+ * offer, how we worked it out and the back cover. Every figure comes from
+ * displayPlan(), the selector the scan screens read, so the PDF prints the
+ * numbers of the web results. Sections without data (no website, nothing to
+ * automate) are left out instead of printing empty pages. Fonts must be
+ * registered first (registerPdfFonts).
  */
 export function BlueprintDocument({
   blueprint,
@@ -51,17 +55,21 @@ export function BlueprintDocument({
   );
   // Pages read the cleaned-up copy in ctx (see createContext), not the raw prop.
   const { blueprint: data } = ctx;
-  const title = `${ctx.t("Digital blueprint", "Plan digital")} · ${ctx.name}`;
+  const span = monthsQty(planSpan(ctx.plan));
+  const title = ctx.t(
+    `Analysis and ${span.en} plan for ${ctx.name}`,
+    `Analiză și plan pe ${span.ro} pentru ${ctx.name}`,
+  );
   return (
     <Document
       title={title}
-      author="Vortex Hub"
-      creator="Vortex Hub"
-      producer="Vortex Hub"
-      subject={pick(data.headline, lang)}
+      author={COMPANY.legalName}
+      creator={COMPANY.legalName}
+      producer={COMPANY.legalName}
+      subject={pick(ctx.plan.text.headline, lang)}
       keywords={ctx.t(
-        "Vortex Hub, digital blueprint, automation",
-        "Vortex Hub, plan digital, automatizare",
+        "Vortex Hub, report, automation, plan",
+        "Vortex Hub, raport, automatizare, plan",
       )}
       language={lang === "ro" ? "ro-RO" : "en-GB"}
     >
@@ -69,15 +77,18 @@ export function BlueprintDocument({
       <SummaryPage ctx={ctx} />
       <SnapshotPage ctx={ctx} />
       {data.audit ? <AuditPage ctx={ctx} /> : null}
-      {data.opportunities.length ? <OpportunitiesPage ctx={ctx} /> : null}
-      {isLightPlan(data) ? (
-        <PlanPage ctx={ctx} />
+      {isLightPlan(ctx) ? (
+        <>
+          {data.opportunities.length ? <OpportunitiesPage ctx={ctx} /> : null}
+          <PlanPage ctx={ctx} />
+        </>
       ) : (
         <>
-          <StrategyPage ctx={ctx} />
+          <WorkPage ctx={ctx} />
           <RoadmapPage ctx={ctx} />
         </>
       )}
+      {hasImpact(ctx) ? <ImpactPage ctx={ctx} /> : null}
       <OfferPage ctx={ctx} />
       <MethodologyPage ctx={ctx} />
       <BackCover ctx={ctx} />

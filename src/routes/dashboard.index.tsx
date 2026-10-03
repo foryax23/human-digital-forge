@@ -12,11 +12,7 @@ import {
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
-import {
-  TIMELINE_STEPS,
-  useDashboardData,
-  type ProjectRow,
-} from "@/hooks/use-dashboard-data";
+import { TIMELINE_STEPS, useDashboardData, type ProjectRow } from "@/hooks/use-dashboard-data";
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardOverview,
@@ -42,7 +38,7 @@ function formatDate(value: string | null, t: (en: string, ro: string) => string)
 function ProjectTimeline({ currentStep }: { currentStep: number }) {
   const { t } = useI18n();
   return (
-    <div className="rounded-2xl border border-border bg-card p-6">
+    <div className="rounded-xl border border-border bg-card p-6">
       <h2 className="text-lg">{t("Project status", "Starea proiectului")}</h2>
       <ol className="mt-6 space-y-4">
         {TIMELINE_STEPS.map((label, index) => {
@@ -51,7 +47,7 @@ function ProjectTimeline({ currentStep }: { currentStep: number }) {
           return (
             <li key={label} className="flex items-center gap-3">
               <span
-                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-medium ${
+                className={`grid h-7 w-7 shrink-0 place-items-center rounded-md text-xs font-medium ${
                   done
                     ? "bg-teal text-teal-foreground"
                     : current
@@ -79,13 +75,14 @@ function ActiveProjectCard({ project }: { project: ProjectRow }) {
   const total = TIMELINE_STEPS.length - 1;
   const pct = Math.round((Math.min(project.current_step, total) / total) * 100);
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 lg:col-span-2">
+    <div className="rounded-xl border border-border bg-card p-6 lg:col-span-2">
       <div className="flex items-center justify-between">
-        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium capitalize text-primary">
+        <span className="rounded-sm bg-brand-tint px-1.5 py-0.5 text-xs font-medium capitalize text-brand-fg">
           {project.service_type?.replace("-", " ") || t("Project", "Proiect")}
         </span>
         <span className="text-xs text-muted-foreground">
-          {t("Step", "Pasul")} {Math.min(project.current_step + 1, TIMELINE_STEPS.length)} {t("of", "din")} {TIMELINE_STEPS.length}
+          {t("Step", "Pasul")} {Math.min(project.current_step + 1, TIMELINE_STEPS.length)}{" "}
+          {t("of", "din")} {TIMELINE_STEPS.length}
         </span>
       </div>
       <h2 className="mt-4 text-2xl">{project.title}</h2>
@@ -99,8 +96,8 @@ function ActiveProjectCard({ project }: { project: ProjectRow }) {
           </span>
         )}
       </div>
-      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div className="h-full rounded-full bg-gradient-brand" style={{ width: `${pct}%` }} />
+      <div className="mt-4 h-0.5 w-full overflow-hidden bg-line-2">
+        <div className="h-full bg-brand" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
@@ -109,7 +106,7 @@ function ActiveProjectCard({ project }: { project: ProjectRow }) {
 function EmptyState() {
   const { t } = useI18n();
   return (
-    <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center lg:col-span-3">
+    <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center lg:col-span-3">
       <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
         <FilePlus2 className="h-6 w-6" />
       </span>
@@ -146,7 +143,10 @@ function DashboardOverview() {
             {getGreeting(t)}, {firstName}.
           </h1>
           <p className="mt-1 text-muted-foreground">
-            {t("Here is what is happening with your projects.", "Iată ce se întâmplă cu proiectele tale.")}
+            {t(
+              "Here is what is happening with your projects.",
+              "Iată ce se întâmplă cu proiectele tale.",
+            )}
           </p>
         </div>
         <Button asChild>
@@ -164,7 +164,7 @@ function DashboardOverview() {
       )}
 
       {!loading && error && (
-        <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+        <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
           {error}
         </div>
       )}
@@ -176,48 +176,63 @@ function DashboardOverview() {
           {activeProject && <ActiveProjectCard project={activeProject} />}
 
           {activeProject && (
-            <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="rounded-xl border border-border bg-card p-6">
               <span className="grid h-10 w-10 place-items-center rounded-lg bg-teal/15 text-teal">
                 <CalendarCheck className="h-5 w-5" />
               </span>
               <h2 className="mt-4 text-lg">
-                {data.consultation?.title ?? t("No consultation booked", "Nicio consultație programată")}
+                {data.consultation?.title ??
+                  t("No consultation booked", "Nicio consultație programată")}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 {data.consultation
                   ? formatDate(data.consultation.scheduled_at, t)
-                  : t("Book a session to review your goals.", "Rezervă o sesiune pentru a-ți revizui obiectivele.")}
+                  : t(
+                      "Book a session to review your goals.",
+                      "Rezervă o sesiune pentru a-ți revizui obiectivele.",
+                    )}
               </p>
               <Button asChild variant="outline" className="mt-6 w-full">
                 <Link to="/consultancy">
-                  {data.consultation ? t("View booking", "Vezi rezervarea") : t("Book a consultation", "Rezervă o consultație")}
+                  {data.consultation
+                    ? t("View booking", "Vezi rezervarea")
+                    : t("Book a consultation", "Rezervă o consultație")}
                 </Link>
               </Button>
             </div>
           )}
 
           {activeProject && (
-            <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="rounded-xl border border-border bg-card p-6">
               <span className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
                 <FileText className="h-5 w-5" />
               </span>
-              <h2 className="mt-4 text-lg">{data.file?.name ?? t("No files yet", "Niciun fișier încă")}</h2>
+              <h2 className="mt-4 text-lg">
+                {data.file?.name ?? t("No files yet", "Niciun fișier încă")}
+              </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {data.file?.description ?? t("Delivered files will appear here.", "Fișierele livrate vor apărea aici.")}
+                {data.file?.description ??
+                  t("Delivered files will appear here.", "Fișierele livrate vor apărea aici.")}
               </p>
             </div>
           )}
 
           {activeProject && (
-            <div className="rounded-2xl border border-border bg-card p-6">
+            <div className="rounded-xl border border-border bg-card p-6">
               <span className="grid h-10 w-10 place-items-center rounded-lg bg-teal/15 text-teal">
                 <MessagesSquare className="h-5 w-5" />
               </span>
               <p className="mt-4 text-sm font-medium">
-                {data.message ? t("From Vortex Hub", "De la Vortex Hub") : t("No messages yet", "Niciun mesaj încă")}
+                {data.message
+                  ? t("From Vortex Hub", "De la Vortex Hub")
+                  : t("No messages yet", "Niciun mesaj încă")}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {data.message?.body ?? t("Updates from your team will show up here.", "Actualizările de la echipa ta vor apărea aici.")}
+                {data.message?.body ??
+                  t(
+                    "Updates from your team will show up here.",
+                    "Actualizările de la echipa ta vor apărea aici.",
+                  )}
               </p>
             </div>
           )}

@@ -1,66 +1,42 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, ChevronDown, Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
-import { LanguageToggle } from "@/components/layout/LanguageToggle";
+import { LanguageSwitch } from "@/components/layout/LanguageToggle";
 import { navLinks } from "@/components/layout/nav-data";
 import { LOGO_NAV } from "@/components/landing/media";
-import { Eyebrow } from "@/components/landing/SectionHeader";
 import { SECTION_IDS, scrollToSection, type SectionId } from "@/components/landing/smooth-scroll";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useI18n, type Language } from "@/i18n";
+import { ButtonLink, FOCUS_RING, IconButton, type ButtonVariant } from "@/components/system";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
+/** One name per thing, the same as the section titles and the footer. */
 const SECTION_LABELS: Record<SectionId, { en: string; ro: string }> = {
   top: { en: "Home", ro: "Acasă" },
-  work: { en: "Work", ro: "Lucrări" },
+  work: { en: "Projects", ro: "Proiecte" },
   services: { en: "Services", ro: "Servicii" },
-  pricing: { en: "Plans", ro: "Planuri" },
+  pricing: { en: "Pricing", ro: "Prețuri" },
   contact: { en: "Contact", ro: "Contact" },
 };
 
-const focusRing =
-  "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background";
-
-const roundIconButton = cn(
-  "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 text-muted-foreground transition-colors duration-200 hover:bg-white/5 hover:text-foreground",
-  focusRing,
-);
-
-// LanguageToggle restyled as a quiet pill with mono labels and a solid brand-violet
-// active state; its buttons get the nav's focus ring (offset so it stays visible).
-const pillToggle =
-  "rounded-full border-white/10 [&>button]:type-label [&>button]:rounded-full [&>button]:outline-none [&>button:focus-visible]:ring-2 [&>button:focus-visible]:ring-ring [&>button:focus-visible]:ring-offset-1 [&>button:focus-visible]:ring-offset-background [&>button[aria-pressed=true]]:bg-none [&>button[aria-pressed=true]]:bg-[#5b52f0] [&>button[aria-pressed=true]]:text-white";
-
 /**
- * The nav's one call to action: the hero search button's language (compact
- * solid brand violet, 10px corners, no gradient or glow, a slight press). The
- * arrow nudges towards the corner on hover.
+ * The bar's links: the homepage sections in page order with Vortex Scan, the product,
+ * before Contact. No "Acasă": the logo leads home.
  */
-const ctaClass = cn(
-  "type-button group inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-[10px] bg-[#5b52f0] px-4 text-white transition-[background-color,scale] duration-150 hover:bg-[#6a62f6] active:scale-[0.97] motion-reduce:active:scale-100",
-  focusRing,
-);
-const ctaArrowClass =
-  "h-4 w-4 transition-transform duration-200 group-hover:-translate-y-px group-hover:translate-x-px motion-reduce:transform-none";
+const BAR_ITEMS = ["work", "services", "pricing", "scan", "contact"] as const;
+type BarItem = (typeof BAR_ITEMS)[number];
 
-function navLinkClass(active: boolean) {
-  return cn(
-    "type-body-sm whitespace-nowrap rounded-full px-4 py-2 transition-colors duration-200",
-    focusRing,
-    active
-      ? "bg-white/10 text-foreground"
-      : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
+const SCAN_LABEL = { en: "Vortex Scan", ro: "Vortex Scan" };
+
+/** Pages in the phone menu that the section links do not already cover. */
+const MENU_PAGES = navLinks
+  .filter((link) => link.to !== "/services" && link.to !== "/contact")
+  .map((link) =>
+    // The section link is "Proiecte"; the page with every project gets its own name.
+    link.to === "/portfolio" ? { ...link, en: "All projects", ro: "Toate proiectele" } : link,
   );
-}
 
 /** Lets modified clicks (new tab / window) through to the browser. */
 function isPlainClick(event: MouseEvent) {
@@ -108,7 +84,7 @@ function useActiveSection(enabled: boolean): SectionId | null {
 
     // The observer only signals that a section crossed the band; the active one is
     // the last whose top has passed the band. That stays correct when scrolling up
-    // and inside untracked sections (explorations, stats, consultation).
+    // and inside untracked sections (process, consultation).
     const update = () => {
       const line = window.innerHeight * 0.5;
       let current: SectionId = "top";
@@ -128,8 +104,7 @@ function useActiveSection(enabled: boolean): SectionId | null {
 
 /**
  * The Vortex Hub wordmark (the owner's purple metallic logo), WebP with a PNG
- * fallback. The 96px export stays crisp at 32px (phones, up to 3x) and 40px
- * (md up, up to 2.4x). Glows softly while its link is hovered or focused.
+ * fallback. The 96px export stays crisp at 32px (up to 3x screens). No hover effect.
  */
 function Wordmark({ className }: { className?: string }) {
   return (
@@ -142,95 +117,53 @@ function Wordmark({ className }: { className?: string }) {
         height={LOGO_NAV.height}
         decoding="async"
         draggable={false}
-        className={cn(
-          "block h-8 w-auto select-none transition-[filter] duration-300 group-hover:drop-shadow-[0_0_14px_rgb(139_108_255/0.55)] group-focus-visible:drop-shadow-[0_0_14px_rgb(139_108_255/0.55)] md:h-10",
-          className,
-        )}
+        className={cn("block h-8 w-auto select-none", className)}
       />
     </picture>
   );
 }
 
-/** Bar-style section link with a small dot under the active one. */
+const BAR_LINK = cn(
+  "inline-flex h-9 items-center rounded-md px-3 text-sm transition-colors duration-150",
+  FOCUS_RING,
+);
+
+/** Section link in the bar: secondary text, the active one in the primary colour. */
 function barLinkClass(active: boolean) {
-  return cn(
-    "type-body-sm relative inline-flex rounded-full px-3 py-2 transition-colors duration-200 xl:px-4",
-    focusRing,
-    active ? "text-foreground" : "text-foreground/60 hover:text-foreground",
-  );
+  return cn(BAR_LINK, active ? "text-fg" : "text-fg-2 hover:text-fg");
 }
 
-/** Large section link in the phone menu. */
-function sheetLinkClass(active: boolean) {
+/** Row in the phone menu: 48 px, hairline under it, the active one in weight 500. */
+function menuLinkClass(active: boolean) {
   return cn(
-    "type-h3 flex items-center justify-between gap-4 rounded-2xl px-4 py-3 transition-colors duration-200",
-    focusRing,
-    active
-      ? "bg-white/10 text-foreground"
-      : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
-  );
-}
-
-/** "EN ⌄" language menu: the quiet outline twin of the CTA, with a mono label. */
-function LanguageMenu({ className }: { className?: string }) {
-  const { lang, setLang, t } = useI18n();
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        aria-label={t("Language", "Limba")}
-        className={cn(
-          "type-label inline-flex h-9 items-center gap-1 rounded-[10px] border border-white/12 pl-3 pr-2.5 text-foreground/75 transition-colors hover:border-white/30 hover:bg-white/[0.04] hover:text-foreground data-[state=open]:border-white/30 data-[state=open]:text-foreground",
-          focusRing,
-          className,
-        )}
-      >
-        {lang}
-        <ChevronDown
-          aria-hidden
-          className="h-3.5 w-3.5 transition-transform duration-200 [[data-state=open]>&]:rotate-180 motion-reduce:transition-none"
-        />
-      </DropdownMenuTrigger>
-      {/* Portalled: opts into the dark tokens itself. */}
-      <DropdownMenuContent
-        align="end"
-        className="cinematic min-w-[9rem] rounded-2xl border-white/10 bg-card/95 p-1 text-foreground backdrop-blur-xl"
-      >
-        <DropdownMenuRadioGroup value={lang} onValueChange={(value) => setLang(value as Language)}>
-          {(
-            [
-              ["en", "English"],
-              ["ro", "Română"],
-            ] as const
-          ).map(([code, label]) => (
-            <DropdownMenuRadioItem
-              key={code}
-              value={code}
-              className="rounded-xl py-2 pl-8 focus:bg-white/10 focus:text-foreground"
-            >
-              {/* On a span: the item's own text-sm would win over a role on it. */}
-              <span className="type-body-sm">{label}</span>
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    "flex h-12 items-center rounded-sm text-[0.9375rem] transition-colors duration-150",
+    FOCUS_RING,
+    active ? "font-medium text-fg" : "text-fg-2 hover:text-fg",
   );
 }
 
 /**
- * Homepage nav in the search-first hero style: the wordmark, centred
- * scroll-spy section links, a language menu, login and a solid violet "Start a
- * project". Transparent over the hero, frosted once the page scrolls. Below lg
- * the links move into a right-hand Sheet menu.
+ * Homepage nav: the wordmark, centred scroll-spy section links plus Vortex Scan, the
+ * language switch, login and the one call to action ("Programează o discuție").
+ * Transparent over the hero, fully solid with a hairline once the page scrolls (nothing
+ * shows through behind the links). Below lg the links move into a right-hand sheet.
  *
- * `offPage` is for other pages that borrow the nav (/scan): the section links
- * and the wordmark lead to the homepage (and its sections) instead of
- * scrolling, and no section is highlighted.
+ * `offPage` is for other pages that borrow the nav (/scan and the pages in SiteLayout):
+ * the section links and the wordmark lead to the homepage (and its sections) instead of
+ * scrolling, and no section is highlighted. The call to action steps down to secondary
+ * there (the scan's report download is the primary) unless `cta` says otherwise.
  */
-export function LandingNav({ offPage = false }: { offPage?: boolean }) {
+export function LandingNav({
+  offPage = false,
+  cta,
+}: {
+  offPage?: boolean;
+  /** Look of "Programează o discuție"; defaults to primary, secondary when `offPage`. */
+  cta?: Extract<ButtonVariant, "primary" | "secondary">;
+}) {
   const { t } = useI18n();
   const { user } = useAuth();
-  const scrolled = useScrolledPast(100);
+  const scrolled = useScrolledPast(24);
   const active = useActiveSection(!offPage);
   const [menuOpen, setMenuOpen] = useState(false);
   const pendingScroll = useRef(0);
@@ -239,8 +172,9 @@ export function LandingNav({ offPage = false }: { offPage?: boolean }) {
 
   const account = user
     ? { to: "/dashboard" as const, label: t("Dashboard", "Contul meu") }
-    : { to: "/login" as const, label: t("Login", "Autentificare") };
-  const ctaLabel = t("Start a project", "Începe un proiect");
+    : { to: "/login" as const, label: t("Log in", "Autentificare") };
+  const ctaLabel = t("Book a call", "Programează o discuție");
+  const ctaVariant = cta ?? (offPage ? "secondary" : "primary");
 
   const goToSection = (event: MouseEvent<HTMLAnchorElement>, id: SectionId) => {
     if (!isPlainClick(event)) return;
@@ -257,7 +191,7 @@ export function LandingNav({ offPage = false }: { offPage?: boolean }) {
     pendingScroll.current = window.setTimeout(() => {
       pendingScroll.current = 0;
       scrollToSection(id);
-    }, 300);
+    }, 260);
   };
 
   const closeMenu = () => setMenuOpen(false);
@@ -268,23 +202,42 @@ export function LandingNav({ offPage = false }: { offPage?: boolean }) {
     to: "/" as const,
     hash: id === "top" ? undefined : id,
   });
-  const logoClass =
-    "group flex shrink-0 items-center justify-self-start rounded-lg py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-4 focus-visible:ring-offset-background";
+  const logoClass = cn("flex shrink-0 items-center justify-self-start rounded-md", FOCUS_RING);
+
+  /** A homepage section as a row in the phone menu. */
+  const menuSectionItem = (id: SectionId) => (
+    <li key={id} className="border-b border-line-1">
+      {offPage ? (
+        <Link {...homeLink(id)} onClick={closeMenu} className={menuLinkClass(false)}>
+          {sectionLabel(id)}
+        </Link>
+      ) : (
+        <a
+          href={`#${id}`}
+          aria-current={active === id ? "true" : undefined}
+          onClick={(event) => goToSectionFromMenu(event, id)}
+          className={menuLinkClass(active === id)}
+        >
+          {sectionLabel(id)}
+        </a>
+      )}
+    </li>
+  );
 
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,backdrop-filter] duration-300",
+        "fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color] duration-200",
         // At the top, a soft scrim behind the bar only, so the links read over the hero's vortex.
         scrolled
-          ? "border-white/5 bg-background/70 backdrop-blur-xl"
-          : "border-transparent bg-transparent bg-[linear-gradient(to_bottom,rgb(0_2_15/0.8),rgb(0_2_15/0.5)_60%,transparent)]",
+          ? "border-line-1 bg-background"
+          : "border-transparent bg-[linear-gradient(to_bottom,rgb(0_2_15/0.8),rgb(0_2_15/0.45)_60%,transparent)]",
       )}
     >
       <nav
         aria-label={t("Primary", "Principală")}
         // Three columns from lg up, so the section links sit at the true centre.
-        className="mx-auto grid h-[4.5rem] max-w-[80rem] grid-cols-[1fr_auto] items-center gap-4 px-5 md:h-[5.25rem] md:px-8 lg:grid-cols-[minmax(max-content,1fr)_auto_minmax(max-content,1fr)] lg:px-12"
+        className="container-vx grid h-14 grid-cols-[1fr_auto] items-center gap-4 md:h-16 lg:grid-cols-[minmax(max-content,1fr)_auto_minmax(max-content,1fr)]"
       >
         {offPage ? (
           <Link to="/" className={logoClass}>
@@ -307,9 +260,18 @@ export function LandingNav({ offPage = false }: { offPage?: boolean }) {
         )}
 
         <ul className="hidden items-center lg:flex">
-          {SECTION_IDS.map((id) => (
+          {BAR_ITEMS.map((id: BarItem) => (
             <li key={id}>
-              {offPage ? (
+              {id === "scan" ? (
+                <Link
+                  to="/scan"
+                  className={BAR_LINK}
+                  activeProps={{ className: "text-fg" }}
+                  inactiveProps={{ className: "text-fg-2 hover:text-fg" }}
+                >
+                  {t(SCAN_LABEL.en, SCAN_LABEL.ro)}
+                </Link>
+              ) : offPage ? (
                 <Link {...homeLink(id)} className={barLinkClass(false)}>
                   {sectionLabel(id)}
                 </Link>
@@ -321,136 +283,95 @@ export function LandingNav({ offPage = false }: { offPage?: boolean }) {
                   className={barLinkClass(active === id)}
                 >
                   {sectionLabel(id)}
-                  {active === id && (
-                    <span
-                      aria-hidden
-                      className="absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-foreground"
-                    />
-                  )}
                 </a>
               )}
             </li>
           ))}
         </ul>
 
-        <div className="flex items-center gap-2 justify-self-end lg:gap-3">
-          <LanguageMenu className="hidden lg:inline-flex" />
-          <span aria-hidden className="hidden h-6 w-px bg-white/15 lg:block" />
+        <div className="flex items-center gap-2 justify-self-end lg:gap-4">
+          <LanguageSwitch className="hidden lg:inline-flex" />
           <Link
             to={account.to}
             className={cn(
-              "type-body-sm hidden whitespace-nowrap rounded-full px-3 py-2 text-foreground/70 transition-colors hover:text-foreground lg:inline-flex",
-              focusRing,
+              "hidden h-9 items-center whitespace-nowrap rounded-md px-1 text-sm text-fg-2 transition-colors hover:text-fg lg:inline-flex",
+              FOCUS_RING,
             )}
           >
             {account.label}
           </Link>
-          <Link to="/contact" className={cn(ctaClass, "hidden sm:inline-flex")}>
+          <ButtonLink to="/contact" variant={ctaVariant} className="hidden sm:inline-flex">
             {ctaLabel}
-            <ArrowUpRight aria-hidden className={ctaArrowClass} />
-          </Link>
+          </ButtonLink>
 
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
-              <button
-                type="button"
-                aria-label={t("Open menu", "Deschide meniul")}
-                className={cn(roundIconButton, "lg:hidden")}
+              <IconButton
+                size="md"
+                label={t("Open menu", "Deschide meniul")}
+                className="-mr-2 lg:hidden"
               >
-                <Menu aria-hidden className="h-4 w-4" />
-              </button>
+                <Menu aria-hidden />
+              </IconButton>
             </SheetTrigger>
 
-            {/* Portalled outside the homepage wrapper, so it opts into the dark tokens
-              itself. The built-in close button is swapped for a localised round one. */}
+            {/* Portalled outside the homepage wrapper, so it opts into the night tokens itself. */}
             <SheetContent
               side="right"
+              closeLabel={t("Close menu", "Închide meniul")}
               aria-describedby={undefined}
               // A section link closed the menu: let scrollToSection place focus
               // on the section instead of returning it to the menu button.
               onCloseAutoFocus={(event) => {
                 if (pendingScroll.current) event.preventDefault();
               }}
-              className="cinematic flex w-[88vw] max-w-sm flex-col gap-0 overflow-y-auto border-white/10 bg-background p-6 text-foreground [&>button:first-child]:hidden"
+              className="cinematic flex w-[88vw] max-w-[360px] flex-col gap-0 overflow-y-auto p-0 sm:max-w-[360px]"
             >
-              <div className="flex items-center justify-between gap-4">
+              <div className="flex h-14 shrink-0 items-center border-b border-line-1 px-5">
                 <SheetTitle className="flex items-center">
-                  <Wordmark className="h-8 md:h-8" />
+                  <Wordmark />
                 </SheetTitle>
-                <SheetClose asChild>
-                  <button
-                    type="button"
-                    aria-label={t("Close menu", "Închide meniul")}
-                    className={roundIconButton}
-                  >
-                    <X aria-hidden className="h-4 w-4" />
-                  </button>
-                </SheetClose>
               </div>
 
-              <nav aria-label={t("Sections", "Secțiuni")} className="mt-10">
-                <ul className="flex flex-col gap-1">
-                  {SECTION_IDS.map((id) => (
-                    <li key={id}>
-                      {offPage ? (
-                        <Link
-                          {...homeLink(id)}
-                          onClick={closeMenu}
-                          className={sheetLinkClass(false)}
-                        >
-                          {sectionLabel(id)}
-                        </Link>
-                      ) : (
-                        <a
-                          href={`#${id}`}
-                          aria-current={active === id ? "true" : undefined}
-                          onClick={(event) => goToSectionFromMenu(event, id)}
-                          className={sheetLinkClass(active === id)}
-                        >
-                          {sectionLabel(id)}
-                          {active === id && (
-                            <span aria-hidden className="accent-gradient h-2 w-2 rounded-full" />
-                          )}
-                        </a>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-
-              <div aria-hidden className="my-8 h-px bg-white/10" />
-
-              <nav aria-label={t("Pages", "Pagini")}>
-                <Eyebrow>{t("Pages", "Pagini")}</Eyebrow>
-                <ul className="mt-4 grid grid-cols-2 gap-1">
-                  {navLinks.map((link) => (
-                    <li key={link.to}>
-                      <Link
-                        to={link.to}
-                        onClick={closeMenu}
-                        className={cn(
-                          "type-body-sm block rounded-xl px-4 py-2.5 text-muted-foreground transition-colors duration-200 hover:bg-white/5 hover:text-foreground",
-                          focusRing,
-                        )}
-                      >
+              <nav aria-label={t("Menu", "Meniu")} className="px-5">
+                <ul>
+                  {(["work", "services", "pricing"] as const).map(menuSectionItem)}
+                  <li className="border-b border-line-1">
+                    <Link to="/scan" onClick={closeMenu} className={menuLinkClass(false)}>
+                      {t(SCAN_LABEL.en, SCAN_LABEL.ro)}
+                    </Link>
+                  </li>
+                  {MENU_PAGES.map((link) => (
+                    <li key={link.to} className="border-b border-line-1">
+                      <Link to={link.to} onClick={closeMenu} className={menuLinkClass(false)}>
                         {t(link.en, link.ro)}
                       </Link>
                     </li>
                   ))}
+                  {menuSectionItem("contact")}
                 </ul>
               </nav>
 
-              <div className="mt-auto flex flex-col gap-4 pt-10">
+              <div className="mt-auto flex flex-col gap-4 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-8">
                 <div className="flex items-center justify-between gap-4">
-                  <Link to={account.to} onClick={closeMenu} className={navLinkClass(false)}>
+                  <LanguageSwitch className="-ml-1" />
+                  <Link
+                    to={account.to}
+                    onClick={closeMenu}
+                    className={cn("rounded-sm py-1 text-sm text-fg-2 hover:text-fg", FOCUS_RING)}
+                  >
                     {account.label}
                   </Link>
-                  <LanguageToggle className={pillToggle} />
                 </div>
-                <Link to="/contact" onClick={closeMenu} className={cn(ctaClass, "h-12 w-full")}>
+                <ButtonLink
+                  to="/contact"
+                  size="lg"
+                  variant={ctaVariant}
+                  onClick={closeMenu}
+                  className="w-full"
+                >
                   {ctaLabel}
-                  <ArrowUpRight aria-hidden className={ctaArrowClass} />
-                </Link>
+                </ButtonLink>
               </div>
             </SheetContent>
           </Sheet>

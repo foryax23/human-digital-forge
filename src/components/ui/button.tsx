@@ -4,27 +4,36 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/*
+ * The shadcn button in the Vortex look (same scale as system/button: lg 40, default 36,
+ * sm 28; 8 px corners; no glow, lift or press offset). New code uses
+ * "@/components/system" Button / ButtonLink; this keeps the dashboard and legal pages in step.
+ */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold cursor-pointer transition-[color,background-color,border-color,box-shadow,transform] duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed active:translate-y-px [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap font-sans font-medium leading-none transition-[background-color,border-color,color,text-decoration-color] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-line/55 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-[0.42] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-[0_14px_40px_-18px_var(--primary)]",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
-        outline:
-          "border border-border bg-transparent hover:bg-accent hover:text-accent-foreground",
-        secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        teal: "bg-teal text-teal-foreground shadow-sm hover:bg-teal/90",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        default:
+          "bg-brand text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.12)] hover:bg-brand-hover",
+        // Red stays a word colour, never a fill.
+        destructive: "border border-line-3 bg-fill-1 text-bad hover:border-bad/60 hover:bg-fill-2",
+        outline: "border border-line-3 bg-fill-1 text-fg hover:border-fg/25 hover:bg-fill-2",
+        secondary: "bg-fill-2 text-fg hover:bg-fill-3",
+        // Kept for older call sites; the cyan accent is reserved for the hero underline.
+        teal: "border border-line-3 bg-fill-1 text-fg hover:border-fg/25 hover:bg-fill-2",
+        ghost: "text-fg-2 hover:bg-fill-2 hover:text-fg",
+        link: "text-fg underline decoration-fg/30 decoration-1 underline-offset-4 hover:decoration-fg",
       },
       size: {
-        default: "h-10 px-5 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-12 rounded-lg px-7 text-base",
-        icon: "h-10 w-10",
+        default: "h-9 rounded-lg px-3.5 text-sm",
+        sm: "h-7 rounded-md px-2.5 text-[0.8125rem] [&_svg]:size-3.5",
+        lg: "h-10 rounded-lg px-4 text-sm",
+        icon: "size-9 rounded-lg",
       },
     },
+    // A text link keeps the type size but has no box.
+    compoundVariants: [{ variant: "link", class: "h-auto rounded-sm px-0" }],
     defaultVariants: {
       variant: "default",
       size: "default",

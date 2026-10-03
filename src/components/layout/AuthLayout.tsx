@@ -1,6 +1,38 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 
+import { LOGO_NAV } from "@/components/landing/media";
+import { FOCUS_RING } from "@/components/system";
+import { useI18n } from "@/i18n";
+import { COMPANY_LINE } from "@/lib/scan/legal/company";
+import { cn } from "@/lib/utils";
+import { LanguageSwitch } from "./LanguageToggle";
+
+/** The wordmark as a link home (the same file as the nav's, no hover effect). */
+function HomeMark({ className }: { className?: string }) {
+  const { t } = useI18n();
+  return (
+    <Link to="/" className={cn("inline-flex rounded-md", FOCUS_RING, className)}>
+      <picture className="contents">
+        <source type="image/webp" srcSet={LOGO_NAV.webp} />
+        <img
+          src={LOGO_NAV.png}
+          alt="Vortex Hub"
+          width={LOGO_NAV.width}
+          height={LOGO_NAV.height}
+          decoding="async"
+          className="block h-8 w-auto"
+        />
+      </picture>
+      <span className="sr-only">{t(", home page", ", pagina principală")}</span>
+    </Link>
+  );
+}
+
+/**
+ * Login, sign-up and password pages: the night brand panel on the left from lg up, the
+ * form on the light working surface (the same one the client area uses).
+ */
 export function AuthLayout({
   heading,
   intro,
@@ -12,41 +44,39 @@ export function AuthLayout({
   children: ReactNode;
   footer: ReactNode;
 }) {
+  const { t } = useI18n();
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      {/* Brand panel */}
-      <div className="relative hidden flex-col justify-between bg-ink p-12 text-ink-foreground lg:flex">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-md bg-gradient-brand text-sm font-semibold text-primary-foreground">
-            V
-          </span>
-          <span className="font-serif text-xl">Vortex Hub</span>
-        </Link>
+      <div className="cinematic hidden flex-col justify-between border-r border-line-1 p-12 lg:flex">
+        <HomeMark />
         <div>
-          <h2 className="max-w-sm text-3xl leading-tight">
-            Digital work designed around your goals.
+          <h2 className="type-h2 max-w-md text-balance text-fg">
+            {t("Your projects in one place.", "Proiectele tale, într-un singur loc.")}
           </h2>
-          <p className="mt-4 max-w-sm text-sm text-ink-foreground/70">
-            Submit projects, track progress and securely receive completed work in one calm client
-            area.
+          <p className="type-lead mt-3 max-w-md text-pretty text-fg-2">
+            {t(
+              "Send requests, follow the progress and receive the finished work securely.",
+              "Trimite cereri, urmărește progresul și primește lucrările finalizate în siguranță.",
+            )}
           </p>
         </div>
-        <p className="text-xs text-ink-foreground/50">© Vortex Hub. All rights reserved.</p>
+        <div className="flex items-center justify-between gap-4 text-xs text-fg-3">
+          <p>{COMPANY_LINE}</p>
+          <LanguageSwitch />
+        </div>
       </div>
 
-      {/* Form panel */}
       <div className="flex flex-col items-center justify-center px-6 py-12 sm:px-12">
         <div className="w-full max-w-md">
-          <Link to="/" className="mb-8 flex items-center gap-2 lg:hidden">
-            <span className="grid h-8 w-8 place-items-center rounded-md bg-gradient-brand text-sm font-semibold text-primary-foreground">
-              V
-            </span>
-            <span className="font-serif text-xl">Vortex Hub</span>
-          </Link>
-          <h1 className="text-3xl">{heading}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{intro}</p>
+          <div className="mb-8 flex items-center justify-between gap-4 lg:hidden">
+            <HomeMark />
+            <LanguageSwitch />
+          </div>
+          <h1 className="type-title text-fg">{heading}</h1>
+          <p className="type-body mt-2 text-fg-2">{intro}</p>
           <div className="mt-8">{children}</div>
-          <div className="mt-6 text-sm text-muted-foreground">{footer}</div>
+          <div className="type-body-sm mt-6 text-fg-2">{footer}</div>
         </div>
       </div>
     </div>

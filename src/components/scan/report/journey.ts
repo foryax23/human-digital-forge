@@ -1,10 +1,4 @@
-import type {
-  AuditFinding,
-  Bilingual,
-  CompanyProfile,
-  OnlinePresence,
-  WebsiteAudit,
-} from "@/lib/scan/types";
+import type { Bilingual, CompanyProfile, OnlinePresence, WebsiteAudit } from "@/lib/scan/types";
 import { roNeedsDe } from "@/lib/scan/blueprint/format";
 
 import { formatNumber } from "./format";
@@ -19,18 +13,11 @@ export type JourneyStage = {
   status: JourneyStatus;
   /** What the scan actually saw, stated plainly. */
   found: Bilingual[];
-  /** The next fix; absent when the stage is already strong. */
+  /** What we do next at this stage, in one line of its own; absent when it is already strong. */
   fix?: Bilingual;
 };
 
 const L = (en: string, ro: string): Bilingual => ({ en, ro });
-const SEVERITY_RANK = { critical: 0, high: 1, medium: 2, low: 3 } as const;
-
-function topFinding(audit: WebsiteAudit | undefined, test: (finding: AuditFinding) => boolean) {
-  return audit?.findings
-    .filter(test)
-    .sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity])[0];
-}
 
 function joinList(items: string[], and: string) {
   if (items.length <= 1) return items.join("");
@@ -40,16 +27,21 @@ function joinList(items: string[], and: string) {
 /**
  * The five-stage customer journey (discover → consider → contact → book/buy →
  * return), each rated strong / weak / missing purely from signals the scan
- * measured, with no guesses about things we couldn't see.
+ * measured, with no guesses about things we couldn't see. Each stage says what
+ * we do there in its own words (first person plural, plain language), never a
+ * copy of a finding from the website table.
  */
 export function deriveJourney({
   audit,
   presence,
   company,
+  bookings = false,
 }: {
   audit?: WebsiteAudit | null;
   presence?: OnlinePresence | null;
   company?: CompanyProfile | null;
+  /** Appointments, not orders (unless the site has a shop): no "comandă" for a clinic. */
+  bookings?: boolean;
 }): JourneyStage[] {
   const site = audit && audit.reachable ? audit : undefined;
   const s = site?.signals;
@@ -78,16 +70,24 @@ export function deriveJourney({
     if (hasGoogle)
       discover.found.push(L("Google Business profile found", "Profil Google Business găsit"));
     discover.fix = L(
-      "Launch a fast website with your services, city and contact details so Google can list you.",
-      "Lansează un site rapid cu serviciile, orașul și datele de contact, ca Google să te poată afișa.",
+      "We build a fast website with your services, city and contact details, so Google can list you.",
+      "Facem un site rapid cu serviciile, orașul și datele de contact, ca Google să te poată afișa.",
     );
   } else {
     const seo = site.scores.seo;
-    discover.found.push(L(`SEO score ${seo}/100`, `Scor SEO ${seo}/100`));
+    discover.found.push(
+      L(`Google visibility ${seo} of 100`, `Vizibilitate în Google: ${seo} din 100`),
+    );
     discover.found.push(
       s?.hasStructuredData
-        ? L("Business details marked up for Google", "Datele afacerii sunt marcate pentru Google")
-        : L("No structured business data for Google", "Fără date structurate pentru Google"),
+        ? L(
+            "Google gets your hours and address from the site",
+            "Google primește de pe site programul și adresa",
+          )
+        : L(
+            "Google doesn't get your hours and address from the site",
+            "Google nu primește de pe site programul și adresa",
+          ),
     );
     if (presence) {
       discover.found.push(
@@ -97,12 +97,15 @@ export function deriveJourney({
       );
     }
     discover.status = seo >= 75 && (s?.hasStructuredData || hasGoogle) ? "strong" : "weak";
-    discover.fix =
-      topFinding(site, (f) => f.category === "seo")?.recommendation ??
-      L(
-        "Add LocalBusiness markup and keep your Google Business profile complete.",
-        "Adaugă marcajul LocalBusiness și păstrează profilul Google Business complet.",
-      );
+    discover.fix = hasGoogle
+      ? L(
+          "We give Google your hours, address and phone from the site, and keep your profile up to date.",
+          "Îi dăm lui Google, de pe site, programul, adresa și telefonul și ținem profilul la zi.",
+        )
+      : L(
+          "We set up your Google Business profile and give Google your hours, address and phone.",
+          "Facem profilul Google Business și îi dăm lui Google programul, adresa și telefonul.",
+        );
   }
 
   /* ---- Consider */
@@ -126,7 +129,7 @@ export function deriveJourney({
     }
     if (perf !== undefined) {
       if (perf >= 70) trust++;
-      consider.found.push(L(`Mobile performance ${perf}/100`, `Performanță pe mobil ${perf}/100`));
+      consider.found.push(L(`Speed on a phone ${perf} of 100`, `Viteză pe mobil: ${perf} din 100`));
     }
     if (s?.hasBlog) {
       trust++;
@@ -148,15 +151,13 @@ export function deriveJourney({
   }
   consider.status = trust >= 3 ? "strong" : trust >= 1 ? "weak" : "missing";
   consider.fix = site
-    ? (topFinding(site, (f) => f.category === "performance" || f.category === "content")
-        ?.recommendation ??
-      L(
-        "Speed up the mobile site and show real reviews and examples of your work.",
-        "Accelerează site-ul pe mobil și arată recenzii reale și exemple din munca ta.",
-      ))
+    ? L(
+        "We make the site faster on phones and show real reviews and examples of your work.",
+        "Facem site-ul mai rapid pe telefon și arătăm recenzii reale și exemple din munca ta.",
+      )
     : L(
-        "Show your work, prices and real reviews where people compare options.",
-        "Arată-ți munca, prețurile și recenzii reale acolo unde oamenii compară opțiunile.",
+        "We show your work, prices and real reviews where people compare options.",
+        "Arătăm munca ta, prețurile și recenzii reale acolo unde oamenii compară.",
       );
 
   /* ---- Contact */
@@ -209,12 +210,12 @@ export function deriveJourney({
     contact.status = have.length >= 3 && instant ? "strong" : have.length >= 1 ? "weak" : "missing";
     contact.fix = !instant
       ? L(
-          "Add a WhatsApp button and an assistant that answers questions after hours.",
-          "Adaugă un buton WhatsApp și un asistent care răspunde la întrebări după program.",
+          "We add a WhatsApp button and an assistant that answers questions after hours too.",
+          "Adăugăm un buton de WhatsApp și un asistent care răspunde și după program.",
         )
       : L(
-          "Add a short contact form on every page.",
-          "Adaugă un formular scurt de contact pe fiecare pagină.",
+          "We put a short contact form on every page.",
+          "Punem un formular scurt de contact pe fiecare pagină.",
         );
   } else {
     contact.status = company?.phone ? "weak" : "missing";
@@ -224,19 +225,22 @@ export function deriveJourney({
       );
     }
     contact.fix = L(
-      "Make it easy to reach you: phone, WhatsApp and a short form in one place.",
-      "Fă-le clienților ușor să te contacteze: telefon, WhatsApp și un formular scurt, într-un singur loc.",
+      "We put the phone, WhatsApp and a short form in one place, so you are easy to reach.",
+      "Punem telefonul, WhatsApp și un formular scurt într-un singur loc, ca să te găsească ușor.",
     );
   }
 
   /* ---- Book / buy */
+  const appointments = bookings && !s?.hasEcommerce;
   const book: JourneyStage = {
     id: "book",
-    label: L("Book / buy", "Programare / cumpărare"),
-    question: L(
-      "Can they book or buy without waiting?",
-      "Pot face o programare sau o comandă fără să aștepte?",
-    ),
+    label: appointments ? L("Book", "Programare") : L("Book / buy", "Programare / cumpărare"),
+    question: appointments
+      ? L("Can they book without waiting?", "Se pot programa fără să aștepte?")
+      : L(
+          "Can they book or buy without waiting?",
+          "Pot face o programare sau o comandă fără să aștepte?",
+        ),
     status: "missing",
     found: [],
   };
@@ -248,25 +252,39 @@ export function deriveJourney({
     } else if (s.hasContactForm || s.hasPhone || s.hasWhatsApp) {
       book.status = "weak";
       book.found.push(
-        L(
-          "Bookings and orders need a call or a message",
-          "Programările și comenzile se fac doar prin apel sau mesaj",
-        ),
+        appointments
+          ? L("Bookings need a call or a message", "Programările se fac doar prin apel sau mesaj")
+          : L(
+              "Bookings and orders need a call or a message",
+              "Programările și comenzile se fac doar prin apel sau mesaj",
+            ),
       );
     } else {
       book.found.push(
-        L("No way to book or order on the site", "Pe site nu se pot face programări sau comenzi"),
+        appointments
+          ? L("No way to book on the site", "Pe site nu se pot face programări")
+          : L(
+              "No way to book or order on the site",
+              "Pe site nu se pot face programări sau comenzi",
+            ),
       );
     }
   } else {
-    book.found.push(L("No website to book or buy on", "Niciun site pentru programări sau comenzi"));
-  }
-  book.fix =
-    topFinding(site, (f) => /booking|ecommerce|checkout/i.test(f.id))?.recommendation ??
-    L(
-      "Let customers book or buy online, with real availability and automatic confirmations.",
-      "Lasă clienții să se programeze sau să cumpere online, cu disponibilitate reală și confirmări automate.",
+    book.found.push(
+      appointments
+        ? L("No website to book on", "Niciun site pentru programări")
+        : L("No website to book or buy on", "Niciun site pentru programări sau comenzi"),
     );
+  }
+  book.fix = appointments
+    ? L(
+        "We put booking online, with real free slots and automatic confirmations.",
+        "Punem programarea online, cu locuri libere reale și confirmări automate.",
+      )
+    : L(
+        "We let customers book or buy online, with real free slots and automatic confirmations.",
+        "Punem programarea sau comanda online, cu locuri libere reale și confirmări automate.",
+      );
 
   /* ---- Return */
   const retain: JourneyStage = {
@@ -287,8 +305,11 @@ export function deriveJourney({
     );
     retain.found.push(
       s.hasMarketingPixel
-        ? L("Remarketing pixel found", "Pixel de remarketing găsit")
-        : L("No remarketing pixel", "Fără pixel de remarketing"),
+        ? L("You can show ads to past visitors", "Poți face reclame celor care au vizitat site-ul")
+        : L(
+            "You can't show ads to past visitors yet",
+            "Încă nu poți face reclame celor care au vizitat site-ul",
+          ),
     );
   }
   if (socialCount >= 2) loyalty++;
@@ -302,8 +323,8 @@ export function deriveJourney({
   );
   retain.status = loyalty >= 2 ? "strong" : loyalty >= 1 || socialCount ? "weak" : "missing";
   retain.fix = L(
-    "Follow up automatically: reminders, review requests and offers for returning customers.",
-    "Păstrează legătura automat: reamintiri, cereri de recenzii și oferte pentru clienții care revin.",
+    "We keep in touch automatically: reminders, review requests and offers for returning customers.",
+    "Păstrăm legătura automat: reamintiri, cereri de recenzii și oferte pentru cei care revin.",
   );
 
   const stages = [discover, consider, contact, book, retain];

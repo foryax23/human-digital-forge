@@ -386,7 +386,8 @@ function check(key: string, bp: Blueprint, expectType: string, simulated = false
     fail(key, `${bp.opportunities.length} opportunities`);
   if (bp.strategies.length !== 3 || bp.strategies.filter((s) => s.recommended).length !== 1)
     fail(key, "need 3 strategies with exactly one recommended");
-  if (bp.roadmap.length < 3 || bp.roadmap.length > 4)
+  // Phases follow the strategies, so a plan without an assistant or growth work has two.
+  if (bp.roadmap.length < 2 || bp.roadmap.length > 4)
     fail(key, `${bp.roadmap.length} roadmap phases`);
   if (bp.projection.length !== 24) fail(key, "projection must have 24 months");
   if (!simulated && (bp.assumptions.hourlyCostRon < 25 || bp.assumptions.hourlyCostRon > 70))
@@ -463,12 +464,16 @@ function print(bp: Blueprint) {
   }
   for (const p of bp.roadmap) {
     console.log(
-      `  m${p.startMonth}–${p.endMonth} ${p.stage.en.padEnd(13)} [${p.tag}] ${p.items.map((i) => i.en).join(" / ")}`,
+      `  m${p.startMonth}–${p.endMonth} ${p.title.ro.padEnd(36)} ${p.items.map((i) => i.en).join(" / ")}`,
     );
   }
   const at = (m: number) => bp.projection[m - 1];
   console.log(
     `  projection  m6 ${fmt(at(6).cumulativeSavingsRon)} vs ${fmt(at(6).cumulativeCostRon)} · m12 ${fmt(at(12).cumulativeSavingsRon)} vs ${fmt(at(12).cumulativeCostRon)} · m24 ${fmt(at(24).cumulativeSavingsRon)} vs ${fmt(at(24).cumulativeCostRon)}`,
+  );
+  const be = bp.totals.breakEven;
+  console.log(
+    `  break-even  month ${be?.month ?? "–"} (volume +20%: ${be?.higherVolume ?? "–"}, −20%: ${be?.lowerVolume ?? "–"})`,
   );
   console.log(`  offer       ${bp.offer.planId} — ${bp.offer.title.en} — ${bp.offer.priceNote.en}`);
   if (verbose) console.log(`  summary     ${bp.summary.en}\n              ${bp.summary.ro}`);

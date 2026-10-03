@@ -8,8 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import { Building2, Globe2, Layers, Share2, Star, Users, type LucideIcon } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 
 import { useMotionPause } from "@/components/landing/motion-pause";
 import type { ScanState } from "@/components/scan/scan-state";
@@ -92,15 +91,6 @@ class SceneBoundary extends Component<
   }
 }
 
-const ICONS: Record<DataCardId, LucideIcon> = {
-  website: Globe2,
-  social: Share2,
-  business: Building2,
-  technology: Layers,
-  reviews: Star,
-  competitors: Users,
-};
-
 /*
  * Orbit slots on a 120 × 100 grid matching the 6:5 stage. The globe sits in
  * the middle (centre 60,50; radius 30). `x` is the card edge facing the globe
@@ -137,72 +127,53 @@ function connectorPath(id: DataCardId) {
   return { d: `M${sx} ${sy} Q${c} ${slot.x} ${slot.y}`, start: { x: sx, y: sy } };
 }
 
+/**
+ * One data source: a small solid card (title 13 px with a status square, the value in
+ * 14 px, one plain detail line). No icon tile, blur, glow or chips.
+ */
 function DataCardView({ card, className }: { card: DataCard; className?: string }) {
-  const Icon = ICONS[card.id];
   return (
-    <div
-      className={cn(
-        "rounded-2xl border border-white/10 bg-[#070a1f]/75 p-3.5 shadow-[0_24px_60px_-30px_rgb(0_0_0/0.9)] backdrop-blur-xl",
-        card.muted && "bg-[#070a1f]/55",
-        className,
-      )}
-    >
-      <div className="flex items-center gap-2.5">
+    <div className={cn("rounded-lg border border-line-2 bg-s2 px-3 py-2.5", className)}>
+      <p className="flex items-center gap-1.5 text-[0.8125rem] font-medium leading-[1.35] text-fg-2">
         <span
           aria-hidden
-          className={cn(
-            "grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#6c63ff]/35 to-[#5b8cf0]/15 ring-1 ring-white/10",
-            card.muted && "from-white/10 to-white/5",
-          )}
-        >
-          <Icon className={cn("h-4 w-4 text-[#89cbf6]", card.muted && "text-foreground/45")} />
-        </span>
-        <span className="type-label line-clamp-2 min-w-0 text-foreground/55">{card.label}</span>
-        {!card.muted && (
-          <span
-            aria-hidden
-            className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-[#5fe3d0] shadow-[0_0_10px_#5fe3d0]"
-          />
-        )}
-      </div>
+          className={cn("size-1.5 shrink-0 rounded-[1px]", card.muted ? "bg-warn" : "bg-ok")}
+        />
+        <span className="min-w-0 truncate">{card.label}</span>
+      </p>
       <p
         className={cn(
-          "type-body mt-2.5 line-clamp-2 break-words font-semibold text-foreground",
-          card.muted && "text-foreground/65",
+          "mt-1 line-clamp-2 break-words text-sm leading-[1.4]",
+          card.muted ? "text-fg-2" : "text-fg",
         )}
         title={card.value}
       >
         {card.value}
       </p>
-      {card.detail && (
-        <p className="type-micro mt-0.5 line-clamp-2 text-foreground/55">{card.detail}</p>
-      )}
-      {card.chips && card.chips.length > 0 && (
-        <ul className="mt-2 flex flex-wrap gap-1">
-          {card.chips.map((chip) => (
-            <li
-              key={chip}
-              className="type-micro rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-foreground/70"
-            >
-              {chip}
-            </li>
-          ))}
-        </ul>
-      )}
+      {card.detail ? (
+        <p className="mt-0.5 line-clamp-2 text-xs leading-[1.45] text-fg-3">{card.detail}</p>
+      ) : null}
     </div>
   );
 }
 
-const cardMotion = {
-  initial: { opacity: 0, scale: 0.9, y: 10, filter: "blur(10px)" },
-  animate: { opacity: 1, scale: 1, y: 0, filter: "blur(0px)" },
-  transition: { type: "spring", stiffness: 210, damping: 24, mass: 0.9 },
-} as const;
+/** Cards and traces appear with a 200 ms fade (nothing slides, scales or floats); instantly
+    under reduced motion. */
+function useCardMotion() {
+  const reduce = Boolean(useReducedMotion());
+  return {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+    transition: { duration: reduce ? 0 : 0.2, ease: "easeOut" },
+  } as const;
+}
 
 /**
  * The right half of the analysis screen: the globe (3D on desktop, SVG
- * elsewhere) with a glass card for every data source as its result lands.
- * Cards only ever show values the scan has measured.
+ * elsewhere) with a card for every data source as its result lands. Cards only
+ * ever show values the scan has measured. Phones (< 768 px) don't render it: the
+ * checklist prints each finding under its row instead.
  */
 export function ScanGlobe({ state, className }: { state: ScanState; className?: string }) {
   const { t, lang } = useI18n();
@@ -211,6 +182,7 @@ export function ScanGlobe({ state, className }: { state: ScanState; className?: 
   const stageRef = useRef<HTMLDivElement>(null);
   const onScreen = useOnScreen(stageRef);
   const [sceneReady, setSceneReady] = useState(false);
+  const cardMotion = useCardMotion();
 
   const cards = useMemo(() => buildDataCards(state, t, lang), [state, t, lang]);
   const home = useMemo(
@@ -270,35 +242,27 @@ export function ScanGlobe({ state, className }: { state: ScanState; className?: 
           viewBox={`0 0 ${STAGE_W} ${STAGE_H}`}
           className="pointer-events-none absolute inset-0 hidden h-full w-full overflow-visible lg:block"
         >
-          <defs>
-            <linearGradient id="scan-connector" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#89cbf6" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#6c63ff" stopOpacity="0.5" />
-            </linearGradient>
-          </defs>
           {cards.map((card) => {
             const path = connectorPath(card.id);
             if (!path || card.muted) return null;
             return (
-              <g key={card.id}>
-                <motion.path
+              <motion.g key={card.id} {...cardMotion}>
+                <path
                   d={path.d}
                   fill="none"
-                  stroke="url(#scan-connector)"
-                  strokeWidth={0.17}
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 1 }}
-                  transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                  className="stroke-line-3"
+                  strokeWidth={1}
+                  vectorEffect="non-scaling-stroke"
                 />
-                <circle cx={path.start.x} cy={path.start.y} r={0.7} fill="#89cbf6" />
-              </g>
+                <circle cx={path.start.x} cy={path.start.y} r={0.6} className="fill-fg-3" />
+              </motion.g>
             );
           })}
         </svg>
 
         <ul className="hidden lg:block" aria-label={t("What we found", "Ce am găsit")}>
           <AnimatePresence>
-            {cards.map((card, index) => {
+            {cards.map((card) => {
               const slot = SLOTS[card.id];
               return (
                 <motion.li
@@ -312,12 +276,7 @@ export function ScanGlobe({ state, className }: { state: ScanState; className?: 
                       : { left: `${(slot.x / STAGE_W) * 100}%` }),
                   }}
                 >
-                  <div
-                    className="animate-float-slow motion-reduce:animate-none"
-                    style={{ animationDelay: `${-index * 1.7}s` }}
-                  >
-                    <DataCardView card={card} />
-                  </div>
+                  <DataCardView card={card} />
                 </motion.li>
               );
             })}
@@ -325,9 +284,9 @@ export function ScanGlobe({ state, className }: { state: ScanState; className?: 
         </ul>
       </div>
 
-      {/* Phones and tablets: the same cards, stacked under the globe. */}
+      {/* Tablets: the same cards, in a grid under the globe. */}
       <ul
-        className="mt-4 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:hidden"
+        className="mt-4 grid grid-cols-2 gap-2 lg:hidden"
         aria-label={t("What we found", "Ce am găsit")}
       >
         <AnimatePresence>

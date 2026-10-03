@@ -12,9 +12,17 @@ type AuthorizationDetails = {
 };
 
 type OAuthApi = {
-  getAuthorizationDetails: (id: string) => Promise<{ data: AuthorizationDetails | null; error: Error | null }>;
-  approveAuthorization: (id: string) => Promise<{ data: { redirect_url?: string; redirect_to?: string } | null; error: Error | null }>;
-  denyAuthorization: (id: string) => Promise<{ data: { redirect_url?: string; redirect_to?: string } | null; error: Error | null }>;
+  getAuthorizationDetails: (
+    id: string,
+  ) => Promise<{ data: AuthorizationDetails | null; error: Error | null }>;
+  approveAuthorization: (id: string) => Promise<{
+    data: { redirect_url?: string; redirect_to?: string } | null;
+    error: Error | null;
+  }>;
+  denyAuthorization: (id: string) => Promise<{
+    data: { redirect_url?: string; redirect_to?: string } | null;
+    error: Error | null;
+  }>;
 };
 
 function getOAuthApi(): OAuthApi {
@@ -58,7 +66,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
   component: ConsentPage,
   errorComponent: ({ error }) => (
     <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="max-w-md rounded-2xl border border-border bg-card p-8 text-center">
+      <div className="max-w-md rounded-xl border border-line-2 bg-s1 p-8 text-center">
         <h1 className="text-xl font-semibold">Authorization request</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Could not load this authorization request: {String((error as Error)?.message ?? error)}
@@ -104,37 +112,40 @@ function ConsentPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-2xl">
-        <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-brand text-primary-foreground">
-          <span className="text-xl font-bold">V</span>
-        </div>
-        <h1 className="mt-6 text-center text-2xl font-semibold">
+      <div className="w-full max-w-md rounded-xl border border-line-2 bg-s1 p-8">
+        <h1 className="type-title text-center text-fg">
           {t("Connect", "Conectează")} {name} {t("to Vortex Hub", "la Vortex Hub")}
         </h1>
-        <p className="mt-2 text-center text-sm text-muted-foreground">
+        <p className="mt-2 text-center text-sm text-fg-2">
           {t(
             "This lets the connected app act on your behalf inside your Vortex Hub workspace.",
             "Aceasta permite aplicației conectate să acționeze în numele tău în spațiul tău de lucru Vortex Hub.",
           )}
         </p>
 
-        <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
+        <ul className="mt-6 space-y-3 text-sm text-fg-2">
           <li className="flex items-start gap-3">
-            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+            <span aria-hidden className="mt-[0.45rem] size-1.5 shrink-0 rounded-[1px] bg-fg-3" />
             {t("Read your profile and subscription", "Citește profilul și abonamentul tău")}
           </li>
           <li className="flex items-start gap-3">
-            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
-            {t("View and create projects, messages and consultations", "Vizualizează și creează proiecte, mesaje și consultanțe")}
+            <span aria-hidden className="mt-[0.45rem] size-1.5 shrink-0 rounded-[1px] bg-fg-3" />
+            {t(
+              "View and create projects, messages and consultations",
+              "Vizualizează și creează proiecte, mesaje și consultanțe",
+            )}
           </li>
           <li className="flex items-start gap-3">
-            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" />
+            <span aria-hidden className="mt-[0.45rem] size-1.5 shrink-0 rounded-[1px] bg-fg-3" />
             {t("View invoices and uploaded files", "Vizualizează facturile și fișierele încărcate")}
           </li>
         </ul>
 
         {error && (
-          <p role="alert" className="mt-6 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+          <p
+            role="alert"
+            className="mt-6 rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
+          >
             {error}
           </p>
         )}
@@ -144,7 +155,7 @@ function ConsentPage() {
             {t("Deny", "Respinge")}
           </Button>
           <Button disabled={busy} onClick={() => decide(true)}>
-            {busy ? t("Processing...", "Se procesează...") : t("Approve", "Aprobă")}
+            {busy ? t("Processing…", "Se procesează…") : t("Approve", "Aprobă")}
           </Button>
         </div>
       </div>

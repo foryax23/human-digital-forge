@@ -50,7 +50,13 @@ function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast.error(error.message || t("Could not log in. Check your details.", "Nu s-a putut autentifica. Verificați datele introduse."));
+      toast.error(
+        error.message ||
+          t(
+            "Could not log in. Check your details.",
+            "Nu te-am putut conecta. Verifică e-mailul și parola.",
+          ),
+      );
       return;
     }
     navigate({ to: returnTo });
@@ -64,10 +70,18 @@ function LoginPage() {
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message || t("Could not send reset email.", "Nu s-a putut trimite emailul de resetare."));
+      toast.error(
+        error.message ||
+          t("Could not send reset email.", "Nu am putut trimite e-mailul de resetare."),
+      );
       return;
     }
-    toast.success(t("Check your inbox for a password reset link.", "Verificați căsuța de email pentru linkul de resetare a parolei."));
+    toast.success(
+      t(
+        "Check your inbox for a password reset link.",
+        "Verifică e-mailul: ți-am trimis linkul de resetare a parolei.",
+      ),
+    );
     setMode("login");
   }
 
@@ -75,7 +89,10 @@ function LoginPage() {
     return (
       <AuthLayout
         heading={t("Reset your password.", "Resetează parola.")}
-        intro={t("Enter your email and we'll send you a secure reset link.", "Introduceți emailul și vă vom trimite un link securizat de resetare.")}
+        intro={t(
+          "Enter your email and we'll send you a secure reset link.",
+          "Scrie adresa de e-mail și îți trimitem un link securizat de resetare.",
+        )}
         footer={
           <button
             type="button"
@@ -88,7 +105,7 @@ function LoginPage() {
       >
         <form className="space-y-5" onSubmit={handleForgot}>
           <div className="space-y-2">
-            <Label htmlFor="email">{t("Email address", "Adresă de email")}</Label>
+            <Label htmlFor="email">{t("Email address", "Adresă de e-mail")}</Label>
             <Input
               id="email"
               type="email"
@@ -110,22 +127,24 @@ function LoginPage() {
   return (
     <AuthLayout
       heading={t("Welcome back to Vortex Hub.", "Bine ai revenit la Vortex Hub.")}
-      intro={t("Access your projects, messages and completed deliveries.", "Accesează proiectele, mesajele și livrările finalizate.")}
+      intro={t(
+        "Access your projects, messages and completed deliveries.",
+        "Accesează proiectele, mesajele și livrările finalizate.",
+      )}
       footer={
         <span>
-          {t("New here?", "Ești nou?")}
-          {" "}
+          {t("New here?", "Ești nou?")}{" "}
           <Link to="/register" className="text-primary underline-offset-4 hover:underline">
             {t("Create an account", "Creează cont")}
           </Link>
         </span>
       }
     >
-      <GoogleButton redirect_uri={`${window.location.origin}${returnTo}`} />
+      <GoogleButton redirectPath={returnTo} />
       <AuthDivider />
       <form className="space-y-5" onSubmit={handleLogin}>
         <div className="space-y-2">
-          <Label htmlFor="email">{t("Email address", "Adresă de email")}</Label>
+          <Label htmlFor="email">{t("Email address", "Adresă de e-mail")}</Label>
           <Input
             id="email"
             type="email"

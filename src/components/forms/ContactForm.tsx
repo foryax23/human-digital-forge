@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { Loader2, UploadCloud } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { submitContactEnquiry } from "@/lib/contact.functions";
-import { Button } from "@/components/ui/button";
+import { Button, Field } from "@/components/system";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -15,9 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useI18n } from "@/i18n";
 
 /** `prefill` seeds the description, e.g. a Vortex Scan request from the homepage search. */
 export function ContactForm({ prefill }: { prefill?: string } = {}) {
+  const { t } = useI18n();
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,7 +40,12 @@ export function ContactForm({ prefill }: { prefill?: string } = {}) {
       setSubmitted(true);
     } catch (error) {
       console.error("[contact] submit failed", error);
-      toast.error("Something went wrong sending your enquiry. Please try again.");
+      toast.error(
+        t(
+          "Your message did not go through. Please try again, or write to hello@vortexhub.ro.",
+          "Mesajul nu a ajuns. Încearcă din nou sau scrie-ne la hello@vortexhub.ro.",
+        ),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -48,107 +53,104 @@ export function ContactForm({ prefill }: { prefill?: string } = {}) {
 
   if (submitted) {
     return (
-      <div className="rounded-2xl border border-teal/30 bg-teal/5 p-8 text-center">
-        <h2 className="text-2xl">Thank you</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Your enquiry has been received. We will review your request and respond with the clearest
-          next step.
+      <div role="status" className="border-t border-rule pt-6">
+        <h2 className="type-h3 text-fg">{t("Thank you, we have it.", "Mulțumim, am primit-o.")}</h2>
+        <p className="type-body mt-2 max-w-[60ch] text-fg-2">
+          {t(
+            "We read every request and reply with a practical next step, usually within two working days.",
+            "Citim fiecare cerere și răspundem cu un pas practic următor, de obicei în două zile lucrătoare.",
+          )}
         </p>
-        <Button variant="outline" className="mt-6" onClick={() => setSubmitted(false)}>
-          Send another
+        <Button variant="secondary" className="mt-6" onClick={() => setSubmitted(false)}>
+          {t("Send another request", "Trimite altă cerere")}
         </Button>
       </div>
     );
   }
 
+  // Selects portal outside the page wrapper, so they opt into the night tokens themselves.
+  const menuClass = "cinematic";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="fullName">Full name</Label>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t("Full name", "Nume complet")}>
           <Input id="fullName" name="fullName" required autoComplete="name" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email address</Label>
+        </Field>
+        <Field label={t("Email address", "Adresă de e-mail")}>
           <Input id="email" name="email" type="email" required autoComplete="email" />
-        </div>
+        </Field>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="clientType">Client type</Label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field id="clientType" label={t("You are", "Ești")} optional>
           <Select name="clientType">
             <SelectTrigger id="clientType">
-              <SelectValue placeholder="Select one" />
+              <SelectValue placeholder={t("Choose one", "Alege")} />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="individual">Individual</SelectItem>
-              <SelectItem value="business">Business</SelectItem>
+            <SelectContent className={menuClass}>
+              <SelectItem value="individual">{t("A private person", "Persoană fizică")}</SelectItem>
+              <SelectItem value="business">{t("A business", "Firmă")}</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="service">Service needed</Label>
+        </Field>
+        <Field id="service" label={t("Service", "Serviciul")} optional>
           <Select name="service">
             <SelectTrigger id="service">
-              <SelectValue placeholder="Select one" />
+              <SelectValue placeholder={t("Choose one", "Alege")} />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="digital-product">Digital Product</SelectItem>
-              <SelectItem value="website">Website</SelectItem>
-              <SelectItem value="ai-automation">AI Automation</SelectItem>
-              <SelectItem value="consultancy">Consultancy</SelectItem>
-              <SelectItem value="not-sure">Not sure yet</SelectItem>
+            <SelectContent className={menuClass}>
+              <SelectItem value="website">{t("Website", "Site web")}</SelectItem>
+              <SelectItem value="ai-automation">{t("AI automation", "Automatizare AI")}</SelectItem>
+              <SelectItem value="digital-product">
+                {t("Digital product", "Produs digital")}
+              </SelectItem>
+              <SelectItem value="consultancy">{t("Consultancy", "Consultanță")}</SelectItem>
+              <SelectItem value="not-sure">{t("Not sure yet", "Nu știu încă")}</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </Field>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Brief description of the request</Label>
+      <Field label={t("What do you need?", "De ce ai nevoie?")}>
         <Textarea id="description" name="description" rows={5} required defaultValue={prefill} />
+      </Field>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t("Approximate budget", "Buget aproximativ")} optional>
+          <Input
+            id="budget"
+            name="budget"
+            placeholder={t("e.g. 2,500 to 7,500 RON", "de exemplu 2.500–7.500 lei")}
+          />
+        </Field>
+        <Field label={t("Preferred timeline", "Termen dorit")} optional>
+          <Input
+            id="timeline"
+            name="timeline"
+            placeholder={t("e.g. within 4 weeks", "de exemplu în 4 săptămâni")}
+          />
+        </Field>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="budget">Approximate budget (optional)</Label>
-          <Input id="budget" name="budget" placeholder="e.g. €500–€1,500" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="timeline">Preferred timeline (optional)</Label>
-          <Input id="timeline" name="timeline" placeholder="e.g. Within 4 weeks" />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Attachment (optional)</Label>
-        <label
-          htmlFor="file"
-          className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground transition-colors hover:border-primary/40"
+      <p className="type-body-sm max-w-[60ch] text-fg-3">
+        {t(
+          "We use these details only to reply to your request. ",
+          "Folosim aceste date doar ca să-ți răspundem la cerere. ",
+        )}
+        <Link
+          to="/privacy"
+          className="text-fg-2 underline decoration-fg/30 underline-offset-4 hover:decoration-fg"
         >
-          <UploadCloud className="h-5 w-5" />
-          <span>Upload a file (placeholder — uploads connect later)</span>
-          <input id="file" name="file" type="file" className="sr-only" disabled />
-        </label>
-      </div>
-
-      <div className="flex items-start gap-3">
-        <Checkbox id="consent" required className="mt-1" />
-        <Label
-          htmlFor="consent"
-          className="text-sm font-normal leading-relaxed text-muted-foreground"
-        >
-          I agree to Vortex Hub handling the information in this enquiry to respond to my request.
-        </Label>
-      </div>
-
-      <Button type="submit" size="lg" disabled={submitting}>
-        {submitting && <Loader2 className="animate-spin" />}
-        Send enquiry
-      </Button>
-      <p className="text-sm text-muted-foreground">
-        We will review your request and respond with the clearest next step.
+          {t("Privacy policy", "Politica de confidențialitate")}
+        </Link>
       </p>
+
+      <div>
+        <Button type="submit" size="lg" loading={submitting}>
+          {submitting ? t("Sending…", "Se trimite…") : t("Send the request", "Trimite cererea")}
+        </Button>
+      </div>
     </form>
   );
 }

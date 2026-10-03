@@ -3,28 +3,45 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { lovable } from "@/integrations/lovable/index";
+import { useI18n } from "@/i18n";
 
+/**
+ * `redirectPath` is where Google sends the person back to, on this site. The full URL is
+ * built on click, so the button renders on the server too (no `window` during render).
+ */
 export function GoogleButton({
-  label = "Continue with Google",
-  redirect_uri = window.location.origin + "/dashboard",
+  label,
+  redirectPath = "/dashboard",
 }: {
   label?: string;
-  redirect_uri?: string;
+  redirectPath?: string;
 }) {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(false);
 
   async function handleGoogle() {
     setLoading(true);
     try {
+      const redirect_uri = `${window.location.origin}${redirectPath}`;
       const result = await lovable.auth.signInWithOAuth("google", { redirect_uri });
       if (result.error) {
-        toast.error("Google sign-in failed. Please try again.");
+        toast.error(
+          t(
+            "Google sign-in failed. Please try again.",
+            "Conectarea cu Google nu a reușit. Încearcă din nou.",
+          ),
+        );
         setLoading(false);
         return;
       }
       // If redirected, the browser handles the rest.
     } catch {
-      toast.error("Google sign-in failed. Please try again.");
+      toast.error(
+        t(
+          "Google sign-in failed. Please try again.",
+          "Conectarea cu Google nu a reușit. Încearcă din nou.",
+        ),
+      );
       setLoading(false);
     }
   }
@@ -56,20 +73,18 @@ export function GoogleButton({
           d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.46 14.97.5 12 .5A11 11 0 0 0 2.18 7.05l3.66 2.84C6.71 6.68 9.14 4.75 12 4.75Z"
         />
       </svg>
-      {label}
+      {label ?? t("Continue with Google", "Continuă cu Google")}
     </Button>
   );
 }
 
 export function AuthDivider() {
+  const { t } = useI18n();
   return (
-    <div className="relative my-6">
-      <div className="absolute inset-0 flex items-center">
-        <span className="w-full border-t border-border" />
-      </div>
-      <div className="relative flex justify-center text-xs uppercase tracking-wide">
-        <span className="bg-background px-2 text-muted-foreground">or</span>
-      </div>
+    <div className="my-6 flex items-center gap-3 text-xs text-fg-3">
+      <span aria-hidden className="h-px flex-1 bg-line-2" />
+      {t("or", "sau")}
+      <span aria-hidden className="h-px flex-1 bg-line-2" />
     </div>
   );
 }

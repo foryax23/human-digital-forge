@@ -51,7 +51,12 @@ function SettingsPage() {
 
     if (error) {
       console.error("[settings] update failed", error);
-      toast.error(t("Could not save your changes. Please try again.", "Nu am putut salva modificările. Te rugăm să încerci din nou."));
+      toast.error(
+        t(
+          "Could not save your changes. Please try again.",
+          "Nu am putut salva modificările. Te rugăm să încerci din nou.",
+        ),
+      );
       return;
     }
     await refreshProfile();
@@ -62,15 +67,21 @@ function SettingsPage() {
     <div className="mx-auto max-w-2xl">
       <h1 className="text-3xl">{t("Settings", "Setări")}</h1>
       <p className="mt-1 text-muted-foreground">
-        {t("Manage your profile details and how we address you.", "Gestionează detaliile profilului tău și modul în care te adresăm.")}
+        {t(
+          "Manage your profile details and how we address you.",
+          "Gestionează detaliile profilului tău și modul în care te adresăm.",
+        )}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="email">{t("Email", "Email")}</Label>
+          <Label htmlFor="email">{t("Email", "E-mail")}</Label>
           <Input id="email" value={user?.email ?? ""} disabled />
           <p className="text-xs text-muted-foreground">
-            {t("Your email is linked to your account and can't be changed here.", "Adresa ta de email este legată de contul tău și nu poate fi modificată aici.")}
+            {t(
+              "Your email is linked to your account and can't be changed here.",
+              "Adresa ta de email este legată de contul tău și nu poate fi modificată aici.",
+            )}
           </p>
         </div>
 

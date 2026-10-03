@@ -45,9 +45,12 @@ export const projectImages = (slug: string) => ({
   mobile: `/media/work/${slug}/mobile.webp`,
 });
 
-/** Display title: brand plus the localised variant when there is one. */
-export const projectTitle = (project: Project, lang: "en" | "ro") =>
-  project.variant ? `${project.name} — ${project.variant[lang]}` : project.name;
+/**
+ * Display title: the project name alone. Entries that share a brand already differ by
+ * name, and the kind of site sits on the category line (`category`), so the title
+ * carries no dash and no variant. `lang` stays for older call sites.
+ */
+export const projectTitle = (project: Project, _lang?: "en" | "ro") => project.name;
 
 export const PROJECTS: Project[] = [
   {
@@ -93,7 +96,7 @@ export const PROJECTS: Project[] = [
     name: "ORBISGRID",
     url: "https://orbisgrid.app",
     domain: "orbisgrid.app",
-    category: { en: "OSINT dashboard", ro: "Tablou de bord OSINT" },
+    category: { en: "Public-data dashboard", ro: "Tablou de bord pentru analiză de date publice" },
     tagline: {
       en: "Cinematic OSINT command centre built on public open data",
       ro: "Centru de comandă OSINT în stil cinematografic, construit pe date publice deschise",
@@ -211,7 +214,7 @@ export const PROJECTS: Project[] = [
     name: "Harvard of Sales",
     url: "https://harvardofsales.vortexhub.dev",
     domain: "harvardofsales.vortexhub.dev",
-    category: { en: "MLM script generator", ro: "Generator de scripturi MLM" },
+    category: { en: "Sales script generator", ro: "Generator de scripturi de vânzare" },
     tagline: {
       en: "Invitation scripts for MLM distributors, built on behavioural psychology",
       ro: "Scripturi de invitație pentru distribuitorii MLM, bazate pe psihologia comportamentală",

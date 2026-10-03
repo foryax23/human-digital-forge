@@ -1,14 +1,25 @@
-import { motion } from "motion/react";
 import { Check } from "lucide-react";
 
 import type { ScanStage } from "@/components/scan/scan-state";
 import { SCAN_STAGES } from "@/components/scan/useVortexScan";
+import { FOCUS_RING } from "@/components/system";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
+/** The step names in the bar: short nouns, so all four fit next to the actions. */
+const STEP_LABELS: Record<ScanStage, { en: string; ro: string }> = {
+  find: { en: "Company", ro: "Firma" },
+  analyse: { en: "Analysis", ro: "Analiză" },
+  strategy: { en: "Strategy", ro: "Strategie" },
+  results: { en: "Results", ro: "Rezultate" },
+};
+
 /**
- * The 01–04 progress header under the nav. Finished stages are buttons that
- * jump back; the current one glows; later ones stay dim until reached.
+ * The four steps as text in the 48 px step bar: "1 Firma  2 Analiză  3 Strategie
+ * 4 Rezultate". The current step is in the text colour with a 2 px cyan underline flush
+ * with the bar's bottom edge (the hero indicator's echo); finished steps swap the number
+ * for a check and jump back; later steps stay dim. Phones show the current step's name
+ * only, the others as numbers.
  */
 export function ScanStepper({
   current,
@@ -18,7 +29,7 @@ export function ScanStepper({
   className,
 }: {
   current: ScanStage;
-  /** Stages that are finished (they get a mint tick). */
+  /** Finished stages (a check replaces the number). */
   completed: ScanStage[];
   /** Stages the visitor may jump to. */
   reachable: ScanStage[];
@@ -27,93 +38,76 @@ export function ScanStepper({
 }) {
   const { t } = useI18n();
   const currentIndex = SCAN_STAGES.findIndex((stage) => stage.id === current);
-  const currentStage = SCAN_STAGES[currentIndex];
+  const currentLabel = STEP_LABELS[current];
 
   return (
-    <nav aria-label={t("Scan progress", "Progresul scanării")} className={className}>
-      <ol className="flex items-center gap-2 sm:gap-3">
+    <nav
+      aria-label={t("Scan progress", "Progresul scanării")}
+      className={cn("flex h-full min-w-0", className)}
+    >
+      <ol className="flex h-full min-w-0 items-stretch gap-5 sm:gap-6">
         {SCAN_STAGES.map((stage, index) => {
           const isCurrent = stage.id === current;
           const isDone = completed.includes(stage.id) && !isCurrent;
           const canSelect = !isCurrent && reachable.includes(stage.id);
-          const number = String(index + 1).padStart(2, "0");
-          const label = t(stage.en, stage.ro);
+          const label = t(STEP_LABELS[stage.id].en, STEP_LABELS[stage.id].ro);
 
           const content = (
             <>
+              {isDone ? (
+                <>
+                  {/* The check replaces the number from 640 px up; phones keep the number. */}
+                  <Check
+                    aria-hidden
+                    strokeWidth={2.25}
+                    className="hidden size-3 shrink-0 text-fg-3 sm:block"
+                  />
+                  <span aria-hidden className="type-pnum text-[0.8125rem] sm:hidden">
+                    {index + 1}
+                  </span>
+                </>
+              ) : (
+                <span aria-hidden className="type-pnum text-[0.8125rem]">
+                  {index + 1}
+                </span>
+              )}
               <span
                 className={cn(
-                  "type-label relative grid h-9 w-9 shrink-0 place-items-center rounded-full tabular-nums transition-colors duration-300",
-                  isCurrent && "text-white",
-                  isDone && "bg-[#5fe3d0]/12 text-[#5fe3d0] ring-1 ring-[#5fe3d0]/40",
-                  !isCurrent && !isDone && "ring-1",
-                  !isCurrent &&
-                    !isDone &&
-                    (canSelect ? "text-white/70 ring-white/25" : "text-white/40 ring-white/12"),
-                )}
-              >
-                {isCurrent && (
-                  <>
-                    <span
-                      aria-hidden
-                      className="absolute inset-0 rounded-full bg-[conic-gradient(from_200deg,#6c63ff,#5b8cf0,#89cbf6,#6c63ff)] p-[1.5px] shadow-[0_0_22px_rgb(108_99_255/0.55)]"
-                    >
-                      <span className="block h-full w-full rounded-full bg-[#070a1f]" />
-                    </span>
-                    <span className="relative">{number}</span>
-                  </>
-                )}
-                {isDone && <Check aria-hidden className="h-4 w-4" strokeWidth={2.5} />}
-                {!isCurrent && !isDone && number}
-              </span>
-              <span
-                className={cn(
-                  "type-body-sm whitespace-nowrap transition-colors duration-300",
-                  isCurrent
-                    ? "font-medium text-white"
-                    : isDone || canSelect
-                      ? "text-white/75"
-                      : "text-white/40",
-                  // Phones show only the current stage's name, under the row.
-                  "sr-only md:not-sr-only",
+                  "whitespace-nowrap text-sm font-medium",
+                  // Phones name the current step only.
+                  !isCurrent && "sr-only sm:not-sr-only",
                 )}
               >
                 {label}
               </span>
-              {isDone && <span className="sr-only">{t(", done", ", finalizat")}</span>}
+              {isDone ? <span className="sr-only">{t(", done", ", finalizat")}</span> : null}
+              {isCurrent ? (
+                <span aria-hidden className="absolute inset-x-0 -bottom-px h-0.5 bg-echo" />
+              ) : null}
             </>
           );
 
+          const base = "relative flex h-full items-center gap-1.5";
           return (
-            <li
-              key={stage.id}
-              className={cn("flex min-w-0 items-center gap-2 sm:gap-3", index > 0 && "flex-1")}
-            >
-              {index > 0 && (
-                <span
-                  aria-hidden
-                  className="relative h-px min-w-4 flex-1 overflow-hidden rounded-full bg-white/10"
-                >
-                  <motion.span
-                    className="absolute inset-y-0 left-0 w-full origin-left bg-gradient-to-r from-[#6c63ff] via-[#5b8cf0] to-[#89cbf6]"
-                    initial={false}
-                    animate={{ scaleX: index <= currentIndex ? 1 : 0 }}
-                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                  />
-                </span>
-              )}
+            <li key={stage.id} className="flex">
               {canSelect ? (
                 <button
                   type="button"
                   onClick={() => onSelect(stage.id)}
-                  className="group flex items-center gap-2.5 rounded-full pr-1 outline-none transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-[#89cbf6]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#04061a] [&>span:last-child]:group-hover:text-white"
+                  className={cn(
+                    base,
+                    "cursor-pointer rounded-sm text-fg-2 transition-colors duration-150 hover:text-fg",
+                    FOCUS_RING,
+                    "focus-visible:outline-offset-[-2px]",
+                  )}
                 >
                   {content}
                 </button>
               ) : (
                 <span
                   aria-current={isCurrent ? "step" : undefined}
-                  className="flex items-center gap-2.5"
+                  aria-disabled={isCurrent ? undefined : true}
+                  className={cn(base, isCurrent ? "text-fg" : "text-fg-4")}
                 >
                   {content}
                 </span>
@@ -122,10 +116,10 @@ export function ScanStepper({
           );
         })}
       </ol>
-      <p className="type-label mt-3 text-white/55 md:hidden">
+      <p aria-live="polite" className="sr-only">
         {t(
-          `Step ${currentIndex + 1} of 4 · ${currentStage.en}`,
-          `Pasul ${currentIndex + 1} din 4 · ${currentStage.ro}`,
+          `Step ${currentIndex + 1} of 4: ${currentLabel.en}`,
+          `Pasul ${currentIndex + 1} din 4: ${currentLabel.ro}`,
         )}
       </p>
     </nav>

@@ -1,23 +1,71 @@
-import { useEffect, useRef, type ReactNode } from "react";
-import { AnimatePresence, MotionConfig, motion } from "motion/react";
-import { ArrowRight } from "lucide-react";
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
+import { Pause, Play } from "lucide-react";
 
-import { MotionPauseToggle } from "@/components/landing/motion-pause";
+import { useMotionPause } from "@/components/landing/motion-pause";
 import { prefersReducedMotion } from "@/components/landing/motion-prefs";
 import type { ScanStage } from "@/components/scan/scan-state";
 import { ScanStepper } from "@/components/scan/ScanStepper";
-import { SCAN_STAGES } from "@/components/scan/useVortexScan";
+import { Button, IconButton, Spinner } from "@/components/system";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-const EASE_OUT = [0.22, 1, 0.36, 1] as const;
+/** Where a step's own actions render: the right side of the step bar. */
+const ActionsSlot = createContext<HTMLElement | null>(null);
 
 /**
- * Layout of every scan screen: the 01–04 stepper under the nav, then the
- * current stage, cross-faded on change (focus moves to it and the page
- * returns to the top). `activity` shows a floating status while an edit
- * re-runs part of the scan. The page-wide pause switch sits in the bottom-right
- * corner, as on the homepage, so it never reads as a fifth step.
+ * A step's actions in the step bar (results: "Copiază linkul" + "Descarcă raportul"):
+ * render it anywhere inside the step and it portals into the bar, so the actions stay in
+ * reach while the page scrolls. Small buttons only; one primary at most.
+ */
+export function StepBarActions({ children }: { children: ReactNode }) {
+  const slot = useContext(ActionsSlot);
+  return slot ? createPortal(children, slot) : null;
+}
+
+/**
+ * Height of the fixed site nav, so the step bar can stick right under it whatever the nav
+ * measures at this width. Null until measured (the class fallbacks hold the first paint).
+ */
+function useNavHeight() {
+  const [height, setHeight] = useState<number | null>(null);
+  useEffect(() => {
+    const nav = document.querySelector<HTMLElement>("header.fixed");
+    if (!nav) return;
+    const update = () => setHeight(Math.round(nav.getBoundingClientRect().height));
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, []);
+  return height;
+}
+
+/** The page-wide motion switch as a quiet 28 px icon button in the bar. */
+function PauseButton() {
+  const { t } = useI18n();
+  const { paused, setPaused } = useMotionPause();
+  return (
+    <IconButton
+      label={
+        paused
+          ? t("Play the animation", "Pornește animația")
+          : t("Pause the animation", "Oprește animația")
+      }
+      aria-pressed={paused}
+      onClick={() => setPaused(!paused)}
+    >
+      {paused ? <Play /> : <Pause />}
+    </IconButton>
+  );
+}
+
+/**
+ * Layout of every scan screen: the step bar sticky under the nav (steps on the left; the
+ * step's actions, an inline "Actualizăm analiza…" status and the motion switch on the
+ * right), then the current stage 24 px below, cross-faded on change (focus moves to it
+ * and the page returns to the top).
  */
 export function ScanShell({
   stage,
@@ -34,12 +82,22 @@ export function ScanShell({
   onStageSelect: (stage: ScanStage) => void;
   /** Changes whenever the visible screen changes (stage or sub-view). */
   contentKey: string;
-  activity?: { label: string; detail?: string; onView?: () => void } | null;
+  /** An edit re-running part of the scan: shown inline in the step bar. */
+  activity?: {
+    label: string;
+    detail?: string;
+    onView?: () => void;
+    onCancel?: () => void;
+  } | null;
   children: ReactNode;
 }) {
   const { t } = useI18n();
   const contentRef = useRef<HTMLDivElement>(null);
   const firstKey = useRef(contentKey);
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
+  const navHeight = useNavHeight();
+  // Reduced motion: the screen swaps instantly.
+  const reduce = Boolean(useReducedMotion());
 
   useEffect(() => {
     if (contentKey === firstKey.current) return;
@@ -48,86 +106,84 @@ export function ScanShell({
     contentRef.current?.focus({ preventScroll: true });
   }, [contentKey]);
 
-  const index = SCAN_STAGES.findIndex((item) => item.id === stage);
-  const current = SCAN_STAGES[index];
-
   return (
     <MotionConfig reducedMotion="user">
-      <main className="relative z-10 mx-auto w-full max-w-[80rem] px-4 pb-24 pt-[5.5rem] sm:px-5 md:px-8 md:pt-[6.75rem] lg:px-12">
-        <h1 className="sr-only">Vortex Scan</h1>
+      <ActionsSlot.Provider value={slot}>
+        <main
+          // Nav height + 16 px; the classes hold the first paint until the nav is measured.
+          className="container-vx relative z-10 pb-20 pt-[5.5rem] md:pt-[6.25rem]"
+          style={navHeight ? { paddingTop: navHeight + 16 } : undefined}
+        >
+          <h1 className="sr-only">Vortex Scan</h1>
 
-        <div className="relative isolate border-b border-white/[0.07] pb-5">
-          {/* A dark strip keeps the step names legible where the vortex's arm runs behind them. */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -inset-x-4 -bottom-px -top-4 -z-10 bg-[linear-gradient(to_bottom,transparent,rgb(0_2_15/0.7)_30%,rgb(0_2_15/0.7)_80%,transparent)] [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]"
-          />
-          <ScanStepper
-            current={stage}
-            completed={completed}
-            reachable={reachable}
-            onSelect={onStageSelect}
-          />
-        </div>
-
-        <p aria-live="polite" className="sr-only">
-          {t(`Step ${index + 1} of 4: ${current.en}`, `Pasul ${index + 1} din 4: ${current.ro}`)}
-        </p>
-
-        <div ref={contentRef} tabIndex={-1} className="mt-8 outline-none md:mt-12">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={contentKey}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.45, ease: EASE_OUT }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Steps up on phones while the activity status spans the bottom edge. */}
-        <MotionPauseToggle
-          className={cn(
-            "fixed right-4 z-40 h-9 w-9 transition-[bottom] duration-300 sm:bottom-6 md:right-8",
-            activity ? "bottom-[4.75rem]" : "bottom-5",
-          )}
-        />
-
-        <AnimatePresence>
-          {activity && (
-            <motion.div
-              role="status"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 16 }}
-              transition={{ duration: 0.35, ease: EASE_OUT }}
-              className="fixed inset-x-4 bottom-5 z-40 mx-auto flex max-w-md items-center gap-3 rounded-full border border-white/10 bg-[#070a1f]/85 py-2 pl-3 pr-2 shadow-[0_20px_60px_-24px_rgb(0_0_0/0.9)] backdrop-blur-xl"
-            >
-              <span
-                aria-hidden
-                className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-white/15 border-t-[#89cbf6] motion-reduce:animate-none"
+          <div
+            className="sticky top-[4.5rem] z-30 bg-background md:top-[5.25rem]"
+            style={navHeight ? { top: navHeight } : undefined}
+          >
+            <div className="flex h-12 items-stretch justify-between gap-3 border-b border-line-1">
+              <ScanStepper
+                current={stage}
+                completed={completed}
+                reachable={reachable}
+                onSelect={onStageSelect}
               />
-              <span className="type-body-sm min-w-0 flex-1 truncate text-white/85">
-                {activity.label}
-                {activity.detail && <span className="text-white/50"> · {activity.detail}</span>}
-              </span>
-              {activity.onView && (
-                <button
-                  type="button"
-                  onClick={activity.onView}
-                  className="type-button inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[#89cbf6] transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#89cbf6]/80"
-                >
-                  {t("View progress", "Vezi progresul")}
-                  <ArrowRight aria-hidden className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
+              <div className="flex min-w-0 items-center justify-end gap-2">
+                {activity ? (
+                  <div
+                    role="status"
+                    className="flex min-w-0 items-center gap-2 text-[0.8125rem] text-fg-2"
+                  >
+                    <Spinner size={12} className="text-brand-line" />
+                    <span className="min-w-0 truncate">
+                      {activity.label}
+                      {activity.detail ? (
+                        <span className="hidden text-fg-3 lg:inline"> {activity.detail}</span>
+                      ) : null}
+                    </span>
+                    {activity.onView ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={activity.onView}
+                        className="hidden sm:inline-flex"
+                      >
+                        {t("View progress", "Vezi progresul")}
+                      </Button>
+                    ) : null}
+                    {activity.onCancel ? (
+                      <Button variant="ghost" size="sm" onClick={activity.onCancel}>
+                        {t("Cancel", "Anulează")}
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
+                <div
+                  ref={setSlot}
+                  className={cn(
+                    "flex items-center gap-2 empty:hidden",
+                    activity && "max-sm:hidden",
+                  )}
+                />
+                <PauseButton />
+              </div>
+            </div>
+          </div>
+
+          <div ref={contentRef} tabIndex={-1} className="mt-6 outline-none">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={contentKey}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduce ? 0 : 0.16, ease: "easeOut" }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </main>
+      </ActionsSlot.Provider>
     </MotionConfig>
   );
 }

@@ -12,22 +12,25 @@ import type {
 
 import { baseNotes, buildHeadline, buildSummary, businessName, DISCLAIMER } from "./copy";
 import {
+  computeBreakEven,
   computeOpportunities,
   computeProjection,
   estimateTeamSize,
   hourlyCostFor,
   typicalTeam,
+  withBreakEven,
 } from "./economics";
 import {
   automationPotentialOf,
   computeMoney,
   digitalMaturityOf,
   hasWebsiteFor,
+  hasWorkingWebsite,
   signalContext,
   websiteHealthOf,
   type Adjustments,
 } from "./engine";
-import { midpoint } from "./format";
+import { midOf } from "./format";
 import { bi } from "./model";
 import { buildOffer } from "./offer";
 import { candidateIds, getPlaybook, resolveOpportunity } from "./playbooks";
@@ -51,6 +54,19 @@ export {
   listBusinessTypes,
 } from "./taxonomy";
 export { PRICE_BOOK, hourlyCostFor } from "./economics";
+export {
+  displayPlan,
+  kpiCells,
+  outOfWindowNote,
+  tableRows,
+  type DisplayAutomation,
+  type DisplayPhase,
+  type DisplayPlan,
+  type DisplayStrategy,
+  type Horizon,
+  type KpiCell,
+  type TableRow,
+} from "./display";
 
 export type BlueprintInput = {
   target: ScanTarget;
@@ -111,13 +127,9 @@ export function assembleBlueprint(input: BlueprintInput, overrides: BlueprintOve
 
   /* what to automate */
   const ids = selectOpportunities(type, ctx, simulation, overrides);
-  const { opportunities, totals, cappedBy } = computeMoney({
-    type,
-    ids,
-    inputs: simulation,
-    hourlyIsIns: true,
-    adjustments: overrides.adjustments,
-  });
+  const money = (inputs: SimulationInputs) =>
+    computeMoney({ type, ids, inputs, hourlyIsIns: true, adjustments: overrides.adjustments });
+  const { opportunities, totals: baseTotals, cappedBy } = money(simulation);
 
   /* plan */
   const websiteActions = pickWebsiteActions(audit);
@@ -141,6 +153,16 @@ export function assembleBlueprint(input: BlueprintInput, overrides: BlueprintOve
     websiteHealth,
   });
   const name = businessName({ company, audit, target });
+  const projection = computeProjection(opportunities, roadmap);
+  const totals = withBreakEven(
+    baseTotals,
+    computeBreakEven(projection, (factor) =>
+      computeProjection(
+        money({ ...simulation, volumeFactor: simulation.volumeFactor * factor }).opportunities,
+        roadmap,
+      ),
+    ),
+  );
 
   const notes = [...team.notes, ...baseNotes(type)];
   if (cappedBy < 1) {
@@ -177,11 +199,10 @@ export function assembleBlueprint(input: BlueprintInput, overrides: BlueprintOve
       websiteHealth,
       automationPotential: automationPotentialOf(totals, simulation.teamSize),
     },
-    headline: buildHeadline({ name, type, totals, stepCount: roadmapSteps(roadmap) }),
+    headline: buildHeadline({ name, type, opportunities, stepCount: roadmapSteps(roadmap) }),
     summary: buildSummary({
       type,
       opportunities,
-      totals,
       hourlyCostRon: simulation.hourlyCostRon,
       websiteActions,
       audit,
@@ -192,8 +213,14 @@ export function assembleBlueprint(input: BlueprintInput, overrides: BlueprintOve
     totals,
     strategies,
     roadmap,
-    projection: computeProjection(opportunities, roadmap),
-    offer: buildOffer({ opportunities, strategies, totals }),
+    projection,
+    offer: buildOffer({
+      opportunities,
+      strategies,
+      totals,
+      newSite: !hasWorkingWebsite(audit, hasWebsite),
+      stages: roadmap.length,
+    }),
     assumptions: {
       hourlyCostRon: hourly.hourlyCostRon,
       hourlyCostBasis: hourly.basis,
@@ -276,12 +303,12 @@ function selectOpportunities(
         typical,
         hourlyIsIns: true,
       }).opportunities;
-      const net = midpoint(o.monthlySavingsRon) - midpoint(o.monthlyToolCostRon);
-      const payback = net > 0 ? midpoint(o.setupCostRon) / net : Infinity;
+      const net = midOf(o.monthlySavingsRon) - midOf(o.monthlyToolCostRon);
+      const payback = net > 0 ? midOf(o.setupCostRon) / net : Infinity;
       // In the cautious case the time saved still covers the tools.
       const coversTools = o.monthlySavingsRon.low >= o.monthlyToolCostRon.high;
       const score =
-        (net / Math.max(1, midpoint(o.setupCostRon))) * IMPACT_WEIGHT[o.impact] +
+        (net / Math.max(1, midOf(o.setupCostRon))) * IMPACT_WEIGHT[o.impact] +
         (resolved.fromPlaybook ? 0.15 : 0);
       return {
         id: resolved.template.id,

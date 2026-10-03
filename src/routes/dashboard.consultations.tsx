@@ -64,10 +64,12 @@ function ConsultationsPage() {
       .order("scheduled_at", { ascending: true });
     if (err) {
       console.error("[consultations] load failed", err);
-      setError(t(
-        "We couldn't load your consultations. Please refresh to try again.",
-        "Nu am putut încărca consultațiile tale. Te rugăm să reîmprospătezi pagina.",
-      ));
+      setError(
+        t(
+          "We couldn't load your consultations. Please refresh to try again.",
+          "Nu am putut încărca consultațiile tale. Te rugăm să reîmprospătezi pagina.",
+        ),
+      );
     } else {
       setError(null);
       setItems((data as ConsultationItem[]) ?? []);
@@ -94,7 +96,12 @@ function ConsultationsPage() {
         status: "requested",
       });
       if (err) throw err;
-      toast.success(t("Consultation requested. We'll confirm a time soon.", "Consultație solicitată. Vom confirma un interval în curând."));
+      toast.success(
+        t(
+          "Consultation requested. We'll confirm a time soon.",
+          "Consultație solicitată. Vom confirma un interval în curând.",
+        ),
+      );
       setOpen(false);
       setTitle("");
       setPreferred("");
@@ -102,7 +109,12 @@ function ConsultationsPage() {
       await loadItems();
     } catch (err) {
       console.error("[consultations] booking failed", err);
-      toast.error(t("We couldn't book that session. Please try again.", "Nu am putut rezerva sesiunea. Te rugăm să încerci din nou."));
+      toast.error(
+        t(
+          "We couldn't book that session. Please try again.",
+          "Nu am putut rezerva sesiunea. Te rugăm să încerci din nou.",
+        ),
+      );
     } finally {
       setSubmitting(false);
     }
@@ -145,7 +157,9 @@ function ConsultationsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="c-notes">{t("Anything to share beforehand?", "Ai ceva de împărtășit în prealabil?")}</Label>
+              <Label htmlFor="c-notes">
+                {t("Anything to share beforehand?", "Ai ceva de împărtășit în prealabil?")}
+              </Label>
               <Textarea
                 id="c-notes"
                 value={notes}
@@ -172,7 +186,10 @@ function ConsultationsPage() {
         <div>
           <h1 className="text-3xl">{t("Consultations", "Consultații")}</h1>
           <p className="mt-1 text-muted-foreground">
-            {t("Your booked one-to-one sessions with the Vortex Hub team.", "Sesiunile tale rezervate individual cu echipa Vortex Hub.")}
+            {t(
+              "Your booked one-to-one sessions with the Vortex Hub team.",
+              "Sesiunile tale rezervate individual cu echipa Vortex Hub.",
+            )}
           </p>
         </div>
         {bookButton}
@@ -185,17 +202,19 @@ function ConsultationsPage() {
       )}
 
       {!loading && error && (
-        <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+        <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
           {error}
         </div>
       )}
 
       {!loading && !error && items.length === 0 && (
-        <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+        <div className="mt-8 rounded-xl border border-dashed border-border bg-card p-10 text-center">
           <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-teal/15 text-teal">
             <CalendarCheck className="h-6 w-6" />
           </span>
-          <h2 className="mt-4 text-2xl">{t("No consultations booked", "Nicio consultație rezervată")}</h2>
+          <h2 className="mt-4 text-2xl">
+            {t("No consultations booked", "Nicio consultație rezervată")}
+          </h2>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
             {t(
               "Book a session to talk through your goals and map out the best next steps.",
@@ -209,7 +228,7 @@ function ConsultationsPage() {
       {!loading && !error && items.length > 0 && (
         <ul className="mt-8 space-y-3">
           {items.map((item) => (
-            <li key={item.id} className="rounded-2xl border border-border bg-card p-5">
+            <li key={item.id} className="rounded-xl border border-border bg-card p-5">
               <div className="flex items-start gap-4">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-teal/15 text-teal">
                   <CalendarCheck className="h-5 w-5" />
@@ -217,7 +236,7 @@ function ConsultationsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h2 className="text-lg">{item.title}</h2>
-                    <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium capitalize text-muted-foreground">
+                    <span className="rounded-sm border border-line-3 px-1.5 py-0.5 text-xs font-medium capitalize text-fg-2">
                       {item.status}
                     </span>
                   </div>

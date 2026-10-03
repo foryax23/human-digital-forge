@@ -6,11 +6,10 @@ import { LoadingScreen } from "@/components/landing/LoadingScreen";
 import { MotionPauseProvider } from "@/components/landing/motion-pause";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { TechBand } from "@/components/landing/TechStack";
 import { WorkSection } from "@/components/landing/WorkSection";
 import { ServicesSection } from "@/components/landing/ServicesSection";
 import { ProcessSection } from "@/components/landing/ProcessSection";
-import { ExplorationsSection } from "@/components/landing/ExplorationsSection";
-import { StatsSection } from "@/components/landing/StatsSection";
 import { ConsultationSection } from "@/components/home/ConsultationSection";
 import { PricingSection } from "@/components/home/PricingSection";
 import { ContactFooter } from "@/components/landing/ContactFooter";
@@ -31,7 +30,6 @@ export const Route = createFileRoute("/")({
     links: [
       { rel: "canonical", href: "/" },
       { rel: "preload", as: "image", href: "/media/swirl-loop/poster.jpg" },
-      { rel: "preconnect", href: "https://images.unsplash.com" },
     ],
     scripts: [
       // Decides before first paint whether the intro loader plays (see intro.tsx).
@@ -59,11 +57,10 @@ function Index() {
           <LandingNav />
           <main>
             <HeroSection />
+            <TechBand />
             <WorkSection />
             <ServicesSection />
             <ProcessSection />
-            <ExplorationsSection />
-            <StatsSection />
             <ConsultationSection />
             <PricingSection />
           </main>

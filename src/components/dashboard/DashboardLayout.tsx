@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { LOGO_NAV } from "@/components/landing/media";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
@@ -83,14 +84,21 @@ function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: 
   );
 }
 
-
+/** The nav's wordmark file on the dark sidebar; no tile, no glow. */
 function SidebarBrand() {
   return (
-    <Link to="/" className="flex items-center gap-2 px-2 py-1">
-      <span className="grid h-8 w-8 place-items-center rounded-md bg-gradient-brand text-sm font-semibold text-primary-foreground">
-        V
-      </span>
-      <span className="font-serif text-lg text-sidebar-foreground">Vortex Hub</span>
+    <Link to="/" className="flex items-center rounded-md px-2 py-1">
+      <picture className="contents">
+        <source type="image/webp" srcSet={LOGO_NAV.webp} />
+        <img
+          src={LOGO_NAV.png}
+          alt="Vortex Hub"
+          width={LOGO_NAV.width}
+          height={LOGO_NAV.height}
+          decoding="async"
+          className="block h-8 w-auto"
+        />
+      </picture>
     </Link>
   );
 }
@@ -124,7 +132,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/85 px-4 backdrop-blur sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border bg-background px-4 sm:px-6">
           <div className="flex items-center gap-2">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
@@ -156,7 +164,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </span>
           </div>
         </header>
-
 
         <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
       </div>

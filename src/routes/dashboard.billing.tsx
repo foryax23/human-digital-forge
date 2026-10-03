@@ -69,10 +69,12 @@ function BillingPage() {
         .order("issued_at", { ascending: false });
       if (err) {
         console.error("[billing] load failed", err);
-        setError(t(
-          "We couldn't load your invoices. Please refresh to try again.",
-          "Nu am putut încărca facturile tale. Te rugăm să reîmprospătezi pagina.",
-        ));
+        setError(
+          t(
+            "We couldn't load your invoices. Please refresh to try again.",
+            "Nu am putut încărca facturile tale. Te rugăm să reîmprospătezi pagina.",
+          ),
+        );
       } else {
         setError(null);
         setInvoices((data as Invoice[]) ?? []);
@@ -105,7 +107,10 @@ function BillingPage() {
     <div className="mx-auto max-w-3xl">
       <h1 className="text-3xl">{t("Billing", "Facturare")}</h1>
       <p className="mt-1 text-muted-foreground">
-        {t("Invoices and payment details for your projects.", "Facturi și detalii de plată pentru proiectele tale.")}
+        {t(
+          "Invoices and payment details for your projects.",
+          "Facturi și detalii de plată pentru proiectele tale.",
+        )}
       </p>
 
       {loading && (
@@ -115,13 +120,13 @@ function BillingPage() {
       )}
 
       {!loading && error && (
-        <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+        <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
           {error}
         </div>
       )}
 
       {!loading && !error && invoices.length === 0 && (
-        <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+        <div className="mt-8 rounded-xl border border-dashed border-border bg-card p-10 text-center">
           <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
             <CreditCard className="h-6 w-6" />
           </span>
@@ -138,21 +143,23 @@ function BillingPage() {
       {!loading && !error && invoices.length > 0 && (
         <>
           {outstanding > 0 && (
-            <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-              <p className="text-sm text-muted-foreground">{t("Outstanding balance", "Sold restant")}</p>
+            <div className="mt-8 rounded-xl border border-border bg-card p-6">
+              <p className="text-sm text-muted-foreground">
+                {t("Outstanding balance", "Sold restant")}
+              </p>
               <p className="mt-1 text-3xl font-semibold">{formatMoney(outstanding, currency)}</p>
             </div>
           )}
 
           <ul className="mt-8 space-y-3">
             {invoices.map((invoice) => (
-              <li key={invoice.id} className="rounded-2xl border border-border bg-card p-5">
+              <li key={invoice.id} className="rounded-xl border border-border bg-card p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <h2 className="text-lg">{invoice.invoice_number}</h2>
                       <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${
+                        className={`rounded-sm px-1.5 py-0.5 text-xs font-medium capitalize ${
                           statusStyles[invoice.status] ?? statusStyles.draft
                         }`}
                       >
@@ -163,8 +170,10 @@ function BillingPage() {
                       <p className="mt-1 text-sm text-muted-foreground">{invoice.description}</p>
                     )}
                     <p className="mt-2 text-xs text-muted-foreground">
-                      {t("Issued", "Emisă")} {formatDate(invoice.issued_at)} · {t("Due", "Scadentă")} {formatDate(invoice.due_at)}
-                      {invoice.paid_at && ` · ${t("Paid", "Plătită")} ${formatDate(invoice.paid_at)}`}
+                      {t("Issued", "Emisă")} {formatDate(invoice.issued_at)} ·{" "}
+                      {t("Due", "Scadentă")} {formatDate(invoice.due_at)}
+                      {invoice.paid_at &&
+                        ` · ${t("Paid", "Plătită")} ${formatDate(invoice.paid_at)}`}
                     </p>
                   </div>
                   <p className="text-xl font-semibold">

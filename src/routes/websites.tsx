@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Rocket, Building2, User, Briefcase, RefreshCw, LayoutDashboard } from "lucide-react";
 
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { CtaBand } from "@/components/shared/CtaBand";
-import { SectionHeading } from "@/components/shared/SectionHeading";
+import { ItemList } from "@/components/shared/ItemList";
+import { ButtonLink, SectionHeader } from "@/components/system";
 import { useI18n } from "@/i18n";
 
 const title = "Websites and Digital Solutions | Vortex Hub";
@@ -28,12 +28,12 @@ function WebsitesPage() {
   const { t } = useI18n();
 
   const categories = [
-    { icon: Rocket, title: t("Landing pages", "Pagini de destinație") },
-    { icon: Building2, title: t("Small business websites", "Site-uri web pentru afaceri mici") },
-    { icon: User, title: t("Personal portfolio websites", "Site-uri web de portofoliu personal") },
-    { icon: Briefcase, title: t("Service websites", "Site-uri web de servicii") },
-    { icon: RefreshCw, title: t("Website redesign", "Redesign de site-uri web") },
-    { icon: LayoutDashboard, title: t("Client portal concepts", "Concepte de portal pentru clienți") },
+    { title: t("Landing pages", "Pagini de destinație") },
+    { title: t("Small business websites", "Site-uri pentru afaceri mici") },
+    { title: t("Personal portfolio websites", "Site-uri de portofoliu personal") },
+    { title: t("Service websites", "Site-uri de servicii") },
+    { title: t("Website redesign", "Refacerea unui site existent") },
+    { title: t("Client portal concepts", "Portaluri simple pentru clienți") },
   ];
 
   const process = [
@@ -41,52 +41,63 @@ function WebsitesPage() {
     t("Structure and content", "Structură și conținut"),
     t("Visual design", "Design vizual"),
     t("Development", "Dezvoltare"),
-    t("Review and launch", "Revizuire și lansare"),
+    t("Review and launch", "Verificare și lansare"),
   ];
 
   return (
     <SiteLayout>
       <PageHero
-        eyebrow={t("Websites and digital solutions", "Site-uri web și soluții digitale")}
+        kicker={t("Websites", "Site-uri web")}
         title={t(
           "Websites designed around your purpose, not just your presence online.",
-          "Site-uri web proiectate în jurul scopului tău, nu doar al prezenței tale online."
+          "Site-uri făcute pentru scopul tău, nu doar ca să fii prezent online.",
         )}
         description={t(
-          "Vortex Hub builds simple, effective digital experiences for individuals, entrepreneurs and businesses that need to explain their offer clearly and convert interest into action.",
-          "Vortex Hub construiește experiențe digitale simple și eficiente pentru persoane, antreprenori și afaceri care trebuie să-și explice oferta clar și să transforme interesul în acțiune."
+          "Simple, effective sites for people and businesses that need to explain their offer clearly and turn interest into enquiries.",
+          "Site-uri simple și eficiente pentru oameni și firme care trebuie să-și explice clar oferta și să transforme interesul în cereri.",
         )}
-      />
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {categories.map((category) => (
-            <div key={category.title} className="rounded-xl border border-border bg-card p-6">
-              <span className="grid h-11 w-11 place-items-center rounded-lg bg-teal/15 text-teal">
-                <category.icon className="h-5 w-5" />
-              </span>
-              <h2 className="mt-4 text-lg">{category.title}</h2>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="bg-card">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <SectionHeading title={t("A clear path to launch.", "Un drum clar spre lansare.")} />
-          <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      >
+        <ButtonLink to="/portfolio" variant="secondary">
+          {t("See launched sites", "Vezi site-uri lansate")}
+        </ButtonLink>
+      </PageHero>
+
+      <section aria-label={t("What we build", "Ce construim")} className="section-y">
+        <div className="container-vx">
+          <SectionHeader headingId="websites-build" title={t("What we build", "Ce construim")} />
+          <ItemList items={categories} />
+
+          <SectionHeader
+            className="mt-16 md:mt-20"
+            headingId="websites-path"
+            title={t("A clear path to launch.", "Un drum clar spre lansare.")}
+            lead={t(
+              "Scope, timeline and price are agreed before we start.",
+              "Stabilim ce facem, în cât timp și cât costă înainte să începem.",
+            )}
+          />
+          <ol className="border-t border-line-1 lg:grid lg:grid-cols-5 lg:gap-6 lg:border-t-0">
             {process.map((step, index) => (
-              <li key={step} className="rounded-xl border border-border bg-background p-6">
-                <span className="font-serif text-3xl text-primary">{index + 1}</span>
-                <h3 className="mt-2 text-base leading-snug">{step}</h3>
+              <li
+                key={step}
+                className="grid grid-cols-[2rem_minmax(0,1fr)] items-baseline gap-x-3 border-b border-line-1 py-4 lg:block lg:border-b-0 lg:border-t lg:border-rule lg:pb-0 lg:pt-4"
+              >
+                <span className="type-pnum text-[0.8125rem] text-fg-3">{index + 1}</span>
+                <h3 className="type-h4 text-fg lg:mt-1.5">{step}</h3>
               </li>
             ))}
           </ol>
         </div>
       </section>
+
       <CtaBand
-        title={t("Planning a new website or redesign?", "Planifici un site nou sau un redesign?")}
-        primaryLabel={t("Plan a website project", "Planifică un proiect de site web")}
+        title={t(
+          "Planning a new website or a redesign?",
+          "Pregătești un site nou sau vrei să-l refaci pe cel vechi?",
+        )}
+        primaryLabel={t("Plan a website project", "Planifică proiectul")}
         primaryTo="/contact"
-        secondaryLabel={t("Book a consultation", "Programează o consultanță")}
+        secondaryLabel={t("Book a call", "Programează o discuție")}
         secondaryTo="/consultancy"
       />
     </SiteLayout>

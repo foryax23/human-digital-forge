@@ -8,8 +8,6 @@ import { HeroCosmos } from "@/components/landing/HeroCosmos";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { MotionPauseProvider } from "@/components/landing/motion-pause";
 import { VortexSearch } from "@/components/landing/VortexSearch";
-import { scanButton } from "@/components/scan/report/buttons";
-import { StepHeader } from "@/components/scan/report/StepHeader";
 import type { ScanStage } from "@/components/scan/scan-state";
 import { ScanShell } from "@/components/scan/ScanShell";
 import { AnalyseStep } from "@/components/scan/steps/AnalyseStep";
@@ -17,6 +15,7 @@ import { OverviewStep } from "@/components/scan/steps/OverviewStep";
 import { ResultsStep } from "@/components/scan/steps/ResultsStep";
 import { StrategyStep } from "@/components/scan/steps/StrategyStep";
 import { scanKey, toScanTarget, useVortexScan } from "@/components/scan/useVortexScan";
+import { Button, ButtonLink, StepHeader } from "@/components/system";
 import { useI18n } from "@/i18n";
 import { simulateBlueprint } from "@/lib/scan/blueprint/simulate";
 import type { ScanTarget, SimulationInputs } from "@/lib/scan/types";
@@ -41,7 +40,19 @@ const cuiParam = z
   )
   .catch(undefined);
 
-const searchSchema = z.object({ cui: cuiParam, url: param, q: param, demo: param });
+/**
+ * Which demo screen ?demo= opens. A word, never a digit: the router writes a digit-only
+ * string in quotes (?demo=%221%22), so the old "1" is read and written back as "overview".
+ */
+const DEMO_VIEWS = ["overview", "analyse", "strategy", "results"] as const;
+const demoParam = z
+  .preprocess(
+    (value) => (value === 1 || value === "1" ? "overview" : value),
+    z.enum(DEMO_VIEWS).optional(),
+  )
+  .catch(undefined);
+
+const searchSchema = z.object({ cui: cuiParam, url: param, q: param, demo: demoParam });
 type ScanSearch = z.infer<typeof searchSchema>;
 
 export const Route = createFileRoute("/scan")({
@@ -67,12 +78,20 @@ type Position = { stage: ScanStage; view: StrategyView };
 /** What the ASCII vortex behind the flow shows: the real scan progress, 0..1. */
 type Backdrop = { state: AsciiVortexState; progress: number };
 
-/** Where ?demo= starts: "1" opens the overview; a stage name opens that screen. */
+/** Where ?demo= starts: "overview" opens the findings; a stage name opens that screen. */
 function demoPosition(demo: string): Position {
   if (demo === "analyse") return { stage: "analyse", view: "overview" };
   if (demo === "strategy") return { stage: "strategy", view: "strategy" };
   if (demo === "results") return { stage: "results", view: "strategy" };
   return { stage: "strategy", view: "overview" };
+}
+
+/**
+ * The step a screen belongs to in the step bar: the overview ("Ce am găsit despre …") is
+ * the analysis result, so it shows as step 2; step 3 starts with the three directions.
+ */
+function shownIndex({ stage, view }: Position): number {
+  return stage === "strategy" && view === "overview" ? 1 : STAGE_ORDER.indexOf(stage);
 }
 
 const UI_PREFIX = "vortex-scan-ui:v1:";
@@ -153,7 +172,8 @@ function ScanFlow({
   const [position, setPosition] = useState<Position>(() =>
     demo ? demoPosition(demo) : { stage: target ? "analyse" : "find", view: "overview" },
   );
-  const [furthest, setFurthest] = useState(() => STAGE_ORDER.indexOf(position.stage));
+  // The furthest step reached, in step-bar terms (the overview counts as step 2).
+  const [furthest, setFurthest] = useState(() => shownIndex(position));
   const [simulation, setSimulation] = useState<{ id: string; inputs: SimulationInputs } | null>(
     null,
   );
@@ -161,7 +181,7 @@ function ScanFlow({
 
   const goTo = useCallback((stage: ScanStage, view: StrategyView = "overview") => {
     setPosition({ stage, view });
-    setFurthest((value) => Math.max(value, STAGE_ORDER.indexOf(stage)));
+    setFurthest((value) => Math.max(value, shownIndex({ stage, view })));
   }, []);
 
   // A finished live run moves on to the overview after a beat; a run restored
@@ -205,15 +225,24 @@ function ScanFlow({
   };
 
   const hasTarget = Boolean(target || demo);
+  // Analysis is done once its findings were seen and the visitor moved on to step 3.
   const completed: ScanStage[] = [];
   if (hasTarget) completed.push("find");
-  if (state.status === "done") completed.push("analyse");
+  if (state.status === "done" && furthest >= 2) completed.push("analyse");
   if (furthest >= 3) completed.push("strategy");
 
   const reachable: ScanStage[] = ["find"];
   if (hasTarget) reachable.push("analyse");
   if (blueprint) reachable.push("strategy");
   if (blueprint && furthest >= 3) reachable.push("results");
+
+  // Step 2 opens the findings once there are some (the checklist while the scan runs);
+  // steps 3 and 4 open the directions and the plan.
+  const selectStage = (next: ScanStage) => {
+    if (next === "analyse" && blueprint && state.status === "done") goTo("strategy", "overview");
+    else if (next === "strategy" || next === "results") goTo(next, "strategy");
+    else goTo(next);
+  };
 
   const runningStep = state.steps.find((step) => step.status === "running");
   const activity =
@@ -222,6 +251,7 @@ function ScanFlow({
           label: t("Updating your analysis…", "Actualizăm analiza…"),
           detail: runningStep?.label[lang],
           onView: () => goTo("analyse"),
+          onCancel: scan.cancelUpdate,
         }
       : null;
 
@@ -249,6 +279,7 @@ function ScanFlow({
       <OverviewStep
         state={state}
         blueprint={blueprint}
+        demo={origin === "demo"}
         onEdit={scan.edit}
         onContinue={() => goTo("strategy", "strategy")}
       />
@@ -270,7 +301,7 @@ function ScanFlow({
     ? "find"
     : stage !== "find" && !blueprint
       ? "analyse"
-      : stage;
+      : (STAGE_ORDER[shownIndex(position)] ?? stage);
 
   // The backdrop: calm on the search, "analysis" while real steps run (filled as
   // far as they have finished), "result" once the blueprint is ready.
@@ -293,8 +324,8 @@ function ScanFlow({
       stage={shownStage}
       completed={completed}
       reachable={reachable}
-      onStageSelect={(next) => goTo(next, next === "results" ? "strategy" : "overview")}
-      contentKey={`${shownStage}:${shownStage === "strategy" ? view : ""}`}
+      onStageSelect={selectStage}
+      contentKey={`${shownStage}:${stage}:${view}`}
       activity={activity}
     >
       {content}
@@ -302,37 +333,68 @@ function ScanFlow({
   );
 }
 
-/** Stage 01 on /scan: the hero's company search, for starting another scan. */
+/**
+ * Stage 1 on /scan: the hero's company search for starting a scan, then what the scan
+ * gives in three lines and a link to a finished example, so the screen is useful before
+ * anything is typed.
+ */
 function FindStage({ hasScan, onBack }: { hasScan: boolean; onBack?: () => void }) {
   const { t } = useI18n();
+  const outcomes = [
+    {
+      title: t("Website and online presence check", "Analiza site-ului și a prezenței online"),
+      body: t(
+        "Speed, Google search, profiles and what is missing, from public data.",
+        "Viteză, căutare Google, profiluri și ce lipsește, din date publice.",
+      ),
+    },
+    {
+      title: t("Three directions and a 6-month plan", "Trei direcții și planul pe 6 luni"),
+      body: t(
+        "Each with its cost, the hours it frees and the month it pays back.",
+        "Fiecare cu costul, orele câștigate și luna în care se recuperează.",
+      ),
+    },
+    {
+      title: t("The full report, as a PDF", "Raportul complet, în PDF"),
+      body: t(
+        "Every figure with its source, to keep or send to your team.",
+        "Toate cifrele, cu sursele lor, de păstrat sau de trimis echipei.",
+      ),
+    },
+  ];
+
   return (
-    <section aria-labelledby="scan-find-title" className="mx-auto max-w-2xl py-6 text-center">
-      {/* No eyebrow: the stepper above already names the step. */}
+    <section aria-labelledby="scan-find-title" className="max-w-[60rem] pt-2">
       <StepHeader
         id="scan-find-title"
-        title={
-          <>
-            {t("Which business should we ", "Ce afacere ")}
-            <span className="heading-accent">{t("scan", "scanăm")}</span>?
-          </>
-        }
-        description={t(
-          "Search a Romanian company by name or fiscal code (CUI), or enter any website.",
-          "Caută o firmă din România după nume sau cod fiscal (CUI), ori introdu orice site.",
+        title={t("Analyse a business", "Analizează o afacere")}
+        lead={t(
+          "Type the company name, its fiscal code (CUI) or the website address.",
+          "Scrie numele firmei, CUI-ul sau adresa site-ului.",
         )}
-        className="[&>div]:mx-auto"
       />
-      {/* The description above says what the search takes; the line under it names the source. */}
-      <VortexSearch
-        className="mx-auto mt-10 max-w-xl text-left"
-        micro={t("Companies: Trade Register open data", "Firme: date deschise ONRC")}
-      />
-      {hasScan && onBack && (
-        <button type="button" onClick={onBack} className={scanButton("ghost", "md", "mt-8")}>
-          <ArrowLeft aria-hidden />
-          {t("Back to the current scan", "Înapoi la scanarea curentă")}
-        </button>
-      )}
+      {/* The lead above says what the field takes; the search menu names its sources. */}
+      <VortexSearch className="mt-6 w-full max-w-[40rem]" showHint={false} />
+
+      <ul className="mt-12 grid gap-x-8 gap-y-5 border-t border-line-1 pt-6 sm:grid-cols-3">
+        {outcomes.map((item) => (
+          <li key={item.title} className="min-w-0">
+            <h3 className="type-h4 text-fg">{item.title}</h3>
+            <p className="mt-1 text-sm leading-[1.5] text-fg-2">{item.body}</p>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <ButtonLink to="/scan" search={{ demo: "results" }} variant="link">
+          {t("See an example", "Vezi un exemplu")}
+        </ButtonLink>
+        {hasScan && onBack ? (
+          <Button variant="ghost" icon={<ArrowLeft aria-hidden />} onClick={onBack}>
+            {t("Back to the current scan", "Înapoi la scanarea curentă")}
+          </Button>
+        ) : null}
+      </div>
     </section>
   );
 }

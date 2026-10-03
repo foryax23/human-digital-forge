@@ -56,10 +56,12 @@ function FilesPage() {
       .order("created_at", { ascending: false });
     if (err) {
       console.error("[files] load failed", err);
-      setError(t(
-        "We couldn't load your files. Please refresh to try again.",
-        "Nu am putut încărca fișierele tale. Te rugăm să reîmprospătezi pagina.",
-      ));
+      setError(
+        t(
+          "We couldn't load your files. Please refresh to try again.",
+          "Nu am putut încărca fișierele tale. Te rugăm să reîmprospătezi pagina.",
+        ),
+      );
     } else {
       setError(null);
       setFiles((data as FileItem[]) ?? []);
@@ -97,7 +99,12 @@ function FilesPage() {
     const file = event.target.files?.[0];
     if (!file || !user) return;
     if (file.size > MAX_BYTES) {
-      toast.error(t("That file is too large. Please keep uploads under 25 MB.", "Fișierul este prea mare. Te rugăm să păstrezi încărcările sub 25 MB."));
+      toast.error(
+        t(
+          "That file is too large. Please keep uploads under 25 MB.",
+          "Fișierul este prea mare. Te rugăm să păstrezi încărcările sub 25 MB.",
+        ),
+      );
       event.target.value = "";
       return;
     }
@@ -127,7 +134,9 @@ function FilesPage() {
       await loadFiles();
     } catch (err) {
       console.error("[files] upload failed", err);
-      toast.error(t("Upload failed. Please try again.", "Încărcarea a eșuat. Te rugăm să încerci din nou."));
+      toast.error(
+        t("Upload failed. Please try again.", "Încărcarea a eșuat. Te rugăm să încerci din nou."),
+      );
     } finally {
       setUploading(false);
       event.target.value = "";
@@ -136,7 +145,12 @@ function FilesPage() {
 
   async function handleDownload(file: FileItem) {
     if (!file.file_path) {
-      toast.error(t("This file isn't available to download.", "Acest fișier nu este disponibil pentru descărcare."));
+      toast.error(
+        t(
+          "This file isn't available to download.",
+          "Acest fișier nu este disponibil pentru descărcare.",
+        ),
+      );
       return;
     }
     setBusyId(file.id);
@@ -148,7 +162,12 @@ function FilesPage() {
       window.open(data.signedUrl, "_blank", "noopener,noreferrer");
     } catch (err) {
       console.error("[files] download failed", err);
-      toast.error(t("We couldn't open that file. Please try again.", "Nu am putut deschide acel fișier. Te rugăm să încerci din nou."));
+      toast.error(
+        t(
+          "We couldn't open that file. Please try again.",
+          "Nu am putut deschide acel fișier. Te rugăm să încerci din nou.",
+        ),
+      );
     } finally {
       setBusyId(null);
     }
@@ -166,7 +185,12 @@ function FilesPage() {
       setFiles((prev) => prev.filter((f) => f.id !== file.id));
     } catch (err) {
       console.error("[files] delete failed", err);
-      toast.error(t("We couldn't remove that file. Please try again.", "Nu am putut șterge acel fișier. Te rugăm să încerci din nou."));
+      toast.error(
+        t(
+          "We couldn't remove that file. Please try again.",
+          "Nu am putut șterge acel fișier. Te rugăm să încerci din nou.",
+        ),
+      );
     } finally {
       setBusyId(null);
     }
@@ -202,13 +226,13 @@ function FilesPage() {
       )}
 
       {!loading && error && (
-        <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+        <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
           {error}
         </div>
       )}
 
       {!loading && !error && files.length === 0 && (
-        <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+        <div className="mt-8 rounded-xl border border-dashed border-border bg-card p-10 text-center">
           <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
             <FileText className="h-6 w-6" />
           </span>
@@ -231,7 +255,7 @@ function FilesPage() {
           {files.map((file) => (
             <li
               key={file.id}
-              className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5"
+              className="flex items-center gap-4 rounded-xl border border-border bg-card p-5"
             >
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
                 <FileText className="h-5 w-5" />

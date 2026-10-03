@@ -7,7 +7,6 @@ import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -70,13 +69,20 @@ function RegisterPage() {
     });
     setLoading(false);
     if (error) {
-      toast.error(error.message || t("Could not create your account.", "Nu s-a putut crea contul tău."));
+      toast.error(
+        error.message || t("Could not create your account.", "Nu s-a putut crea contul tău."),
+      );
       return;
     }
     if (data.session) {
       navigate({ to: returnTo });
     } else {
-      toast.success(t("Account created. Please check your email to confirm, then log in.", "Cont creat. Verificați emailul pentru confirmare, apoi autentificați-vă."));
+      toast.success(
+        t(
+          "Account created. Please check your email to confirm, then log in.",
+          "Cont creat. Verifică e-mailul pentru confirmare, apoi conectează-te.",
+        ),
+      );
       navigate({ to: "/login", search: next ? { next } : undefined });
     }
   }
@@ -84,11 +90,13 @@ function RegisterPage() {
   return (
     <AuthLayout
       heading={t("Create your client account.", "Creează-ți contul de client.")}
-      intro={t("Submit projects, track progress and securely receive completed work.", "Trimite proiecte, urmărește progresul și primește lucrările finalizate în siguranță.")}
+      intro={t(
+        "Submit projects, track progress and securely receive completed work.",
+        "Trimite proiecte, urmărește progresul și primește lucrările finalizate în siguranță.",
+      )}
       footer={
         <span>
-          {t("Already have an account?", "Ai deja cont?")}
-          {" "}
+          {t("Already have an account?", "Ai deja cont?")}{" "}
           <Link to="/login" className="text-primary underline-offset-4 hover:underline">
             {t("Log in", "Conectează-te")}
           </Link>
@@ -97,7 +105,7 @@ function RegisterPage() {
     >
       <GoogleButton
         label={t("Sign up with Google", "Înregistrare cu Google")}
-        redirect_uri={`${window.location.origin}${returnTo}`}
+        redirectPath={returnTo}
       />
       <AuthDivider />
       <form className="space-y-5" onSubmit={handleSubmit}>
@@ -112,7 +120,7 @@ function RegisterPage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">{t("Email address", "Adresă de email")}</Label>
+          <Label htmlFor="email">{t("Email address", "Adresă de e-mail")}</Label>
           <Input
             id="email"
             type="email"
@@ -139,7 +147,7 @@ function RegisterPage() {
             <Label htmlFor="clientType">{t("Client type", "Tip de client")}</Label>
             <Select value={clientType} onValueChange={setClientType}>
               <SelectTrigger id="clientType">
-                <SelectValue placeholder={t("Select one", "Selectați")} />
+                <SelectValue placeholder={t("Select one", "Alege")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="individual">{t("Individual", "Persoană fizică")}</SelectItem>
@@ -148,7 +156,9 @@ function RegisterPage() {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="company">{t("Company name (optional)", "Nume companie (opțional)")}</Label>
+            <Label htmlFor="company">
+              {t("Company name (optional)", "Nume companie (opțional)")}
+            </Label>
             <Input
               id="company"
               autoComplete="organization"
@@ -157,16 +167,19 @@ function RegisterPage() {
             />
           </div>
         </div>
-        <div className="flex items-start gap-3">
-          <Checkbox id="agree" required className="mt-1" />
-          <Label htmlFor="agree" className="text-sm font-normal leading-relaxed text-muted-foreground">
-            {t("I agree to the", "Sunt de acord cu")}{" "}
-            <Link to="/privacy" className="text-primary underline-offset-4 hover:underline">
-              {t("Privacy Policy", "Politica de Confidențialitate")}
-            </Link>
-            .
-          </Label>
-        </div>
+        {/* Information, not consent: the privacy policy is something we tell, not something
+            to tick (same rule as the PDF form). Creating the account accepts the terms. */}
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {t("By creating an account you accept the", "Prin crearea contului accepți")}{" "}
+          <Link to="/terms" className="text-primary underline-offset-4 hover:underline">
+            {t("Terms and conditions", "Termenii și condițiile")}
+          </Link>
+          {t(". How we use your data: ", ". Cum folosim datele: ")}
+          <Link to="/privacy" className="text-primary underline-offset-4 hover:underline">
+            {t("Privacy policy", "Politica de confidențialitate")}
+          </Link>
+          .
+        </p>
         <Button type="submit" className="w-full" size="lg" disabled={loading}>
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           {t("Create account", "Creează cont")}

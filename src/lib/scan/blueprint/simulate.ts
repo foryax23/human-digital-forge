@@ -1,7 +1,14 @@
 import type { AutomationOpportunity, Blueprint, SimulationInputs } from "@/lib/scan/types";
 
 import { buildHeadline, buildSummary, businessName } from "./copy";
-import { computeProjection, computeTotals, hourlyCostFor, paybackMonths } from "./economics";
+import {
+  computeBreakEven,
+  computeProjection,
+  computeTotals,
+  hourlyCostFor,
+  paybackMonths,
+  withBreakEven,
+} from "./economics";
 import {
   automationPotentialOf,
   computeMoney,
@@ -10,7 +17,7 @@ import {
   readAiAdjust,
   type Adjustments,
 } from "./engine";
-import { mapRange, roundHours, roundRon } from "./format";
+import { mapEstimate, roundHours, roundRon } from "./format";
 import { bi, clamp } from "./model";
 import { buildOffer } from "./offer";
 import { resolveOpportunity } from "./playbooks";
@@ -55,8 +62,8 @@ function scaleUnknown(
   to: SimulationInputs,
 ): AutomationOpportunity {
   const ratio = (to.teamSize / from.teamSize) * (to.volumeFactor / from.volumeFactor);
-  const hours = mapRange(o.hoursSavedPerMonth, (h) => roundHours(h * ratio));
-  const savings = mapRange(hours, (h) => roundRon(h * to.hourlyCostRon));
+  const hours = mapEstimate(o.hoursSavedPerMonth, (h) => roundHours(h * ratio));
+  const savings = mapEstimate(hours, (h) => roundRon(h * to.hourlyCostRon));
   return {
     ...o,
     hoursSavedPerMonth: hours,
@@ -80,19 +87,30 @@ export function simulateBlueprint(blueprint: Blueprint, inputs: SimulationInputs
     const ai = readAiAdjust(o);
     if (ai) adjustments.set(o.id, ai);
   }
-  const computed = new Map(
-    computeMoney({ type, ids: known, inputs: next, hourlyIsIns, adjustments }).opportunities.map(
-      (o) => [o.id, o],
+  const opportunitiesAt = (at: SimulationInputs) => {
+    const computed = new Map(
+      computeMoney({ type, ids: known, inputs: at, hourlyIsIns, adjustments }).opportunities.map(
+        (o) => [o.id, o],
+      ),
+    );
+    return blueprint.opportunities.map((o) => {
+      const fresh = computed.get(o.id);
+      return fresh
+        ? { ...fresh, title: o.title, problem: o.problem, solution: o.solution }
+        : scaleUnknown(o, previous, at);
+    });
+  };
+  const opportunities = opportunitiesAt(next);
+  const projection = computeProjection(opportunities, blueprint.roadmap);
+  const totals = withBreakEven(
+    computeTotals(opportunities),
+    computeBreakEven(projection, (factor) =>
+      computeProjection(
+        opportunitiesAt({ ...next, volumeFactor: next.volumeFactor * factor }),
+        blueprint.roadmap,
+      ),
     ),
   );
-  const opportunities = blueprint.opportunities.map((o) => {
-    const fresh = computed.get(o.id);
-    return fresh
-      ? { ...fresh, title: o.title, problem: o.problem, solution: o.solution }
-      : scaleUnknown(o, previous, next);
-  });
-
-  const totals = computeTotals(opportunities);
   const hasWebsite = hasWebsiteFor(blueprint);
   const strategies = refreshStrategies(
     blueprint.strategies,
@@ -113,13 +131,12 @@ export function simulateBlueprint(blueprint: Blueprint, inputs: SimulationInputs
       automationPotential: automationPotentialOf(totals, next.teamSize),
     },
     headline: refresh(blueprint.headline)
-      ? buildHeadline({ name: businessName(blueprint), type, totals, stepCount })
+      ? buildHeadline({ name: businessName(blueprint), type, opportunities, stepCount })
       : blueprint.headline,
     summary: refresh(blueprint.summary)
       ? buildSummary({
           type,
           opportunities,
-          totals,
           hourlyCostRon: next.hourlyCostRon,
           websiteActions: blueprint.websiteActions,
           audit: blueprint.audit,
@@ -129,8 +146,14 @@ export function simulateBlueprint(blueprint: Blueprint, inputs: SimulationInputs
     opportunities,
     totals,
     strategies,
-    projection: computeProjection(opportunities, blueprint.roadmap),
-    offer: buildOffer({ opportunities, strategies, totals }),
+    projection,
+    offer: buildOffer({
+      opportunities,
+      strategies,
+      totals,
+      newSite: !hasWorkingWebsite(blueprint.audit, hasWebsite),
+      stages: blueprint.roadmap.length,
+    }),
     assumptions: {
       ...blueprint.assumptions,
       hourlyCostRon: next.hourlyCostRon,

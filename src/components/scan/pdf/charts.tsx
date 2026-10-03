@@ -2,770 +2,723 @@ import type { ReactNode } from "react";
 
 import {
   Circle,
+  ClipPath,
   Defs,
-  Ellipse,
   G,
   Line,
-  LinearGradient,
   Path,
   Polygon,
   Polyline,
-  RadialGradient,
   Rect,
-  Stop,
   Svg,
   Text,
   View,
 } from "@react-pdf/renderer";
 
-import type { Lang, ProjectionPoint, Range, Severity } from "@/lib/scan/types";
+import { outOfWindowNote, type DisplayPlan, type Horizon } from "@/lib/scan/blueprint/display";
+import type { Lang } from "@/lib/scan/types";
 
-import { arcBand, breakEvenMonth, f, polar } from "./chart-math";
-import { formatCompact, formatDecimal, midpoint } from "./format";
-import { BRAND, FONT, INK, NIGHT_INK } from "./theme";
+import { f } from "./chart-math";
+import { formatNumber, lei, monthLabel, NBSP, pick, tr } from "./format";
+import { FONT, INK, text } from "./theme";
 
 /*
- * Vector charts for the blueprint PDF. react-pdf fills (not strokes) accept
- * gradients, so arcs are drawn as filled bands rather than stroked paths.
+ * Vector charts for the blueprint PDF, drawn like the scan screens: flat
+ * fills, one accent, labels on the marks instead of legends, no gradients.
  */
 
 const clamp = (value: number, min = 0, max = 100) => Math.min(max, Math.max(min, value));
 
-/* ------------------------------------------------------------------- gauge */
-
-const GAUGE_START = -120;
-const GAUGE_SWEEP = 240;
-
-/** 240° score gauge with a gradient value band, ticks and the score in the middle. */
-export function Gauge({
-  id,
-  value,
-  size = 128,
-}: {
-  id: string;
-  /** null when the score couldn't be measured: an empty dial with a dash. */
-  value: number | null;
-  size?: number;
-}) {
-  const v = value === null ? 0 : clamp(Math.round(value));
-  const cx = size / 2;
-  const cy = size / 2 + size * 0.04;
-  const r = size / 2 - size * 0.11;
-  const thickness = size * 0.09;
-  const end = GAUGE_START + (GAUGE_SWEEP * v) / 100;
-  const [kx, ky] = polar(cx, cy, r, end);
-  const ticks = Array.from({ length: 25 }, (_, i) => i);
-
-  return (
-    <View style={{ width: size, height: size, position: "relative" }}>
-      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <Defs>
-          <LinearGradient id={`${id}-g`} x1="0" y1="1" x2="1" y2="0">
-            <Stop offset="0" stopColor={BRAND.violet} />
-            <Stop offset="0.55" stopColor={BRAND.blue} />
-            <Stop offset="1" stopColor={BRAND.sky} />
-          </LinearGradient>
-        </Defs>
-        {ticks.map((i) => {
-          const deg = GAUGE_START + (GAUGE_SWEEP * i) / 24;
-          const major = i % 6 === 0;
-          const [x1, y1] = polar(cx, cy, r + thickness / 2 + size * 0.025, deg);
-          const [x2, y2] = polar(cx, cy, r + thickness / 2 + size * (major ? 0.065 : 0.045), deg);
-          const lit = (i / 24) * 100 <= v;
-          return (
-            <Line
-              key={i}
-              x1={f(x1)}
-              y1={f(y1)}
-              x2={f(x2)}
-              y2={f(y2)}
-              stroke={lit ? BRAND.violet : INK.hairline}
-              strokeOpacity={lit ? (major ? 0.9 : 0.45) : 1}
-              strokeWidth={major ? 1 : 0.6}
-              strokeLinecap="round"
-            />
-          );
-        })}
-        <Path
-          d={arcBand(cx, cy, r, thickness, GAUGE_START, GAUGE_START + GAUGE_SWEEP)}
-          fill={INK.track}
-        />
-        <Circle
-          cx={cx}
-          cy={cy}
-          r={r - thickness / 2 - size * 0.055}
-          stroke={INK.hairline}
-          strokeWidth={0.6}
-          strokeDasharray="1 2.4"
-          fill="none"
-        />
-        {v > 0 ? (
-          <Path d={arcBand(cx, cy, r, thickness, GAUGE_START, end)} fill={`url(#${id}-g)`} />
-        ) : null}
-        {value !== null ? (
-          <Circle
-            cx={f(kx)}
-            cy={f(ky)}
-            r={thickness * 0.72}
-            fill={INK.white}
-            stroke={BRAND.violet}
-            strokeWidth={1.4}
-          />
-        ) : null}
-      </Svg>
-      <View
-        style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          top: cy - size * 0.17,
-          alignItems: "center",
-        }}
-      >
-        <Text
-          style={{
-            fontFamily: FONT.display,
-            fontWeight: 700,
-            fontSize: size * 0.25,
-            color: value === null ? INK.faint : INK.strong,
-            lineHeight: 1,
-          }}
-        >
-          {value === null ? "–" : v}
-        </Text>
-        <Text
-          style={{
-            fontFamily: FONT.display,
-            fontWeight: 500,
-            fontSize: Math.max(5.2, size * 0.058),
-            color: INK.faint,
-            marginTop: size * 0.02,
-            letterSpacing: 0.8,
-          }}
-        >
-          / 100
-        </Text>
-      </View>
-    </View>
-  );
-}
-
 /* ------------------------------------------------------------------- bars */
 
-/** Horizontal 0–100 bar with a gradient fill on a soft track. */
+/** Horizontal 0–100 bar: a flat fill on a light track. */
 export function ScoreBar({
-  id,
   value,
   width,
-  height = 6,
-  track = INK.track,
+  height = 4,
+  color = INK.body,
 }: {
-  id: string;
   value: number | undefined;
   width: number;
   height?: number;
-  track?: string;
+  color?: string;
 }) {
   const v = value === undefined ? 0 : clamp(value);
-  const w = Math.max(height, (width * v) / 100);
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      <Defs>
-        <LinearGradient id={`${id}-b`} x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor={BRAND.violet} />
-          <Stop offset="1" stopColor={BRAND.sky} />
-        </LinearGradient>
-      </Defs>
-      <Rect x={0} y={0} width={width} height={height} rx={height / 2} fill={track} />
+      <Rect x={0} y={0} width={width} height={height} rx={1} fill={INK.track} />
       {value !== undefined && v > 0 ? (
-        <Rect x={0} y={0} width={w} height={height} rx={height / 2} fill={`url(#${id}-b)`} />
+        <Rect
+          x={0}
+          y={0}
+          width={f(Math.max(height, (width * v) / 100))}
+          height={height}
+          rx={1}
+          fill={color}
+        />
       ) : null}
     </Svg>
   );
 }
 
-/** Low–high range on a shared scale: a soft band with solid end caps. */
-export function RangeBar({
-  range,
-  max,
+/* ------------------------------------------------------------------ gantt */
+
+export type GanttRow = {
+  key: string;
+  /** The stage name, exactly as in the phase rows, the strategy cards and the screens. */
+  name: string;
+  /** Plan months the bar covers, inclusive. */
+  months: [number, number];
+  /** The starting stage: violet bar. */
+  start?: boolean;
+  /** A diamond at the end of the bar ("site online"). */
+  milestone?: boolean;
+  /** null: the stage brings enquiries, not hours (the cell shows "–"). */
+  hours: number | null;
+  /** One-off cost in lei. */
+  cost: number;
+};
+
+export type GanttTotal = { hours: number; cost: number; note?: string };
+
+const GANTT = { month: 34, hours: 46, cost: 62, row: 20 } as const;
+
+/**
+ * The plan as a month-by-month calendar table (spec §2.13): one row per stage
+ * with its bar, hours a month and one-off cost, then the Total row. Figures
+ * arrive rounded from displayPlan(), so rows add up to the total.
+ */
+export function Gantt({
+  rows,
+  months,
+  total,
   width,
-  color = BRAND.violet,
+  lang,
 }: {
-  range: Range;
-  max: number;
+  rows: GanttRow[];
+  months: number;
+  total?: GanttTotal;
   width: number;
-  color?: string;
+  lang: Lang;
 }) {
-  const height = 8;
-  const x1 = max > 0 ? (width * Math.max(0, range.low)) / max : 0;
-  const x2 = max > 0 ? Math.max(x1 + 3, (width * Math.max(0, range.high)) / max) : 3;
-  return (
-    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      <Rect x={0} y={3} width={width} height={2} rx={1} fill={INK.track} />
-      <Rect x={f(x1)} y={1} width={f(x2 - x1)} height={6} rx={3} fill={color} fillOpacity={0.28} />
-      <Circle cx={f(x1 + 3)} cy={4} r={3} fill={color} />
-      <Circle cx={f(x2 - 3)} cy={4} r={3} fill={color} />
-    </Svg>
-  );
-}
-
-/* ------------------------------------------------------------------ donut */
-
-export type DonutSlice = { value: number; color: string };
-
-/** Donut with 2-pt surface gaps between slices; content goes in the hole. */
-export function Donut({
-  slices,
-  size = 140,
-  thickness = 18,
-  children,
-}: {
-  slices: DonutSlice[];
-  size?: number;
-  thickness?: number;
-  children?: ReactNode;
-}) {
-  const total = slices.reduce((sum, slice) => sum + Math.max(0, slice.value), 0);
-  const cx = size / 2;
-  const cy = size / 2;
-  const r = size / 2 - thickness / 2 - 1;
-  const gapDeg = slices.length > 1 ? (2 / (2 * Math.PI * r)) * 360 : 0;
-  let angle = 0;
+  const t = tr(lang);
+  const track = months * GANTT.month;
+  const nameW = width - track - GANTT.hours - GANTT.cost;
+  const hoursCell = (hours: number | null) =>
+    hours === null ? "–" : hours === 0 ? "< 5" : `≈${NBSP}${formatNumber(hours, lang)}`;
+  const head = { ...text.label, fontSize: 6.8 };
+  const hasStart = rows.some((r) => r.start);
+  const hasMilestone = rows.some((r) => r.milestone);
 
   return (
-    <View style={{ width: size, height: size, position: "relative" }}>
-      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-        <Circle cx={cx} cy={cy} r={r} stroke={INK.track} strokeWidth={thickness} fill="none" />
-        {total > 0
-          ? slices.map((slice, index) => {
-              const sweep = (Math.max(0, slice.value) / total) * 360;
-              const start = angle + gapDeg / 2;
-              const end = angle + sweep - gapDeg / 2;
-              angle += sweep;
-              if (end - start <= 0.2) return null;
-              return (
-                <Path
-                  key={index}
-                  d={arcBand(cx, cy, r, thickness, start, end, false)}
-                  fill={slice.color}
-                />
-              );
-            })
-          : null}
-        <Circle
-          cx={cx}
-          cy={cy}
-          r={r - thickness / 2 - 5}
-          stroke={INK.hairline}
-          strokeWidth={0.6}
-          strokeDasharray="1 2.4"
-          fill="none"
-        />
-      </Svg>
+    <View wrap={false}>
       <View
         style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-          alignItems: "center",
-          justifyContent: "center",
+          flexDirection: "row",
+          alignItems: "flex-end",
+          paddingBottom: 4,
+          borderBottomWidth: 0.75,
+          borderBottomColor: INK.rule,
         }}
       >
-        {children}
+        <Text style={{ ...head, width: nameW }}>{t("Stage", "Etapă")}</Text>
+        {Array.from({ length: months }, (_, i) => (
+          <Text key={i} style={{ ...head, width: GANTT.month, paddingLeft: 3 }}>
+            {i === 0 ? t("Month 1", "Luna 1") : String(i + 1)}
+          </Text>
+        ))}
+        <Text style={{ ...head, width: GANTT.hours, textAlign: "right" }}>
+          {t("Hours / month", "Ore / lună")}
+        </Text>
+        <Text style={{ ...head, width: GANTT.cost, textAlign: "right" }}>
+          {t("One-off, RON", "Cost unic, lei")}
+        </Text>
+      </View>
+
+      {rows.map((row, index) => (
+        <View
+          key={row.key}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            minHeight: GANTT.row,
+            borderBottomWidth: 0.5,
+            borderBottomColor: INK.hairline,
+          }}
+        >
+          <View style={{ width: nameW, flexDirection: "row", paddingVertical: 4, paddingRight: 8 }}>
+            <Text style={{ fontFamily: FONT.display, fontSize: 7.6, color: INK.muted, width: 10 }}>
+              {index + 1}
+            </Text>
+            <Text style={{ fontFamily: FONT.body, fontSize: 7.8, color: INK.strong, flex: 1 }}>
+              {row.name}
+            </Text>
+          </View>
+          <GanttBars row={row} months={months} />
+          <Text style={{ ...text.num, width: GANTT.hours, textAlign: "right" }}>
+            {hoursCell(row.hours)}
+          </Text>
+          <Text style={{ ...text.num, width: GANTT.cost, textAlign: "right" }}>
+            {row.cost > 0 ? formatNumber(row.cost, lang) : "–"}
+          </Text>
+        </View>
+      ))}
+
+      {total ? (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            minHeight: GANTT.row,
+            borderTopWidth: 0.75,
+            borderTopColor: INK.rule,
+            marginTop: -0.5,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: FONT.body,
+              fontWeight: 500,
+              fontSize: 7.8,
+              color: INK.strong,
+              width: nameW,
+            }}
+          >
+            {t("Total", "Total")}
+          </Text>
+          <Text style={{ ...text.small, width: track, paddingLeft: 3, paddingVertical: 4 }}>
+            {total.note ?? ""}
+          </Text>
+          <Text style={{ ...text.num, fontWeight: 700, width: GANTT.hours, textAlign: "right" }}>
+            {hoursCell(total.hours)}
+          </Text>
+          <Text style={{ ...text.num, fontWeight: 700, width: GANTT.cost, textAlign: "right" }}>
+            {formatNumber(total.cost, lang)}
+          </Text>
+        </View>
+      ) : null}
+
+      <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 6 }}>
+        {hasStart ? (
+          <LegendItem label={t("we start here", "începem aici")}>
+            <View
+              style={{ width: 11, height: 5, borderRadius: 1.2, backgroundColor: INK.violet }}
+            />
+          </LegendItem>
+        ) : null}
+        <LegendItem label={t("build", "implementare")}>
+          <View style={{ width: 11, height: 5, borderRadius: 1.2, backgroundColor: INK.bar }} />
+        </LegendItem>
+        <LegendItem label={t("running", "în funcțiune")}>
+          <View
+            style={{
+              width: 11,
+              height: 0,
+              borderTopWidth: 0.7,
+              borderTopColor: INK.muted,
+              borderStyle: "dashed",
+            }}
+          />
+        </LegendItem>
+        {hasMilestone ? (
+          <LegendItem label={t("website live", "site online")}>
+            <Svg width={6} height={6} viewBox="0 0 6 6">
+              <Polygon points="3,0 6,3 3,6 0,3" fill={INK.strong} />
+            </Svg>
+          </LegendItem>
+        ) : null}
       </View>
     </View>
   );
 }
 
-/* ------------------------------------------------------------- projection */
-
-function niceMax(value: number): { max: number; step: number } {
-  if (value <= 0) return { max: 1000, step: 250 };
-  const rough = value / 4;
-  const magnitude = 10 ** Math.floor(Math.log10(rough));
-  const step =
-    [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((s) => s >= rough) ?? 10 * magnitude;
-  return { max: Math.ceil(value / step) * step, step };
+function LegendItem({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", marginRight: 12 }}>
+      {children}
+      <Text style={{ ...text.tiny, marginLeft: 4 }}>{label}</Text>
+    </View>
+  );
 }
 
+/** One row's track: month gridlines, the bar, the dashed "running" line, the milestone. */
+function GanttBars({ row, months }: { row: GanttRow; months: number }) {
+  const w = months * GANTT.month;
+  const h = GANTT.row;
+  const mid = h / 2;
+  const [from, to] = row.months;
+  const x0 = (Math.max(1, from) - 1) * GANTT.month + 1.5;
+  const x1 = Math.min(months, to) * GANTT.month - 1.5;
+  return (
+    <Svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+      {Array.from({ length: months - 1 }, (_, i) => (
+        <Line
+          key={i}
+          x1={(i + 1) * GANTT.month}
+          x2={(i + 1) * GANTT.month}
+          y1={0}
+          y2={h}
+          stroke={INK.track}
+          strokeWidth={0.6}
+        />
+      ))}
+      {to < months ? (
+        <Line
+          x1={f(x1 + 1.5)}
+          x2={w}
+          y1={mid}
+          y2={mid}
+          stroke={INK.muted}
+          strokeWidth={0.6}
+          strokeDasharray="1.6 1.6"
+        />
+      ) : null}
+      <Rect
+        x={f(x0)}
+        y={mid - 3}
+        width={f(Math.max(2, x1 - x0))}
+        height={6}
+        rx={1.2}
+        fill={row.start ? INK.violet : INK.bar}
+      />
+      {row.milestone ? (
+        <Polygon
+          points={`${f(x1)},${mid - 3.4} ${f(x1 + 3.4)},${mid} ${f(x1)},${mid + 3.4} ${f(x1 - 3.4)},${mid}`}
+          fill={INK.strong}
+        />
+      ) : null}
+    </Svg>
+  );
+}
+
+/* ----------------------------------------------------------------- impact */
+
+type Point = { x: number; value: number; cost: number };
+type Run = { kind: "gap" | "net"; points: Point[] };
+
+/** Axis top and a step of 1 / 2 / 5 × 10ⁿ lei (never under 1.000), as on the screen. */
+function axis(max: number) {
+  const target = Math.max(max * 1.04, 1000);
+  const raw = target / 4;
+  const power = 10 ** Math.floor(Math.log10(raw));
+  const n = raw / power;
+  const step = Math.max(1000, (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * power);
+  const top = Math.ceil(target / step) * step;
+  return { top, ticks: Array.from({ length: Math.round(top / step) + 1 }, (_, i) => i * step) };
+}
+
+/** 6 → 1…6; 12 → 1, 3, 6, 9, 12; 24 → 1, 6, 12, 18, 24. */
+function monthTicks(horizon: number) {
+  if (horizon <= 6) return Array.from({ length: horizon }, (_, i) => i + 1);
+  const step = horizon <= 12 ? 3 : 6;
+  const ticks = [1];
+  for (let m = step; m <= horizon; m += step) ticks.push(m);
+  return ticks;
+}
+
+/** The points with the crossings put in, split into runs where cost is above (gap) or below (net). */
+function runsOf(points: Point[]): Run[] {
+  const dense: Point[] = [];
+  points.forEach((p, i) => {
+    dense.push(p);
+    const next = points[i + 1];
+    if (!next) return;
+    const d0 = p.cost - p.value;
+    const d1 = next.cost - next.value;
+    if (d0 * d1 < 0) {
+      const k = d0 / (d0 - d1);
+      const level = p.value + k * (next.value - p.value);
+      dense.push({ x: p.x + k * (next.x - p.x), value: level, cost: level });
+    }
+  });
+  const runs: Run[] = [];
+  let current: Point[] = [];
+  let sign = 0;
+  for (const p of dense) {
+    const s = Math.sign(p.cost - p.value);
+    if (s === 0) {
+      if (sign !== 0) runs.push({ kind: sign > 0 ? "gap" : "net", points: [...current, p] });
+      current = [p];
+      sign = 0;
+    } else if (sign === 0 || s === sign) {
+      current.push(p);
+      sign = s;
+    }
+  }
+  if (sign !== 0 && current.length > 1)
+    runs.push({ kind: sign > 0 ? "gap" : "net", points: current });
+  return runs.filter((run) => run.points.length > 1);
+}
+
+/** Linear read of a series between points. */
+function at(points: Point[], x: number, key: "value" | "cost") {
+  const i = points.findIndex((p) => p.x >= x);
+  if (i <= 0) return points[Math.max(i, 0)][key];
+  const a = points[i - 1];
+  const b = points[i];
+  const k = (x - a.x) / (b.x - a.x || 1);
+  return a[key] + k * (b[key] - a[key]);
+}
+
+/** 7 pt DM Sans averages about 3.6 pt a character. */
+const textW = (value: string) => value.length * 3.6 + 4;
+
 /**
- * Cumulative savings band vs cumulative cost band over the first months of
- * `points`, with the mid-estimate break-even marked.
+ * The impact chart (spec §6): cumulative value of the hours won back against
+ * cumulative cost, from displayPlan().series, so every point equals the KPI
+ * strip and the table. The lines carry their names; the gap before the
+ * crossing is hatched ("Încă nerecuperat": react-pdf has no <pattern>, so
+ * diagonal lines are clipped to the gap); the gain after it is tinted ("Câștig
+ * net"); a dashed line marks the break-even. Each area label is left out when
+ * the band is too thin to hold it.
  */
-export function ProjectionChart({
-  id,
-  points,
+export function ImpactChart({
+  plan,
+  horizon,
   width,
   height,
   lang,
-  monthLabel,
-  breakEvenLabel,
-  laterLabel,
 }: {
-  id: string;
-  points: ProjectionPoint[];
+  plan: DisplayPlan;
+  horizon: Horizon;
   width: number;
   height: number;
   lang: Lang;
-  monthLabel: string;
-  breakEvenLabel: (month: string) => string;
-  /** Shown instead of the marker when the mid estimate doesn't break even in the window. */
-  laterLabel?: string;
 }) {
-  const data = [...points].sort((a, b) => a.month - b.month).slice(0, 12);
-  if (data.length < 2) return null;
+  const t = tr(lang);
+  const series = plan.series.filter((p) => p.month >= 1 && p.month <= horizon);
+  if (series.length < 2) return null;
 
-  const padL = 34;
-  const padR = 10;
-  const padT = 10;
-  const padB = 22;
-  const plotW = width - padL - padR;
-  const plotH = height - padT - padB;
-  const first = data[0].month;
-  const last = data[data.length - 1].month;
-  const peak = Math.max(
-    ...data.map((p) => Math.max(p.cumulativeSavingsRon.high, p.cumulativeCostRon.high)),
-  );
-  const { max, step } = niceMax(peak);
-  const x = (month: number) => padL + ((month - first) / Math.max(1, last - first)) * plotW;
-  const y = (value: number) => padT + plotH - (Math.max(0, value) / max) * plotH;
-  const pts = (pick: (p: ProjectionPoint) => number) =>
-    data.map((p) => `${f(x(p.month))},${f(y(pick(p)))}`).join(" ");
-  const band = (pick: (p: ProjectionPoint) => Range) =>
-    [
-      ...data.map((p) => `${f(x(p.month))},${f(y(pick(p).high))}`),
-      ...[...data].reverse().map((p) => `${f(x(p.month))},${f(y(pick(p).low))}`),
-    ].join(" ");
+  const m = { top: 18, right: 72, bottom: 20, left: 26 };
+  const innerW = width - m.left - m.right;
+  const innerH = height - m.top - m.bottom;
+  const last = series[series.length - 1].month;
+  const { top, ticks } = axis(Math.max(...series.map((p) => Math.max(p.value, p.cost))));
+  const x = (month: number) => m.left + ((month - 1) / Math.max(last - 1, 1)) * innerW;
+  const y = (amount: number) => m.top + innerH - (amount / top) * innerH;
 
-  const ticks: number[] = [];
-  for (let v = 0; v <= max + 0.5; v += step) ticks.push(v);
+  const points: Point[] = series.map((p) => ({ x: p.month, value: p.value, cost: p.cost }));
+  const line = (key: "value" | "cost") =>
+    points.map((p) => `${f(x(p.x))},${f(y(p[key]))}`).join(" ");
+  const runs = runsOf(points);
+  const outline = (run: Run) => {
+    const upper: "value" | "cost" = run.kind === "gap" ? "cost" : "value";
+    const lower: "value" | "cost" = run.kind === "gap" ? "value" : "cost";
+    const forward = run.points.map((p) => `${f(x(p.x))},${f(y(p[upper]))}`);
+    const back = [...run.points].reverse().map((p) => `${f(x(p.x))},${f(y(p[lower]))}`);
+    return `M${[...forward, ...back].join(" L")} Z`;
+  };
 
-  const breakEven = breakEvenMonth(
-    data,
-    (p) => midpoint(p.cumulativeSavingsRon),
-    (p) => midpoint(p.cumulativeCostRon),
-  );
-  const earliest = breakEvenMonth(
-    data,
-    (p) => p.cumulativeSavingsRon.high,
-    (p) => p.cumulativeCostRon.low,
-  );
-  const latest = breakEvenMonth(
-    data,
-    (p) => p.cumulativeSavingsRon.low,
-    (p) => p.cumulativeCostRon.high,
-  );
-  const beX = breakEven !== null ? x(breakEven) : null;
-  const beY =
-    breakEven !== null
-      ? y(
-          (() => {
-            const i = data.findIndex((p) => p.month >= breakEven);
-            const a = data[Math.max(0, i - 1)];
-            const b = data[Math.max(0, i)];
-            const t = b.month === a.month ? 0 : (breakEven - a.month) / (b.month - a.month);
-            const ma = midpoint(a.cumulativeCostRon);
-            const mb = midpoint(b.cumulativeCostRon);
-            return ma + (mb - ma) * t;
-          })(),
-        )
+  /* Area labels: drawn only where the band holds the whole label box. */
+  const monthAt = (px: number) => 1 + ((px - m.left) / innerW) * Math.max(last - 1, 1);
+  const half = 4.5;
+  const fit = (run: Run, centre: number, labelW: number, rows = 1) => {
+    const from = x(run.points[0].x);
+    const to = x(run.points[run.points.length - 1].x);
+    if (centre - labelW / 2 < from + 2 || centre + labelW / 2 > to - 2) return null;
+    const h = half * rows;
+    let lo = -Infinity;
+    let hi = Infinity;
+    for (const k of [-0.5, -0.25, 0, 0.25, 0.5]) {
+      const mk = monthAt(centre + k * labelW);
+      const a = y(at(run.points, mk, "cost"));
+      const b = y(at(run.points, mk, "value"));
+      lo = Math.max(lo, Math.min(a, b) + h + 1.5);
+      hi = Math.min(hi, Math.max(a, b) - h - 1.5);
+    }
+    return hi >= lo ? { y: (lo + hi) / 2, room: (hi - lo) / 2 } : null;
+  };
+  const place = (run: Run, labelW: number, prefer: "room" | "end", rows = 1) => {
+    const from = x(run.points[0].x);
+    const to = x(run.points[run.points.length - 1].x);
+    let best: { x: number; y: number; room: number } | null = null;
+    for (let i = 0; i <= 24; i++) {
+      const centre = from + labelW / 2 + ((to - from - labelW) * i) / 24;
+      const hit = fit(run, centre, labelW, rows);
+      if (!hit) continue;
+      if (!best || (prefer === "end" ? centre >= best.x : hit.room >= best.room)) {
+        best = { x: centre, y: hit.y, room: hit.room };
+      }
+    }
+    return best;
+  };
+
+  const gapLabel = (() => {
+    const label = t("Not yet recovered", "Încă nerecuperat");
+    const run = runs
+      .filter((r) => r.kind === "gap")
+      .sort((p, q) => q.points.length - p.points.length)[0];
+    const spot = run ? place(run, textW(label), "room") : null;
+    return spot ? { ...spot, label, w: textW(label) } : null;
+  })();
+
+  const end = series[series.length - 1];
+  // One line where the gain is wide enough, else two ("Câștig net" / "≈ 19.000 lei").
+  const netLabel = (() => {
+    const run = runs.find((r) => r.kind === "net" && r.points[r.points.length - 1].x === last);
+    if (!run || end.net <= 0) return null;
+    const lines = [t("Net gain", "Câștig net"), `≈${NBSP}${pick(lei(end.net), lang)}`];
+    const one = place(run, textW(lines.join(" ")), "end");
+    if (one) return { ...one, lines: [lines.join(" ")], w: textW(lines.join(" ")) };
+    const w = Math.max(...lines.map(textW));
+    const two = place(run, w, "end", 2);
+    return two ? { ...two, lines, w } : null;
+  })();
+
+  /* End labels, nudged apart when they would touch. */
+  let valueY = y(end.value);
+  let costY = y(end.cost);
+  if (Math.abs(valueY - costY) < 11) {
+    const midY = (valueY + costY) / 2;
+    const up = valueY <= costY;
+    valueY = midY + (up ? -5.5 : 5.5);
+    costY = midY + (up ? 5.5 : -5.5);
+  }
+
+  /* Break-even inside the window, or a plain note when it falls after it. */
+  const n = plan.breakEven.month;
+  const crossing =
+    n !== null && n <= last && plan.breakEven.x !== null
+      ? Math.min(Math.max(plan.breakEven.x, 1), last)
       : null;
+  // After the window: a plain note. Never within 24 months: the page title already says so.
+  const note = n !== null ? outOfWindowNote(plan, horizon) : null;
 
-  const labelText = { fontFamily: FONT.body, fontSize: 6.5, color: INK.faint } as const;
-  const markerLabelW = 156;
+  const firstTick = (tick: number) =>
+    tick === 1 ? pick(monthLabel(1), lang) : formatNumber(tick, lang);
+  const firstW = textW(firstTick(1));
+  const xTicks = monthTicks(last).filter((tick) => tick === 1 || x(tick) - 6 > x(1) + firstW);
+  const tick = { fontFamily: FONT.display, fontSize: 6.4, color: INK.muted } as const;
+  const small = { fontFamily: FONT.body, fontSize: 7 } as const;
 
   return (
     <View style={{ width, height, position: "relative" }}>
       <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
         <Defs>
-          <LinearGradient id={`${id}-s`} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={BRAND.violet} stopOpacity={0.42} />
-            <Stop offset="1" stopColor={BRAND.sky} stopOpacity={0.12} />
-          </LinearGradient>
+          {runs.map((run, i) =>
+            run.kind === "gap" ? (
+              <ClipPath key={i} id={`gap-${i}`}>
+                <Path d={outline(run)} />
+              </ClipPath>
+            ) : null,
+          )}
         </Defs>
-        {ticks.map((v) => (
+        {ticks.map((value) => (
           <Line
-            key={v}
-            x1={padL}
-            x2={padL + plotW}
-            y1={f(y(v))}
-            y2={f(y(v))}
-            stroke={INK.hairline}
-            strokeWidth={v === 0 ? 0.9 : 0.5}
+            key={value}
+            x1={m.left}
+            x2={m.left + innerW}
+            y1={f(y(value))}
+            y2={f(y(value))}
+            stroke={value === 0 ? INK.line : INK.hairline}
+            strokeWidth={0.5}
           />
         ))}
-        {earliest !== null ? (
-          <Rect
-            x={f(x(earliest))}
-            y={padT}
-            width={f(Math.max(1, (latest !== null ? x(latest) : padL + plotW) - x(earliest)))}
-            height={plotH}
-            fill={BRAND.mint}
-            fillOpacity={0.1}
-          />
-        ) : null}
-        <Polygon points={band((p) => p.cumulativeCostRon)} fill={INK.muted} fillOpacity={0.1} />
-        <Polygon points={band((p) => p.cumulativeSavingsRon)} fill={`url(#${id}-s)`} />
+        {runs.map((run, i) => {
+          if (run.kind === "net") {
+            return <Path key={i} d={outline(run)} fill={INK.violet} fillOpacity={0.1} />;
+          }
+          // Hatch: 45° lines 4 pt apart over the gap's box, clipped to the gap.
+          const xs = run.points.map((p) => x(p.x));
+          const ys = run.points.flatMap((p) => [y(p.value), y(p.cost)]);
+          const x0 = Math.min(...xs);
+          const x1 = Math.max(...xs);
+          const y0 = Math.min(...ys);
+          const y1 = Math.max(...ys);
+          const span = y1 - y0;
+          const hatch: number[] = [];
+          for (let s = x0 - span; s <= x1; s += 4) hatch.push(s);
+          return (
+            <G key={i} clipPath={`url(#gap-${i})`}>
+              {hatch.map((s) => (
+                <Line
+                  key={s}
+                  x1={f(s)}
+                  y1={f(y1)}
+                  x2={f(s + span)}
+                  y2={f(y0)}
+                  stroke={INK.strong}
+                  strokeOpacity={0.22}
+                  strokeWidth={0.5}
+                />
+              ))}
+            </G>
+          );
+        })}
         <Polyline
-          points={pts((p) => midpoint(p.cumulativeCostRon))}
-          stroke={INK.muted}
-          strokeWidth={1.4}
-          strokeDasharray="3 2.5"
-          fill="none"
-        />
-        <Polyline
-          points={pts((p) => midpoint(p.cumulativeSavingsRon))}
-          stroke={BRAND.violet}
-          strokeWidth={2}
+          points={line("cost")}
+          stroke={INK.strong}
+          strokeOpacity={0.45}
+          strokeWidth={1.1}
           strokeLinejoin="round"
-          strokeLinecap="round"
           fill="none"
         />
-        {beX !== null && beY !== null ? (
+        <Polyline
+          points={line("value")}
+          stroke={INK.violet}
+          strokeWidth={1.6}
+          strokeLinejoin="round"
+          fill="none"
+        />
+        {crossing !== null ? (
           <G>
             <Line
-              x1={f(beX)}
-              x2={f(beX)}
-              y1={padT}
-              y2={padT + plotH}
-              stroke={INK.mintText}
-              strokeWidth={0.9}
+              x1={f(x(crossing))}
+              x2={f(x(crossing))}
+              y1={m.top}
+              y2={m.top + innerH}
+              stroke={INK.muted}
+              strokeWidth={0.6}
               strokeDasharray="2 2"
             />
             <Circle
-              cx={f(beX)}
-              cy={f(beY)}
-              r={5.5}
+              cx={f(x(crossing))}
+              cy={f(y(at(points, crossing, "value")))}
+              r={2.4}
               fill={INK.white}
-              stroke={INK.mintText}
-              strokeWidth={1.4}
+              stroke={INK.strong}
+              strokeWidth={1}
             />
-            <Circle cx={f(beX)} cy={f(beY)} r={2.2} fill={INK.mintText} />
           </G>
         ) : null}
       </Svg>
-      {ticks.map((v) => (
+
+      {ticks.map((value) => (
         <Text
-          key={v}
+          key={value}
           style={{
-            ...labelText,
+            ...tick,
             position: "absolute",
             left: 0,
-            width: padL - 6,
+            width: m.left - 5,
             textAlign: "right",
-            top: y(v) - 4,
+            top: y(value) - 3.6,
           }}
         >
-          {formatCompact(v, lang)}
-        </Text>
-      ))}
-      {data.map((p) => (
-        <Text
-          key={p.month}
-          style={{
-            ...labelText,
-            position: "absolute",
-            top: padT + plotH + 6,
-            left: x(p.month) - 10,
-            width: 20,
-            textAlign: "center",
-          }}
-        >
-          {p.month}
+          {formatNumber(value / 1000, lang)}
         </Text>
       ))}
       <Text
         style={{
-          ...labelText,
+          ...tick,
+          fontFamily: FONT.body,
           position: "absolute",
-          right: padR,
-          top: padT + plotH + 14,
-          textAlign: "right",
+          left: m.left + 3,
+          top: m.top + 1,
         }}
       >
-        {monthLabel}
+        {t("thousand RON", "mii lei")}
       </Text>
-      {beX !== null ? (
-        <View
+      {xTicks.map((value) => (
+        <Text
+          key={value}
           style={{
+            ...tick,
             position: "absolute",
-            top: padT + 4,
-            left: Math.min(Math.max(padL + 4, beX + 6), padL + plotW - markerLabelW),
-            width: markerLabelW,
-            paddingVertical: 3,
-            paddingHorizontal: 6,
-            borderRadius: 6,
-            backgroundColor: INK.white,
-            borderWidth: 0.7,
-            borderColor: INK.mintText,
+            top: m.top + innerH + 6,
+            left: value === 1 ? x(1) : x(value) - 10,
+            width: value === 1 ? firstW + 4 : 20,
+            textAlign: value === 1 ? "left" : "center",
           }}
         >
-          <Text
-            style={{ fontFamily: FONT.display, fontWeight: 500, fontSize: 7, color: INK.mintText }}
-          >
-            {breakEvenLabel(formatDecimal(breakEven ?? 0, lang))}
-          </Text>
-        </View>
-      ) : laterLabel ? (
-        <View
+          {firstTick(value)}
+        </Text>
+      ))}
+      <Text
+        style={{
+          ...tick,
+          fontFamily: FONT.body,
+          position: "absolute",
+          top: m.top + innerH + 6,
+          left: x(last) + 12,
+        }}
+      >
+        {t("month", "luna")}
+      </Text>
+
+      <Text
+        style={{
+          ...small,
+          color: INK.violet,
+          position: "absolute",
+          left: x(last) + 6,
+          top: valueY - 4.2,
+        }}
+      >
+        {t("Value of the hours", "Valoarea orelor")}
+      </Text>
+      <Text
+        style={{
+          ...small,
+          color: INK.muted,
+          position: "absolute",
+          left: x(last) + 6,
+          top: costY - 4.2,
+        }}
+      >
+        {t("Cost", "Cost")}
+      </Text>
+
+      {gapLabel ? (
+        <Text
           style={{
+            ...small,
+            color: INK.body,
             position: "absolute",
-            top: padT + 4,
-            left: padL + 4,
-            paddingVertical: 3,
-            paddingHorizontal: 6,
-            borderRadius: 6,
-            backgroundColor: INK.white,
-            borderWidth: 0.7,
-            borderColor: INK.hairline,
+            left: gapLabel.x - gapLabel.w / 2,
+            width: gapLabel.w,
+            textAlign: "center",
+            top: gapLabel.y - half,
           }}
         >
-          <Text
-            style={{ fontFamily: FONT.display, fontWeight: 500, fontSize: 7, color: INK.muted }}
-          >
-            {laterLabel}
-          </Text>
-        </View>
+          {gapLabel.label}
+        </Text>
+      ) : null}
+      {netLabel ? (
+        <Text
+          style={{
+            ...small,
+            lineHeight: 1.25,
+            color: INK.violet,
+            position: "absolute",
+            left: netLabel.x - netLabel.w / 2,
+            width: netLabel.w,
+            textAlign: "center",
+            top: netLabel.y - half * netLabel.lines.length,
+          }}
+        >
+          {netLabel.lines.join("\n")}
+        </Text>
+      ) : null}
+      {crossing !== null && n !== null ? (
+        <Text
+          style={{
+            ...small,
+            color: INK.strong,
+            position: "absolute",
+            top: m.top - 11,
+            left: x(crossing) - 30,
+            width: 60,
+            textAlign: "center",
+          }}
+        >
+          {pick(monthLabel(n), lang)}
+        </Text>
+      ) : note ? (
+        <Text
+          style={{
+            ...small,
+            color: INK.muted,
+            position: "absolute",
+            top: m.top + 2,
+            right: m.right + 4,
+            width: 200,
+            textAlign: "right",
+          }}
+        >
+          {pick(note, lang)}
+        </Text>
       ) : null}
     </View>
-  );
-}
-
-/* --------------------------------------------------------------- severity */
-
-const SEVERITY_LEVEL: Record<Severity, number> = { critical: 4, high: 3, medium: 2, low: 1 };
-
-/** Four ascending bars, filled up to the severity level (signal-strength style). */
-export function SeverityMeter({ severity, color }: { severity: Severity; color: string }) {
-  const level = SEVERITY_LEVEL[severity];
-  return (
-    <Svg width={13} height={9} viewBox="0 0 13 9">
-      {[0, 1, 2, 3].map((i) => (
-        <Rect
-          key={i}
-          x={i * 3.4}
-          y={9 - (3 + i * 2)}
-          width={2.2}
-          height={3 + i * 2}
-          rx={0.8}
-          fill={i < level ? color : INK.hairline}
-        />
-      ))}
-    </Svg>
-  );
-}
-
-/** Three dots, filled to the level (implementation effort, impact…). */
-export function LevelDots({
-  level,
-  color = BRAND.violet,
-  empty = INK.hairline,
-}: {
-  level: 1 | 2 | 3;
-  color?: string;
-  empty?: string;
-}) {
-  return (
-    <Svg width={22} height={6} viewBox="0 0 22 6">
-      {[0, 1, 2].map((i) => (
-        <Circle key={i} cx={3 + i * 8} cy={3} r={2.6} fill={i < level ? color : empty} />
-      ))}
-    </Svg>
-  );
-}
-
-/* ------------------------------------------------------------ atmosphere */
-
-/** Soft radial glow; place absolutely behind content. */
-export function Glow({
-  id,
-  width,
-  height,
-  color,
-  opacity,
-  cx = 0.5,
-  cy = 0.5,
-  r = 0.5,
-}: {
-  id: string;
-  width: number;
-  height: number;
-  color: string;
-  opacity: number;
-  cx?: number;
-  cy?: number;
-  r?: number;
-}) {
-  return (
-    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      <Defs>
-        <RadialGradient id={id} cx={cx} cy={cy} r={r}>
-          <Stop offset="0" stopColor={color} stopOpacity={opacity} />
-          <Stop offset="0.55" stopColor={color} stopOpacity={opacity * 0.35} />
-          <Stop offset="1" stopColor={color} stopOpacity={0} />
-        </RadialGradient>
-      </Defs>
-      <Rect x={0} y={0} width={width} height={height} fill={`url(#${id})`} />
-    </Svg>
-  );
-}
-
-/**
- * Circular vignette: clear in the middle, `color` at the rim. Drawn as a
- * circle (not a rect) so nothing outside the artwork gets painted.
- */
-export function Vignette({
-  id,
-  size,
-  color,
-  clear = 0.62,
-}: {
-  id: string;
-  size: number;
-  color: string;
-  clear?: number;
-}) {
-  return (
-    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      <Defs>
-        <RadialGradient id={id} cx={0.5} cy={0.5} r={0.5}>
-          <Stop offset="0" stopColor={color} stopOpacity={0} />
-          <Stop offset={String(clear)} stopColor={color} stopOpacity={0} />
-          <Stop offset={String(clear + (1 - clear) * 0.55)} stopColor={color} stopOpacity={0.55} />
-          <Stop offset="1" stopColor={color} stopOpacity={1} />
-        </RadialGradient>
-      </Defs>
-      <Circle cx={size / 2} cy={size / 2} r={size / 2} fill={`url(#${id})`} />
-    </Svg>
-  );
-}
-
-/** Rounded bar with a left → right gradient. */
-export function GradientBar({
-  id,
-  width,
-  height,
-  from,
-  to,
-}: {
-  id: string;
-  width: number;
-  height: number;
-  from: string;
-  to: string;
-}) {
-  return (
-    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      <Defs>
-        <LinearGradient id={id} x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor={from} />
-          <Stop offset="1" stopColor={to} />
-        </LinearGradient>
-      </Defs>
-      <Rect x={0} y={0} width={width} height={height} rx={height / 2} fill={`url(#${id})`} />
-    </Svg>
-  );
-}
-
-/** Horizontal violet → sky hairline. */
-export function GradientRule({
-  id,
-  width,
-  height = 1,
-}: {
-  id: string;
-  width: number;
-  height?: number;
-}) {
-  return (
-    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      <Defs>
-        <LinearGradient id={id} x1="0" y1="0" x2="1" y2="0">
-          <Stop offset="0" stopColor={BRAND.violet} />
-          <Stop offset="0.5" stopColor={BRAND.blue} />
-          <Stop offset="1" stopColor={BRAND.sky} stopOpacity={0.2} />
-        </LinearGradient>
-      </Defs>
-      <Rect x={0} y={0} width={width} height={height} rx={height / 2} fill={`url(#${id})`} />
-    </Svg>
-  );
-}
-
-/** Concentric "vortex" rings bleeding off a corner of the light pages. */
-export function CornerRings({
-  size = 220,
-  color = BRAND.violet,
-}: {
-  size?: number;
-  color?: string;
-}) {
-  const c = size;
-  return (
-    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-      {[0.36, 0.52, 0.68, 0.84, 1].map((k, i) => (
-        <Circle
-          key={k}
-          cx={c}
-          cy={0}
-          r={size * k}
-          stroke={color}
-          strokeOpacity={0.05 + i * 0.012}
-          strokeWidth={i === 2 ? 1.2 : 0.6}
-          strokeDasharray={i % 2 ? "1 3" : undefined}
-          fill="none"
-        />
-      ))}
-      <Circle
-        cx={c - size * 0.52 * Math.cos(0.5)}
-        cy={size * 0.52 * Math.sin(0.5)}
-        r={2.2}
-        fill={color}
-        fillOpacity={0.35}
-      />
-      <Circle
-        cx={c - size * 0.84 * Math.cos(1.05)}
-        cy={size * 0.84 * Math.sin(1.05)}
-        r={1.6}
-        fill={BRAND.sky}
-        fillOpacity={0.6}
-      />
-    </Svg>
-  );
-}
-
-/** Orbit ellipses with node dots around the cover vortex. */
-export function OrbitLines({
-  width,
-  height,
-  cx,
-  cy,
-  orbits,
-}: {
-  width: number;
-  height: number;
-  cx: number;
-  cy: number;
-  orbits: Array<{ rx: number; ry: number; rotate: number; dashed?: boolean }>;
-}) {
-  return (
-    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      {orbits.map((o, i) => (
-        <Ellipse
-          key={i}
-          cx={cx}
-          cy={cy}
-          rx={o.rx}
-          ry={o.ry}
-          transform={`rotate(${o.rotate} ${cx} ${cy})`}
-          stroke={i % 2 ? BRAND.sky : NIGHT_INK.strong}
-          strokeOpacity={i % 2 ? 0.22 : 0.14}
-          strokeWidth={0.7}
-          strokeDasharray={o.dashed ? "2 4" : undefined}
-          fill="none"
-        />
-      ))}
-    </Svg>
   );
 }

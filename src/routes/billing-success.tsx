@@ -1,8 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2 } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { SiteLayout } from "@/components/layout/SiteLayout";
-import { Button } from "@/components/ui/button";
+import { ButtonLink, Status } from "@/components/system";
 import { useI18n } from "@/i18n";
 
 const title = "Subscription confirmed | Vortex Hub";
@@ -24,26 +23,26 @@ function BillingSuccessPage() {
 
   return (
     <SiteLayout>
-      <section className="relative mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center px-4 py-24 text-center sm:px-6">
-        <span className="grid h-16 w-16 place-items-center rounded-2xl bg-teal/15 text-teal glow-soft">
-          <CheckCircle2 className="h-8 w-8" />
-        </span>
-        <h1 className="mt-6 text-3xl sm:text-4xl">
-          {t("Thank you — your subscription is active!", "Mulțumim — abonamentul tău este activ!")}
-        </h1>
-        <p className="mt-4 max-w-lg text-muted-foreground">
-          {t(
-            "We've received your payment. Our team will be in touch shortly to schedule your first session and set up your access.",
-            "Am primit plata ta. Echipa noastră te va contacta în curând pentru a programa prima sesiune și a-ți configura accesul.",
-          )}
-        </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <Button asChild className="glow-soft">
-            <Link to="/dashboard">{t("Go to dashboard", "Mergi la panou")}</Link>
-          </Button>
-          <Button asChild variant="outline" className="border-border glass-panel">
-            <Link to="/">{t("Back to home", "Înapoi acasă")}</Link>
-          </Button>
+      <section className="container-vx section-y">
+        <div className="max-w-2xl py-8 md:py-16">
+          <Status tone="ok">{t("Payment received", "Plata a fost primită")}</Status>
+          <h1 className="type-h2 mt-3 text-balance text-fg">
+            {t("Thank you. Your subscription is active.", "Mulțumim. Abonamentul tău este activ.")}
+          </h1>
+          <p className="type-lead mt-3 max-w-[56ch] text-pretty text-fg-2">
+            {t(
+              "We will be in touch shortly to schedule your first session and set up your access.",
+              "Te contactăm în curând ca să programăm prima sesiune și să-ți configurăm accesul.",
+            )}
+          </p>
+          <div className="mt-8 flex flex-wrap gap-2">
+            <ButtonLink to="/dashboard" size="lg">
+              {t("Go to your account", "Mergi la contul tău")}
+            </ButtonLink>
+            <ButtonLink to="/" size="lg" variant="secondary">
+              {t("Back to the homepage", "Înapoi la prima pagină")}
+            </ButtonLink>
+          </div>
         </div>
       </section>
     </SiteLayout>

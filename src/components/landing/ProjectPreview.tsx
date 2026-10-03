@@ -1,24 +1,13 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { AnimatePresence, motion } from "motion/react";
-import {
-  ArrowLeft,
-  LogIn,
-  ArrowRight,
-  Check,
-  Lock,
-  Monitor,
-  Pause,
-  Play,
-  Smartphone,
-} from "lucide-react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 
+import { IconButton, SegmentedControl, buttonClass } from "@/components/system";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { prefersReducedMotion } from "./motion-prefs";
 import { useMotionPause } from "./motion-pause";
 import { projectImages, projectTitle, type Project } from "./projects";
-import { RingButton } from "./RingButton";
 
 type ProjectPreviewProps = {
   projects: Project[];
@@ -27,10 +16,22 @@ type ProjectPreviewProps = {
   onIndexChange: (index: number | null) => void;
 };
 
+/** "Ghid, campus, trilingv": joins list items into one sentence-case comma line. */
+function commaLine(items: string[]) {
+  return items
+    .map((item, i) =>
+      // Lower the first letter after the first item, unless it starts an acronym ("AI").
+      i > 0 && item[1] && item[1] === item[1].toLowerCase()
+        ? item[0].toLowerCase() + item.slice(1)
+        : item,
+    )
+    .join(", ");
+}
+
 /**
- * Sneak-peek popup for a published project: the live landing page in a
- * browser frame that slowly scrolls itself (until the visitor takes over),
- * a phone view, and the project details. Always dark, on any page.
+ * Preview dialog for a published project: the live landing page in a plain frame that
+ * slowly scrolls itself (until the visitor takes over), a phone view, and the project
+ * details with a short facts list. Always dark, on any page.
  */
 export function ProjectPreview({ projects, index, onIndexChange }: ProjectPreviewProps) {
   const { t, lang } = useI18n();
@@ -58,6 +59,17 @@ export function ProjectPreview({ projects, index, onIndexChange }: ProjectPrevie
   // that had focus and hand focus back to it on close.
   const openerRef = useRef<HTMLElement | null>(null);
 
+  const access = current
+    ? current.access === "private"
+      ? t(
+          "Private app: only the sign-in screen is public",
+          "Aplicație privată: doar ecranul de autentificare e public",
+        )
+      : current.access === "sign-in"
+        ? t("Opens on a sign-in screen", "Se deschide cu ecranul de autentificare")
+        : t("Public", "Public")
+    : "";
+
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onIndexChange(null)}>
       <DialogContent
@@ -70,119 +82,117 @@ export function ProjectPreview({ projects, index, onIndexChange }: ProjectPrevie
           openerRef.current?.focus({ preventScroll: true });
           openerRef.current = null;
         }}
-        className="cinematic w-[calc(100vw-1.5rem)] max-w-6xl gap-0 overflow-hidden rounded-3xl border-white/10 bg-card p-0 text-foreground shadow-2xl shadow-black/60 sm:rounded-3xl"
+        className="cinematic w-[calc(100vw-1.5rem)] max-w-6xl gap-0 overflow-hidden p-0 sm:max-w-6xl"
         onKeyDown={(event) => {
+          // Arrow keys already handled inside (the desktop / mobile switch) stay there.
+          if (event.defaultPrevented) return;
           if (event.key === "ArrowRight") step(1);
           if (event.key === "ArrowLeft") step(-1);
         }}
       >
         {current && (
-          <div className="grid max-h-[92svh] grid-cols-1 overflow-y-auto lg:h-[min(660px,88svh)] lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:overflow-hidden">
+          <div className="grid max-h-[92svh] grid-cols-1 overflow-y-auto lg:h-[min(640px,88svh)] lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:overflow-hidden">
             <PreviewStage project={current} title={projectTitle(current, lang)} />
 
             <div className="flex min-w-0 flex-col lg:min-h-0">
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={current.slug}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-                  className="flex flex-col gap-5 p-6 sm:p-8 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-14"
-                >
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="type-label inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1 text-muted-foreground">
-                      <span
-                        aria-hidden
-                        className="h-2 w-2 rounded-full"
-                        style={{ backgroundColor: current.accent }}
-                      />
-                      {pick(current.category)}
+              <div className="flex flex-col gap-4 p-5 sm:p-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-12">
+                <p className="flex items-baseline justify-between gap-4 text-[0.8125rem] leading-[1.35] text-fg-3">
+                  <span className="min-w-0">{pick(current.category)}</span>
+                  <span className="type-pnum shrink-0">
+                    {position + 1} {t("of", "din")} {projects.length}
+                  </span>
+                </p>
+
+                <div>
+                  {/* Roles on inner spans: the dialog primitives' own sizes would win. */}
+                  <DialogTitle className="break-words">
+                    <span className="type-h3 block">{projectTitle(current, lang)}</span>
+                  </DialogTitle>
+                  <DialogDescription className="mt-1.5">
+                    <span className="block text-[0.9375rem] leading-[1.5] text-fg-2">
+                      {pick(current.tagline)}
                     </span>
-                    <span className="type-label tabular-nums text-muted-foreground">
-                      {String(position + 1).padStart(2, "0")} /{" "}
-                      {String(projects.length).padStart(2, "0")}
-                    </span>
-                  </div>
+                  </DialogDescription>
+                </div>
 
-                  <div>
-                    {/* Roles on inner spans: the dialog primitives' own sizes would win. */}
-                    <DialogTitle className="break-words">
-                      <span className="type-h3 block">{projectTitle(current, lang)}</span>
-                    </DialogTitle>
-                    <DialogDescription className="mt-2">
-                      <span className="type-body-sm">{pick(current.tagline)}</span>
-                    </DialogDescription>
-                  </div>
+                <Summary key={current.slug} text={pick(current.summary)} />
 
-                  <p className="type-body-sm text-foreground/85">{pick(current.summary)}</p>
-
-                  <div>
-                    <p className="type-label text-muted-foreground">
-                      {t("What we built", "Ce am construit")}
-                    </p>
-                    <ul className="mt-3 space-y-2.5">
-                      {pickList(current.built).map((item) => (
-                        <li
-                          key={item}
-                          className="type-body-sm flex items-start gap-3 text-foreground/85"
-                        >
-                          <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-teal/15 text-teal">
-                            <Check className="h-3 w-3" strokeWidth={3} />
-                          </span>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <ul className="flex flex-wrap gap-2" aria-label={t("Highlights", "Repere")}>
-                    {pickList(current.highlights).map((chip) => (
-                      <li
-                        key={chip}
-                        className="type-micro rounded-full bg-white/[0.06] px-3 py-1.5 text-foreground/90"
-                      >
-                        {chip}
+                <div>
+                  <h3 className="type-label text-fg-3">{t("What we built", "Ce am construit")}</h3>
+                  <ul className="mt-2 space-y-1.5">
+                    {pickList(current.built).map((item) => (
+                      <li key={item} className="type-body-sm flex gap-2 text-fg-2">
+                        <span aria-hidden className="text-fg-3">
+                          –
+                        </span>
+                        {item}
                       </li>
                     ))}
                   </ul>
-
-                  <p className="type-micro text-muted-foreground">
-                    {t("Languages", "Limbi")}: {current.languages.join(" · ")}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Controls live outside the keyed block so focus stays put when paging. */}
-              {related >= 0 && (
-                <div className="px-6 pb-4 sm:px-8">
-                  <button
-                    type="button"
-                    onClick={() => onIndexChange(related)}
-                    className="type-micro group inline-flex items-center gap-2 rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {t("Same client:", "Același client:")}{" "}
-                    <span className="text-foreground underline-offset-4 group-hover:underline">
-                      {projectTitle(projects[related], lang)}
-                    </span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
                 </div>
-              )}
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-6 py-4 sm:px-8">
-                <RingButton href={current.url} variant="solid" arrow="up-right">
-                  {t("Visit live site", "Vezi site-ul live")}
-                </RingButton>
+
+                <dl className="border-t border-line-1 text-[0.8125rem] leading-[1.35]">
+                  {[
+                    [t("Highlights", "Repere"), commaLine(pickList(current.highlights))],
+                    [t("Languages", "Limbi"), current.languages.join(", ")],
+                    [t("Access", "Acces"), access],
+                  ].map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 border-b border-line-1 py-2.5"
+                    >
+                      <dt className="text-fg-3">{label}</dt>
+                      <dd className="text-pretty text-fg-2">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+
+                {related >= 0 && (
+                  <p className="text-[0.8125rem] text-fg-3">
+                    {t("Same client:", "Același client:")}{" "}
+                    {/* Controls outside the paged text keep focus when paging. */}
+                    <button
+                      type="button"
+                      onClick={() => onIndexChange(related)}
+                      className={buttonClass("link", "sm", "align-baseline")}
+                    >
+                      {projectTitle(projects[related], lang)}
+                    </button>
+                  </p>
+                )}
+              </div>
+
+              {/* Stays in view while the stacked dialog scrolls (below lg). */}
+              <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-3 border-t border-line-1 bg-s2 px-5 py-3 sm:px-6 lg:static">
+                <a
+                  href={current.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={buttonClass("primary", "md")}
+                >
+                  {t("Open the site", "Deschide site-ul")}
+                  <ArrowUpRight aria-hidden />
+                  <span className="sr-only">
+                    {t(" (opens in a new tab)", " (se deschide într-o filă nouă)")}
+                  </span>
+                </a>
                 <div className="flex items-center gap-2">
-                  <NavButton
+                  <IconButton
+                    size="md"
+                    variant="secondary"
                     label={t("Previous project", "Proiectul anterior")}
                     onClick={() => step(-1)}
                   >
-                    <ArrowLeft className="h-4 w-4" />
-                  </NavButton>
-                  <NavButton label={t("Next project", "Proiectul următor")} onClick={() => step(1)}>
-                    <ArrowRight className="h-4 w-4" />
-                  </NavButton>
+                    <ChevronLeft aria-hidden />
+                  </IconButton>
+                  <IconButton
+                    size="md"
+                    variant="secondary"
+                    label={t("Next project", "Proiectul următor")}
+                    onClick={() => step(1)}
+                  >
+                    <ChevronRight aria-hidden />
+                  </IconButton>
                 </div>
               </div>
             </div>
@@ -193,28 +203,38 @@ export function ProjectPreview({ projects, index, onIndexChange }: ProjectPrevie
   );
 }
 
-function NavButton({
-  label,
-  onClick,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  children: ReactNode;
-}) {
+/** Summary clamped to four lines, with "Mai mult" when it runs longer. Keyed per project. */
+function Summary({ text }: { text: string }) {
+  const { t } = useI18n();
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (el) setOverflows(el.scrollHeight > el.clientHeight + 1);
+  }, [text]);
+
   return (
-    <button
-      type="button"
-      aria-label={label}
-      onClick={onClick}
-      className="grid h-11 w-11 place-items-center rounded-full border border-white/10 text-foreground transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      {children}
-    </button>
+    <div>
+      <p ref={ref} className={cn("type-body-sm text-fg-2", !expanded && "line-clamp-4")}>
+        {text}
+      </p>
+      {(overflows || expanded) && (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+          className={buttonClass("link", "sm", "mt-1.5")}
+        >
+          {expanded ? t("Less", "Mai puțin") : t("More", "Mai mult")}
+        </button>
+      )}
+    </div>
   );
 }
 
-/** Browser-framed live preview: auto-scrolling desktop page or a phone view. */
+/** Framed live preview: the auto-scrolling desktop page or a phone view. */
 function PreviewStage({ project, title }: { project: Project; title: string }) {
   const { t } = useI18n();
   const { paused: motionPaused } = useMotionPause();
@@ -290,7 +310,6 @@ function PreviewStage({ project, title }: { project: Project; title: string }) {
   }, [view, autoScroll, loaded, reduced, project.slug]);
 
   const takeOver = () => setAutoScroll(false);
-  const autoActive = view === "desktop" && autoScroll && !reduced;
 
   // Paint the first screen instantly (the card already loaded hero.webp);
   // full.webp starts with the same frame and covers it once loaded.
@@ -301,74 +320,43 @@ function PreviewStage({ project, title }: { project: Project; title: string }) {
   };
 
   return (
-    <div className="flex min-w-0 flex-col border-b border-white/10 bg-black/30 lg:min-h-0 lg:border-b-0 lg:border-r">
-      {/* Browser chrome */}
-      {/* Right padding on small screens clears the dialog's close button. */}
-      <div className="flex items-center gap-3 border-b border-white/10 py-3 pl-4 pr-12 lg:pr-4">
-        <div aria-hidden className="hidden gap-1.5 sm:flex">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]/80" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]/80" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]/80" />
-        </div>
-        <div className="type-micro flex min-w-0 flex-1 items-center gap-2 rounded-full bg-white/[0.06] px-3 py-1.5 text-muted-foreground">
-          <Lock aria-hidden className="h-3 w-3 shrink-0" />
-          <span className="truncate">{project.domain}</span>
-          <span className="type-label ml-auto hidden shrink-0 items-center gap-1.5 text-emerald-400 sm:inline-flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse-dot" />
-            {t("Live", "Live")}
-          </span>
-        </div>
+    <div className="flex min-w-0 flex-col border-b border-line-1 lg:min-h-0 lg:border-b-0 lg:border-r">
+      {/* Chrome: address, pause, desktop / mobile. Right padding on small screens clears
+          the dialog's close button. */}
+      <div className="flex h-12 items-center gap-2 border-b border-line-1 pl-4 pr-12 lg:pr-3">
+        <span className="type-code min-w-0 flex-1 truncate text-xs text-fg-3">
+          {project.domain}
+        </span>
         {view === "desktop" && !reduced && (
-          <button
-            type="button"
-            onClick={() => {
-              setUserPaused(autoScroll);
-              setAutoScroll(!autoScroll);
-            }}
-            aria-label={
+          <IconButton
+            label={
               autoScroll
                 ? t("Pause the preview", "Oprește previzualizarea")
                 : t("Play the preview", "Pornește previzualizarea")
             }
-            className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-white/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => {
+              setUserPaused(autoScroll);
+              setAutoScroll(!autoScroll);
+            }}
           >
-            {autoScroll ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
-          </button>
+            {autoScroll ? <Pause aria-hidden /> : <Play aria-hidden />}
+          </IconButton>
         )}
-        <div
-          role="group"
-          aria-label={t("Preview size", "Dimensiune previzualizare")}
-          className="flex rounded-full bg-white/[0.06] p-0.5"
-        >
-          {(
-            [
-              ["desktop", Monitor, t("Desktop view", "Vizualizare desktop")],
-              ["mobile", Smartphone, t("Mobile view", "Vizualizare mobil")],
-            ] as const
-          ).map(([value, Icon, label]) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={view === value}
-              aria-label={label}
-              onClick={() => setView(value)}
-              className={cn(
-                "grid h-7 w-8 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                view === value
-                  ? "bg-white/15 text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Icon className="h-3.5 w-3.5" />
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          label={t("Preview size", "Dimensiunea previzualizării")}
+          value={view}
+          onChange={setView}
+          options={[
+            { value: "desktop", label: "Desktop" },
+            { value: "mobile", label: t("Mobile", "Mobil") },
+          ]}
+        />
       </div>
 
       {/* Viewport */}
       <div
         className={cn(
-          "relative lg:aspect-auto lg:min-h-0 lg:flex-1",
+          "relative bg-s1 lg:aspect-auto lg:min-h-0 lg:flex-1",
           // A taller stage for the phone frame when the dialog is stacked.
           view === "mobile" ? "aspect-[3/4] sm:aspect-[16/10]" : "aspect-[16/10]",
         )}
@@ -393,7 +381,7 @@ function PreviewStage({ project, title }: { project: Project; title: string }) {
               )
                 takeOver();
             }}
-            className="absolute inset-0 overflow-y-auto overscroll-contain bg-background [scrollbar-color:rgb(255_255_255/0.2)_transparent] [scrollbar-width:thin] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            className="absolute inset-0 overflow-y-auto overscroll-contain bg-background outline-none [scrollbar-color:rgb(255_255_255/0.2)_transparent] [scrollbar-width:thin] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-line/55"
             style={heroBackdrop}
           >
             <img
@@ -404,14 +392,14 @@ function PreviewStage({ project, title }: { project: Project; title: string }) {
               height={project.fullHeight}
               onLoad={() => setLoaded(true)}
               className={cn(
-                "block h-auto w-full transition-opacity duration-300",
+                "block h-auto w-full transition-opacity duration-200",
                 loaded ? "opacity-100" : "opacity-0",
               )}
             />
           </div>
         ) : (
-          <div className="absolute inset-0 grid place-items-center overflow-hidden bg-[radial-gradient(60%_60%_at_50%_45%,oklch(0.585_0.225_282/0.18),transparent_70%)] py-5">
-            <div className="relative aspect-[390/844] h-full overflow-hidden rounded-[2rem] border-[6px] border-black bg-black shadow-2xl shadow-black/60">
+          <div className="absolute inset-0 grid place-items-center overflow-hidden py-5">
+            <div className="relative aspect-[390/844] h-full overflow-hidden rounded-xl border border-line-2 bg-background">
               <img
                 src={images.mobile}
                 alt={t(`The ${title} landing page on a phone`, `Pagina ${title} pe telefon`)}
@@ -422,41 +410,6 @@ function PreviewStage({ project, title }: { project: Project; title: string }) {
             </div>
           </div>
         )}
-
-        {project.access !== "public" && (
-          <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 type-micro text-foreground backdrop-blur">
-            {project.access === "private" ? (
-              <>
-                <Lock aria-hidden className="h-3 w-3" />
-                {t(
-                  "Members-only app · sign-in screen",
-                  "Aplicație cu acces privat · ecran de autentificare",
-                )}
-              </>
-            ) : (
-              <>
-                <LogIn aria-hidden className="h-3 w-3" />
-                {t("Opens on a sign-in screen", "Se deschide cu ecranul de autentificare")}
-              </>
-            )}
-          </span>
-        )}
-
-        <AnimatePresence>
-          {autoActive && loaded && (
-            <motion.span
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 6 }}
-              className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/70 px-3 py-1.5 type-micro text-foreground/90 backdrop-blur"
-            >
-              {t(
-                "Auto-preview · scroll to explore",
-                "Previzualizare automată · derulează pentru a explora",
-              )}
-            </motion.span>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );

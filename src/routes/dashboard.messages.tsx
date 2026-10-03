@@ -42,10 +42,12 @@ function MessagesPage() {
       .order("created_at", { ascending: true });
     if (err) {
       console.error("[messages] load failed", err);
-      setError(t(
-        "We couldn't load your messages. Please refresh to try again.",
-        "Nu am putut încărca mesajele tale. Te rugăm să reîmprospătezi pagina.",
-      ));
+      setError(
+        t(
+          "We couldn't load your messages. Please refresh to try again.",
+          "Nu am putut încărca mesajele tale. Te rugăm să reîmprospătezi pagina.",
+        ),
+      );
     } else {
       setError(null);
       setMessages((data as MessageRow[]) ?? []);
@@ -103,7 +105,12 @@ function MessagesPage() {
       setDraft("");
     } catch (err) {
       console.error("[messages] send failed", err);
-      toast.error(t("Your message didn't send. Please try again.", "Mesajul nu a fost trimis. Te rugăm să încerci din nou."));
+      toast.error(
+        t(
+          "Your message didn't send. Please try again.",
+          "Mesajul nu a fost trimis. Te rugăm să încerci din nou.",
+        ),
+      );
     } finally {
       setSending(false);
     }
@@ -123,7 +130,7 @@ function MessagesPage() {
       )}
 
       {!loading && error && (
-        <div className="mt-8 rounded-2xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+        <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
           {error}
         </div>
       )}
@@ -131,7 +138,7 @@ function MessagesPage() {
       {!loading && !error && (
         <>
           {messages.length === 0 ? (
-            <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+            <div className="mt-8 rounded-xl border border-dashed border-border bg-card p-10 text-center">
               <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-teal/15 text-teal">
                 <MessagesSquare className="h-6 w-6" />
               </span>
@@ -154,10 +161,8 @@ function MessagesPage() {
                   >
                     <div
                       className={cn(
-                        "max-w-[80%] rounded-2xl border p-4",
-                        mine
-                          ? "border-primary/30 bg-primary/10"
-                          : "border-border bg-card",
+                        "max-w-[80%] rounded-xl border p-4",
+                        mine ? "border-primary/30 bg-primary/10" : "border-border bg-card",
                       )}
                     >
                       <div className="flex items-center justify-between gap-3">
@@ -179,7 +184,7 @@ function MessagesPage() {
             </ul>
           )}
 
-          <form onSubmit={handleSend} className="mt-6 rounded-2xl border border-border bg-card p-4">
+          <form onSubmit={handleSend} className="mt-6 rounded-xl border border-border bg-card p-4">
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -193,9 +198,15 @@ function MessagesPage() {
               }}
             />
             <div className="mt-3 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">{t("⌘/Ctrl + Enter to send", "⌘/Ctrl + Enter pentru a trimite")}</span>
+              <span className="text-xs text-muted-foreground">
+                {t("⌘/Ctrl + Enter to send", "⌘/Ctrl + Enter pentru a trimite")}
+              </span>
               <Button type="submit" disabled={sending || !draft.trim()}>
-                {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {sending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
                 {t("Send", "Trimite")}
               </Button>
             </div>

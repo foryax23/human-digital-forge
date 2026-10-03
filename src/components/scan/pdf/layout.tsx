@@ -3,25 +3,29 @@ import type { ReactNode } from "react";
 import { Image, Page, Text, View } from "@react-pdf/renderer";
 
 import { LOGO_RATIO } from "./assets";
-import { CornerRings, GradientRule } from "./charts";
-import { pad2, truncate } from "./format";
-import { PdfIcon, type IconName } from "./icons";
-import type { PdfContext } from "./model";
+import { superscript, truncate } from "./format";
+import type { PdfContext, PriorityLevel } from "./model";
 import {
   BRAND,
   CONTACT,
-  CONTENT_WIDTH,
   FONT,
   INK,
   NIGHT_INK,
   PAGE,
   RADIUS,
   SPACE,
+  STATUS,
   text,
   type Style,
+  type StatusTone,
 } from "./theme";
 
-/* Shared page chrome and small building blocks for the blueprint pages. */
+/*
+ * Page chrome and the small building blocks of the blueprint pages, in the
+ * site's language (spec §2.2, §6): status squares, the three-bar priority
+ * signal and flat tags instead of pills, hairlines instead of boxed cards,
+ * sentence-case labels at zero tracking.
+ */
 
 /** A brand logo at a given height, keeping the exported file's proportions. */
 export function Logo({
@@ -56,48 +60,38 @@ function RunningHeader({ ctx, label, dark }: { ctx: PdfContext; label?: string; 
         justifyContent: "space-between",
         alignItems: "center",
         borderBottomWidth: 0.6,
-        borderBottomColor: dark ? NIGHT_INK.hairline : INK.hairline,
+        borderBottomColor: ink.hairline,
       }}
     >
       <Logo
         src={ctx.assets.wordmarkSmall}
         ratio={LOGO_RATIO.wordmarkSmall}
-        height={17}
+        height={15}
         style={{ marginBottom: 3 }}
       />
       <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 2 }}>
-        <Text style={{ ...text.eyebrow, fontSize: 6, letterSpacing: 1.2, color: ink.muted }}>
-          {truncate(ctx.name, 44)}
+        <Text style={{ fontFamily: FONT.body, fontSize: 7, color: ink.muted }}>
+          {truncate(ctx.name, 48)}
         </Text>
         {label ? (
-          <>
-            <View
-              style={{
-                width: 3,
-                height: 3,
-                borderRadius: 2,
-                backgroundColor: BRAND.violet,
-                marginHorizontal: 6,
-              }}
-            />
-            <Text
-              style={{
-                ...text.eyebrow,
-                fontSize: 6,
-                letterSpacing: 1.2,
-                color: dark ? BRAND.sky : INK.violetText,
-              }}
-            >
-              {label}
-            </Text>
-          </>
+          <Text
+            style={{
+              fontFamily: FONT.body,
+              fontWeight: 500,
+              fontSize: 7,
+              color: ink.strong,
+              marginLeft: 12,
+            }}
+          >
+            {label}
+          </Text>
         ) : null}
       </View>
     </View>
   );
 }
 
-/** Footer: swirl mark and contact, the honesty note, page x / y. */
+/** Footer: swirl mark and contact on the left, the page number on the right. */
 function RunningFooter({ ctx, dark }: { ctx: PdfContext; dark?: boolean }) {
   const ink = dark ? NIGHT_INK : INK;
   return (
@@ -108,44 +102,34 @@ function RunningFooter({ ctx, dark }: { ctx: PdfContext; dark?: boolean }) {
         bottom: SPACE.footerBottom,
         left: SPACE.gutter,
         right: SPACE.gutter,
+        borderTopWidth: 0.6,
+        borderTopColor: ink.hairline,
+        paddingTop: 6,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
       }}
     >
-      <GradientRule id={dark ? "rule-dark" : "rule-light"} width={CONTENT_WIDTH} height={0.7} />
-      <View
-        style={{
-          marginTop: 7,
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", width: 200 }}>
-          <Logo src={ctx.assets.swirl} ratio={LOGO_RATIO.swirl} height={11} />
-          <Text style={{ fontFamily: FONT.body, fontSize: 6.6, color: ink.muted, marginLeft: 5 }}>
-            {CONTACT.site} · {CONTACT.email}
-          </Text>
-        </View>
-        <Text style={{ fontFamily: FONT.body, fontSize: 6.6, color: ink.faint }}>
-          {ctx.t("Estimates, not guarantees", "Estimări, nu garanții")}
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Logo src={ctx.assets.swirlSmall} ratio={LOGO_RATIO.swirl} height={10} />
+        <Text style={{ fontFamily: FONT.body, fontSize: 6.8, color: ink.muted, marginLeft: 5 }}>
+          {CONTACT.site}
         </Text>
-        <Text
-          style={{
-            width: 200,
-            textAlign: "right",
-            fontFamily: FONT.display,
-            fontWeight: 500,
-            fontSize: 6.8,
-            color: ink.strong,
-            letterSpacing: 0.6,
-          }}
-          render={({ pageNumber, totalPages }) => `${pad2(pageNumber)} / ${pad2(totalPages)}`}
-        />
+        <Text style={{ fontFamily: FONT.body, fontSize: 6.8, color: ink.muted, marginLeft: 10 }}>
+          {CONTACT.email}
+        </Text>
       </View>
+      <Text
+        style={{ fontFamily: FONT.body, fontSize: 6.8, color: ink.muted }}
+        render={({ pageNumber, totalPages }) =>
+          ctx.t(`Page ${pageNumber} of ${totalPages}`, `Pagina ${pageNumber} din ${totalPages}`)
+        }
+      />
     </View>
   );
 }
 
-/** White working page with the running header, footer and corner rings. */
+/** White working page with the running header and footer. */
 export function LightPage({
   children,
   ctx,
@@ -165,12 +149,9 @@ export function LightPage({
         paddingHorizontal: SPACE.gutter,
         fontFamily: FONT.body,
         color: INK.body,
-        fontSize: 8.5,
+        fontSize: 8.2,
       }}
     >
-      <View fixed style={{ position: "absolute", top: 0, right: 0 }}>
-        <CornerRings size={170} />
-      </View>
       <RunningHeader ctx={ctx} label={label} />
       <RunningFooter ctx={ctx} />
       {children}
@@ -206,17 +187,10 @@ export function DarkPage({
         paddingHorizontal: chrome ? SPACE.gutter : 0,
         fontFamily: FONT.body,
         color: NIGHT_INK.body,
-        fontSize: 8.5,
+        fontSize: 8.2,
       }}
     >
-      {background ? (
-        <View
-          fixed
-          style={{ position: "absolute", top: 0, left: 0, width: PAGE.width, height: PAGE.height }}
-        >
-          {background}
-        </View>
-      ) : null}
+      {background ? <Layer>{background}</Layer> : null}
       {chrome ? <RunningHeader ctx={ctx} label={label} dark /> : null}
       {children}
       {chrome ? <RunningFooter ctx={ctx} dark /> : null}
@@ -243,51 +217,30 @@ export function Layer({ children, style }: { children: ReactNode; style?: Style 
   );
 }
 
-/** "02 ── EYEBROW" + title + optional intro at the top of a section. */
+/** The page title (the page's conclusion) and an optional lead. */
 export function SectionTitle({
-  index,
-  eyebrow,
   title,
   intro,
+  aside,
   dark,
-  width = 470,
+  width = 440,
 }: {
-  index: number;
-  eyebrow: string;
   title: string;
   intro?: string;
+  /** A marker next to the title ("Date de exemplu"). */
+  aside?: ReactNode;
   dark?: boolean;
   width?: number;
 }) {
   const ink = dark ? NIGHT_INK : INK;
   return (
     <View style={{ marginBottom: 14 }} minPresenceAhead={120}>
-      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 7 }}>
-        <Text style={{ ...text.eyebrow, color: dark ? BRAND.sky : INK.violetText }}>
-          {pad2(index)}
-        </Text>
-        <View
-          style={{
-            width: 16,
-            height: 0.8,
-            backgroundColor: dark ? BRAND.sky : BRAND.violet,
-            marginHorizontal: 6,
-            opacity: 0.7,
-          }}
-        />
-        <Text style={{ ...text.eyebrow, color: ink.muted }}>{eyebrow}</Text>
+      <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+        <Text style={{ ...text.title, color: ink.strong, maxWidth: width }}>{title}</Text>
+        {aside ? <View style={{ marginLeft: 10, marginTop: 5 }}>{aside}</View> : null}
       </View>
-      <Text style={{ ...text.h1, color: ink.strong, maxWidth: width }}>{title}</Text>
       {intro ? (
-        <Text
-          style={{
-            ...text.body,
-            fontSize: 8.8,
-            color: ink.muted,
-            marginTop: 5,
-            maxWidth: width,
-          }}
-        >
+        <Text style={{ ...text.lead, color: ink.body, marginTop: 5, maxWidth: width }}>
           {intro}
         </Text>
       ) : null}
@@ -295,36 +248,34 @@ export function SectionTitle({
   );
 }
 
-/** Small heading inside a section, with an optional note on the right. */
+/**
+ * Heading of a block inside a page, with an optional note on the right. `rule`
+ * puts the 34% section rule above it (blocks on a rule, not in a box).
+ */
 export function BlockTitle({
   children,
   note,
-  icon,
+  rule,
   style,
 }: {
-  children: string;
+  children: ReactNode;
   note?: string;
-  icon?: IconName;
+  rule?: boolean;
   style?: Style;
 }) {
   return (
     <View
+      minPresenceAhead={60}
       style={{
         flexDirection: "row",
-        alignItems: "center",
+        alignItems: "baseline",
         justifyContent: "space-between",
         marginBottom: 6,
+        ...(rule ? { borderTopWidth: 0.75, borderTopColor: INK.rule, paddingTop: 7 } : {}),
         ...style,
       }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", flexShrink: 0 }}>
-        {icon ? (
-          <View style={{ marginRight: 5 }}>
-            <PdfIcon name={icon} size={9.5} color={INK.violetText} />
-          </View>
-        ) : null}
-        <Text style={{ ...text.h3 }}>{children}</Text>
-      </View>
+      <Text style={{ ...text.h3, flexShrink: 0 }}>{children}</Text>
       {note ? (
         <Text style={{ ...text.tiny, textAlign: "right", flex: 1, marginLeft: 12 }}>{note}</Text>
       ) : null}
@@ -332,221 +283,331 @@ export function BlockTitle({
   );
 }
 
-export type ChipTone = "violet" | "blue" | "mint" | "neutral" | "dark" | "outline";
-
-const CHIP_TONES: Record<ChipTone, { bg: string; fg: string; border?: string }> = {
-  violet: { bg: INK.violetTint, fg: INK.violetText },
-  blue: { bg: INK.blueTint, fg: INK.blueText },
-  mint: { bg: INK.mintTint, fg: INK.mintText },
-  neutral: { bg: INK.panel, fg: INK.muted },
-  dark: { bg: INK.strong, fg: INK.white },
-  outline: { bg: INK.white, fg: INK.muted, border: INK.hairline },
-};
-
-export function Chip({
-  label,
-  tone = "neutral",
-  icon,
-  style,
-}: {
-  label: string;
-  tone?: ChipTone;
-  icon?: IconName;
-  style?: Style;
-}) {
-  const colors = CHIP_TONES[tone];
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: colors.bg,
-        borderRadius: RADIUS.pill,
-        paddingVertical: 2.2,
-        paddingHorizontal: 6,
-        borderWidth: colors.border ? 0.7 : 0,
-        borderColor: colors.border ?? colors.bg,
-        ...style,
-      }}
-    >
-      {icon ? (
-        <View style={{ marginRight: 3 }}>
-          <PdfIcon name={icon} size={6.5} color={colors.fg} strokeWidth={2.4} />
-        </View>
-      ) : null}
-      <Text style={{ fontFamily: FONT.body, fontWeight: 500, fontSize: 6.5, color: colors.fg }}>
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-/** Round tinted badge holding an icon. */
-export function IconBadge({
-  name,
-  size = 22,
-  tone = "violet",
-}: {
-  name: IconName;
-  size?: number;
-  tone?: "violet" | "mint" | "dark" | "glass" | "blue";
-}) {
-  const palette = {
-    violet: { bg: INK.violetTint, fg: INK.violetText },
-    blue: { bg: INK.blueTint, fg: INK.blueText },
-    mint: { bg: INK.mintTint, fg: INK.mintText },
-    dark: { bg: INK.strong, fg: BRAND.sky },
-    glass: { bg: "#151a45", fg: BRAND.sky },
-  }[tone];
-  return (
-    <View
-      style={{
-        width: size,
-        height: size,
-        borderRadius: size / 2,
-        backgroundColor: palette.bg,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <PdfIcon name={name} size={size * 0.5} color={palette.fg} />
-    </View>
-  );
-}
-
-/** White card with a hairline border. */
-export function Card({
-  children,
-  style,
-  wrap = false,
-}: {
-  children: ReactNode;
-  style?: Style;
-  wrap?: boolean;
-}) {
-  return (
-    <View
-      wrap={wrap}
-      style={{
-        borderWidth: 0.7,
-        borderColor: INK.hairline,
-        borderRadius: RADIUS.lg,
-        padding: 12,
-        backgroundColor: INK.white,
-        ...style,
-      }}
-    >
-      {children}
-    </View>
-  );
-}
-
-/** Tinted panel without a border (data blocks, notes). */
-export function Panel({
-  children,
-  style,
-  tone = "panel",
-}: {
-  children: ReactNode;
-  style?: Style;
-  tone?: "panel" | "violet";
-}) {
-  return (
-    <View
-      wrap={false}
-      style={{
-        borderRadius: RADIUS.lg,
-        padding: 12,
-        backgroundColor: tone === "violet" ? INK.violetTint : INK.panel,
-        ...style,
-      }}
-    >
-      {children}
-    </View>
-  );
-}
-
-/** Small uppercase label above a value. */
+/** Small sentence-case label above a value or a column. */
 export function Label({
   children,
-  color = INK.faint,
+  color = INK.muted,
   style,
 }: {
-  children: string;
+  children: ReactNode;
   color?: string;
   style?: Style;
 }) {
+  return <Text style={{ ...text.label, color, ...style }}>{children}</Text>;
+}
+
+/** A note reference ("¹") inside a Text, pointing to "Cum am calculat". */
+export function NoteRef({ n, dark }: { n: number; dark?: boolean }) {
   return (
-    <Text style={{ ...text.eyebrow, fontSize: 5.8, letterSpacing: 1.1, color, ...style }}>
-      {children}
+    <Text
+      style={{
+        fontFamily: FONT.display,
+        fontWeight: 500,
+        color: dark ? NIGHT_INK.muted : INK.muted,
+      }}
+    >
+      {superscript(n)}
     </Text>
   );
 }
 
-/** Bulleted row with an icon. */
-export function IconRow({
-  icon,
+/**
+ * Status: a small square plus a plain word ("Lipsește", "Există", "Bun").
+ * `hollow` is the unchecked state ("Neverificat").
+ */
+export function Status({
+  tone = "neutral",
+  hollow,
   children,
-  color = INK.violetText,
+  dark,
   style,
 }: {
-  icon: IconName;
+  tone?: StatusTone;
+  hollow?: boolean;
   children: ReactNode;
-  color?: string;
+  dark?: boolean;
   style?: Style;
 }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "flex-start", ...style }}>
-      <View style={{ marginTop: 1.5, marginRight: 6 }}>
-        <PdfIcon name={icon} size={8} color={color} strokeWidth={2.4} />
-      </View>
-      <View style={{ flex: 1 }}>{children}</View>
+    <View style={{ flexDirection: "row", alignItems: "center", ...style }}>
+      <View
+        style={{
+          width: 4.6,
+          height: 4.6,
+          borderRadius: 0.8,
+          backgroundColor: hollow ? undefined : STATUS[tone],
+          borderWidth: hollow ? 0.7 : 0,
+          borderColor: dark ? NIGHT_INK.muted : INK.muted,
+        }}
+      />
+      <Text
+        style={{
+          fontFamily: FONT.body,
+          fontWeight: 500,
+          fontSize: 7.2,
+          color: dark ? NIGHT_INK.body : INK.body,
+          marginLeft: 4,
+        }}
+      >
+        {children}
+      </Text>
     </View>
   );
 }
 
-/** Label and value on one line, divided by a hairline (registry-style tables). */
+const LIT: Record<PriorityLevel, number> = { high: 3, medium: 2, low: 1 };
+
+/** Priority: a three-bar signal plus "Prioritate mare / medie / mică". */
+export function Priority({ level, children }: { level: PriorityLevel; children: string }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <View style={{ flexDirection: "row", alignItems: "flex-end", height: 7.5 }}>
+        {[3, 5.25, 7.5].map((height, i) => (
+          <View
+            key={height}
+            style={{
+              width: 1.5,
+              height,
+              borderRadius: 0.4,
+              marginLeft: i ? 1.5 : 0,
+              backgroundColor: i < LIT[level] ? INK.body : INK.faint,
+            }}
+          />
+        ))}
+      </View>
+      <Text
+        style={{
+          fontFamily: FONT.body,
+          fontWeight: 500,
+          fontSize: 7.2,
+          color: INK.body,
+          marginLeft: 4,
+        }}
+      >
+        {children}
+      </Text>
+    </View>
+  );
+}
+
+export type TagVariant = "outline" | "dashed" | "start";
+
+/**
+ * Tag: flat, 2 pt corners, sentence case. `outline` for categories, `dashed`
+ * for assumptions ("De confirmat"), `start` for "Începem aici" (once per page,
+ * always followed by its reason).
+ */
+export function Tag({
+  variant = "outline",
+  children,
+  dark,
+  style,
+}: {
+  variant?: TagVariant;
+  children: string;
+  dark?: boolean;
+  style?: Style;
+}) {
+  const line = dark ? NIGHT_INK.faint : INK.line;
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        alignSelf: "flex-start",
+        height: 12,
+        paddingHorizontal: 4,
+        borderRadius: RADIUS.sm,
+        backgroundColor: variant === "start" ? INK.violetTint : undefined,
+        borderWidth: variant === "start" ? 0 : 0.6,
+        borderColor: line,
+        borderStyle: variant === "dashed" ? "dashed" : "solid",
+        ...style,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: FONT.body,
+          fontWeight: 500,
+          fontSize: 6.6,
+          color:
+            variant === "start"
+              ? INK.violet
+              : dark
+                ? NIGHT_INK.body
+                : variant === "dashed"
+                  ? INK.muted
+                  : INK.body,
+        }}
+      >
+        {children}
+      </Text>
+    </View>
+  );
+}
+
+/** A list item with a short dash marker (the site's bullet). */
+export function Dash({
+  children,
+  color = INK.body,
+  size = 7.8,
+  style,
+}: {
+  children: ReactNode;
+  color?: string;
+  size?: number;
+  style?: Style;
+}) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "flex-start", ...style }}>
+      <View
+        style={{
+          width: 4.5,
+          height: 0.6,
+          backgroundColor: INK.muted,
+          marginTop: size * 0.72,
+          marginRight: 6,
+        }}
+      />
+      <Text style={{ fontFamily: FONT.body, fontSize: size, lineHeight: 1.42, color, flex: 1 }}>
+        {children}
+      </Text>
+    </View>
+  );
+}
+
+/** Label and value on one line, divided by a hairline (registry-style lists). */
 export function KeyValue({
   label,
   value,
-  labelWidth = 74,
+  labelWidth = 80,
+  last,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   labelWidth?: number;
+  last?: boolean;
 }) {
   return (
     <View
       style={{
         flexDirection: "row",
-        paddingVertical: 3,
-        borderBottomWidth: 0.5,
+        paddingVertical: 3.2,
+        borderBottomWidth: last ? 0 : 0.5,
         borderBottomColor: INK.hairline,
       }}
     >
-      <Text
-        style={{
-          ...text.eyebrow,
-          fontSize: 5.5,
-          letterSpacing: 0.8,
-          color: INK.faint,
-          width: labelWidth,
-          marginTop: 1.4,
-        }}
-      >
-        {label}
-      </Text>
-      <Text
-        style={{
-          fontFamily: FONT.body,
-          fontSize: 7.6,
-          lineHeight: 1.35,
-          color: INK.strong,
-          flex: 1,
-        }}
-      >
-        {value}
-      </Text>
+      <Text style={{ ...text.label, width: labelWidth, paddingRight: 6 }}>{label}</Text>
+      {typeof value === "string" ? (
+        <Text
+          style={{
+            fontFamily: FONT.body,
+            fontSize: 7.6,
+            lineHeight: 1.35,
+            color: INK.strong,
+            flex: 1,
+          }}
+        >
+          {value}
+        </Text>
+      ) : (
+        <View style={{ flex: 1 }}>{value}</View>
+      )}
+    </View>
+  );
+}
+
+export type StatCell = {
+  label: string;
+  value: string;
+  unit?: string;
+  /** Note reference after the value. */
+  note?: number;
+  sub?: string;
+  /** A short line in the series colour: the strip doubles as the chart legend. */
+  swatch?: { color: string; dashed?: boolean; opacity?: number };
+  /** Status next to the value (a tier word). */
+  status?: ReactNode;
+};
+
+/** A row of plain figures split by hairlines (KPI strip, snapshot numbers). */
+export function StatRow({
+  cells,
+  dark,
+  style,
+}: {
+  cells: StatCell[];
+  dark?: boolean;
+  style?: Style;
+}) {
+  const ink = dark ? NIGHT_INK : INK;
+  return (
+    <View
+      wrap={false}
+      style={{
+        flexDirection: "row",
+        borderTopWidth: 0.6,
+        borderBottomWidth: 0.6,
+        borderColor: ink.hairline,
+        ...style,
+      }}
+    >
+      {cells.map((cell, i) => (
+        <View
+          key={cell.label}
+          style={{
+            flex: 1,
+            paddingVertical: 8,
+            paddingLeft: i ? 10 : 0,
+            paddingRight: 8,
+            borderLeftWidth: i ? 0.6 : 0,
+            borderLeftColor: ink.hairline,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            {cell.swatch ? (
+              <View
+                style={{
+                  width: 8,
+                  height: 0,
+                  borderTopWidth: 1.6,
+                  borderTopColor: cell.swatch.color,
+                  borderStyle: cell.swatch.dashed ? "dashed" : "solid",
+                  opacity: cell.swatch.opacity ?? 1,
+                  marginRight: 4,
+                }}
+              />
+            ) : null}
+            <Text style={{ ...text.label, color: ink.muted }}>{cell.label}</Text>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "baseline", marginTop: 3 }}>
+            <Text style={{ ...text.figure, color: ink.strong }}>
+              {cell.value}
+              {cell.unit ? (
+                <Text
+                  style={{
+                    fontFamily: FONT.body,
+                    fontWeight: 400,
+                    fontSize: 7.4,
+                    color: ink.muted,
+                  }}
+                >
+                  {` ${cell.unit}`}
+                </Text>
+              ) : null}
+              {cell.note ? (
+                <Text style={{ fontSize: 8 }}>
+                  <NoteRef n={cell.note} dark={dark} />
+                </Text>
+              ) : null}
+            </Text>
+            {cell.status ? <View style={{ marginLeft: 6 }}>{cell.status}</View> : null}
+          </View>
+          {cell.sub ? (
+            <Text style={{ ...text.tiny, color: ink.muted, marginTop: 2 }}>{cell.sub}</Text>
+          ) : null}
+        </View>
+      ))}
     </View>
   );
 }

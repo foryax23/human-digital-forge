@@ -6,19 +6,51 @@
 
 /*
  * Vortex Hub design system.
- * Colors defined in oklch. Headings use Space Grotesk, UI/body use DM Sans, and
- * labels, telemetry and the ASCII vortex use JetBrains Mono. Text styles come
- * from the type-* roles below.
+ * Headings and every figure use Space Grotesk, UI and body text use DM Sans, and
+ * JetBrains Mono is kept for codes (CUI, domains, kbd) and the ASCII vortex.
+ * Text styles come from the type-* roles below; surfaces, lines and text levels
+ * from the --vx-* tokens (UI refresh 2026-10, see .lovable/plan/vortex-ui-refresh).
  */
 
+/* Radius: base 8 px; 12 px is the maximum. Legacy 2xl/3xl/4xl collapse to 12 so every old
+   rounded-3xl glass panel de-rounds on day one. rounded-full stays for true dots only. */
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-sm: calc(var(--radius) - 4px); /* 4  tags, kbd, checkbox */
+  --radius-md: calc(var(--radius) - 2px); /* 6  small buttons, menu rows, segments */
+  --radius-lg: var(--radius); /* 8  buttons, inputs, segmented shell */
+  --radius-xl: calc(var(--radius) + 4px); /* 12 panels, dialogs, cards, image frames */
+  --radius-2xl: var(--radius-xl);
+  --radius-3xl: var(--radius-xl);
+  --radius-4xl: var(--radius-xl);
+  --radius-menu: 10px; /* rounded-menu: dropdowns, popovers, search menu */
+
+  --color-s1: var(--vx-s1);
+  --color-s2: var(--vx-s2);
+  --color-s3: var(--vx-s3);
+  --color-fill-1: var(--vx-fill-1);
+  --color-fill-2: var(--vx-fill-2);
+  --color-fill-3: var(--vx-fill-3);
+  --color-line-1: var(--vx-line-1);
+  --color-line-2: var(--vx-line-2);
+  --color-line-3: var(--vx-line-3);
+  --color-rule: var(--vx-rule);
+  --color-fg: var(--vx-fg);
+  --color-fg-2: var(--vx-fg-2);
+  --color-fg-3: var(--vx-fg-3);
+  --color-fg-4: var(--vx-fg-4);
+  --color-brand: var(--vx-brand);
+  --color-brand-hover: var(--vx-brand-hover);
+  --color-brand-line: var(--vx-brand-line);
+  --color-brand-fg: var(--vx-brand-fg);
+  --color-brand-tint: var(--vx-brand-tint);
+  --color-ok: var(--vx-ok);
+  --color-warn: var(--vx-warn);
+  --color-bad: var(--vx-bad);
+  --color-echo: var(--vx-echo);
+  /* Hero-only lilac (eyebrow reticle, scroll cue, focus rings inside the hero). */
+  --color-hero-lilac: var(--hero-lilac);
+  --color-overlay: var(--vx-overlay);
+  --shadow-pop: var(--vx-shadow-pop);
 
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-body: "DM Sans", ui-sans-serif, system-ui, sans-serif;
@@ -81,33 +113,50 @@
   line-height: 0.98;
   letter-spacing: -0.03em;
 }
+/* Homepage section titles: 28 px on phones, 40 px at 1440 and up. */
 @utility type-h2 {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(2rem, 1rem + 2vw, 3.25rem);
-  line-height: 1.04;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.5rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
-/* Card, panel and dialog titles; small enough for the dense scan report too. */
+/* Scan step titles and page titles. */
+@utility type-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 1.25rem + 0.6vw, 1.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+/* Panel, card and dialog titles. */
 @utility type-h3 {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(1.125rem, 1.02rem + 0.35vw, 1.375rem);
-  line-height: 1.2;
+  font-size: clamp(1.0625rem, 1rem + 0.25vw, 1.25rem);
+  line-height: 1.25;
+  letter-spacing: -0.012em;
+}
+/* Row titles, phase titles, card titles inside lists. */
+@utility type-h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.35;
   letter-spacing: -0.01em;
 }
 @utility type-lead {
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: clamp(1rem, 0.875rem + 0.5vw, 1.25rem);
-  line-height: 1.55;
+  font-size: 1.0625rem;
+  line-height: 1.5;
   letter-spacing: 0;
 }
 @utility type-body {
   font-family: var(--font-body);
   font-weight: 400;
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: 0.9375rem;
+  line-height: 1.55;
   letter-spacing: 0;
 }
 @utility type-body-sm {
@@ -122,37 +171,122 @@
   font-weight: 400;
   font-size: 0.75rem;
   line-height: 1.45;
-  letter-spacing: 0.01em;
+  letter-spacing: 0;
 }
-/* Uppercase mono: eyebrows, section labels, tags, step numbers, scroll cue.
-   Kept tight on purpose: the owner found wider tracking (0.14-0.16em) too spaced. */
+/* Labels: sentence case, zero tracking (the owner rejected tracked uppercase labels). */
 @utility type-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-weight: 500;
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-transform: none;
+}
+/* The only uppercase text on the site: the hero eyebrow. Nothing below the hero uses it. */
+@utility type-caps {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.75rem;
   line-height: 1.3;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-/* Smaller, quieter mono for decorative telemetry and coordinates. */
-@utility type-tech {
+/* Codes only: CUI, domains, kbd. Never uppercase, never tracked. */
+@utility type-code {
   font-family: var(--font-mono);
   font-weight: 400;
-  font-size: 0.625rem;
-  line-height: 1.3;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-transform: none;
+  font-variant-numeric: tabular-nums;
+}
+/* Numbers that line up (table columns, axes, KPIs). DM Sans ignores tabular-nums, so
+   aligned figures switch to Space Grotesk. Size and colour stay separate utilities. */
+@utility type-num {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+}
+/* Numbers in running text and dates ("Luna 1"): proportional, so the 1 has no foot. */
+@utility type-pnum {
+  font-family: var(--font-display);
+  font-variant-numeric: proportional-nums lining-nums;
+  letter-spacing: 0;
+}
+/* KPI and stat values. */
+@utility type-figure {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.25rem, 1.1rem + 0.4vw, 1.375rem);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 @utility type-button {
   font-family: var(--font-body);
   font-weight: 500;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   line-height: 1.2;
   letter-spacing: 0;
 }
 
+/* One container for nav, homepage sections and /scan (fixes the nav/content offset). */
+@utility container-vx {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @media (width >= 40rem) {
+    padding-inline: 1.5rem;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 3rem;
+  }
+}
+/* Homepage section rhythm: 48 / 64 px, so section to section reads 96-128 px. */
+@utility section-y {
+  padding-block: 3rem;
+  @media (width >= 48rem) {
+    padding-block: 4rem;
+  }
+}
+
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
+
+  /* UI refresh tokens, light edition: the dashboard, auth and legal pages render on the
+     warm off-white theme, so the restyled ui/* base reads the same names there. The
+     night values for the homepage and /scan live in .cinematic below. */
+  --vx-s1: #fdfdfa; /* panels */
+  --vx-s2: #ffffff; /* menus, dialogs, sheets */
+  --vx-s3: #efede6; /* pressed */
+  --vx-fill-1: rgb(20 22 40 / 0.025);
+  --vx-fill-2: rgb(20 22 40 / 0.05);
+  --vx-fill-3: rgb(20 22 40 / 0.085);
+  --vx-line-1: rgb(20 22 40 / 0.08);
+  --vx-line-2: rgb(20 22 40 / 0.12);
+  --vx-line-3: rgb(20 22 40 / 0.2);
+  --vx-rule: rgb(20 22 40 / 0.4);
+  --vx-fg: #1f2128;
+  --vx-fg-2: #474a58;
+  --vx-fg-3: #646777; /* 5.1:1 on the off-white background */
+  --vx-fg-4: #a4a6b2; /* disabled, marker glyphs only (never text) */
+  --vx-brand: #5b52f0;
+  --vx-brand-hover: #4f46e5;
+  --vx-brand-line: #5b52f0;
+  --vx-brand-fg: #463dd6;
+  --vx-brand-tint: rgb(91 82 240 / 0.1);
+  --vx-ok: #1e8a5a;
+  --vx-warn: #b07a12;
+  --vx-bad: #c03a32;
+  --vx-echo: #1f9bb0;
+  --vx-shadow-pop:
+    0 0 0 1px rgb(20 22 40 / 0.06), 0 2px 6px -1px rgb(20 22 40 / 0.08),
+    0 16px 36px -10px rgb(20 22 40 / 0.18);
+  /* Dialog backdrop, no blur. Same value in both themes: portalled overlays sit outside
+     the .cinematic wrapper and read this one. */
+  --vx-overlay: rgb(0 0 0 / 0.55);
 
   /* Warm off-white background, charcoal text */
   --background: oklch(0.97 0.007 88.6);
@@ -196,8 +330,6 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-
-  --gradient-brand: linear-gradient(135deg, oklch(0.513 0.229 277.5), oklch(0.649 0.093 210.1));
 
   --sidebar: oklch(0.176 0.014 258.4);
   --sidebar-foreground: oklch(0.85 0.008 106.5);
@@ -281,22 +413,10 @@
   }
 }
 
-@layer utilities {
-  .bg-gradient-brand {
-    background-image: var(--gradient-brand);
-  }
-  .text-gradient-brand {
-    background-image: var(--gradient-brand);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-}
-
 /*
- * Cinematic homepage surface — Midnight Indigo.
- * #0a0a1a ink, #141432 surfaces, #1e1e5a depth, #4f46e5 electric indigo.
- * Scoped token overrides so only the redesigned homepage opts in.
+ * Night surface (.cinematic): the homepage, /scan and the pages in SiteLayout (services,
+ * portfolio, contact, legal) opt in; the client area and the auth forms stay on the
+ * light theme above. Portalled dialogs, sheets and menus add the class themselves.
  */
 .cinematic {
   --background: oklch(0.09 0.025 286);
@@ -330,7 +450,36 @@
   --input: oklch(1 0 0 / 13%);
   --ring: oklch(0.585 0.225 282);
 
-  --gradient-brand: linear-gradient(135deg, oklch(0.585 0.225 282), oklch(0.72 0.14 250));
+  /* ---------- Vortex UI refresh tokens (2026-10) ---------- */
+  /* Surfaces are solid: the ASCII backdrop must never show through data. */
+  --vx-s1: #0a0b16; /* panels */
+  --vx-s2: #0f111c; /* menus, dialogs, sheets */
+  --vx-s3: #161826; /* pressed */
+  --vx-fill-1: rgb(255 255 255 / 0.03); /* inputs, quiet fills */
+  --vx-fill-2: rgb(255 255 255 / 0.055); /* hover rows, active search row */
+  --vx-fill-3: rgb(255 255 255 / 0.09); /* selected segment, pressed chip, count */
+  --vx-line-1: rgb(255 255 255 / 0.07); /* hairlines inside panels, table rows */
+  --vx-line-2: rgb(255 255 255 / 0.1); /* panel and popover edges */
+  --vx-line-3: rgb(255 255 255 / 0.16); /* control edges, outline tags */
+  --vx-rule: rgb(255 255 255 / 0.34); /* section rules, table heads, total rows */
+  --vx-fg: #ececf1; /* primary text */
+  --vx-fg-2: #a7a9b9; /* secondary text, bullets */
+  --vx-fg-3: #7d8095; /* labels, notes, ticks (5.0:1 on s1) */
+  --vx-fg-4: #4f5265; /* disabled, marker glyphs only (never text) */
+  --vx-brand: #5b52f0; /* fills: primary button, checkbox */
+  --vx-brand-hover: #6961f5;
+  --vx-brand-line: #8079ff; /* chart series, focus ring, start bar */
+  --vx-brand-fg: #aaa5ff; /* brand as text */
+  --vx-brand-tint: rgb(91 82 240 / 0.14); /* "Începem aici", break-even table row */
+  --vx-ok: #45c08a;
+  --vx-warn: #d9a346;
+  --vx-bad: #e5675f;
+  --vx-echo: #67e8f9; /* = the hero underline segment in VortexSearch.module.css */
+  --vx-shadow-pop:
+    0 0 0 1px rgb(0 0 0 / 0.35), 0 2px 6px -1px rgb(0 0 0 / 0.45),
+    0 16px 36px -10px rgb(0 0 0 / 0.7); /* menus, dialogs: the only shadow */
+  --vx-overlay: rgb(0 0 0 / 0.55); /* dialog backdrop, no blur */
+  --hero-lilac: #c4b5fd; /* hero only, see --color-hero-lilac */
 
   color-scheme: dark;
 }
@@ -344,230 +493,27 @@
   }
 }
 
-@layer utilities {
-  /* Soft layered glow ring for highlighted surfaces */
-  .glow-soft {
-    box-shadow:
-      0 0 0 1px oklch(1 0 0 / 5%),
-      0 30px 80px -34px oklch(0.585 0.225 282 / 58%);
-  }
-  .glow-teal {
-    box-shadow:
-      0 0 0 1px oklch(1 0 0 / 5%),
-      0 30px 80px -34px oklch(0.8 0.11 228 / 42%);
-  }
-  /* Frosted glass panel for the cinematic surface */
-  .glass-panel {
-    background-color: oklch(1 0 0 / 3.5%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-  }
-  /* Deeper bento surface — used for the large redesigned tiles */
-  .bento-panel {
-    background: linear-gradient(
-      160deg,
-      oklch(1 0 0 / 7%) 0%,
-      oklch(1 0 0 / 2.5%) 40%,
-      oklch(1 0 0 / 1%) 100%
-    );
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid oklch(1 0 0 / 8%);
-    box-shadow:
-      inset 0 1px 0 0 oklch(1 0 0 / 8%),
-      0 40px 90px -50px oklch(0 0 0 / 80%);
-  }
-  /* Slow drifting aurora gradient backdrop */
-  .bg-aurora {
-    background:
-      radial-gradient(40% 50% at 20% 20%, oklch(0.53 0.245 278 / 34%), transparent 70%),
-      radial-gradient(45% 55% at 80% 30%, oklch(0.75 0.13 250 / 20%), transparent 70%),
-      radial-gradient(50% 60% at 50% 90%, oklch(0.3 0.16 288 / 34%), transparent 75%);
-    background-size: 200% 200%;
-    animation: aurora-drift 22s ease-in-out infinite;
-  }
-  .animate-glow-pulse {
-    animation: glow-pulse 6s ease-in-out infinite;
-  }
-  .animate-float-slow {
-    animation: float-slow 9s ease-in-out infinite;
-  }
-  .animate-spin-slow {
-    animation: ti-orbit 34s linear infinite;
-  }
-
-  /* One continuous vertical gradient so sections flow into each other */
-  .cinematic-flow {
-    background: linear-gradient(
-      180deg,
-      oklch(0.1 0.028 286) 0%,
-      oklch(0.145 0.055 285) 16%,
-      oklch(0.13 0.05 275) 32%,
-      oklch(0.115 0.035 288) 46%,
-      oklch(0.16 0.07 283) 60%,
-      oklch(0.13 0.05 262) 74%,
-      oklch(0.11 0.032 286) 88%,
-      oklch(0.085 0.026 286) 100%
-    );
-  }
-
-  /* Soft floating glow orb that bridges section boundaries */
-  .flow-orb {
-    position: absolute;
-    border-radius: 9999px;
-    filter: blur(90px);
-    opacity: 0.45;
-    pointer-events: none;
-  }
-  .flow-orb-indigo {
-    background: radial-gradient(circle, oklch(0.53 0.245 278 / 60%), transparent 70%);
-  }
-  .flow-orb-teal {
-    background: radial-gradient(circle, oklch(0.75 0.13 250 / 45%), transparent 70%);
-  }
-
-  /* ---- Animated trust icons ---- */
-  /* Shared: make SVG group transforms pivot from their own center */
-  .ti-pivot {
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-  .ti-aura {
-    animation: ti-aura-pulse 4.4s ease-in-out infinite;
-  }
-  .ti-float {
-    animation: ti-float 5.2s ease-in-out infinite;
-  }
-  .ti-breathe {
-    animation: ti-breathe 6s ease-in-out infinite;
-  }
-  .ti-orbit {
-    animation: ti-orbit 7s linear infinite;
-  }
-  .ti-twinkle {
-    animation: ti-twinkle 3.2s ease-in-out infinite;
-  }
-  .ti-spark {
-    animation: ti-spark 3.6s ease-in-out infinite;
-  }
-  .ti-draw {
-    stroke-dasharray: 28;
-    animation: ti-draw 4.8s ease-in-out infinite;
-  }
-  .ti-sweep {
-    animation: ti-sweep 5.5s ease-in-out infinite;
-  }
-
-  /* Fades the hero canvas out at every edge so the scene has no visible box */
-  .hero-mask {
-    mask-image: radial-gradient(
-      70% 62% at 50% 46%,
-      oklch(0 0 0) 0%,
-      oklch(0 0 0 / 65%) 58%,
-      transparent 100%
-    );
-    -webkit-mask-image: radial-gradient(
-      70% 62% at 50% 46%,
-      oklch(0 0 0) 0%,
-      oklch(0 0 0 / 65%) 58%,
-      transparent 100%
-    );
-  }
-
-  /* Display type for the split hero statement */
-  .text-hero-split {
-    font-size: clamp(2.8rem, 6vw, 5.8rem);
-    line-height: 0.94;
-    letter-spacing: 0;
-  }
-
-  .animate-marquee {
-    animation: marquee 34s linear infinite;
-  }
-
-  .animate-scroll-cue {
-    animation: scroll-cue 2.2s ease-in-out infinite;
-  }
-
-  /* Travelling light sweep across short text */
-  .shiny-text {
-    background-image: linear-gradient(
-      110deg,
-      oklch(1 0 0 / 55%) 20%,
-      oklch(1 0 0 / 100%) 42%,
-      oklch(1 0 0 / 55%) 62%
-    );
-    background-size: 220% auto;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: shine 4s linear infinite;
-  }
-
-  /* Brand gradient that slowly travels through the glyphs */
-  .gradient-travel {
-    background-size: 240% auto;
-    animation: shine 7s ease-in-out infinite;
-  }
-}
-
 /*
- * Landing homepage (portfolio-template layout, Vortex brand).
- * Accent gradient = the brand gradient (violet → cold blue); used on the logo ring,
- * hover border rings and the intro progress bar.
+ * Hero-only effects (the hero stays as built; nothing below the hero uses these).
+ * - hero-heading-accent: the emphasised word of the hero title, a static soft lavender.
+ *   Not text-* on purpose, so tailwind-merge never drops it as a text colour.
+ * - hero-icon-halo: a tight dark halo that keeps the pillar icons legible on the vortex.
+ * - hero-indicator-glow: the active pillar's underline.
  */
 @layer utilities {
-  .accent-gradient {
-    background-image: var(--gradient-brand);
-  }
-  /* Travelling gradient for animated borders (logo ring, hover rings, labels) */
-  .accent-gradient-animated {
-    background-image: linear-gradient(
-      90deg,
-      oklch(0.585 0.225 282),
-      oklch(0.72 0.14 250),
-      oklch(0.585 0.225 282)
-    );
-    background-size: 200% 200%;
-    animation: gradient-shift 6s ease infinite;
-  }
-  .animate-gradient-shift {
-    background-size: 200% 200%;
-    animation: gradient-shift 6s ease infinite;
-  }
-  .animate-gradient-shift-reverse {
-    background-size: 200% 200%;
-    animation: gradient-shift 6s ease infinite reverse;
-  }
-  .animate-role-fade-in {
-    animation: role-fade-in 0.4s ease-out both;
-  }
-  .animate-marquee-x {
-    animation: marquee 40s linear infinite;
-  }
-  /* 4×4px halftone dot screen laid over imagery */
-  .halftone {
-    background-image: radial-gradient(circle, #000 1px, transparent 1px);
-    background-size: 4px 4px;
-  }
-  .animate-pulse-dot {
-    animation: pulse-dot 2s ease-in-out infinite;
-  }
-}
-
-/*
- * The one accent for an emphasised word in a heading (hero title, section
- * headings, /scan step titles): a static soft lavender, violet-300 → violet-200.
- * Not text-* on purpose, so tailwind-merge never drops it as a text colour.
- */
-@layer utilities {
-  .heading-accent {
+  .hero-heading-accent {
     background-image: linear-gradient(90deg, #a996fb, #b4a6fc 50%, #c4b8fd);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
     color: transparent;
+  }
+  .hero-icon-halo {
+    filter: drop-shadow(0 0 6px rgb(0 2 15 / 0.95));
+  }
+  .hero-indicator-glow {
+    box-shadow: 0 0 10px 1px rgb(139 124 246 / 0.55);
   }
 }
 
@@ -602,209 +548,11 @@ html[data-motion="paused"] *::after {
   }
 }
 
-@keyframes role-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-@keyframes pulse-dot {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.45;
-    transform: scale(0.8);
-  }
-}
-
 @keyframes intro-failsafe {
   to {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-  }
-}
-
-@keyframes shine {
-  from {
-    background-position: 200% center;
-  }
-  to {
-    background-position: -100% center;
-  }
-}
-
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@keyframes scroll-cue {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.35;
-  }
-  50% {
-    transform: translateY(7px);
-    opacity: 1;
-  }
-}
-
-@keyframes ti-aura-pulse {
-  0%,
-  100% {
-    opacity: 0.25;
-    transform: scale(0.92);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(1.08);
-  }
-}
-
-@keyframes ti-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-1.4px);
-  }
-}
-
-@keyframes ti-breathe {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 1;
-  }
-}
-
-@keyframes ti-orbit {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes ti-twinkle {
-  0%,
-  100% {
-    opacity: 0.2;
-    transform: scale(0.7);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-}
-
-@keyframes ti-spark {
-  0% {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  35% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-}
-
-@keyframes ti-draw {
-  0% {
-    stroke-dashoffset: 28;
-  }
-  45%,
-  100% {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes ti-sweep {
-  0% {
-    transform: rotate(-12deg);
-    opacity: 0.4;
-  }
-  50% {
-    transform: rotate(12deg);
-    opacity: 1;
-  }
-  100% {
-    transform: rotate(-12deg);
-    opacity: 0.4;
-  }
-}
-
-@keyframes aurora-drift {
-  0%,
-  100% {
-    background-position:
-      0% 0%,
-      100% 0%,
-      50% 100%;
-  }
-  50% {
-    background-position:
-      30% 40%,
-      60% 30%,
-      40% 60%;
-  }
-}
-
-@keyframes glow-pulse {
-  0%,
-  100% {
-    opacity: 0.45;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.85;
-    transform: scale(1.08);
-  }
-}
-
-@keyframes float-slow {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-12px);
   }
 }
 

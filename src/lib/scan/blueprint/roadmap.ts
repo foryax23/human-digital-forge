@@ -7,66 +7,58 @@ import type {
   WebsiteAudit,
 } from "@/lib/scan/types";
 
-import { lcFirst } from "./format";
-import { bi, type PhaseKey } from "./model";
+import { addEstimates, centred, joinList, lcFirst, midOf, ucFirst } from "./format";
+import { bi, type PhaseKey, type StrategyKey } from "./model";
 import { getTemplate } from "./playbooks";
-import { newSiteItem } from "./strategies";
+import { PAIR_TITLES, SHORT_NAMES } from "./short-names";
 import type { BusinessTypeDef } from "./taxonomy";
+import { websiteWork, type WebsiteWorkItem } from "./website-work";
 
 /*
- * The month-by-month plan: Foundation (m1) → Automation (m2–3) → AI assistant
- * (m3–4) → Growth (m4–6). Items come from the website findings and the
- * opportunities; empty phases are left out.
+ * The month-by-month plan: website (m1, or m1–2 with bigger site work) →
+ * automations (m2–3) → assistant (m3–4) → growth (m4–6). Each automation sits
+ * in the phase of its strategy, so a strategy card, its Gantt row and its
+ * phase row describe the same work; all the website work comes from
+ * website-work.ts, with its price, in the first phase. Empty phases are left
+ * out.
  */
 
-const PHASES: Record<
-  PhaseKey,
-  Pick<RoadmapPhase, "startMonth" | "endMonth" | "stage" | "title" | "tag">
-> = {
-  foundation: {
-    startMonth: 1,
-    endMonth: 1,
-    stage: bi("Foundation", "Bazele"),
-    title: bi("Set up the core systems", "Pune la punct sistemele de bază"),
-    tag: "essential",
-  },
+const PHASES: Record<PhaseKey, Pick<RoadmapPhase, "startMonth" | "endMonth" | "stage" | "tag">> = {
+  foundation: { startMonth: 1, endMonth: 1, stage: bi("Foundation", "Bazele"), tag: "essential" },
   automation: {
     startMonth: 2,
     endMonth: 3,
     stage: bi("Automation", "Automatizare"),
-    title: bi("Automate daily operations", "Automatizează activitatea zilnică"),
     tag: "high-impact",
   },
   assistant: {
     startMonth: 3,
     endMonth: 4,
     stage: bi("AI assistant", "Asistent AI"),
-    title: bi("Launch your AI assistant", "Lansează asistentul AI"),
     tag: "high-impact",
   },
-  growth: {
-    startMonth: 4,
-    endMonth: 6,
-    stage: bi("Growth", "Creștere"),
-    title: bi("Grow and optimise", "Dezvoltă și optimizează"),
-    tag: "growth",
-  },
+  growth: { startMonth: 4, endMonth: 6, stage: bi("Growth", "Creștere"), tag: "growth" },
 };
 
-const ORDER: PhaseKey[] = ["foundation", "automation", "assistant", "growth"];
+export const PHASE_ORDER: PhaseKey[] = ["foundation", "automation", "assistant", "growth"];
 
-/** Words in a finding id → the opportunity that fixes it. */
-const SOLVED_BY: Record<string, string> = {
-  booking: "online-booking",
-  "live-chat": "ai-assistant",
-  chat: "ai-assistant",
-  review: "review-requests",
-  cart: "abandoned-cart",
+/** The phase that delivers each strategy's automations. */
+export const PHASE_OF_STRATEGY: Record<StrategyKey, PhaseKey> = {
+  automate: "automation",
+  assist: "assistant",
+  acquire: "growth",
 };
+
 const MAX_ITEMS = 6;
 
 export function phaseOf(opportunityId: string): PhaseKey {
-  return getTemplate(opportunityId)?.phase ?? "automation";
+  const template = getTemplate(opportunityId);
+  return template?.phase ?? PHASE_OF_STRATEGY[template?.strategy ?? "automate"];
+}
+
+/** Default month span of a phase (used when the plan has no such phase). */
+export function phaseMonths(key: PhaseKey): [number, number] {
+  return [PHASES[key].startMonth, PHASES[key].endMonth];
 }
 
 export function buildRoadmap(args: {
@@ -77,59 +69,32 @@ export function buildRoadmap(args: {
   presence?: OnlinePresence;
   hasWebsite: boolean;
 }): RoadmapPhase[] {
-  const { audit, presence } = args;
+  const work = websiteWork({
+    type: args.type,
+    websiteActions: args.websiteActions,
+    audit: args.audit,
+    presence: args.presence,
+    hasWebsite: args.hasWebsite,
+    opportunityIds: args.opportunities.map((o) => o.id),
+  });
+  const opps: Record<PhaseKey, AutomationOpportunity[]> = {
+    foundation: [],
+    automation: [],
+    assistant: [],
+    growth: [],
+  };
+  for (const o of args.opportunities) opps[phaseOf(o.id)].push(o);
+
   const items: Record<PhaseKey, Bilingual[]> = {
     foundation: [],
     automation: [],
     assistant: [],
     growth: [],
   };
-  const ids: Record<PhaseKey, string[]> = {
-    foundation: [],
-    automation: [],
-    assistant: [],
-    growth: [],
-  };
-
-  // Foundation: get the website and the basics right first.
-  const noSite = !args.hasWebsite || Boolean(audit && !audit.reachable);
-  if (noSite) items.foundation.push(newSiteItem(args.type, Boolean(audit && !audit.reachable)));
-  // Findings an opportunity already solves (e.g. "no online booking") aren't repeated.
-  const selected = new Set(args.opportunities.map((o) => o.id));
-  const actions = args.websiteActions.filter(
-    (f) => !Object.entries(SOLVED_BY).some(([word, id]) => f.id.includes(word) && selected.has(id)),
-  );
-  const quick = actions.filter((f) => f.effort === "quick");
-  const bigger = actions.filter((f) => f.effort !== "quick");
-  for (const finding of quick.slice(0, 3)) items.foundation.push(fixItem(finding));
-  if (
-    audit?.reachable &&
-    !audit.signals.hasAnalytics &&
-    !args.websiteActions.some((f) => /analytics|tracking/.test(f.id))
-  ) {
-    items.foundation.push(
-      bi(
-        "Analytics and conversion tracking, with cookie consent",
-        "Statistici de trafic și măsurarea conversiilor, cu acord pentru cookie-uri",
-      ),
-    );
-  }
-  if (presence?.profiles.find((p) => p.platform === "google-business")?.status === "missing") {
-    items.foundation.push(
-      bi(
-        "Claim and complete your Google Business Profile",
-        "Revendică și completează profilul Google Business",
-      ),
-    );
-  }
-
-  for (const o of args.opportunities) {
-    const phase = phaseOf(o.id);
-    items[phase].push(o.title);
-    ids[phase].push(o.id);
-  }
-
-  if (ids.assistant.length) {
+  // The website work first (quick items, then the bigger ones), then what each phase builds.
+  for (const w of work) items[w.phase].push(w.item);
+  for (const key of PHASE_ORDER) items[key].push(...opps[key].map((o) => o.title));
+  if (opps.assistant.length) {
     items.assistant.push(
       bi(
         "Your FAQ, prices and tone of voice prepared for the assistant",
@@ -142,38 +107,84 @@ export function buildRoadmap(args: {
     );
   }
 
-  // Growth: the bigger website work and steady optimisation.
-  for (const finding of bigger.slice(0, 2)) items.growth.push(fixItem(finding));
-  if (audit?.reachable && audit.scores.seo < 70) {
-    items.growth.push(
-      bi(
-        "Local SEO: Google profile, reviews and service pages",
-        "SEO local: profil Google, recenzii și pagini de servicii",
-      ),
-    );
-  }
-
-  if (!items.foundation.length) {
-    items.foundation.push(
-      bi(
-        "Kick-off: goals, access and data check",
-        "Ședința de start: obiective, accese și verificarea datelor",
-      ),
-    );
-  }
-
-  return ORDER.filter((key) => items[key].length > 0).map((key) => ({
-    ...PHASES[key],
-    stage: { ...PHASES[key].stage },
-    title: { ...PHASES[key].title },
-    items: dedupe(items[key]).slice(0, MAX_ITEMS),
-    opportunityIds: ids[key],
-  }));
+  return PHASE_ORDER.filter((key) => items[key].length > 0).map((key) => {
+    const phaseWork = work.filter((w) => w.phase === key);
+    const phase: RoadmapPhase = {
+      key,
+      ...PHASES[key],
+      // Bigger website work runs on into month 2.
+      ...(phaseWork.some((w) => w.later) ? { endMonth: 2 } : {}),
+      stage: { ...PHASES[key].stage },
+      title: phaseTitle(key, opps[key], phaseWork),
+      items: dedupe(items[key]).slice(0, MAX_ITEMS),
+      opportunityIds: opps[key].map((o) => o.id),
+    };
+    if (phaseWork.length)
+      phase.websiteCostRon = addEstimates(phaseWork.map((w) => centred(w.cost)));
+    return phase;
+  });
 }
 
-/** A finding as a to-do: "Fix: slow first screen on mobile". */
-function fixItem(finding: AuditFinding): Bilingual {
-  return bi(`Fix: ${lcFirst(finding.title.en)}`, `De rezolvat: ${lcFirst(finding.title.ro)}`);
+/**
+ * The phase's one name, built from its work: the two automations that win the
+ * most hours ("Recenzii și evidența solicitărilor"), or what the website work
+ * is ("Site nou și profil Google").
+ */
+export function phaseTitle(
+  key: PhaseKey,
+  opportunities: AutomationOpportunity[],
+  work: WebsiteWorkItem[],
+): Bilingual {
+  if (opportunities.length) {
+    const top = [...opportunities]
+      .sort((a, b) => midOf(b.hoursSavedPerMonth) - midOf(a.hoursSavedPerMonth))
+      .slice(0, 2);
+    const pair =
+      top.length === 2 &&
+      PAIR_TITLES.find(({ ids }) => ids.includes(top[0].id) && ids.includes(top[1].id));
+    if (pair) return { ...pair.title };
+    const names = top.map((o) => SHORT_NAMES[o.id] ?? bi(lcFirst(o.title.en), lcFirst(o.title.ro)));
+    return bi(
+      ucFirst(
+        joinList(
+          names.map((n) => n.en),
+          "en",
+        ),
+      ),
+      ucFirst(
+        joinList(
+          names.map((n) => n.ro),
+          "ro",
+        ),
+      ),
+    );
+  }
+
+  const has = (kind: WebsiteWorkItem["kind"]) => work.some((w) => w.kind === kind);
+  const google = has("google-profile");
+  if (key === "foundation") {
+    if (has("new-site"))
+      return google
+        ? bi("New website and Google profile", "Site nou și profil Google")
+        : bi("New website", "Site nou");
+    if (has("rebuild"))
+      return google
+        ? bi("Website back online and Google profile", "Site repus online și profil Google")
+        : bi("Website back online", "Site repus online");
+    if (has("local-seo"))
+      return has("fix") || has("measurement")
+        ? bi("Website fixes and Google visibility", "Remedieri pe site și vizibilitate în Google")
+        : bi("Google visibility", "Vizibilitate în Google");
+    if (has("fix") || has("measurement"))
+      return google
+        ? bi("Website fixes and Google profile", "Remedieri pe site și profil Google")
+        : bi("Website fixes", "Remedieri pe site");
+    if (google) return bi("Google profile", "Profil Google");
+    return bi("Kick-off", "Ședința de start");
+  }
+  // Stored plans from before all website work moved to the first phase.
+  if (has("local-seo")) return bi("Google visibility", "Vizibilitate în Google");
+  return bi("Website improvements", "Îmbunătățiri pe site");
 }
 
 function dedupe(list: Bilingual[]): Bilingual[] {

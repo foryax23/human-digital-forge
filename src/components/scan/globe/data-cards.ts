@@ -1,4 +1,5 @@
 import type { ScanState } from "@/components/scan/scan-state";
+import { withCommaBelow } from "@/lib/scan/localize";
 import type { Lang, PresencePlatform, ScanStepId } from "@/lib/scan/types";
 
 /** The floating data-source cards around the globe, in their orbit order. */
@@ -14,9 +15,9 @@ export type DataCard = {
   id: DataCardId;
   label: string;
   value: string;
+  /** One plain line under the value (names as a comma list, counts). */
   detail?: string;
-  chips?: string[];
-  /** Nothing found (e.g. no website): shown dimmer. */
+  /** Nothing found (e.g. no website): an amber square instead of a green one. */
   muted?: boolean;
 };
 
@@ -65,7 +66,7 @@ export function buildDataCards(state: ScanState, t: T, lang: Lang): DataCard[] {
         id: "website",
         label: t("Website", "Site"),
         value: audit.host,
-        detail: audit.https ? `${pages} · HTTPS` : pages,
+        detail: audit.https ? `${pages}, HTTPS` : pages,
       });
     } else {
       cards.push({
@@ -95,19 +96,19 @@ export function buildDataCards(state: ScanState, t: T, lang: Lang): DataCard[] {
             ["profiles found", "profiluri găsite"],
           )
         : t("No profiles linked", "Niciun profil pe site"),
-      chips: social.map((profile) => SOCIAL[profile.platform] as string),
+      detail: social.map((profile) => SOCIAL[profile.platform] as string).join(", ") || undefined,
       muted: social.length === 0,
     });
   }
 
   if (company) {
     const activity = company.caenLabel?.[lang] ?? (company.caen ? `CAEN ${company.caen}` : "");
-    const place = company.city ?? company.county;
+    const place = withCommaBelow(company.city ?? company.county);
     cards.push({
       id: "business",
       label: t("Business info", "Date despre firmă"),
-      value: place ?? company.displayName,
-      detail: activity || (place ? company.displayName : undefined),
+      value: place ?? withCommaBelow(company.displayName),
+      detail: activity || (place ? withCommaBelow(company.displayName) : undefined),
     });
   }
 
@@ -118,14 +119,13 @@ export function buildDataCards(state: ScanState, t: T, lang: Lang): DataCard[] {
     cards.push({
       id: "technology",
       label: t("Tech stack", "Tehnologii"),
-      value: names[0],
+      value: names.slice(0, 3).join(", "),
       detail: count(
         names.length,
         lang,
         ["technology detected", "tehnologie detectată"],
         ["technologies detected", "tehnologii detectate"],
       ),
-      chips: names.slice(1, 3),
     });
   }
 
@@ -136,10 +136,10 @@ export function buildDataCards(state: ScanState, t: T, lang: Lang): DataCard[] {
       cards.push({
         id: "reviews",
         label: t("Reviews", "Recenzii"),
-        value: `${rating.rating.toLocaleString(lang === "ro" ? "ro-RO" : "en-GB", {
-          minimumFractionDigits: 1,
-          maximumFractionDigits: 1,
-        })} ★`,
+        value: t(
+          `Rating ${rating.rating.toLocaleString("en-GB", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`,
+          `Nota ${rating.rating.toLocaleString("ro-RO", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`,
+        ),
         detail: count(
           rating.reviews,
           lang,
@@ -160,8 +160,15 @@ export function buildDataCards(state: ScanState, t: T, lang: Lang): DataCard[] {
     cards.push({
       id: "competitors",
       label: t("Competitors", "Concurență"),
-      value: competitors.length.toLocaleString(lang === "ro" ? "ro-RO" : "en-GB"),
-      detail: t("similar businesses nearby", "afaceri similare în zonă"),
+      value: count(
+        competitors.length,
+        lang,
+        ["similar business", "firmă asemănătoare"],
+        ["similar businesses", "firme asemănătoare"],
+      ),
+      detail: company?.city
+        ? t(`in ${withCommaBelow(company.city)}`, `în ${withCommaBelow(company.city)}`)
+        : undefined,
     });
   }
 

@@ -2,17 +2,37 @@ import type {
   AuditFinding,
   AutomationOpportunity,
   Bilingual,
+  Estimate,
   OnlinePresence,
   Range,
+  StartReason,
   StrategyOption,
   WebsiteAudit,
 } from "@/lib/scan/types";
 
 import { PRICE_BOOK } from "./economics";
-import { addRanges, formatRange, lcFirst, mapRange, midpoint, roundHours } from "./format";
+import {
+  addEstimates,
+  addRanges,
+  centred,
+  formatRange,
+  joinList,
+  lcFirst,
+  mapRange,
+  midOf,
+  midpoint,
+  roDefinite,
+  roundHours,
+  shareWords,
+  ucFirst,
+} from "./format";
 import { bi, clamp, type Playbook, type StrategyKey } from "./model";
 import { getTemplate } from "./playbooks";
+import { SHORT_NAMES } from "./short-names";
 import type { BusinessTypeDef } from "./taxonomy";
+import { newSiteItem, noWorkingSite, websiteWork } from "./website-work";
+
+export { newSiteItem };
 
 /*
  * The three directions offered after the analysis: win more customers,
@@ -32,22 +52,50 @@ function investmentLevel(range: Range): 1 | 2 | 3 {
 
 const SEVERITY_RANK = { critical: 0, high: 1, medium: 2, low: 3 } as const;
 
+const EFFORT_RANK = { quick: 0, medium: 1, project: 2 } as const;
+
+/**
+ * The one order of the findings, on the scan, in the plan and in the PDF: most severe
+ * first, then the quickest, then by id (stable).
+ */
+export function compareFindings(a: AuditFinding, b: AuditFinding): number {
+  return (
+    SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
+    EFFORT_RANK[a.effort] - EFFORT_RANK[b.effort] ||
+    a.id.localeCompare(b.id)
+  );
+}
+
 /** Findings worth doing first: most severe, then quickest. */
 export function pickWebsiteActions(audit: WebsiteAudit | undefined, max = 6): AuditFinding[] {
   if (!audit) return [];
-  const effortRank = { quick: 0, medium: 1, project: 2 } as const;
   return [...audit.findings]
-    .sort(
-      (a, b) =>
-        SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
-        effortRank[a.effort] - effortRank[b.effort] ||
-        a.id.localeCompare(b.id),
-    )
+    .sort(compareFindings)
     .filter((finding) => finding.severity !== "low" || audit.findings.length <= max)
     .slice(0, max);
 }
 
-export type GrowthGap = { label: Bilingual; uplift: Range };
+/**
+ * A gap between this business and a site that turns visits into enquiries, with
+ * the fix that closes it (one strategy-card line per measured gap). `measured` is
+ * false for gaps the plan itself implies (no review requests), which never count in
+ * "4 lucruri care te fac să pierzi pacienți".
+ */
+export type GrowthGap = {
+  id:
+    | "no-site"
+    | "slow"
+    | "booking"
+    | "contact"
+    | "chat"
+    | "google-search"
+    | "google-profile"
+    | "reviews";
+  label: Bilingual;
+  fix: Bilingual;
+  uplift: Range;
+  measured: boolean;
+};
 
 /** Gaps between this business and a site that turns visits into enquiries. */
 export function growthGaps(args: {
@@ -61,8 +109,11 @@ export function growthGaps(args: {
   const gaps: GrowthGap[] = [];
   if (!args.hasWebsite || (audit && !audit.reachable)) {
     gaps.push({
+      id: "no-site",
       label: bi("no working website yet", "încă nu există un site funcțional"),
+      fix: bi("A working website", "Un site care funcționează"),
       uplift: { low: 10, high: 25 },
+      measured: true,
     });
     return gaps;
   }
@@ -72,41 +123,65 @@ export function growthGaps(args: {
   const lcp = audit.pagespeed?.lcpMs;
   if ((performance !== undefined && performance < 50) || (lcp !== undefined && lcp > 4000)) {
     gaps.push({
+      id: "slow",
       label: bi("slow mobile pages", "pagini lente pe mobil"),
+      fix: bi("Faster mobile pages", "Pagini mai rapide pe mobil"),
       uplift: { low: 3, high: 7 },
+      measured: true,
     });
   }
   if (type.bookings && !s.hasOnlineBooking) {
     gaps.push({
+      id: "booking",
       label: bi("no online booking", "fără programare online"),
+      fix: bi("Online booking around the clock", "Programare online non-stop"),
       uplift: { low: 4, high: 8 },
+      measured: true,
     });
   }
   if (!s.hasContactForm && !s.hasWhatsApp) {
     gaps.push({
+      id: "contact",
       label: bi("no contact form or WhatsApp", "fără formular de contact sau WhatsApp"),
+      fix: bi("A short form and a WhatsApp button", "Un formular scurt și un buton de WhatsApp"),
       uplift: { low: 3, high: 6 },
+      measured: true,
     });
   } else if (!s.hasWhatsApp && !s.hasLiveChat) {
     gaps.push({
-      label: bi("no quick chat option", "fără chat rapid"),
+      id: "chat",
+      label: bi("no quick chat", "fără chat rapid"),
+      fix: bi("Quick chat on WhatsApp", "Chat rapid pe WhatsApp"),
       uplift: { low: 2, high: 4 },
+      measured: true,
     });
   }
   if (audit.scores.seo < 70 || !s.hasStructuredData) {
-    gaps.push({ label: bi("weak local SEO", "SEO local slab"), uplift: { low: 2, high: 5 } });
+    gaps.push({
+      id: "google-search",
+      label: bi("hard to find on Google nearby", "greu de găsit în Google, în zona ta"),
+      fix: bi("Easier to find on Google and Maps", "Mai ușor de găsit în Google și pe hartă"),
+      uplift: { low: 2, high: 5 },
+      measured: true,
+    });
   }
   const google = presence?.profiles.find((p) => p.platform === "google-business");
   if (google?.status === "missing") {
     gaps.push({
+      id: "google-profile",
       label: bi("no Google Business Profile found", "fără profil Google Business"),
+      fix: bi("A complete Google Business Profile", "Un profil Google Business complet"),
       uplift: { low: 3, high: 6 },
+      measured: true,
     });
   }
   if (type.consumer && args.opportunityIds.includes("review-requests")) {
     gaps.push({
+      id: "reviews",
       label: bi("no automatic review requests", "fără cereri automate de recenzii"),
+      fix: bi("Automatic review requests", "Cereri automate de recenzii"),
       uplift: { low: 2, high: 5 },
+      measured: false,
     });
   }
   return gaps;
@@ -123,15 +198,17 @@ type BuildArgs = {
   websiteHealth: number;
 };
 
-function websiteInvestment(args: BuildArgs): Range {
-  const parts: Range[] = args.websiteActions.map(
-    (finding) => PRICE_BOOK.websiteFix[finding.effort],
-  );
-  if (!args.hasWebsite || (args.audit && !args.audit.reachable)) parts.push(PRICE_BOOK.newWebsite);
-  const google = args.presence?.profiles.find((p) => p.platform === "google-business");
-  if (google?.status === "missing") parts.push(PRICE_BOOK.googleProfile);
-  if (args.audit?.reachable && !args.audit.signals.hasAnalytics) parts.push(PRICE_BOOK.measurement);
-  return addRanges(parts);
+/** The website work in the plan (same items and prices as the roadmap). */
+function websiteInvestment(args: BuildArgs): Estimate {
+  const work = websiteWork({
+    type: args.type,
+    websiteActions: args.websiteActions,
+    audit: args.audit,
+    presence: args.presence,
+    hasWebsite: args.hasWebsite,
+    opportunityIds: args.opportunities.map((o) => o.id),
+  });
+  return addEstimates(work.map((w) => centred(w.cost)));
 }
 
 function group(opportunities: AutomationOpportunity[], key: StrategyKey) {
@@ -144,7 +221,7 @@ const COMPLEXITY = ["low", "medium", "high"] as const;
 export function buildStrategies(args: BuildArgs): StrategyOption[] {
   const { type, playbook, opportunities } = args;
   const customers = type.customers;
-  const noSite = !args.hasWebsite || Boolean(args.audit && !args.audit.reachable);
+  const noSite = noWorkingSite(args.hasWebsite, args.audit);
 
   /* acquire */
   const acquireOpps = group(opportunities, "acquire");
@@ -159,27 +236,22 @@ export function buildStrategies(args: BuildArgs): StrategyOption[] {
   const uplift = gaps.length
     ? { low: clamp(upliftSum.low, 2, 15), high: clamp(upliftSum.high, 5, 30) }
     : { low: 2, high: 5 };
+  // One line per measured gap, in the same order as the count on the card, so "4 lucruri"
+  // sits over four lines; then what the strategy's automations add.
   const acquireTactics: Bilingual[] = [];
   if (noSite) acquireTactics.push(newSiteItem(type, Boolean(args.audit && !args.audit.reachable)));
-  for (const gap of gaps) {
-    if (gap.label.en === "slow mobile pages")
-      acquireTactics.push(bi("Faster mobile pages", "Pagini mai rapide pe mobil"));
-    if (gap.label.en === "no online booking")
-      acquireTactics.push(bi("Online booking around the clock", "Programare online non-stop"));
-    if (gap.label.en === "weak local SEO")
-      acquireTactics.push(bi("Local SEO and Google profile", "SEO local și profil Google"));
-    if (gap.label.en.startsWith("no contact") || gap.label.en === "no quick chat option")
-      acquireTactics.push(bi("Click-to-chat on WhatsApp", "Chat rapid pe WhatsApp"));
-  }
+  else for (const gap of gaps) if (gap.measured) acquireTactics.push(gap.fix);
   for (const o of acquireOpps) acquireTactics.push(o.title);
   if (args.audit?.reachable && !args.audit.signals.hasAnalytics)
-    acquireTactics.push(bi("Conversion tracking", "Măsurarea conversiilor"));
+    acquireTactics.push(
+      bi("Counting the enquiries the site brings", "Evidența cererilor venite de pe site"),
+    );
   if (!acquireTactics.length)
     acquireTactics.push(
       bi("Conversion-focused landing pages", "Pagini care transformă vizitele în solicitări"),
     );
 
-  const acquireInvestment = addRanges([
+  const acquireInvestment = addEstimates([
     websiteInvestment(args),
     ...acquireOpps.map((o) => o.setupCostRon),
   ]);
@@ -226,7 +298,7 @@ export function buildStrategies(args: BuildArgs): StrategyOption[] {
     addRanges(automateOpps.map((o) => o.hoursSavedPerMonth)),
     roundHours,
   );
-  const automateSetup = addRanges(automateOpps.map((o) => o.setupCostRon));
+  const automateSetup = addEstimates(automateOpps.map((o) => o.setupCostRon));
   const maxComplexity = automateOpps.reduce(
     (max, o) => Math.max(max, COMPLEXITY_RANK[o.complexity]),
     0,
@@ -262,8 +334,8 @@ export function buildStrategies(args: BuildArgs): StrategyOption[] {
   const share = playbook.params.routineShare;
   // Without an assistant opportunity (B2B, few questions) the card still shows its price.
   const assistSetup = assistOpps.length
-    ? addRanges(assistOpps.map((o) => o.setupCostRon))
-    : { ...PRICE_BOOK.automationSetup.medium };
+    ? addEstimates(assistOpps.map((o) => o.setupCostRon))
+    : centred(PRICE_BOOK.automationSetup.medium);
   const assist: StrategyOption = {
     id: "assist",
     title: playbook.titles.assist,
@@ -304,7 +376,7 @@ export function buildStrategies(args: BuildArgs): StrategyOption[] {
 
 export function automateOutcome(count: number, hours: Range): StrategyOption["outcome"] {
   return {
-    label: bi("hours saved a month", "ore economisite pe lună"),
+    label: bi("hours won back a month", "ore câștigate pe lună"),
     range: hours,
     unit: "hours",
     basis: bi(
@@ -315,39 +387,57 @@ export function automateOutcome(count: number, hours: Range): StrategyOption["ou
 }
 
 /**
- * Marks the recommended strategy: the website first when it holds everything
- * back, otherwise whichever of automation or the assistant pays back sooner.
+ * Picks the recommended strategy and why: the website first when it holds
+ * everything back, otherwise whichever of automation or the assistant pays
+ * back sooner, then the measured website gaps, then the best ratio.
  */
+export function startChoice(
+  strategies: StrategyOption[],
+  opportunities: AutomationOpportunity[],
+  websiteHealth: number,
+  hasWorkingWebsite: boolean,
+): { pick: StrategyKey; reason: StartReason } {
+  const automate = typicalPayback(group(opportunities, "automate"));
+  const assist = typicalPayback(group(opportunities, "assist"));
+  const acquireUplift = strategies.find((s) => s.id === "acquire")?.outcome.range.high ?? 0;
+
+  if (!hasWorkingWebsite) return { pick: "acquire", reason: "no-site" };
+  if (websiteHealth < 45) return { pick: "acquire", reason: "weak-site" };
+  if (automate <= GOOD_PAYBACK_MONTHS && automate <= assist)
+    return { pick: "automate", reason: "automate-payback" };
+  if (assist <= GOOD_PAYBACK_MONTHS) return { pick: "assist", reason: "assist-payback" };
+  if (acquireUplift >= 10) return { pick: "acquire", reason: "acquire-gaps" };
+  return { pick: automate <= assist ? "automate" : "assist", reason: "best-ratio" };
+}
+
+/** Marks the recommended strategy and stores why (`startReason`, on that one only). */
 export function recommend(
   strategies: StrategyOption[],
   opportunities: AutomationOpportunity[],
   websiteHealth: number,
   hasWorkingWebsite: boolean,
 ): StrategyOption[] {
-  const automate = typicalPayback(group(opportunities, "automate"));
-  const assist = typicalPayback(group(opportunities, "assist"));
-  const acquireUplift = strategies.find((s) => s.id === "acquire")?.outcome.range.high ?? 0;
-
-  let pick: StrategyKey;
-  if (!hasWorkingWebsite || websiteHealth < 45) pick = "acquire";
-  else if (automate <= GOOD_PAYBACK_MONTHS && automate <= assist) pick = "automate";
-  else if (assist <= GOOD_PAYBACK_MONTHS) pick = "assist";
-  else if (acquireUplift >= 10) pick = "acquire";
-  else pick = automate <= assist ? "automate" : "assist";
-
-  return strategies.map((s) => ({ ...s, recommended: s.id === pick }));
+  const { pick, reason } = startChoice(strategies, opportunities, websiteHealth, hasWorkingWebsite);
+  return strategies.map(({ startReason: _previous, ...s }) =>
+    s.id === pick ? { ...s, recommended: true, startReason: reason } : { ...s, recommended: false },
+  );
 }
 
 /** A typical payback counts as good up to a year. */
 const GOOD_PAYBACK_MONTHS = 12;
 
-/** Months to pay back at mid setup, savings and tool costs (Infinity when it never does). */
-function typicalPayback(items: AutomationOpportunity[]): number {
+/**
+ * Months for a group of automations to pay back at central setup, value and
+ * tool cost, ignoring the ramp (Infinity when it never does). Ranks the
+ * strategies and fills "se plătește în cam {n} luni"; the chart's break-even
+ * is the honest month for the whole plan.
+ */
+export function typicalPayback(items: AutomationOpportunity[]): number {
   if (!items.length) return Infinity;
-  const setup = midpoint(addRanges(items.map((o) => o.setupCostRon)));
+  const setup = addEstimates(items.map((o) => o.setupCostRon)).mid;
   const net =
-    midpoint(addRanges(items.map((o) => o.monthlySavingsRon))) -
-    midpoint(addRanges(items.map((o) => o.monthlyToolCostRon)));
+    addEstimates(items.map((o) => o.monthlySavingsRon)).mid -
+    addEstimates(items.map((o) => o.monthlyToolCostRon)).mid;
   return net > 0 ? setup / net : Infinity;
 }
 
@@ -367,31 +457,6 @@ export function refreshStrategies(
   return recommend(updated, opportunities, websiteHealth, hasWorkingWebsite);
 }
 
-/** The first website step: rebuild an unreachable site, or a new one shaped by the type. */
-export function newSiteItem(type: BusinessTypeDef, unreachable = false): Bilingual {
-  if (unreachable) {
-    return bi(
-      "Get the website back online, fast and mobile-first",
-      "Repune site-ul online, rapid și optimizat pentru mobil",
-    );
-  }
-  if (type.bookings) {
-    return bi(
-      "A fast, mobile-first website with contact and booking",
-      "Un site rapid, optimizat pentru mobil, cu contact și programare",
-    );
-  }
-  return type.consumer
-    ? bi(
-        "A fast, mobile-first website with contact details and WhatsApp",
-        "Un site rapid, optimizat pentru mobil, cu date de contact și WhatsApp",
-      )
-    : bi(
-        "A fast, mobile-first website with contact and quote requests",
-        "Un site rapid, optimizat pentru mobil, cu contact și cereri de ofertă",
-      );
-}
-
 function dedupe(items: Bilingual[]): Bilingual[] {
   const seen = new Set<string>();
   return items.filter((item) => {
@@ -401,8 +466,154 @@ function dedupe(items: Bilingual[]): Bilingual[] {
   });
 }
 
-/** "4–8%" style label used in copy. */
+/** "4–8%" style label used in copy. @deprecated Percentages are assumptions; use `strategyChange`. */
 export function outcomeText(outcome: StrategyOption["outcome"], lang: "en" | "ro"): string {
   const range = formatRange(outcome.range, lang);
   return outcome.unit === "%" ? `${range}%` : range;
+}
+
+/* -------------------------------------------------- what each one changes */
+
+/**
+ * The plain statement for "Ce se schimbă" and the strategy cards. Uplift and
+ * question shares are assumptions, so they read as sentences ("Cam jumătate
+ * din întrebări"), never as percentages; the website gaps are measured, so
+ * their count is stated. Automation's figure (hours) is filled by display.ts
+ * from the rounded Gantt row.
+ */
+export type StrategyChange = {
+  /** "Solicitări noi" / "Timp câștigat" / "Întrebări preluate". */
+  label: Bilingual;
+  /** The outcome as a statement; absent for automate (the hours row is the statement). */
+  result?: Bilingual;
+  /** One line on what it means for the business. */
+  support: Bilingual;
+  /** Marks an assumption we confirm at the call ("De confirmat", note 4). */
+  assumption?: Bilingual;
+};
+
+export function strategyChange(args: {
+  id: string;
+  type: BusinessTypeDef;
+  playbook: Playbook;
+  audit?: WebsiteAudit;
+  hasWebsite: boolean;
+  presence?: OnlinePresence;
+  opportunities: AutomationOpportunity[];
+}): StrategyChange {
+  const { type } = args;
+  const customers = type.customers;
+  if (args.id === "acquire") {
+    const label = bi("New enquiries", "Solicitări noi");
+    if (noWorkingSite(args.hasWebsite, args.audit)) {
+      const the = { en: `new ${customers.en}`, ro: `${roDefinite(customers.ro)} noi` };
+      if (args.audit && !args.audit.reachable) {
+        return {
+          label,
+          result: bi("The website back online", "Site-ul repus online"),
+          support: bi(
+            `Today the website doesn't open, so ${the.en} can't reach you.`,
+            `Azi site-ul nu se deschide, deci ${the.ro} nu ajung la tine.`,
+          ),
+        };
+      }
+      if (type.bookings) {
+        return {
+          label,
+          result: bi("A website with online booking", "Un site cu programare online"),
+          support: bi(
+            `Today ${the.en} can't find you or book online.`,
+            `Azi ${the.ro} nu te pot găsi sau programa online.`,
+          ),
+        };
+      }
+      return {
+        label,
+        result: type.consumer
+          ? bi(
+              "A website with contact details and WhatsApp",
+              "Un site cu date de contact și WhatsApp",
+            )
+          : bi("A website that takes quote requests", "Un site care primește cereri de ofertă"),
+        support: bi(
+          `Today ${the.en} can't find you online.`,
+          `Azi ${the.ro} nu te pot găsi online.`,
+        ),
+      };
+    }
+    const gaps = growthGaps({
+      type,
+      audit: args.audit,
+      hasWebsite: args.hasWebsite,
+      presence: args.presence,
+      opportunityIds: args.opportunities.map((o) => o.id),
+    }).filter((g) => g.measured);
+    if (!gaps.length) {
+      return {
+        label,
+        result: bi("The site already covers the basics", "Site-ul acoperă deja elementele de bază"),
+        support: bi(
+          "The gain comes from steady improvements, not from a rebuild.",
+          "Câștigul vine din îmbunătățiri constante, nu dintr-un site nou.",
+        ),
+      };
+    }
+    const list = (lang: "en" | "ro") =>
+      joinList(
+        gaps.map((g) => g.label[lang]),
+        lang,
+      );
+    const n = gaps.length;
+    return {
+      label,
+      result:
+        n === 1
+          ? bi(
+              `One thing that costs you ${customers.en}: ${list("en")}`,
+              `Un lucru care te face să pierzi ${customers.ro}: ${list("ro")}`,
+            )
+          : bi(
+              `${n} things that cost you ${customers.en}: ${list("en")}`,
+              `${n} lucruri care te fac să pierzi ${customers.ro}: ${list("ro")}`,
+            ),
+      support: bi(
+        "Each one fixed turns more of the same visits into enquiries.",
+        "Fiecare problemă rezolvată transformă mai multe din aceleași vizite în solicitări.",
+      ),
+    };
+  }
+
+  if (args.id === "assist") {
+    const words = shareWords(midpoint(args.playbook.params.routineShare));
+    return {
+      label: bi("Questions handled", "Întrebări preluate"),
+      result: bi(`${ucFirst(words.en)} of the questions`, `${ucFirst(words.ro)} din întrebări`),
+      support: bi(
+        "Questions about prices, opening hours and location get an answer without anyone stepping in.",
+        "Întrebările despre prețuri, program și locație primesc răspuns fără să intervină cineva.",
+      ),
+      assumption: bi("To be confirmed", "De confirmat"),
+    };
+  }
+
+  const automations = args.opportunities
+    .filter((o) => strategyOf(o.id) === "automate")
+    .sort((a, b) => midOf(b.hoursSavedPerMonth) - midOf(a.hoursSavedPerMonth))
+    .slice(0, 3)
+    .map((o) => SHORT_NAMES[o.id] ?? bi(lcFirst(o.title.en), lcFirst(o.title.ro)));
+  return {
+    label: bi("Time won back", "Timp câștigat"),
+    support: automations.length
+      ? bi(
+          `From routine work: ${joinList(
+            automations.map((a) => a.en),
+            "en",
+          )}.`,
+          `Din munca de rutină: ${joinList(
+            automations.map((a) => a.ro),
+            "ro",
+          )}.`,
+        )
+      : bi("Routine work done automatically.", "Munca de rutină făcută automat."),
+  };
 }

@@ -3,17 +3,21 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/*
+ * The shadcn badge in the system Tag look: 20 px, 4 px corners, 12 px sentence case, no
+ * coloured fills. Prefer Tag / Status / Count from "@/components/system" in new code.
+ */
 const badgeVariants = cva(
-  "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex h-5 max-w-full shrink-0 items-center whitespace-nowrap rounded-sm px-1.5 font-sans text-xs font-medium leading-none",
   {
     variants: {
       variant: {
-        default: "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
-        outline: "text-foreground",
+        default: "border border-line-3 text-fg-2",
+        secondary: "bg-fill-3 text-fg-2",
+        destructive: "border border-line-3 text-bad",
+        outline: "border border-line-3 text-fg-2",
+        dashed: "border border-dashed border-line-3 text-fg-3",
+        start: "bg-brand-tint text-brand-fg",
       },
     },
     defaultVariants: {

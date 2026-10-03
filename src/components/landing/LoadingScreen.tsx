@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 
+import { Button, Kbd } from "@/components/system";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { INTRO_VIDEO, LOGO_WORDMARK, SIGNOFF_VIDEO } from "./media";
@@ -232,37 +233,27 @@ export function LoadingScreen({ active, onComplete }: { active: boolean; onCompl
               alt=""
               width={LOGO_WORDMARK.width}
               height={LOGO_WORDMARK.height}
-              className="h-auto w-full max-w-[min(34rem,80vw)] drop-shadow-[0_0_40px_rgb(124_92_255/0.35)]"
+              className="h-auto w-full max-w-[min(34rem,80vw)]"
             />
           </picture>
         </motion.div>
       )}
 
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-6 px-6 pb-6 md:px-10 md:pb-9">
-        <span ref={counterRef} aria-hidden className="type-tech tabular-nums text-foreground/45">
+        <span ref={counterRef} aria-hidden className="type-code text-fg-3">
           000
         </span>
-        <button
-          type="button"
-          onClick={finish}
-          className="type-label group inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.03] px-4 py-2 text-foreground/70 backdrop-blur transition-colors hover:border-white/35 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#89cbf6] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-        >
+        <Button variant="secondary" size="sm" onClick={finish} className="pr-1.5">
           {t("Skip intro", "Sari peste")}
-          <kbd className="type-tech hidden rounded border border-white/15 px-1.5 py-0.5 text-foreground/50 md:inline">
-            Esc
-          </kbd>
-        </button>
+          <Kbd className="hidden md:inline-flex">esc</Kbd>
+        </Button>
       </div>
 
-      <div aria-hidden className="absolute inset-x-0 bottom-0 h-[3px] bg-border/50">
+      <div aria-hidden className="absolute inset-x-0 bottom-0 h-0.5 bg-line-1">
         <div
           ref={barRef}
-          className="accent-gradient h-full w-full"
-          style={{
-            transform: "scaleX(0)",
-            transformOrigin: "left",
-            boxShadow: "0 0 8px oklch(0.585 0.225 282 / 0.45)",
-          }}
+          className="h-full w-full bg-brand-line"
+          style={{ transform: "scaleX(0)", transformOrigin: "left" }}
         />
       </div>
 

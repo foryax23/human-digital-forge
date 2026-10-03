@@ -7,6 +7,12 @@
 export type Lang = "en" | "ro";
 export type Bilingual = { en: string; ro: string };
 export type Range = { low: number; high: number };
+/**
+ * An estimate: the cautious and generous corners plus the central value the
+ * screens and the PDF display (`mid`, from driver midpoints). Optional so
+ * stored blueprints from before it existed stay valid; read it with `midOf`.
+ */
+export type Estimate = Range & { mid?: number };
 
 /* ------------------------------------------------------------------ search */
 
@@ -59,7 +65,6 @@ export type CompanyProfile = {
   caenLabel?: Bilingual;
   registeredAt?: string;
   vatPayer?: boolean;
-  eInvoice?: boolean;
   inactive?: boolean;
   /** Website we found or the visitor gave. */
   website?: string;
@@ -253,28 +258,57 @@ export type AutomationOpportunity = {
   process: string;
   impact: "high" | "medium" | "low";
   complexity: "low" | "medium" | "high";
-  hoursSavedPerMonth: Range;
-  monthlySavingsRon: Range;
-  setupCostRon: Range;
-  monthlyToolCostRon: Range;
+  hoursSavedPerMonth: Estimate;
+  monthlySavingsRon: Estimate;
+  setupCostRon: Estimate;
+  monthlyToolCostRon: Estimate;
+  /**
+   * @deprecated Corner-paired range clamped at 36 months; never display it.
+   * Use `displayPlan()` (src/lib/scan/blueprint/display.ts) instead.
+   */
   paybackMonths: Range;
   tools: string[];
   /** The inputs behind the numbers, stated plainly. */
   assumptions: Bilingual[];
 };
 
+export type PhaseKey = "foundation" | "automation" | "assistant" | "growth";
+
 export type RoadmapPhase = {
+  /** Which of the four stages this is (missing on blueprints stored before it existed). */
+  key?: PhaseKey;
   /** 1-based month range, e.g. 2–3. */
   startMonth: number;
   endMonth: number;
   /** Short stage name, e.g. "Foundation". */
   stage: Bilingual;
+  /** The one name for this work: Gantt, phase row, strategy card and PDF. */
   title: Bilingual;
   items: Bilingual[];
+  /** @deprecated Badge vocabulary removed by the UI refresh; still filled for old screens. */
   tag: "essential" | "high-impact" | "growth";
   /** Opportunities delivered in this phase. */
   opportunityIds: string[];
+  /**
+   * One-off cost of the website work in this phase (new site, fixes, Google
+   * profile, tracking), which the opportunities don't carry. Not in the
+   * projection: it brings customers, not hours.
+   */
+  websiteCostRon?: Estimate;
 };
+
+/**
+ * Why the recommended direction comes first (the "Începem aici" sentence):
+ * no working site, a weak one, the payback of automation or the assistant,
+ * the measured website gaps, or the best cost-to-time ratio as a fallback.
+ */
+export type StartReason =
+  | "no-site"
+  | "weak-site"
+  | "automate-payback"
+  | "assist-payback"
+  | "acquire-gaps"
+  | "best-ratio";
 
 /** One of the three strategic directions offered after the analysis. */
 export type StrategyOption = {
@@ -282,22 +316,38 @@ export type StrategyOption = {
   title: Bilingual;
   summary: Bilingual;
   tactics: Bilingual[];
-  /** Headline outcome, e.g. 60–80 % less manual work, with its basis. */
+  /**
+   * @deprecated Range outcome (uplift and question-share percentages are
+   * assumptions, not measurements). Display `displayPlan().strategies[].result`.
+   */
   outcome: { label: Bilingual; range: Range; unit: "%" | "hours" | "RON"; basis: Bilingual };
   implementation: "low" | "medium" | "high";
   timeToValueMonths: Range;
-  /** 1–3 → €, €€, €€€ */
+  /** @deprecated 1–3 → €, €€, €€€ (the € meter is banned); still filled for old screens. */
   investmentLevel: 1 | 2 | 3;
-  investmentRon: Range;
+  investmentRon: Estimate;
   opportunityIds: string[];
   recommended: boolean;
+  /** Only on the recommended direction: why we would start here. */
+  startReason?: StartReason;
 };
 
 /** Cumulative economics month by month (for the 6/12/24-month views). */
 export type ProjectionPoint = {
   month: number;
-  cumulativeSavingsRon: Range;
-  cumulativeCostRon: Range;
+  cumulativeSavingsRon: Estimate;
+  cumulativeCostRon: Estimate;
+};
+
+/**
+ * The first plan month whose cumulative central value covers the cumulative
+ * central cost (null when not within 24 months), plus the same month with
+ * volumes 20% higher and 20% lower, cost kept at the central quote.
+ */
+export type BreakEven = {
+  month: number | null;
+  higherVolume: number | null;
+  lowerVolume: number | null;
 };
 
 /** Inputs the visitor can adjust in the strategy simulation. */
@@ -313,7 +363,7 @@ export type VortexOffer = {
   title: Bilingual;
   why: Bilingual;
   includes: Bilingual[];
-  /** Human wording of the price, e.g. "From 50 EUR / month + setup". */
+  /** Human wording of the price, e.g. "De la 1.000 lei pe lună, plus implementarea (preț fix după discuție)". */
   priceNote: Bilingual;
 };
 
@@ -335,11 +385,14 @@ export type Blueprint = {
   /** The website findings worth doing first. */
   websiteActions: AuditFinding[];
   totals: {
-    hoursSavedPerMonth: Range;
-    monthlySavingsRon: Range;
-    annualSavingsRon: Range;
-    setupCostRon: Range;
+    hoursSavedPerMonth: Estimate;
+    monthlySavingsRon: Estimate;
+    annualSavingsRon: Estimate;
+    setupCostRon: Estimate;
+    /** @deprecated Corner-paired and capped at 36; display `displayPlan().breakEven`. */
     paybackMonths: Range;
+    /** Missing on blueprints stored before it existed (display.ts derives it then). */
+    breakEven?: BreakEven;
   };
   strategies: StrategyOption[];
   roadmap: RoadmapPhase[];

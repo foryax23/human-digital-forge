@@ -1,644 +1,572 @@
-import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
-import { AnimatePresence, motion, MotionConfig } from "motion/react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Bot,
-  CalendarClock,
-  Check,
-  ChevronDown,
-  Clock,
-  Copy,
-  Download,
-  Hourglass,
-  Link2,
-  ShieldCheck,
-  Sparkles,
-  TrendingUp,
-  Wallet,
-  Zap,
-} from "lucide-react";
+import { useEffect, useId, useMemo, useState } from "react";
+import { Check, ChevronLeft, Copy, Download } from "lucide-react";
 
 import { useI18n } from "@/i18n";
-import type {
-  AutomationOpportunity,
-  Blueprint,
-  RoadmapPhase,
-  StrategyOption,
-  VortexOffer,
-} from "@/lib/scan/types";
+import {
+  displayPlan,
+  kpiCells,
+  tableRows,
+  type DisplayPlan,
+  type Horizon,
+} from "@/lib/scan/blueprint/display";
+import { approxLei, hoursPerMonth, monthsQty } from "@/lib/scan/blueprint/format";
+import type { Blueprint, VortexOffer } from "@/lib/scan/types";
+import {
+  Button,
+  ButtonLink,
+  buttonClass,
+  NoteList,
+  NoteRef,
+  Panel,
+  PanelBody,
+  PanelFooter,
+  PanelHeader,
+  SegmentedControl,
+  Stat,
+  StatStrip,
+  Status,
+  StepHeader,
+  Tag,
+} from "@/components/system";
 import { cn } from "@/lib/utils";
 import { LeadGateDialog } from "../LeadGateDialog";
-import { AnimatedRange } from "../report/AnimatedNumber";
-import { PHASE_ART } from "../report/brand-art";
-import { scanButton } from "../report/buttons";
-import {
-  formatMonthSpan,
-  formatMonthsRange,
-  formatNumber,
-  formatRange,
-  pick,
-  unitSuffix,
-} from "../report/format";
-import { GLASS, PanelEyebrow, TILE } from "../report/GlassCard";
+import { StepBarActions } from "../ScanShell";
+import { formatNumber, NBSP, pick } from "../report/format";
+import { Gantt, type GanttRow } from "../report/Gantt";
 import { ImpactChart } from "../report/ImpactChart";
-import { InfoTip } from "../report/InfoTip";
-import { EASE_OUT, riseIn, staggerParent, useScanMotion } from "../report/motion";
-import { projectionUntil } from "../report/projection";
-import { SegmentedControl } from "../report/SegmentedControl";
-import { StepHeader } from "../report/StepHeader";
-import { Tag, type TagTone } from "../report/Tag";
-
-type Horizon = "6" | "12" | "24";
+import { companyLine, isSample, keepRanges, splitResult } from "../report/plan-copy";
+import { Figures, Statement } from "../report/plan-text";
 
 /**
- * Screen 04, the personalised roadmap: phases month by month, the 6/12/24
- * month impact chart, estimated results, the matching Vortex offer and the
- * actions (start, consult, download the PDF behind consent, share).
+ * Screen 04, the plan: "Pe scurt", the month-by-month calendar with hours and
+ * cost, the impact chart with its KPI strip, what changes for the business,
+ * the matching subscription and "Cum am calculat". Every figure comes from
+ * displayPlan(), so the screen, the table and the PDF print the same numbers.
  */
 export function ResultsStep({ blueprint, onBack }: { blueprint: Blueprint; onBack: () => void }) {
   const { t, lang } = useI18n();
   const headingId = useId();
-  const [horizon, setHorizon] = useState<Horizon>("12");
+  const plan = useMemo(() => displayPlan(blueprint), [blueprint]);
   const [leadOpen, setLeadOpen] = useState(false);
-  const typeLabel = pick(blueprint.businessType.label, lang).toLowerCase();
-
-  const lastMonth = Math.max(0, ...blueprint.projection.map((p) => p.month));
-  const horizons = (["6", "12", "24"] as const).filter((h) => h === "6" || lastMonth >= Number(h));
-  // Falls back to the longest horizon the projection covers.
-  const activeHorizon = horizons.includes(horizon) ? horizon : horizons[horizons.length - 1];
-  const months = Number(activeHorizon);
-  const points = useMemo(
-    () => projectionUntil(blueprint.projection, months),
-    [blueprint.projection, months],
-  );
-  const end = points[points.length - 1];
+  const span = Math.max(6, ...plan.phases.map((p) => p.months[1]));
+  const { company, place } = companyLine(blueprint);
+  // Phones keep the lead's first sentence; "ranges and assumptions are in the notes" is
+  // for the wider screens, where the notes are in reach.
+  const lead = keepRanges(pick(plan.text.lead, lang));
+  const cut = lead.indexOf(". ");
 
   return (
-    <MotionConfig reducedMotion="user">
+    <>
       <section aria-labelledby={headingId} className="w-full">
-        <StepHeader
-          id={headingId}
-          eyebrow={t("04 · Results", "04 · Rezultate")}
-          title={
-            <>
-              {t("Your personalised ", "Planul tău ")}
-              <span className="heading-accent">{t("roadmap", "personalizat")}</span>
-            </>
-          }
-          description={t(
-            `Our recommended implementation plan to get the best results for your ${typeLabel}.`,
-            `Planul de implementare pe care îl recomandăm ca afacerea ta (${typeLabel}) să obțină cele mai bune rezultate.`,
-          )}
-        />
+        <div className="grid gap-4 lg:grid-cols-12 lg:gap-6">
+          <StepHeader
+            id={headingId}
+            className="lg:col-span-6 lg:self-start"
+            company={company}
+            place={place}
+            demo={isSample(blueprint)}
+            title={t(
+              `Your ${span}-month plan and its cost`,
+              `Planul pe ${monthsQty(span).ro}: ce facem și cât costă`,
+            )}
+            lead={
+              cut < 0 ? (
+                lead
+              ) : (
+                <>
+                  {lead.slice(0, cut + 1)}
+                  <span className="max-sm:hidden"> {lead.slice(cut + 2)}</span>
+                </>
+              )
+            }
+          />
+          <InShort plan={plan} className="lg:col-span-6" />
+        </div>
 
-        <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)] lg:gap-6">
-          <RoadmapTimeline blueprint={blueprint} />
-
-          <div className="flex min-w-0 flex-col gap-5 lg:gap-6">
-            <motion.section
-              aria-label={t("Estimated impact", "Impact estimat")}
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.1, ease: EASE_OUT }}
-              className={cn(GLASS, "min-w-0 p-5 sm:p-6")}
-            >
-              <div className="flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <PanelEyebrow>{t("Estimated impact", "Impact estimat")}</PanelEyebrow>
-                  <h3 className="type-h3 mt-1.5 text-white">
-                    {t("Savings vs. cost", "Economii față de cost")}
-                  </h3>
-                </div>
-                <SegmentedControl<Horizon>
-                  size="sm"
-                  label={t("Impact horizon", "Orizont de timp")}
-                  value={activeHorizon}
-                  onChange={setHorizon}
-                  options={horizons.map((h) => ({
-                    value: h,
-                    label:
-                      lang === "ro" ? `${h} ${Number(h) >= 20 ? "de " : ""}luni` : `${h} months`,
-                  }))}
-                />
-              </div>
-
-              <ImpactChart projection={blueprint.projection} horizon={months} className="mt-5" />
-
-              {end && (
-                <dl className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-                  <ImpactFigure
-                    icon={<TrendingUp />}
-                    label={t(`Saved by month ${end.month}`, `Economisit până în luna ${end.month}`)}
-                    value={
-                      <AnimatedRange
-                        range={end.cumulativeSavingsRon}
-                        format={(v) => formatNumber(v, lang)}
-                      />
-                    }
-                    unit="RON"
-                  />
-                  <ImpactFigure
-                    icon={<Wallet />}
-                    label={t(`Spent by month ${end.month}`, `Cheltuit până în luna ${end.month}`)}
-                    value={
-                      <AnimatedRange
-                        range={end.cumulativeCostRon}
-                        format={(v) => formatNumber(v, lang)}
-                      />
-                    }
-                    unit="RON"
-                  />
-                  <ImpactFigure
-                    icon={<Hourglass />}
-                    label={t("Payback", "Recuperare")}
-                    value={
-                      <AnimatedRange
-                        range={blueprint.totals.paybackMonths}
-                        format={(v) => formatNumber(v, lang, 1)}
-                      />
-                    }
-                    unit={lang === "ro" ? "luni" : "months"}
-                  />
-                </dl>
-              )}
-            </motion.section>
-
-            <EstimatedResults strategies={blueprint.strategies} />
-
-            <OfferCard offer={blueprint.offer} />
-
-            <KeepPanel onDownload={() => setLeadOpen(true)} />
+        <div className="mt-4 grid items-start gap-4 sm:mt-6 sm:gap-6 lg:grid-cols-2 xl:grid-cols-12">
+          <div data-results-col className="min-w-0 xl:col-span-7">
+            <PlanPanel plan={plan} />
+          </div>
+          <div data-results-col className="flex min-w-0 flex-col gap-6 xl:col-span-5">
+            <ImpactPanel plan={plan} />
+            <WhatChanges plan={plan} />
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col gap-4 border-t border-white/[0.07] pt-6 sm:flex-row sm:items-start sm:justify-between">
-          <button
-            type="button"
+        <BarActions onDownload={() => setLeadOpen(true)} />
+        <OfferRow offer={blueprint.offer} feePayback={plan.text.feePayback} className="mt-8" />
+        <KeepRow onDownload={() => setLeadOpen(true)} />
+
+        <div id="cum-am-calculat" className="mt-6 scroll-mt-32">
+          <NoteList
+            title={t("How we worked it out", "Cum am calculat")}
+            headingId={`${headingId}-notes`}
+            items={[
+              pick(plan.notes.payback, lang),
+              pick(plan.notes.scope, lang),
+              pick(plan.notes.hourValue, lang),
+              ...plan.notes.assumptions.map((note) => pick(note, lang)),
+            ]}
+            footer={pick(plan.notes.disclaimer, lang)}
+          />
+        </div>
+
+        <div className="mt-8 border-t border-line-1 pt-4">
+          <Button
+            variant="ghost"
+            className="-ml-3"
+            icon={<ChevronLeft aria-hidden />}
             onClick={onBack}
-            className={scanButton("ghost", "md", "self-start")}
           >
-            <ArrowLeft aria-hidden />
             {t("Back to strategies", "Înapoi la strategii")}
-          </button>
-          <div className="type-micro max-w-xl text-white/45 sm:text-right">
-            <p className="type-label text-white/70">
-              {t("Estimates, not guarantees", "Estimări, nu garanții")}
-            </p>
-            <p className="mt-1">{pick(blueprint.disclaimer, lang)}</p>
-            <p className="mt-1">
-              {blueprint.engine === "ai"
-                ? t(
-                    "Built from our playbooks and refined with AI; the money math stays rule-based.",
-                    "Construit pe modelele noastre de lucru și revizuit cu AI; calculele financiare rămân pe formule fixe.",
-                  )
-                : t(
-                    "Built from our playbooks for this business type.",
-                    "Construit pe modelele noastre de lucru pentru acest tip de afacere.",
-                  )}
-            </p>
-          </div>
+          </Button>
         </div>
       </section>
 
       <LeadGateDialog blueprint={blueprint} open={leadOpen} onOpenChange={setLeadOpen} />
-    </MotionConfig>
+    </>
   );
 }
 
-function ImpactFigure({
-  icon,
-  label,
-  value,
-  unit,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: ReactNode;
-  unit: string;
-}) {
-  return (
-    <div className={cn(TILE, "px-3.5 py-3")}>
-      <dt className="type-micro flex items-center gap-1.5 text-white/55 [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:text-[#89cbf6]">
-        <span aria-hidden>{icon}</span>
-        {label}
-      </dt>
-      {/* Three across under the chart: compact figures (a range never breaks at its
-          dash; only the unit may drop to a new line). */}
-      <dd className="type-body mt-1.5 font-semibold tabular-nums text-white">
-        <span className="whitespace-nowrap">{value}</span>{" "}
-        <span className="type-micro font-medium text-white/50">{unit}</span>
-      </dd>
-    </div>
-  );
-}
+/* ----------------------------------------------------------- "Pe scurt" */
 
-/* --------------------------------------------------------------- timeline */
-
-const PHASE_TAGS: Record<
-  RoadmapPhase["tag"],
-  { tone: TagTone; icon: ReactNode; en: string; ro: string }
-> = {
-  essential: { tone: "sky", icon: <ShieldCheck />, en: "Essential", ro: "Esențial" },
-  "high-impact": { tone: "violet", icon: <Zap />, en: "High impact", ro: "Impact mare" },
-  growth: { tone: "mint", icon: <TrendingUp />, en: "Growth", ro: "Creștere" },
-};
-
-function RoadmapTimeline({ blueprint }: { blueprint: Blueprint }) {
+function InShort({ plan, className }: { plan: DisplayPlan; className?: string }) {
   const { t, lang } = useI18n();
-  const { reduce } = useScanMotion();
-  const byId = useMemo(
-    () => new Map(blueprint.opportunities.map((o) => [o.id, o])),
-    [blueprint.opportunities],
-  );
-  const phases = blueprint.roadmap;
-  const lastMonth = Math.max(0, ...phases.map((p) => p.endMonth));
-
+  const labelId = useId();
   return (
-    <motion.section
-      aria-label={t("Implementation plan", "Planul de implementare")}
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, ease: EASE_OUT }}
-      className={cn(GLASS, "min-w-0 self-start p-4 sm:p-6")}
+    <aside
+      aria-labelledby={labelId}
+      className={cn("min-w-0 lg:self-start lg:border-l lg:border-line-1 lg:pl-6", className)}
     >
-      <div className="flex flex-wrap items-end justify-between gap-2 px-1">
-        <div>
-          <PanelEyebrow>{t("Implementation plan", "Planul de implementare")}</PanelEyebrow>
-          <h3 className="type-h3 mt-1.5 text-white">{t("Month by month", "Lună de lună")}</h3>
-        </div>
-        <p className="type-micro inline-flex items-center gap-1.5 text-white/50">
-          <CalendarClock aria-hidden className="h-3.5 w-3.5 text-[#89cbf6]" />
-          {t(
-            `${phases.length} phases · ${lastMonth} months`,
-            `${phases.length} etape · ${lastMonth} ${lastMonth === 1 ? "lună" : "luni"}`,
-          )}
-        </p>
-      </div>
-
-      <div className="relative mt-6">
-        {/* The rail draws downward as the plan scrolls in. */}
-        <motion.span
-          aria-hidden
-          className="absolute bottom-6 left-5 top-5 w-px origin-top bg-gradient-to-b from-[#6c63ff] via-[#5b8cf0] to-[#89cbf6]/10"
-          initial={{ scaleY: reduce ? 1 : 0 }}
-          whileInView={{ scaleY: 1 }}
-          viewport={{ once: true, margin: "0px 0px -80px 0px" }}
-          transition={{ duration: 1.4, ease: EASE_OUT }}
-        />
-        <motion.ol
-          variants={staggerParent}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "0px 0px -60px 0px" }}
-          className="relative space-y-4"
-        >
-          {phases.map((phase, i) => (
-            <PhaseItem
-              key={`${phase.startMonth}-${phase.stage.en}`}
-              phase={phase}
-              index={i}
-              opportunities={phase.opportunityIds
-                .map((id) => byId.get(id))
-                .filter((o): o is AutomationOpportunity => Boolean(o))}
-            />
-          ))}
-        </motion.ol>
-      </div>
-    </motion.section>
-  );
-}
-
-function PhaseItem({
-  phase,
-  index,
-  opportunities,
-}: {
-  phase: RoadmapPhase;
-  index: number;
-  opportunities: AutomationOpportunity[];
-}) {
-  const { t, lang } = useI18n();
-  const [open, setOpen] = useState(false);
-  const detailsId = useId();
-  const art = PHASE_ART[index % PHASE_ART.length];
-  const tag = PHASE_TAGS[phase.tag];
-  const hours = opportunities.reduce(
-    (sum, o) => ({
-      low: sum.low + o.hoursSavedPerMonth.low,
-      high: sum.high + o.hoursSavedPerMonth.high,
-    }),
-    { low: 0, high: 0 },
-  );
-
-  return (
-    <motion.li
-      variants={riseIn}
-      className="relative grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 sm:gap-4"
-    >
-      <div className="flex justify-center pt-3">
-        <span className="type-label relative grid h-10 w-10 place-items-center rounded-full border border-white/20 bg-[#070a1f] text-white shadow-[0_0_0_4px_#070a1f,0_0_22px_rgb(108_99_255/0.55)]">
-          <span aria-hidden>{String(index + 1).padStart(2, "0")}</span>
-          <span className="sr-only">{t(`Phase ${index + 1}`, `Etapa ${index + 1}`)}</span>
-        </span>
-      </div>
-
-      <article
-        className={cn(TILE, "min-w-0 overflow-hidden transition-colors hover:border-white/15")}
-      >
-        <div className="flex flex-col gap-3 p-3 min-[480px]:flex-row sm:gap-4 sm:p-4">
-          <div className="relative h-20 w-full shrink-0 overflow-hidden rounded-xl border border-white/10 min-[480px]:h-20 min-[480px]:w-20 sm:h-24 sm:w-24">
-            <img
-              src={art.src}
-              alt=""
-              aria-hidden
-              loading="lazy"
-              decoding="async"
-              className="h-full w-full scale-[1.35] object-cover"
-              style={{ objectPosition: art.position }}
-            />
-            <span
-              aria-hidden
-              className="absolute inset-0 bg-gradient-to-br from-[#6c63ff]/35 via-transparent to-[#04061a]/60 mix-blend-screen"
-            />
-            <span
-              aria-hidden
-              className="type-label absolute bottom-1 right-1.5 text-white/85 drop-shadow"
-            >
-              {String(index + 1).padStart(2, "0")}
+      {/* fg-2: it sits straight on the backdrop, where fg-3 drops under 4.5:1. */}
+      <p id={labelId} className="type-label text-fg-2">
+        {t("In short", "Pe scurt")}
+      </p>
+      <ol className="mt-1.5 space-y-1">
+        {plan.summary.map((line, i) => (
+          <li key={i} className="flex gap-2.5 text-[0.9375rem] leading-[1.45] text-fg">
+            <span className="type-pnum w-2.5 shrink-0 text-fg-3">{i + 1}</span>
+            <span className="min-w-0 text-pretty">
+              {keepRanges(pick(line, lang))}
+              {i === 2 ? <NoteRef n={1} /> : null}
             </span>
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-              <p className="type-label text-[#89cbf6]">
-                {pick(phase.stage, lang)}
-                <span className="text-white/45">
-                  {" "}
-                  · {formatMonthSpan(phase.startMonth, phase.endMonth, lang)}
-                </span>
-              </p>
-              <Tag tone={tag.tone} icon={tag.icon}>
-                {lang === "ro" ? tag.ro : tag.en}
-              </Tag>
-            </div>
-            <h4 className="type-h3 mt-1.5 text-white">{pick(phase.title, lang)}</h4>
-            <ul className="mt-2 space-y-1.5">
-              {phase.items.map((item) => (
-                <li key={item.en} className="type-body-sm flex items-start gap-2 text-white/70">
-                  <Check
-                    aria-hidden
-                    className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#5fe3d0]"
-                    strokeWidth={3}
-                  />
-                  {pick(item, lang)}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {opportunities.length > 0 && (
-          <>
-            <button
-              type="button"
-              aria-expanded={open}
-              aria-controls={detailsId}
-              onClick={() => setOpen((v) => !v)}
-              className="type-body-sm flex w-full items-center justify-between gap-3 border-t border-white/[0.07] px-4 py-2.5 text-left text-white/70 transition-colors hover:bg-white/[0.03] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#89cbf6]/70"
-            >
-              <span className="min-w-0">
-                {t("What it delivers", "Ce aduce")}
-                <span className="text-white/45">
-                  {" · "}
-                  {t(
-                    `${formatRange(hours, "en")} h saved a month`,
-                    `${formatRange(hours, "ro")} ore economisite pe lună`,
-                  )}
-                </span>
-              </span>
-              <ChevronDown
-                aria-hidden
-                className={cn(
-                  "h-4 w-4 shrink-0 transition-transform duration-300",
-                  open && "rotate-180",
-                )}
-              />
-            </button>
-            <AnimatePresence initial={false}>
-              {open && (
-                <motion.div
-                  id={detailsId}
-                  key="details"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.35, ease: EASE_OUT }}
-                  className="overflow-hidden"
-                >
-                  <ul className="space-y-2.5 border-t border-white/[0.07] p-3 sm:p-4">
-                    {opportunities.map((o) => (
-                      <li
-                        key={o.id}
-                        className="rounded-xl border border-white/[0.07] bg-[#04061a]/60 p-3.5"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="type-body-sm font-medium text-white">
-                            {pick(o.title, lang)}
-                          </p>
-                          <InfoTip
-                            label={t("Assumptions behind these numbers", "Ipotezele de calcul")}
-                          >
-                            <ul className="list-disc space-y-0.5 pl-4">
-                              {o.assumptions.map((a) => (
-                                <li key={a.en}>{pick(a, lang)}</li>
-                              ))}
-                            </ul>
-                          </InfoTip>
-                        </div>
-                        <p className="type-micro mt-1 text-white/55">{pick(o.solution, lang)}</p>
-                        <dl className="type-micro mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                          <Mini
-                            label={t("Hours / month", "Ore / lună")}
-                            value={formatRange(o.hoursSavedPerMonth, lang)}
-                          />
-                          <Mini
-                            label={t("Saves / month", "Economie / lună")}
-                            value={`${formatRange(o.monthlySavingsRon, lang)} RON`}
-                          />
-                          <Mini
-                            label={t("Setup", "Implementare")}
-                            value={`${formatRange(o.setupCostRon, lang)} RON`}
-                          />
-                          <Mini
-                            label={t("Payback", "Recuperare")}
-                            value={formatMonthsRange(o.paybackMonths, lang, 1)}
-                          />
-                        </dl>
-                        {o.tools.length > 0 && (
-                          <ul className="mt-3 flex flex-wrap gap-1.5">
-                            {o.tools.map((tool) => (
-                              <li
-                                key={tool}
-                                className="type-micro rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-white/65"
-                              >
-                                {tool}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </>
-        )}
-      </article>
-    </motion.li>
-  );
-}
-
-function Mini({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-white/45">{label}</dt>
-      <dd className="mt-0.5 font-medium tabular-nums text-white/90">{value}</dd>
-    </div>
-  );
-}
-
-/* ---------------------------------------------------- estimated results */
-
-const STRATEGY_ICONS: Record<string, ReactNode> = {
-  acquire: <TrendingUp />,
-  automate: <Clock />,
-  assist: <Bot />,
-};
-
-function EstimatedResults({ strategies }: { strategies: StrategyOption[] }) {
-  const { t, lang } = useI18n();
-  if (!strategies.length) return null;
-  return (
-    <section aria-label={t("Estimated results", "Rezultate estimate")}>
-      <PanelEyebrow className="px-1">{t("Estimated results", "Rezultate estimate")}</PanelEyebrow>
-      <motion.ul
-        variants={staggerParent}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: "0px 0px -40px 0px" }}
-        className="mt-3 grid gap-2.5 min-[480px]:grid-cols-3"
-      >
-        {strategies.map((s, i) => (
-          <motion.li
-            key={s.id}
-            variants={riseIn}
-            className={cn(
-              GLASS,
-              "relative rounded-2xl p-4",
-              s.recommended && "border-[#6c63ff]/50 shadow-[0_0_40px_-12px_rgb(108_99_255/0.65)]",
-            )}
-          >
-            <div className="flex items-center justify-between">
-              <span
-                aria-hidden
-                className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-[#6c63ff]/40 to-[#5b8cf0]/15 text-white [&_svg]:h-4 [&_svg]:w-4"
-              >
-                {STRATEGY_ICONS[s.id] ?? <Sparkles />}
-              </span>
-              <InfoTip label={t("How we estimate this", "Cum am estimat")}>
-                {pick(s.outcome.basis, lang)}
-              </InfoTip>
-            </div>
-            <p className="type-h3 mt-3 text-white">
-              <AnimatedRange
-                range={s.outcome.range}
-                format={(v) => formatNumber(v, lang)}
-                delay={0.1 * i}
-              />
-              <span className="text-white/65">{unitSuffix(s.outcome.unit)}</span>
-            </p>
-            <p className="type-micro mt-1.5 text-white/60">{pick(s.outcome.label, lang)}</p>
-            <p className="type-label mt-2 text-white/40">{pick(s.title, lang)}</p>
-          </motion.li>
+          </li>
         ))}
-      </motion.ul>
+      </ol>
+    </aside>
+  );
+}
+
+/* ---------------------------------------------------------------- plan */
+
+function PlanPanel({ plan }: { plan: DisplayPlan }) {
+  const { t, lang } = useI18n();
+  const titleId = useId();
+  const [listOnly, setListOnly] = useState(false);
+  const months = Math.max(6, ...plan.phases.map((p) => p.months[1]));
+
+  const rows: GanttRow[] = plan.phases.map((phase) => ({
+    key: phase.key,
+    name: pick(phase.title, lang),
+    segments: [phase.months],
+    start: Boolean(phase.start),
+    milestone: phase.siteMilestone,
+    hours: phase.hoursPerMonth,
+    hoursText: pick(phase.hoursText, lang),
+    cost: phase.setupLei,
+    costText: pick(phase.costText, lang),
+    when: pick(phase.dateLabel, lang),
+  }));
+  const totalCost = approxLei(plan.totals.setupLei);
+
+  return (
+    <Panel as="section" aria-labelledby={titleId}>
+      <PanelHeader
+        titleId={titleId}
+        title={pick(plan.text.roadmapTitle, lang)}
+        sub={pick(plan.text.roadmapLead, lang)}
+        actions={
+          <Button
+            variant="link"
+            size="sm"
+            className="text-fg-2 sm:hidden"
+            aria-pressed={listOnly}
+            onClick={() => setListOnly((v) => !v)}
+          >
+            {listOnly
+              ? t("Show the calendar", "Vezi calendarul")
+              : t("View as a list", "Vezi ca listă")}
+          </Button>
+        }
+      />
+      <PanelBody className={cn(listOnly && "max-sm:hidden")}>
+        <Gantt
+          rows={rows}
+          months={months}
+          label={t("Plan month by month", "Planul lună de lună")}
+          total={{
+            hours: plan.totals.hoursPerMonth,
+            cost: plan.totals.setupLei,
+            note: pick(plan.text.totalNote, lang),
+            hoursText: pick(hoursPerMonth(plan.totals.hoursPerMonth), lang),
+            costText: t(`${totalCost.en} one-off.`, `${totalCost.ro} o singură dată.`),
+          }}
+        />
+      </PanelBody>
+
+      <ol className="mx-4 border-t border-rule sm:mx-5">
+        {plan.phases.map((phase) => (
+          <li
+            key={phase.key}
+            className="grid gap-1 border-b border-line-1 py-3 last:border-b-0 sm:grid-cols-[6rem_minmax(0,1fr)] sm:gap-0"
+          >
+            <p className="type-pnum text-[0.8125rem] leading-[1.35] text-fg-3 sm:pt-0.5">
+              {pick(phase.dateLabel, lang)}
+            </p>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <h4 className="type-h4 text-fg">{pick(phase.title, lang)}</h4>
+                {/* One marker per row: the start, else the phase that wins the most hours. */}
+                {phase.start ? (
+                  <Tag variant="start">{t("We start here", "Începem aici")}</Tag>
+                ) : phase.mostTime ? (
+                  <Status tone="brand">
+                    {t("Most time won back", "Cel mai mult timp câștigat")}
+                  </Status>
+                ) : null}
+              </div>
+              {phase.start ? (
+                <p className="mt-1 text-sm leading-[1.5] text-fg-2">
+                  {pick(phase.start.reason, lang)}
+                </p>
+              ) : null}
+              <p className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-[0.8125rem] leading-[1.4] text-fg-3">
+                <Figures text={pick(phase.hoursText, lang)} />
+                <Figures text={pick(phase.costText, lang)} />
+              </p>
+              {phase.items.length ? (
+                <ul className="mt-2 space-y-1">
+                  {phase.items.slice(0, 4).map((item) => (
+                    <li key={item.en} className="flex gap-2.5 text-sm leading-[1.45] text-fg-2">
+                      <span aria-hidden className="mt-[0.7em] h-px w-1.5 shrink-0 bg-fg-3" />
+                      <span className="min-w-0">{pick(item, lang)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {phase.brings ? (
+                <p className="mt-2 text-sm leading-[1.5] text-fg-2">{pick(phase.brings, lang)}</p>
+              ) : null}
+              {phase.tools.length ? (
+                <ToolsLine tools={phase.tools.map((tool) => pick(tool, lang))} />
+              ) : null}
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <PanelFooter>
+        <span>{pick(plan.text.footer, lang)}</span>
+        <a href="#cum-am-calculat" className={buttonClass("link", "sm", "text-fg-2")}>
+          {t("How we worked it out", "Cum am calculat")}
+        </a>
+      </PanelFooter>
+    </Panel>
+  );
+}
+
+/** "Instrumente: calendar de programări, SMS, …": the first four, no hidden count. */
+function ToolsLine({ tools }: { tools: string[] }) {
+  const { t } = useI18n();
+  return (
+    <p className="mt-2 text-[0.8125rem] leading-[1.45] text-fg-3">
+      {t("Tools", "Instrumente")}: {tools.slice(0, 4).join(", ")}.
+    </p>
+  );
+}
+
+/* -------------------------------------------------------------- impact */
+
+function ImpactPanel({ plan }: { plan: DisplayPlan }) {
+  const { t, lang } = useI18n();
+  const titleId = useId();
+  const tableId = useId();
+  const [picked, setPicked] = useState<Horizon | null>(null);
+  const [tableOpen, setTableOpen] = useState(false);
+  const covered = Math.max(0, ...plan.series.map((p) => p.month));
+  const horizons = ([6, 12, 24] as const).filter((h) => h === 6 || covered >= h);
+  const wanted = picked ?? plan.defaultHorizon;
+  const horizon: Horizon = horizons.includes(wanted) ? wanted : horizons[horizons.length - 1];
+  const cells = kpiCells(plan, horizon);
+  const rows = tableRows(plan, horizon);
+
+  return (
+    <Panel as="section" aria-labelledby={titleId}>
+      <PanelHeader
+        titleId={titleId}
+        title={pick(plan.text.conclusion, lang)}
+        sub={pick(plan.text.chartLead, lang)}
+        actions={
+          <SegmentedControl<string>
+            label={t("Period shown", "Perioada afișată")}
+            value={String(horizon)}
+            onChange={(value) => setPicked(Number(value) as Horizon)}
+            options={horizons.map((h) => ({ value: String(h), label: pick(monthsQty(h), lang) }))}
+          />
+        }
+      />
+      <PanelBody className="pb-3">
+        <ImpactChart plan={plan} horizon={horizon} />
+      </PanelBody>
+
+      <div data-kpi-strip className="border-t border-line-1">
+        <StatStrip columns={4} label={t("Key figures", "Cifrele principale")}>
+          {cells.map((cell) => {
+            const text = pick(cell.value, lang);
+            const money = text.split(NBSP);
+            const unit = money.length > 1 && /^(lei|RON)$/.test(money[money.length - 1]);
+            return (
+              <Stat
+                key={cell.key}
+                label={pick(cell.label, lang)}
+                value={unit ? money.slice(0, -1).join(NBSP) : text}
+                unit={unit ? money[money.length - 1] : undefined}
+                note={cell.note ? <NoteRef n={cell.note} /> : undefined}
+                sub={pick(cell.sub, lang)}
+                swatch={
+                  cell.key === "value"
+                    ? "bg-brand-line"
+                    : cell.key === "cost"
+                      ? "bg-fg/45"
+                      : undefined
+                }
+              />
+            );
+          })}
+        </StatStrip>
+      </div>
+
+      <div className="border-t border-line-1 px-4 py-3 sm:px-5">
+        <button
+          type="button"
+          aria-expanded={tableOpen}
+          aria-controls={tableId}
+          onClick={() => setTableOpen((v) => !v)}
+          className={buttonClass("link", "sm", "text-fg-2")}
+        >
+          {tableOpen
+            ? t("Hide the table", "Ascunde tabelul")
+            : t("See the figures in a table", "Vezi cifrele într-un tabel")}
+        </button>
+        {tableOpen ? (
+          <table id={tableId} className="mt-3 w-full text-sm">
+            <caption className="sr-only">
+              {t(
+                "Cumulative value of the hours, cost and net, in RON",
+                "Valoarea orelor, costul și câștigul net, cumulat, în lei",
+              )}
+            </caption>
+            <thead>
+              <tr className="border-b border-rule text-left text-xs font-medium text-fg-3">
+                <th scope="col" className="py-2 pr-2 font-medium">
+                  {t("Month", "Luna")}
+                </th>
+                <th scope="col" className="px-2 py-2 text-right font-medium">
+                  {t("Value of hours, RON", "Valoarea orelor, lei")}
+                </th>
+                <th scope="col" className="px-2 py-2 text-right font-medium">
+                  {t("Cost, RON", "Cost, lei")}
+                </th>
+                <th scope="col" className="px-2 py-2 text-right font-medium">
+                  {t("Net, RON", "Net, lei")}
+                </th>
+                <th scope="col" className="hidden py-2 pl-2 font-medium sm:table-cell">
+                  {t("Status", "Stare")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr
+                  key={row.month}
+                  className={cn("h-9 border-b border-line-1", row.breakEven && "bg-brand-tint")}
+                >
+                  <th
+                    scope="row"
+                    className="type-pnum py-1.5 pr-2 pl-0 text-left font-normal text-fg-2"
+                  >
+                    {pick(row.label, lang)}
+                  </th>
+                  <td className="type-num px-2 text-right text-fg">
+                    {formatNumber(row.value, lang)}
+                  </td>
+                  <td className="type-num px-2 text-right text-fg">
+                    {formatNumber(row.cost, lang)}
+                  </td>
+                  <td className="type-num px-2 text-right text-fg">
+                    {row.net > 0 ? "+" : ""}
+                    {formatNumber(row.net, lang)}
+                  </td>
+                  <td
+                    className={cn(
+                      "hidden pl-2 text-[0.8125rem] sm:table-cell",
+                      row.breakEven ? "text-brand-fg" : "text-fg-3",
+                    )}
+                  >
+                    {row.breakEven ? t("Pays back", "Se recuperează") : pick(row.status, lang)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : null}
+      </div>
+    </Panel>
+  );
+}
+
+/* ------------------------------------------------------ "Ce se schimbă" */
+
+function WhatChanges({ plan }: { plan: DisplayPlan }) {
+  const { t, lang } = useI18n();
+  const titleId = useId();
+  if (!plan.strategies.length) return null;
+  // Note ⁴ is the first assumption (the share of questions the assistant takes).
+  const assumptionNote = 4;
+
+  return (
+    <section aria-labelledby={titleId} className="@container border-t border-rule pt-4">
+      <h3 id={titleId} className="type-h3 text-fg">
+        {t("What changes", "Ce se schimbă")}
+      </h3>
+      <p className="mt-1 text-[0.8125rem] leading-[1.45] text-fg-3">
+        {keepRanges(pick(plan.text.team, lang))}
+      </p>
+      <dl className="mt-3 grid @[40rem]:grid-cols-3">
+        {plan.strategies.map((strategy, i) => {
+          const { head, tail } = splitResult(pick(strategy.result, lang));
+          return (
+            <div
+              key={strategy.id}
+              className={cn(
+                "grid gap-x-4 gap-y-1 py-3 grid-cols-[7rem_minmax(0,1fr)] @[40rem]:flex @[40rem]:flex-col @[40rem]:px-4",
+                strategy.start ? "border-t-2 border-brand-line" : "border-t border-line-1",
+                i > 0 && "@[40rem]:border-l @[40rem]:border-l-line-1",
+                i === 0 && "@[40rem]:pl-0",
+              )}
+            >
+              <dt className="text-[0.8125rem] leading-[1.35] text-fg-3">
+                {pick(strategy.label, lang)}
+              </dt>
+              <dd className="min-w-0">
+                <p className="text-fg">
+                  <Statement text={head} />
+                  {strategy.assumption ? (
+                    <span className="ml-2 inline-flex translate-y-[-1px] items-center align-middle">
+                      <Tag variant="dashed">{pick(strategy.assumption, lang)}</Tag>
+                      <NoteRef n={assumptionNote} />
+                    </span>
+                  ) : null}
+                </p>
+                <p className="mt-1 text-sm leading-[1.5] text-fg-2">
+                  {tail ?? pick(strategy.support, lang)}
+                </p>
+                <p className="mt-1.5 text-xs leading-[1.4] text-fg-3">
+                  {pick(strategy.title, lang)}
+                  {strategy.optional ? t(" (optional)", " (opțional)") : null}
+                </p>
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
     </section>
   );
 }
 
-/* ------------------------------------------------------------------ offer */
+/* --------------------------------------------------------------- offer */
 
-function OfferCard({ offer }: { offer: VortexOffer }) {
+function OfferRow({
+  offer,
+  feePayback,
+  className,
+}: {
+  offer: VortexOffer;
+  /** The payback month with this plan's fee added (display.ts), stated under the price. */
+  feePayback: DisplayPlan["text"]["feePayback"];
+  className?: string;
+}) {
   const { t, lang } = useI18n();
-  const plan = {
-    starter: t("Starter plan", "Planul Starter"),
-    growth: t("Growth plan", "Planul Growth"),
-    pro: t("Pro plan", "Planul Pro"),
-    project: t("Custom project", "Proiect personalizat"),
-  }[offer.planId];
+  const titleId = useId();
+  const price = pick(offer.priceNote, lang);
+  const amount = /(\d[\d.,]*\s?(?:lei|RON))/.exec(price);
 
   return (
-    <motion.section
-      aria-label={t("Recommended offer", "Oferta recomandată")}
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "0px 0px -40px 0px" }}
-      transition={{ duration: 0.7, ease: EASE_OUT }}
-      className="relative rounded-3xl bg-gradient-to-br from-[#6c63ff] via-[#5b8cf0]/60 to-[#89cbf6]/25 p-px shadow-[0_30px_80px_-40px_rgb(108_99_255/0.8)]"
+    <section
+      aria-labelledby={titleId}
+      className={cn("grid gap-6 border-y border-line-1 py-6 lg:grid-cols-12", className)}
     >
-      <div className="relative overflow-hidden rounded-[calc(1.5rem-1px)] bg-[#070a1f]/95 p-5 sm:p-6">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-[#5b8cf0]/20 blur-3xl"
-        />
-        <div className="relative">
-          <Tag tone="violet" icon={<Sparkles />}>
-            {t("Recommended for you", "Recomandat pentru tine")} · {plan}
-          </Tag>
-          <h3 className="type-h3 mt-3 text-white">{pick(offer.title, lang)}</h3>
-          <p className="type-body-sm mt-2 text-white/60">{pick(offer.why, lang)}</p>
-          <ul className="mt-4 space-y-2">
+      <div className="min-w-0 lg:col-span-7">
+        <p className="text-[0.8125rem] leading-[1.35] text-fg-3">
+          {t("The subscription that fits this plan", "Abonamentul potrivit pentru acest plan")}
+        </p>
+        <h3 id={titleId} className="type-h3 mt-1 text-fg">
+          {pick(offer.title, lang)}
+        </h3>
+        <p className="mt-2 max-w-[60ch] text-[0.9375rem] leading-[1.5] text-fg-2">
+          {pick(offer.why, lang)}
+        </p>
+        {offer.includes.length ? (
+          <ul className="mt-3 space-y-1">
             {offer.includes.map((item) => (
-              <li key={item.en} className="type-body-sm flex items-start gap-2.5 text-white/85">
-                <span
-                  aria-hidden
-                  className="mt-0.5 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full bg-[#5fe3d0]/15 p-0.5 text-[#5fe3d0]"
-                >
-                  <Check className="h-3 w-3" strokeWidth={3} />
-                </span>
-                {pick(item, lang)}
+              <li key={item.en} className="flex gap-2.5 text-sm leading-[1.45] text-fg-2">
+                <span aria-hidden className="mt-[0.7em] h-px w-1.5 shrink-0 bg-fg-3" />
+                <span className="min-w-0">{pick(item, lang)}</span>
               </li>
             ))}
           </ul>
-          <p className="type-h3 mt-4 heading-accent">{pick(offer.priceNote, lang)}</p>
-          <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
-            <Link to="/contact" className={scanButton("primary", "md", "sm:flex-1")}>
-              {t("Start your project", "Începe proiectul")}
-              <ArrowRight aria-hidden />
-            </Link>
-            <Link to="/consultancy" className={scanButton("secondary", "md", "sm:flex-1")}>
-              {t("Book a consultation", "Programează o discuție")}
-            </Link>
-          </div>
+        ) : null}
+      </div>
+      <div className="flex min-w-0 flex-col gap-4 lg:col-span-5 lg:pt-6">
+        <p className="text-[0.9375rem] leading-[1.5] text-fg-2">
+          {amount ? (
+            <>
+              {price.slice(0, amount.index)}
+              <span className="type-pnum font-semibold text-fg">{amount[1]}</span>
+              {price.slice(amount.index + amount[1].length)}
+            </>
+          ) : (
+            price
+          )}
+          {feePayback ? (
+            <span className="mt-1 block text-[0.8125rem] leading-[1.45] text-fg-3">
+              {pick(feePayback, lang)}
+            </span>
+          ) : null}
+        </p>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <ButtonLink to="/consultancy" size="lg">
+            {t("Book a call", "Programează o discuție")}
+          </ButtonLink>
+          <ButtonLink to="/" hash="pricing" variant="secondary" size="lg">
+            {t("See the subscriptions", "Vezi abonamentele")}
+          </ButtonLink>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 }
 
 /* ---------------------------------------------------------- keep / share */
 
-function KeepPanel({ onDownload }: { onDownload: () => void }) {
-  const { t } = useI18n();
+/** Copies the page address (the shareable plan link); the state resets after 2 s. */
+function useCopyLink() {
   const [copy, setCopy] = useState<"idle" | "copied" | "failed">("idle");
 
   useEffect(() => {
     if (copy === "idle") return;
-    const timer = setTimeout(() => setCopy("idle"), 2600);
-    return () => clearTimeout(timer);
+    const timer = window.setTimeout(() => setCopy("idle"), 2000);
+    return () => window.clearTimeout(timer);
   }, [copy]);
 
   const copyLink = async () => {
@@ -650,47 +578,70 @@ function KeepPanel({ onDownload }: { onDownload: () => void }) {
     }
   };
 
+  return { copy, copyLink };
+}
+
+/**
+ * The results actions in the step bar, in reach while the page scrolls: ghost "Copiază
+ * linkul" (from md) and the primary "Descarcă raportul" ("Raport" on phones).
+ */
+function BarActions({ onDownload }: { onDownload: () => void }) {
+  const { t } = useI18n();
+  const { copy, copyLink } = useCopyLink();
+
   return (
-    <section
-      aria-label={t("Keep your plan", "Păstrează planul")}
-      className={cn(GLASS, "flex flex-col gap-2.5 rounded-2xl p-3 sm:flex-row")}
-    >
-      <button
-        type="button"
-        onClick={onDownload}
-        className={scanButton("secondary", "md", "sm:flex-1")}
+    <StepBarActions>
+      <Button
+        variant="ghost"
+        size="sm"
+        icon={copy === "copied" ? <Check aria-hidden /> : <Copy aria-hidden />}
+        onClick={copyLink}
+        className="max-md:hidden"
       >
-        <Download aria-hidden />
-        {t("Download the blueprint (PDF)", "Descarcă planul (PDF)")}
-      </button>
-      <button type="button" onClick={copyLink} className={scanButton("ghost", "md")}>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.span
-            key={copy}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
-            className="inline-flex items-center gap-2"
-          >
-            {copy === "copied" ? (
-              <Check aria-hidden className="text-[#5fe3d0]" />
-            ) : copy === "failed" ? (
-              <Link2 aria-hidden />
-            ) : (
-              <Copy aria-hidden />
-            )}
-            {copy === "copied"
-              ? t("Link copied", "Link copiat")
-              : copy === "failed"
-                ? t("Copy the address bar link", "Copiază linkul din bara de adrese")
-                : t("Copy share link", "Copiază linkul de distribuire")}
-          </motion.span>
-        </AnimatePresence>
-      </button>
+        {copy === "copied"
+          ? t("Link copied", "Link copiat")
+          : copy === "failed"
+            ? t("Copy it from the address bar", "Copiază-l din bara de adrese")
+            : t("Copy the link", "Copiază linkul")}
+      </Button>
+      <Button icon={<Download aria-hidden />} onClick={onDownload}>
+        <span className="sm:hidden">{t("Report", "Raport")}</span>
+        <span className="max-sm:hidden">{t("Download the report", "Descarcă raportul")}</span>
+      </Button>
       <span className="sr-only" aria-live="polite">
         {copy === "copied" ? t("Link copied to the clipboard", "Link copiat în clipboard") : ""}
       </span>
-    </section>
+    </StepBarActions>
+  );
+}
+
+function KeepRow({ onDownload }: { onDownload: () => void }) {
+  const { t } = useI18n();
+  const { copy, copyLink } = useCopyLink();
+
+  return (
+    <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-fg-2">{t("Keep the plan", "Păstrează planul")}</p>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={copy === "copied" ? <Check aria-hidden /> : <Copy aria-hidden />}
+          onClick={copyLink}
+        >
+          {copy === "copied"
+            ? t("Link copied", "Link copiat")
+            : copy === "failed"
+              ? t("Copy it from the address bar", "Copiază-l din bara de adrese")
+              : t("Copy the link", "Copiază linkul")}
+        </Button>
+        <Button variant="secondary" size="sm" icon={<Download aria-hidden />} onClick={onDownload}>
+          {t("Download the PDF", "Descarcă PDF-ul")}
+        </Button>
+      </div>
+      <span className="sr-only" aria-live="polite">
+        {copy === "copied" ? t("Link copied to the clipboard", "Link copiat în clipboard") : ""}
+      </span>
+    </div>
   );
 }

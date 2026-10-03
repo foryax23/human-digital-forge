@@ -1,42 +1,38 @@
-import { useId, useState } from "react";
-import { AnimatePresence, motion, MotionConfig } from "motion/react";
-import {
-  ArrowRight,
-  CalendarRange,
-  Check,
-  Clock,
-  Columns3,
-  Hourglass,
-  Info,
-  RotateCcw,
-  SlidersHorizontal,
-  Sparkles,
-  Wallet,
-  Wrench,
-} from "lucide-react";
+import { useId, useMemo, useState } from "react";
+import { RotateCcw } from "lucide-react";
 
 import { useI18n } from "@/i18n";
+import { displayPlan, type DisplayPlan, type DisplayStrategy } from "@/lib/scan/blueprint/display";
+import { hoursPerMonth, monthsQty, roNeedsDe, ucFirst } from "@/lib/scan/blueprint/format";
 import type { Blueprint, SimulationInputs, StrategyOption } from "@/lib/scan/types";
-import { cn } from "@/lib/utils";
-import { AnimatedRange } from "../report/AnimatedNumber";
+import {
+  Button,
+  Panel,
+  PanelBody,
+  PanelHeader,
+  SegmentedControl,
+  Stat,
+  StatStrip,
+  StepHeader,
+  Tag,
+} from "@/components/system";
 import { BrandSlider } from "../report/BrandSlider";
-import { scanButton } from "../report/buttons";
-import { formatMonthsRange, formatNumber, formatRange, pick, unitSuffix } from "../report/format";
-import { GLASS, TILE } from "../report/GlassCard";
-import { InfoTip } from "../report/InfoTip";
-import { EASE_OUT, riseIn, staggerParent, useScanMotion } from "../report/motion";
-import { SegmentedControl } from "../report/SegmentedControl";
-import { Sparkline } from "../report/Sparkline";
-import { StepHeader } from "../report/StepHeader";
-import { Tag } from "../report/Tag";
+import { formatNumber, pick } from "../report/format";
+import { Gantt, type GanttRow } from "../report/Gantt";
+import { categoryOf, companyLine, isSample, splitResult } from "../report/plan-copy";
 
 type View = "comparison" | "roadmap";
 
+const COUNT_RO: Record<number, string> = { 2: "Două", 3: "Trei", 4: "Patru" };
+const COUNT_EN: Record<number, string> = { 2: "Two", 3: "Three", 4: "Four" };
+
 /**
- * Screen 03b: three strategic directions to compare side by side or on a
- * timeline, plus a live simulation: the visitor's own team size, hourly cost
- * and volume feed the engine's formulas (the parent re-simulates the
- * blueprint on every change, so every number here stays deterministic).
+ * Screen 03b: the strategic directions as content cards with the same figures
+ * as the plan (hours and cost per row come from displayPlan(), never
+ * re-rounded), the same rows on a month calendar, and a simulation: the
+ * visitor's own team size, hourly cost and volume feed the engine's formulas
+ * (the parent re-simulates the blueprint on every change, so every number on
+ * this screen stays deterministic).
  */
 export function StrategyStep({
   blueprint,
@@ -52,427 +48,202 @@ export function StrategyStep({
   const { t, lang } = useI18n();
   const headingId = useId();
   const [view, setView] = useState<View>("comparison");
-  const recommended = blueprint.strategies.find((s) => s.recommended);
+  const plan = useMemo(() => displayPlan(blueprint), [blueprint]);
+  const options = useMemo(
+    () => new Map(blueprint.strategies.map((s) => [s.id, s])),
+    [blueprint.strategies],
+  );
+  const { company, place } = companyLine(blueprint);
+  const count = plan.strategies.length;
+  const span = Math.max(6, ...plan.phases.map((p) => p.months[1]));
 
   return (
-    <MotionConfig reducedMotion="user">
-      <section aria-labelledby={headingId} className="w-full">
-        <StepHeader
-          id={headingId}
-          eyebrow={t("03 · Strategy", "03 · Strategie")}
-          title={
-            <>
-              {t("Strategy ", "Variante de ")}
-              <span className="heading-accent">{t("options", "strategie")}</span>
-            </>
-          }
-          description={t(
-            "Based on our analysis, here are the most effective strategies for your business.",
-            "Pe baza analizei noastre, acestea sunt cele mai eficiente strategii pentru afacerea ta.",
-          )}
-          aside={
-            <SegmentedControl<View>
-              label={t("Strategy view", "Mod de afișare")}
-              value={view}
-              onChange={setView}
-              options={[
-                {
-                  value: "comparison",
-                  label: t("Comparison view", "Comparație"),
-                  icon: <Columns3 aria-hidden />,
-                },
-                {
-                  value: "roadmap",
-                  label: t("Roadmap view", "Plan pe luni"),
-                  icon: <CalendarRange aria-hidden />,
-                },
-              ]}
-            />
-          }
-        />
+    <section aria-labelledby={headingId} className="w-full">
+      <StepHeader
+        id={headingId}
+        company={company}
+        place={place}
+        demo={isSample(blueprint)}
+        title={t(
+          `${COUNT_EN[count] ?? count} directions, each with its cost and gain`,
+          `${COUNT_RO[count] ?? count} direcții, fiecare cu cost și câștig`,
+        )}
+        lead={t("You can do them one at a time or together.", "Le poți face pe rând sau împreună.")}
+        actions={
+          <SegmentedControl<View>
+            label={t("Strategy view", "Mod de afișare")}
+            value={view}
+            onChange={setView}
+            options={[
+              { value: "comparison", label: t("Comparison", "Comparație") },
+              { value: "roadmap", label: t("By month", "Plan pe luni") },
+            ]}
+          />
+        }
+      />
 
-        <div className="mt-8">
-          <AnimatePresence mode="wait" initial={false}>
-            {view === "comparison" ? (
-              <motion.div
-                key="comparison"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.35, ease: EASE_OUT }}
-              >
-                <motion.ol
-                  variants={staggerParent}
-                  initial="hidden"
-                  animate="show"
-                  className="grid gap-5 pt-3 md:grid-cols-2 lg:grid-cols-3 lg:gap-6"
-                >
-                  {blueprint.strategies.map((strategy, i) => (
-                    <StrategyCard key={strategy.id} strategy={strategy} index={i} />
-                  ))}
-                </motion.ol>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="roadmap"
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.35, ease: EASE_OUT }}
-              >
-                <StrategyTimeline strategies={blueprint.strategies} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+      <div className="mt-4 sm:mt-6">
+        {view === "comparison" ? (
+          <ol className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {plan.strategies.map((strategy) => (
+              <li key={strategy.id} className="min-w-0">
+                <StrategyCard strategy={strategy} option={options.get(strategy.id)} />
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <StrategyCalendar plan={plan} />
+        )}
+      </div>
 
-        <SimulationPanel
-          blueprint={blueprint}
-          simulation={simulation}
-          onSimulationChange={onSimulationChange}
-        />
+      <SimulationPanel
+        blueprint={blueprint}
+        plan={plan}
+        simulation={simulation}
+        onSimulationChange={onSimulationChange}
+      />
 
-        <div className="mt-8 flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="type-body-sm max-w-md text-white/50">
-            {recommended
-              ? t(
-                  `We recommend starting with “${pick(recommended.title, "en")}”; the roadmap shows it month by month.`,
-                  `Recomandăm să începi cu „${pick(recommended.title, "ro")}”; planul de implementare arată pașii lună de lună.`,
-                )
-              : t(
-                  "The roadmap puts these strategies in order, month by month.",
-                  "Planul de implementare pune aceste strategii în ordine, lună de lună.",
-                )}
-          </p>
-          <button type="button" onClick={onContinue} className={scanButton("primary", "lg")}>
-            {t("View recommended roadmap", "Vezi planul recomandat")}
-            <ArrowRight aria-hidden />
-          </button>
-        </div>
-      </section>
-    </MotionConfig>
+      <div className="mt-6 flex flex-col-reverse gap-4 border-t border-line-1 pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="max-w-[60ch] text-sm leading-[1.5] text-fg-2">
+          {plan.text.startNote
+            ? pick(plan.text.startNote, lang)
+            : t(
+                "The plan puts these directions in order, with the hours and cost of each stage.",
+                "Planul pune aceste direcții în ordine, cu orele și costul fiecărei etape.",
+              )}
+        </p>
+        <Button size="lg" onClick={onContinue}>
+          {t(`See the ${span}-month plan`, `Vezi planul pe ${monthsQty(span).ro}`)}
+        </Button>
+      </div>
+    </section>
   );
 }
 
 /* ---------------------------------------------------------------- cards */
 
-/** Illustrative ramp of the stated outcome over a year: flat during setup, then easing in. */
-function outcomeCurve(strategy: StrategyOption) {
-  const ramp = Math.max(strategy.timeToValueMonths.high, 1) + 1;
-  const ease = (month: number) => 1 - (1 - Math.min(1, month / ramp)) ** 3;
-  const months = Array.from({ length: 13 }, (_, m) => m);
-  const { low, high } = strategy.outcome.range;
-  return {
-    values: months.map((m) => ((low + high) / 2) * ease(m)),
-    low: months.map((m) => low * ease(m)),
-    high: months.map((m) => high * ease(m)),
-  };
-}
-
-function useLevelLabel() {
-  const { t } = useI18n();
-  return (level: StrategyOption["implementation"]) =>
-    ({
-      low: t("Light", "Ușoară"),
-      medium: t("Medium", "Medie"),
-      high: t("Involved", "Complexă"),
-    })[level];
-}
-
-function StrategyCard({ strategy, index }: { strategy: StrategyOption; index: number }) {
+function StrategyCard({
+  strategy,
+  option,
+}: {
+  strategy: DisplayStrategy;
+  option?: StrategyOption;
+}) {
   const { t, lang } = useI18n();
-  const { still, reduce } = useScanMotion();
-  const levelLabel = useLevelLabel();
-  const curve = outcomeCurve(strategy);
-  const rec = strategy.recommended;
-  const level = { low: 1, medium: 2, high: 3 }[strategy.implementation];
+  const titleId = useId();
+  const start = strategy.start;
 
-  const card = (
-    <article
-      className={cn(
-        "relative flex h-full flex-col rounded-3xl p-5 sm:p-6",
-        rec
-          ? "bg-[#070a1f]/95 shadow-[inset_0_1px_0_rgb(255_255_255/0.08)]"
-          : cn(GLASS, "transition-colors hover:border-white/20"),
-      )}
+  return (
+    <Panel
+      as="article"
+      aria-labelledby={titleId}
+      recommended={Boolean(start)}
+      className="flex h-full flex-col gap-2.5 px-4 pb-3.5 pt-4 sm:px-[18px]"
     >
-      {/* Fixed height, so titles line up whether or not a card has a tag. */}
-      <div className="flex min-h-7 items-center justify-between gap-3">
-        <span aria-hidden className="type-label text-[#89cbf6]">
-          {String(index + 1).padStart(2, "0")}
-        </span>
-        {strategy.opportunityIds.length > 0 && (
-          <Tag tone="neutral">
-            {t(
-              `${strategy.opportunityIds.length} ${strategy.opportunityIds.length === 1 ? "automation" : "automations"}`,
-              `${strategy.opportunityIds.length} ${strategy.opportunityIds.length === 1 ? "automatizare" : "automatizări"}`,
-            )}
-          </Tag>
-        )}
+      <div className="flex min-h-5 items-center justify-between gap-3">
+        <Tag>{categoryOf(strategy, lang)}</Tag>
+        {start ? (
+          <Tag variant="start">{t("We start here", "Începem aici")}</Tag>
+        ) : strategy.optional ? (
+          <Tag>{t("Optional", "Opțional")}</Tag>
+        ) : null}
       </div>
-      <h3 className="type-h3 mt-4 text-white">
-        <span className="sr-only">{`${index + 1}. `}</span>
+      <h3 id={titleId} className="type-h4 text-fg">
         {pick(strategy.title, lang)}
       </h3>
-      <p className="type-body-sm mt-2 text-white/60">{pick(strategy.summary, lang)}</p>
+      {start ? <p className="text-sm leading-[1.5] text-fg">{pick(start.reason, lang)}</p> : null}
+      {option ? (
+        <p className="line-clamp-2 text-sm leading-[1.5] text-fg-2">{pick(option.summary, lang)}</p>
+      ) : null}
+      {option?.tactics.length ? (
+        <ul className="space-y-1">
+          {/* Four at most: a site card lists one line per gap it counts ("4 lucruri…"). */}
+          {option.tactics.slice(0, 4).map((tactic) => (
+            <li key={tactic.en} className="flex gap-2.5 text-sm leading-[1.45] text-fg-2">
+              <span aria-hidden className="mt-[0.7em] h-px w-1.5 shrink-0 bg-fg-3" />
+              <span className="min-w-0">{pick(tactic, lang)}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
-      <ul className="mt-5 space-y-2.5">
-        {strategy.tactics.map((tactic) => (
-          <li key={tactic.en} className="type-body-sm flex items-start gap-2.5 text-white/85">
-            <span
-              aria-hidden
-              className="mt-0.5 grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full bg-[#5fe3d0]/15 p-0.5 text-[#5fe3d0]"
+      <dl className="mt-auto border-t border-line-1 pt-0.5">
+        {strategy.facts.map((fact, i) => {
+          const result = i === strategy.facts.length - 1;
+          const value = pick(fact.value, lang);
+          return (
+            <div
+              key={fact.label.en}
+              className="flex min-h-9 items-center justify-between gap-4 border-b border-line-1 py-1.5 text-[0.8125rem] leading-[1.4] last:border-b-0"
             >
-              <Check className="h-3 w-3" strokeWidth={3} />
-            </span>
-            {pick(tactic, lang)}
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-auto pt-6">
-        <div className={cn(TILE, "p-4")}>
-          <div className="flex items-end justify-between gap-3">
-            <p className="type-h3 text-white">
-              <AnimatedRange
-                range={strategy.outcome.range}
-                format={(v) => formatNumber(v, lang)}
-                delay={0.2 + index * 0.1}
-              />
-              <span className="text-white/70">{unitSuffix(strategy.outcome.unit)}</span>
-            </p>
-            <Sparkline
-              values={curve.values}
-              low={curve.low}
-              high={curve.high}
-              delay={0.3 + index * 0.12}
-              className="shrink-0"
-            />
-          </div>
-          <p className="type-micro mt-2 text-white/60">
-            {pick(strategy.outcome.label, lang)}
-            <InfoTip
-              label={t("How we estimate this", "Cum am estimat")}
-              className="-my-1 ml-0.5 align-middle"
-            >
-              <p>{pick(strategy.outcome.basis, lang)}</p>
-              <p className="mt-1.5 text-white/50">
-                {t("Estimate, not a guarantee.", "Estimare, nu garanție.")}
-              </p>
-            </InfoTip>
-          </p>
-        </div>
-
-        <dl className="type-body-sm mt-5 grid gap-3">
-          <div className="flex items-center justify-between gap-3">
-            <dt className="flex items-center gap-2 text-white/55">
-              <Wrench aria-hidden className="h-4 w-4 text-[#89cbf6]" />
-              {t("Implementation", "Implementare")}
-            </dt>
-            <dd className="flex items-center gap-2 text-white/90">
-              <span aria-hidden className="flex gap-0.5">
-                {[1, 2, 3].map((n) => (
-                  <span
-                    key={n}
-                    className={cn(
-                      "h-3 w-1.5 rounded-full",
-                      n <= level ? "bg-gradient-to-t from-[#6c63ff] to-[#89cbf6]" : "bg-white/12",
-                    )}
-                  />
-                ))}
-              </span>
-              {levelLabel(strategy.implementation)}
-            </dd>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <dt className="flex items-center gap-2 text-white/55">
-              <Clock aria-hidden className="h-4 w-4 text-[#89cbf6]" />
-              {t("Time to value", "Primele rezultate")}
-            </dt>
-            <dd className="text-white/90">{formatMonthsRange(strategy.timeToValueMonths, lang)}</dd>
-          </div>
-          <div className="flex items-start justify-between gap-3">
-            <dt className="flex items-center gap-2 text-white/55">
-              <Wallet aria-hidden className="h-4 w-4 text-[#89cbf6]" />
-              {t("Investment", "Investiție")}
-            </dt>
-            <dd className="text-right">
-              <span
-                className="font-semibold"
-                aria-label={t(
-                  `Level ${strategy.investmentLevel} of 3`,
-                  `Nivel ${strategy.investmentLevel} din 3`,
-                )}
-              >
-                <span className="text-white">{"€".repeat(strategy.investmentLevel)}</span>
-                <span aria-hidden className="text-white/20">
-                  {"€".repeat(3 - strategy.investmentLevel)}
-                </span>
-              </span>
-              <span className="type-micro block text-white/50">
-                {formatRange(strategy.investmentRon, lang)} RON
-              </span>
-            </dd>
-          </div>
-        </dl>
-      </div>
-    </article>
-  );
-
-  return (
-    <motion.li
-      variants={riseIn}
-      whileHover={reduce ? undefined : { y: -4 }}
-      transition={{ type: "spring", stiffness: 300, damping: 26 }}
-      className="relative min-w-0"
-    >
-      {rec ? (
-        <div className="relative h-full">
-          {/* Breathing glow behind the recommended card (stops under pause / reduced motion). */}
-          <motion.div
-            aria-hidden
-            className="absolute -inset-2 rounded-[2rem] bg-gradient-to-b from-[#6c63ff]/70 via-[#5b8cf0]/45 to-[#89cbf6]/25 blur-2xl"
-            animate={still ? { opacity: 0.8 } : { opacity: [0.55, 1, 0.55] }}
-            transition={
-              still ? { duration: 0 } : { duration: 4.5, repeat: Infinity, ease: "easeInOut" }
-            }
-          />
-          <div className="relative h-full rounded-3xl bg-gradient-to-b from-[#6c63ff] via-[#5b8cf0] to-[#89cbf6]/50 p-px">
-            {card}
-          </div>
-          <span className="type-label absolute -top-3 left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-primary px-3 py-1 text-primary-foreground">
-            <Sparkles aria-hidden className="h-3.5 w-3.5" />
-            {t("Recommended", "Recomandat")}
-          </span>
-        </div>
-      ) : (
-        card
-      )}
-    </motion.li>
+              <dt className="shrink-0 text-fg-3">{pick(fact.label, lang)}</dt>
+              <dd className="type-pnum flex min-w-0 flex-wrap items-center justify-end gap-x-2 gap-y-1 text-right text-fg">
+                <span>{result ? ucFirst(splitResult(value).head) : value}</span>
+                {result && strategy.assumption ? (
+                  <Tag variant="dashed">{pick(strategy.assumption, lang)}</Tag>
+                ) : null}
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+    </Panel>
   );
 }
 
-/* -------------------------------------------------------------- timeline */
+/* -------------------------------------------------------------- calendar */
 
-function StrategyTimeline({ strategies }: { strategies: StrategyOption[] }) {
+function StrategyCalendar({ plan }: { plan: DisplayPlan }) {
   const { t, lang } = useI18n();
-  const { reduce } = useScanMotion();
-  const end = Math.max(6, ...strategies.map((s) => Math.ceil(s.timeToValueMonths.high) + 2));
-  const ticks = Array.from({ length: end + 1 }, (_, m) => m);
-  const pct = (month: number) => `${(Math.min(month, end) / end) * 100}%`;
+  const titleId = useId();
+  const months = Math.max(6, ...plan.phases.map((p) => p.months[1]));
+  const monthsOf = new Map(plan.phases.map((p) => [p.key, p.months]));
+
+  const rows: GanttRow[] = plan.strategies.map((s) => {
+    const segments = s.phases
+      .map((p) => monthsOf.get(p.key))
+      .filter((m): m is [number, number] => Boolean(m))
+      .sort((a, b) => a[0] - b[0]);
+    const buildFact = s.facts.find((f) => f.key === "build");
+    const build = buildFact ? pick(buildFact.value, lang) : "";
+    const cost = s.facts.find((f) => f.key === "cost");
+    return {
+      key: s.id,
+      name: pick(s.title, lang),
+      segments,
+      start: Boolean(s.start),
+      hours: s.hoursPerMonth,
+      hoursText:
+        s.hoursPerMonth !== null
+          ? pick(hoursPerMonth(s.hoursPerMonth), lang)
+          : t("brings enquiries, not hours", "aduce solicitări, nu ore"),
+      cost: s.setupLei,
+      costText: cost ? pick(cost.value, lang) : "",
+      when: ucFirst(build),
+      empty: s.optional ? t("optional", "opțional") : undefined,
+    };
+  });
 
   return (
-    <div className={cn(GLASS, "p-5 sm:p-6")}>
-      <div className="type-micro flex flex-wrap items-center gap-x-5 gap-y-2 text-white/60">
-        <span className="inline-flex items-center gap-2">
-          <span
-            aria-hidden
-            className="h-2.5 w-5 rounded-full bg-[repeating-linear-gradient(135deg,rgb(255_255_255/0.22)_0_3px,transparent_3px_6px)]"
-          />
-          {t("Setup", "Implementare")}
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <span
-            aria-hidden
-            className="h-2.5 w-5 rounded-full bg-gradient-to-r from-[#6c63ff] to-[#89cbf6]"
-          />
-          {t("First results arrive", "Apar primele rezultate")}
-        </span>
-        <span className="inline-flex items-center gap-2">
-          <span aria-hidden className="h-2.5 w-5 rounded-full bg-[#89cbf6]/20" />
-          {t("Ongoing value", "Beneficii pe termen lung")}
-        </span>
-      </div>
-
-      <ol className="mt-6 space-y-6">
-        {strategies.map((strategy, i) => {
-          const low = strategy.timeToValueMonths.low;
-          const high = strategy.timeToValueMonths.high;
-          return (
-            <li
-              key={strategy.id}
-              className="grid gap-3 md:grid-cols-[15rem_minmax(0,1fr)] md:items-center md:gap-6"
-            >
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span aria-hidden className="type-label text-[#89cbf6]">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <h3 className="type-h3 text-white">{pick(strategy.title, lang)}</h3>
-                  {strategy.recommended && (
-                    <Tag tone="violet" icon={<Sparkles />} className="shrink-0">
-                      {t("Recommended", "Recomandat")}
-                    </Tag>
-                  )}
-                </div>
-                <p className="type-micro mt-1 text-white/55">
-                  {formatRange(strategy.outcome.range, lang)}
-                  {unitSuffix(strategy.outcome.unit)} {pick(strategy.outcome.label, lang)} ·{" "}
-                  {"€".repeat(strategy.investmentLevel)} (
-                  {formatRange(strategy.investmentRon, lang)} RON)
-                </p>
-              </div>
-
-              <div>
-                <div className="relative h-9 rounded-full bg-white/[0.04]">
-                  <motion.div
-                    className="absolute inset-y-1.5 left-1.5 origin-left rounded-full bg-[repeating-linear-gradient(135deg,rgb(255_255_255/0.2)_0_3px,transparent_3px_6px)]"
-                    style={{ width: `calc(${pct(low)} - 0.375rem)` }}
-                    initial={{ scaleX: reduce ? 1 : 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: 0.6, delay: 0.1 + i * 0.12, ease: EASE_OUT }}
-                  />
-                  <motion.div
-                    className="absolute inset-y-1 origin-left rounded-full bg-gradient-to-r from-[#6c63ff] via-[#5b8cf0] to-[#89cbf6] shadow-[0_0_18px_rgb(108_99_255/0.5)]"
-                    style={{
-                      left: pct(low),
-                      width: `max(0.75rem, calc(${pct(high)} - ${pct(low)}))`,
-                    }}
-                    initial={{ scaleX: reduce ? 1 : 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: 0.6, delay: 0.4 + i * 0.12, ease: EASE_OUT }}
-                  />
-                  <motion.div
-                    className="absolute inset-y-2 right-1.5 origin-left rounded-full bg-gradient-to-r from-[#89cbf6]/25 to-[#89cbf6]/5"
-                    style={{ left: pct(high) }}
-                    initial={{ opacity: reduce ? 1 : 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 0.75 + i * 0.12 }}
-                  />
-                </div>
-                <p className="type-micro mt-1.5 text-white/55">
-                  {t(
-                    `First results in ${formatMonthsRange(strategy.timeToValueMonths, "en")}`,
-                    `Primele rezultate în ${formatMonthsRange(strategy.timeToValueMonths, "ro")}`,
-                  )}
-                </p>
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-
-      <div aria-hidden className="mt-4 hidden md:grid md:grid-cols-[15rem_minmax(0,1fr)] md:gap-6">
-        <span />
-        <div className="relative h-5 border-t border-white/10">
-          {ticks.map((month) => (
-            <span
-              key={month}
-              className="type-tech absolute top-1.5 -translate-x-1/2 tabular-nums text-white/40 first:translate-x-0 last:-translate-x-full"
-              style={{ left: pct(month) }}
-            >
-              {lang === "ro" ? `L${month}` : `M${month}`}
-            </span>
-          ))}
-        </div>
-      </div>
-      <p className="type-micro mt-4 text-white/40">
-        {t(
-          "Months from the start of the project. Bars show when each strategy starts paying off, not how long it runs.",
-          "Luni de la începutul proiectului. Barele arată când începe fiecare strategie să aducă rezultate, nu cât durează.",
+    <Panel as="section" aria-labelledby={titleId}>
+      <PanelHeader
+        titleId={titleId}
+        title={t("The directions, month by month", "Direcțiile, lună de lună")}
+        sub={t(
+          "When each one is built, its hours a month and its one-off cost.",
+          "Când se face fiecare, câte ore câștigă pe lună și cât costă o singură dată.",
         )}
-      </p>
-    </div>
+      />
+      <PanelBody>
+        <Gantt
+          rows={rows}
+          months={months}
+          density="compact"
+          label={t("Directions by month", "Direcțiile pe luni")}
+          nameHeader={t("Direction", "Direcție")}
+        />
+      </PanelBody>
+    </Panel>
   );
 }
 
@@ -480,199 +251,169 @@ function StrategyTimeline({ strategies }: { strategies: StrategyOption[] }) {
 
 function SimulationPanel({
   blueprint,
+  plan,
   simulation,
   onSimulationChange,
 }: {
   blueprint: Blueprint;
+  plan: DisplayPlan;
   simulation: SimulationInputs;
   onSimulationChange: (inputs: SimulationInputs) => void;
 }) {
   const { t, lang } = useI18n();
-  const headingId = useId();
+  const titleId = useId();
   const defaults = blueprint.assumptions.simulation;
   const teamMax = Math.max(
     20,
     Math.ceil(blueprint.assumptions.teamSize.high * 3),
     simulation.teamSize,
   );
+  const hourlyMax = Math.max(250, simulation.hourlyCostRon);
   const changed =
     simulation.teamSize !== defaults.teamSize ||
     simulation.hourlyCostRon !== defaults.hourlyCostRon ||
     Math.abs(simulation.volumeFactor - defaults.volumeFactor) > 0.001;
   const set = (patch: Partial<SimulationInputs>) => onSimulationChange({ ...simulation, ...patch });
-  const totals = blueprint.totals;
-  const whole = (v: number) => formatNumber(v, lang);
-  const oneDecimal = (v: number) => formatNumber(v, lang, 1);
 
-  const tiles = [
-    {
-      key: "hours",
-      icon: <Clock aria-hidden />,
-      label: t("Hours saved a month", "Ore economisite pe lună"),
-      value: <AnimatedRange range={totals.hoursSavedPerMonth} format={whole} />,
-      unit: " h",
-    },
-    {
-      key: "savings",
-      icon: <Wallet aria-hidden />,
-      label: t("Savings a month", "Economii pe lună"),
-      value: <AnimatedRange range={totals.monthlySavingsRon} format={whole} />,
-      unit: " RON",
-    },
-    {
-      key: "payback",
-      icon: <Hourglass aria-hidden />,
-      label: t("Payback", "Recuperarea investiției"),
-      value: <AnimatedRange range={totals.paybackMonths} format={oneDecimal} />,
-      unit: lang === "ro" ? " luni" : " months",
-    },
-    {
-      key: "setup",
-      icon: <Wrench aria-hidden />,
-      label: t("One-off setup", "Implementare unică"),
-      value: <AnimatedRange range={totals.setupCostRon} format={whole} />,
-      unit: " RON",
-    },
-  ];
+  const team = simulation.teamSize;
+  const volume = Math.round(simulation.volumeFactor * 100);
+  const busyness =
+    volume === 100
+      ? t("typical (100%)", "tipic (100%)")
+      : volume < 100
+        ? t(`quieter (${volume}%)`, `mai liniștit (${volume}%)`)
+        : t(`busier (${volume}%)`, `mai aglomerat (${volume}%)`);
+
+  const totals = plan.totals;
+  const hours = totals.hoursPerMonth;
+  const n = plan.breakEven.month;
+  const tools = formatNumber(totals.toolsLeiPerMonth, lang);
+  // The figure is the automations' setup (the chart's cost); the website work, which
+  // the calendar above includes, is named with its amount so the two totals reconcile.
+  const site = totals.siteLei ? formatNumber(totals.siteLei, lang) : null;
+  const newSite = plan.phases.some((p) => p.siteMilestone);
+  const monthly =
+    totals.toolsLeiPerMonth > 0
+      ? t(
+          `then about ${tools} RON a month for tools`,
+          `apoi cam ${tools} lei pe lună pentru instrumente`,
+        )
+      : t("no monthly tools", "fără instrumente lunare");
+  const siteNote = site
+    ? newSite
+      ? t(`; the website comes on top (≈ ${site} RON)`, `; site-ul se adaugă (≈ ${site} lei)`)
+      : t(
+          `; the website work comes on top (≈ ${site} RON)`,
+          `; lucrările la site se adaugă (≈ ${site} lei)`,
+        )
+    : "";
 
   return (
-    <motion.section
-      aria-labelledby={headingId}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "0px 0px -60px 0px" }}
-      transition={{ duration: 0.7, ease: EASE_OUT }}
-      className={cn(GLASS, "relative mt-8 overflow-hidden p-5 sm:p-7")}
-    >
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#6c63ff]/20 blur-3xl"
+    <Panel as="section" aria-labelledby={titleId} className="mt-4 overflow-hidden sm:mt-6">
+      <PanelHeader
+        titleId={titleId}
+        title={t("Adjust the estimate", "Ajustează estimarea")}
+        sub={t(
+          "Change the team, the volume and the cost of an hour; the figures above recalculate.",
+          "Schimbă echipa, volumul și costul orei; cifrele de mai sus se recalculează.",
+        )}
+        actions={
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<RotateCcw aria-hidden />}
+            disabled={!changed}
+            onClick={() => onSimulationChange({ ...defaults })}
+          >
+            {t("Back to our estimate", "Revino la estimarea noastră")}
+          </Button>
+        }
       />
-      <div className="relative flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-xl">
-          <p className="type-label inline-flex items-center gap-2 text-[#89cbf6]">
-            <SlidersHorizontal aria-hidden className="h-3.5 w-3.5" />
-            {t("Strategy simulation", "Simularea strategiei")}
-          </p>
-          <h3 id={headingId} className="type-h3 mt-2 text-white">
-            {t("Simulate your numbers", "Simulează cu cifrele tale")}
-          </h3>
-          <p className="type-body-sm mt-1.5 text-white/60">
-            {t(
-              "Tell us about your team and the estimates recalculate with the same formulas behind the strategies.",
-              "Spune-ne câteva lucruri despre echipă, iar estimările se recalculează cu aceleași formule folosite pentru strategii.",
+      <PanelBody className="grid gap-5 md:grid-cols-3 md:gap-6">
+        <BrandSlider
+          label={t("Team size", "Mărimea echipei")}
+          value={team}
+          min={1}
+          max={teamMax}
+          step={1}
+          onChange={(teamSize) => set({ teamSize })}
+          display={t(
+            `${team} ${team === 1 ? "person" : "people"}`,
+            `${team} ${team === 1 ? "persoană" : roNeedsDe(team) ? "de persoane" : "persoane"}`,
+          )}
+          bounds={["1", String(teamMax)]}
+        />
+        <BrandSlider
+          label={t("Cost of an hour of work", "Costul unei ore de lucru")}
+          value={simulation.hourlyCostRon}
+          min={15}
+          max={hourlyMax}
+          step={1}
+          onChange={(hourlyCostRon) => set({ hourlyCostRon })}
+          display={t(
+            `${simulation.hourlyCostRon} RON an hour`,
+            `${simulation.hourlyCostRon} lei pe oră`,
+          )}
+          bounds={[t("15 RON", "15 lei"), t(`${hourlyMax} RON`, `${hourlyMax} lei`)]}
+          hint={pick(plan.notes.hourValue, lang)}
+        />
+        <BrandSlider
+          label={t("How busy you are", "Cât de aglomerați sunteți")}
+          value={simulation.volumeFactor}
+          min={0.5}
+          max={2}
+          step={0.05}
+          onChange={(volumeFactor) => set({ volumeFactor: Math.round(volumeFactor * 100) / 100 })}
+          display={busyness}
+          valueText={t(`${volume}% of a typical volume`, `${volume}% din volumul tipic`)}
+          bounds={[t("half", "jumătate"), t("double", "dublu")]}
+          hint={t(
+            "Bookings, orders or requests compared with a typical business like yours.",
+            "Programări, comenzi sau solicitări, față de o afacere tipică de același fel.",
+          )}
+        />
+      </PanelBody>
+      <div className="border-t border-line-1">
+        <StatStrip columns={4} label={t("Recalculated figures", "Cifrele recalculate")}>
+          <Stat
+            label={t("Hours won back", "Ore câștigate")}
+            value={formatNumber(hours, lang)}
+            unit={t(
+              "hours a month",
+              `${roNeedsDe(hours) ? "de " : ""}${hours === 1 ? "oră" : "ore"} pe lună`,
             )}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => onSimulationChange({ ...defaults })}
-          disabled={!changed}
-          className={scanButton("secondary", "sm")}
-        >
-          <RotateCcw aria-hidden />
-          {t("Reset to our assumptions", "Revino la valorile noastre")}
-        </button>
-      </div>
-
-      <div className="relative mt-7 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-10">
-        <div className="space-y-7">
-          <BrandSlider
-            label={t("Team size", "Mărimea echipei")}
-            value={simulation.teamSize}
-            min={1}
-            max={teamMax}
-            step={1}
-            onChange={(teamSize) => set({ teamSize })}
-            display={t(
-              `${simulation.teamSize} ${simulation.teamSize === 1 ? "person" : "people"}`,
-              `${simulation.teamSize} ${simulation.teamSize === 1 ? "persoană" : simulation.teamSize >= 20 ? "de persoane" : "persoane"}`,
+            sub={pick(plan.text.fte, lang)}
+          />
+          <Stat
+            label={t("Value of the hours", "Valoarea orelor")}
+            value={formatNumber(totals.monthlyValueLei, lang)}
+            unit={t("RON a month", "lei pe lună")}
+            sub={t(
+              `at ${formatNumber(totals.hourlyLei, lang)} RON an hour`,
+              `la ${formatNumber(totals.hourlyLei, lang)} lei pe oră`,
             )}
           />
-          <div>
-            <BrandSlider
-              label={t("Hourly staff cost", "Costul orar al unui angajat")}
-              value={simulation.hourlyCostRon}
-              min={15}
-              max={Math.max(250, simulation.hourlyCostRon)}
-              step={1}
-              onChange={(hourlyCostRon) => set({ hourlyCostRon })}
-              display={t(
-                `${simulation.hourlyCostRon} RON/h`,
-                `${simulation.hourlyCostRon} lei/oră`,
-              )}
-              valueText={t(
-                `${simulation.hourlyCostRon} RON per hour`,
-                `${simulation.hourlyCostRon} lei pe oră`,
-              )}
-              bounds={["15 RON", `${Math.max(250, simulation.hourlyCostRon)} RON`]}
-            />
-            <p className="type-micro mt-1 flex items-start gap-1 text-white/45">
-              {t(
-                `Our default: ${blueprint.assumptions.hourlyCostRon} RON/h`,
-                `Valoarea noastră: ${blueprint.assumptions.hourlyCostRon} lei/oră`,
-              )}
-              <InfoTip label={t("Where the hourly cost comes from", "De unde vine costul orar")}>
-                {pick(blueprint.assumptions.hourlyCostBasis, lang)}
-              </InfoTip>
-            </p>
-          </div>
-          <BrandSlider
-            label={t("Work volume", "Volumul de lucru")}
-            value={simulation.volumeFactor}
-            min={0.5}
-            max={2}
-            step={0.05}
-            onChange={(volumeFactor) => set({ volumeFactor: Math.round(volumeFactor * 100) / 100 })}
-            display={`×${formatNumber(simulation.volumeFactor, lang, 2)}`}
-            valueText={t(
-              `${Math.round(simulation.volumeFactor * 100)}% of a typical volume`,
-              `${Math.round(simulation.volumeFactor * 100)}% din volumul tipic`,
-            )}
-            bounds={[t("×0.5 quieter", "×0,5 mai puțin"), t("×2 busier", "×2 mai mult")]}
-            hint={t(
-              "Bookings, orders or requests compared with a typical business like yours.",
-              "Programări, comenzi sau solicitări, comparativ cu o afacere tipică de același fel.",
-            )}
+          <Stat
+            label={
+              site ? t("Automation setup", "Implementare automatizări") : t("Setup", "Implementare")
+            }
+            value={formatNumber(totals.automationsSetupLei, lang)}
+            unit={t("RON", "lei")}
+            sub={`${monthly}${siteNote}`}
           />
-        </div>
-
-        <div>
-          <ul className="grid grid-cols-2 gap-2.5 sm:gap-3">
-            {tiles.map((tile) => (
-              <li key={tile.key} className={cn(TILE, "relative overflow-hidden p-3.5 sm:p-4")}>
-                <p className="type-micro flex items-center gap-1.5 text-white/55 [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:text-[#89cbf6]">
-                  {tile.icon}
-                  {tile.label}
-                </p>
-                <p className="type-h3 mt-2 text-white">
-                  {tile.value}
-                  <span className="type-body-sm font-medium text-white/55">{tile.unit}</span>
-                </p>
-              </li>
-            ))}
-          </ul>
-          <p className="type-body-sm mt-3 text-white/65">
-            {t("That's about ", "Adică aproximativ ")}
-            <span className="font-semibold text-white">
-              <AnimatedRange range={totals.annualSavingsRon} format={whole} /> RON
-            </span>
-            {t(" a year.", " pe an.")}
-          </p>
-          <div className="type-micro mt-4 rounded-2xl border border-[#89cbf6]/20 bg-[#89cbf6]/[0.06] p-3.5 text-white/65">
-            <p className="type-label flex items-center gap-1.5 text-[#c4e6fb]">
-              <Info aria-hidden className="h-3.5 w-3.5" />
-              {t("Estimates, not guarantees", "Estimări, nu garanții")}
-            </p>
-            <ul className="mt-1.5 space-y-1">
-              {blueprint.assumptions.notes.map((note) => (
-                <li key={note.en}>{pick(note, lang)}</li>
-              ))}
-              <li>{pick(blueprint.disclaimer, lang)}</li>
-            </ul>
-          </div>
-        </div>
+          <Stat
+            label={t("Pays back in", "Se recuperează")}
+            value={n === null ? "–" : t(`month ${n}`, `luna ${n}`)}
+            sub={
+              n === null
+                ? t("not within the first 24 months", "nu în primele 24 de luni")
+                : changed
+                  ? t("with your figures", "cu cifrele tale")
+                  : t("on the base estimate", "cu estimarea de bază")
+            }
+          />
+        </StatStrip>
       </div>
-    </motion.section>
+    </Panel>
   );
 }

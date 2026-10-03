@@ -6,7 +6,7 @@
  *   npx tsx scripts/scan/try-audit.ts --ssrf
  *
  * Optional keys are read from the environment: PAGESPEED_API_KEY,
- * GOOGLE_PLACES_API_KEY, BRAVE_SEARCH_API_KEY.
+ * BRAVE_SEARCH_API_KEY. (Google Places is off in the public scan; see presence.server.ts.)
  */
 import { auditWebsite } from "../../src/lib/scan/audit/index.server";
 import { CHECK_COUNT } from "../../src/lib/scan/audit/checks";

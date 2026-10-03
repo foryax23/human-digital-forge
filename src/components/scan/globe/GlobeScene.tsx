@@ -5,10 +5,11 @@ import * as THREE from "three";
 import { ARC_HUBS, landDots, toVector, type LatLon } from "./geo";
 
 /*
- * The "Analysing your business…" globe: a dotted Earth in the brand violet →
- * blue → sky, turned so Romania faces the camera, with an atmosphere glow, a
- * scanner band while the analysis runs, a pulsing marker on the company's city
- * and light pulses along arcs whenever an analysis step finishes.
+ * The analysis globe: a dotted Earth in neutral greys with Romania in the brand
+ * line, turned so Romania faces the camera, a faint scanner band while the
+ * analysis runs, a marker on the company's city and a pulse along an arc
+ * whenever an analysis step finishes. No atmosphere halo or rim glow; colours
+ * come from the page tokens (--vx-*), read once when the scene mounts.
  * Lazy-loaded (three.js stays out of the route chunk); while paused or
  * off-screen it renders on demand and holds its resting pose.
  */
@@ -34,11 +35,36 @@ const CAMERA_Z = 5.23;
 const DOT_SIZE = 0.0105;
 const SPARK_SIZE = 0.045;
 
-const VIOLET = new THREE.Color("#6c63ff");
-const BLUE = new THREE.Color("#5b8cf0");
-const SKY = new THREE.Color("#89cbf6");
-const MINT = new THREE.Color("#5fe3d0");
-const HIGHLIGHT = new THREE.Color("#d8ecff");
+/**
+ * A colour token from the scan page (".cinematic" scope), with a fallback. The raw shaders
+ * write their colour straight to the screen, so the sRGB value is kept as is (no linear
+ * conversion) and the dots match the page's greys.
+ */
+function token(name: string, fallback: string) {
+  const color = new THREE.Color();
+  const scope =
+    typeof document === "undefined"
+      ? null
+      : (document.querySelector(".cinematic") ?? document.documentElement);
+  const value = scope ? getComputedStyle(scope).getPropertyValue(name).trim() : "";
+  return color.setStyle(value || fallback, THREE.LinearSRGBColorSpace);
+}
+
+/** Dots shade from the label grey to the secondary-text grey; Romania and pulses use the brand line. */
+const COLORS = {
+  get dot() {
+    return token("--vx-fg-3", "#7d8095");
+  },
+  get light() {
+    return token("--vx-fg-2", "#a7a9b9");
+  },
+  get brand() {
+    return token("--vx-brand-line", "#8079ff");
+  },
+  get body() {
+    return token("--vx-s1", "#0a0b16");
+  },
+};
 
 const DOT_VERTEX = /* glsl */ `
   attribute float aSize;
@@ -47,9 +73,7 @@ const DOT_VERTEX = /* glsl */ `
   uniform float uScale;
   uniform float uSweep;
   uniform float uSweepAmount;
-  uniform float uDone;
   uniform vec3 uHighlight;
-  uniform vec3 uMint;
   varying vec3 vColor;
   varying float vAlpha;
 
@@ -58,8 +82,7 @@ const DOT_VERTEX = /* glsl */ `
     vec4 mv = viewMatrix * world;
     vec3 n = normalize(normalMatrix * position);
     float band = exp(-pow((world.y - uSweep) * 7.0, 2.0)) * uSweepAmount;
-    vec3 romania = mix(uHighlight, uMint, uDone);
-    vColor = mix(aColor, romania, aRomania) + band * vec3(0.35, 0.42, 0.55);
+    vColor = mix(aColor, uHighlight, aRomania) + band * vec3(0.16);
     vAlpha = smoothstep(-0.05, 0.4, n.z) * (0.92 + 0.08 * aRomania);
     gl_PointSize = aSize * (1.0 + band * 0.6) * uScale / -mv.z;
     gl_Position = projectionMatrix * mv;
@@ -105,28 +128,11 @@ const NORMAL_VERTEX = /* glsl */ `
   }
 `;
 
-/** Opaque night-blue body with a violet rim; hides the dots on the far side. */
+/** Opaque body in the panel colour, no rim; hides the dots on the far side. */
 const BODY_FRAGMENT = /* glsl */ `
   uniform vec3 uBase;
-  uniform vec3 uRim;
-  varying vec3 vNormal;
   void main() {
-    float rim = pow(1.0 - clamp(vNormal.z, 0.0, 1.0), 3.0);
-    gl_FragColor = vec4(uBase + uRim * rim * 0.8, 1.0);
-  }
-`;
-
-/** Back-face halo, brightest at the globe's edge and fading outwards. */
-const HALO_FRAGMENT = /* glsl */ `
-  uniform vec3 uInner;
-  uniform vec3 uOuter;
-  uniform float uStrength;
-  varying vec3 vNormal;
-  void main() {
-    float k = clamp(-vNormal.z / 0.62, 0.0, 1.0);
-    float glow = pow(k, 2.6) * uStrength;
-    // Alpha follows the glow so the transparent canvas stays see-through.
-    gl_FragColor = vec4(mix(uOuter, uInner, k), glow);
+    gl_FragColor = vec4(uBase, 1.0);
   }
 `;
 
@@ -160,16 +166,17 @@ function step(delta: number, live: Live) {
   return live.active ? Math.min(delta, 0.05) : 0;
 }
 
-/** Brand gradient across the globe (object space, so it turns with it). */
-function dotColor(x: number, y: number) {
+/** A soft light from the top left across the globe (object space, so it turns with it). */
+function dotColor(x: number, y: number, palette: { dot: THREE.Color; light: THREE.Color }) {
   const t = THREE.MathUtils.clamp((y * 0.65 - x * 0.35 + 1) / 2, 0, 1);
-  return t < 0.5 ? VIOLET.clone().lerp(BLUE, t * 2) : BLUE.clone().lerp(SKY, (t - 0.5) * 2);
+  return palette.dot.clone().lerp(palette.light, t);
 }
 
 type Sweep = { y: number; amount: number; done: number };
 
 function Dots({ sweep }: { sweep: RefObject<Sweep> }) {
   const geometry = useMemo(() => {
+    const palette = { dot: COLORS.dot, light: COLORS.light };
     const dots = landDots(1);
     const positions = new Float32Array(dots.length * 3);
     const colors = new Float32Array(dots.length * 3);
@@ -178,7 +185,7 @@ function Dots({ sweep }: { sweep: RefObject<Sweep> }) {
     dots.forEach((dot, i) => {
       const [x, y, z] = toVector(dot.lat, dot.lon);
       positions.set([x, y, z], i * 3);
-      const color = dotColor(x, y);
+      const color = dotColor(x, y, palette);
       colors.set([color.r, color.g, color.b], i * 3);
       sizes[i] = dot.romania ? DOT_SIZE * 1.7 : DOT_SIZE;
       romania[i] = dot.romania ? 1 : 0;
@@ -203,9 +210,7 @@ function Dots({ sweep }: { sweep: RefObject<Sweep> }) {
           uScale: { value: 1 },
           uSweep: { value: 2 },
           uSweepAmount: { value: 0 },
-          uDone: { value: 0 },
-          uHighlight: { value: HIGHLIGHT },
-          uMint: { value: MINT },
+          uHighlight: { value: COLORS.brand },
         },
       }),
     [],
@@ -224,7 +229,6 @@ function Dots({ sweep }: { sweep: RefObject<Sweep> }) {
     u.uScale.value = pointScale(state);
     u.uSweep.value = sweep.current.y;
     u.uSweepAmount.value = sweep.current.amount;
-    u.uDone.value = sweep.current.done;
   });
 
   return <points geometry={geometry} material={material} />;
@@ -236,10 +240,7 @@ function Body() {
       new THREE.ShaderMaterial({
         vertexShader: NORMAL_VERTEX,
         fragmentShader: BODY_FRAGMENT,
-        uniforms: {
-          uBase: { value: new THREE.Color("#04061a") },
-          uRim: { value: new THREE.Color("#3d3a9e") },
-        },
+        uniforms: { uBase: { value: COLORS.body } },
       }),
     [],
   );
@@ -247,32 +248,6 @@ function Body() {
   return (
     <mesh material={material}>
       <sphereGeometry args={[0.992, 64, 64]} />
-    </mesh>
-  );
-}
-
-function Halo() {
-  const material = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        vertexShader: NORMAL_VERTEX,
-        fragmentShader: HALO_FRAGMENT,
-        side: THREE.BackSide,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-        uniforms: {
-          uInner: { value: new THREE.Color("#7b6cf6") },
-          uOuter: { value: new THREE.Color("#5b8cf0") },
-          uStrength: { value: 1 },
-        },
-      }),
-    [],
-  );
-  useEffect(() => () => material.dispose(), [material]);
-  return (
-    <mesh material={material} scale={1.2}>
-      <sphereGeometry args={[1, 64, 64]} />
     </mesh>
   );
 }
@@ -310,7 +285,7 @@ function buildArcs(home: LatLon): Arc[] {
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
-      uniforms: { uHead: { value: -1 }, uColor: { value: SKY.clone() } },
+      uniforms: { uHead: { value: -1 }, uColor: { value: COLORS.light } },
     });
     return { line: new THREE.Line(geometry, material), material, points };
   });
@@ -334,7 +309,11 @@ function Arcs({ home, live }: { home: LatLon; live: Live }) {
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
-      uniforms: { uScale: { value: 1 }, uSize: { value: SPARK_SIZE }, uColor: { value: SKY } },
+      uniforms: {
+        uScale: { value: 1 },
+        uSize: { value: SPARK_SIZE },
+        uColor: { value: COLORS.brand },
+      },
     });
     return { geometry, material };
   }, []);
@@ -408,7 +387,7 @@ function Arcs({ home, live }: { home: LatLon; live: Live }) {
 
 const Z_AXIS = new THREE.Vector3(0, 0, 1);
 
-/** Pulsing marker on the company's city: sky while running, mint when done. */
+/** Marker on the company's city in the brand line; its rings pulse only while motion runs. */
 function HomeMarker({ home, live }: { home: LatLon; live: Live }) {
   const rings = useRef<Array<THREE.Mesh | null>>([]);
   const time = useRef(0.6);
@@ -420,7 +399,7 @@ function HomeMarker({ home, live }: { home: LatLon; live: Live }) {
     };
   }, [home]);
 
-  const color = live.done ? MINT : SKY;
+  const color = useMemo(() => COLORS.brand, []);
 
   useFrame((_, rawDelta) => {
     time.current += step(rawDelta, live);
@@ -523,7 +502,6 @@ export default function GlobeScene({ home, onReady, ...live }: GlobeSceneProps) 
       onCreated={() => onReady?.()}
       style={{ pointerEvents: "none" }}
     >
-      <Halo />
       <Globe home={home} live={live} />
     </Canvas>
   );

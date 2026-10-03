@@ -5,6 +5,11 @@ import { cn } from "@/lib/utils";
 
 const Tabs = TabsPrimitive.Root;
 
+/*
+ * Underline tabs on a 1 px baseline: DM 500 14 in the label colour, the active tab in the
+ * text colour with a 2 px cyan underline (the hero indicator's echo). No pill, icon or glow.
+ * The baseline is an inset shadow so the active underline covers it inside the list.
+ */
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
@@ -12,7 +17,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
+      "flex h-10 w-full items-stretch gap-6 overflow-x-auto text-fg-3 shadow-[inset_0_-1px_0_var(--vx-line-1)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
       className,
     )}
     {...props}
@@ -27,7 +32,10 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background cursor-pointer transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow",
+      "inline-flex shrink-0 cursor-pointer items-center whitespace-nowrap border-b-2 border-transparent font-sans text-sm font-medium text-fg-3 transition-colors duration-150 hover:text-fg-2",
+      "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-brand-line/55",
+      "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-[0.42]",
+      "data-[state=active]:border-echo data-[state=active]:text-fg",
       className,
     )}
     {...props}
@@ -42,7 +50,7 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+      "mt-4 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-line/55",
       className,
     )}
     {...props}

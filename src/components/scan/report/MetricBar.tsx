@@ -1,65 +1,45 @@
-import { useRef } from "react";
-import { motion, useInView } from "motion/react";
-
 import { cn } from "@/lib/utils";
-import { AnimatedNumber } from "./AnimatedNumber";
-import { EASE_OUT, useScanMotion } from "./motion";
 import { scoreTier, useTierLabel } from "./tiers";
 
-/** Labelled 0–100 bar that fills when it scrolls into view. */
+/**
+ * One 0–100 score as a table row: label 13 px, a 2 px neutral bar, the value in aligned
+ * figures. No colour, no count-up and no fill animation: the number is the message.
+ */
 export function MetricBar({
   label,
   value,
   hint,
-  delay = 0,
   highlight = false,
   className,
 }: {
   label: string;
   value: number;
+  /** One 12 px line under the row (the source, e.g. "Lighthouse, mobil"). */
   hint?: string;
-  delay?: number;
-  /** Brighter fill, e.g. for "you" in a comparison. */
+  /** Brighter fill, e.g. for "Tu" in a comparison. */
   highlight?: boolean;
   className?: string;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "0px 0px -30px 0px" });
-  const { reduce } = useScanMotion();
   const tierLabel = useTierLabel();
-  const clamped = Math.max(0, Math.min(100, value));
+  const clamped = Math.max(0, Math.min(100, Math.round(value)));
   const tier = tierLabel(scoreTier(clamped));
-  const TierIcon = tier.icon;
 
   return (
-    <div ref={ref} className={cn("min-w-0", className)}>
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="type-body-sm min-w-0 truncate text-white/80">{label}</span>
-        <span className="type-body-sm flex shrink-0 items-center gap-1.5">
-          <TierIcon aria-hidden className={cn("h-3.5 w-3.5", tier.text)} />
-          <span className="sr-only">{tier.label}: </span>
-          <AnimatedNumber
-            value={clamped}
-            format={(v) => String(Math.round(v))}
-            delay={delay}
-            className="font-semibold text-white"
+    <div className={cn("min-w-0", className)}>
+      <div className="grid min-h-8 grid-cols-[minmax(0,11rem)_minmax(0,1fr)_2rem] items-center gap-3">
+        <span className="min-w-0 truncate text-[0.8125rem] leading-[1.35] text-fg-2">{label}</span>
+        <span aria-hidden className="relative h-0.5 overflow-hidden bg-line-1">
+          <span
+            className={cn("absolute inset-y-0 left-0", highlight ? "bg-fg" : "bg-fg-2")}
+            style={{ width: `${clamped}%` }}
           />
         </span>
+        <span className="type-num text-right text-[0.8125rem] text-fg">
+          <span className="sr-only">{tier.label}, </span>
+          {clamped}
+        </span>
       </div>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.07]" aria-hidden>
-        <motion.div
-          className={cn(
-            "h-full rounded-full",
-            highlight
-              ? "bg-gradient-to-r from-[#6c63ff] via-[#5b8cf0] to-[#89cbf6] shadow-[0_0_14px_rgb(108_99_255/0.6)]"
-              : "bg-gradient-to-r from-[#6c63ff]/85 to-[#5b8cf0]/85",
-          )}
-          initial={{ width: reduce ? `${clamped}%` : "0%" }}
-          animate={{ width: inView || reduce ? `${clamped}%` : "0%" }}
-          transition={{ duration: reduce ? 0 : 1.1, delay: reduce ? 0 : delay, ease: EASE_OUT }}
-        />
-      </div>
-      {hint && <p className="type-micro mt-1.5 text-white/45">{hint}</p>}
+      {hint ? <p className="text-xs leading-[1.45] text-fg-3">{hint}</p> : null}
     </div>
   );
 }

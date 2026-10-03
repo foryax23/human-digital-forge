@@ -31,7 +31,7 @@ function Gradient({ id, size = 32 }: { id: string; size?: number }) {
       y2={inset}
       gradientUnits="userSpaceOnUse"
     >
-      <stop offset="0" stopColor="#c4b5fd" />
+      <stop offset="0" style={{ stopColor: "var(--hero-lilac)" }} />
       <stop offset="0.5" stopColor="#e4ddff" />
       <stop offset="1" stopColor="#ffffff" />
     </linearGradient>
