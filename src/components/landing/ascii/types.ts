@@ -16,6 +16,8 @@ export const SECTOR_ANGLES: Record<OrbitSector, { from: number; to: number }> = 
   strategy: { from: 270, to: 360 },
 };
 
+export type AsciiVortexVariant = "hero" | "backdrop" | "footer";
+
 export type AsciiVortexBackgroundProps = {
   state?: AsciiVortexState;
   /** The pillar being hovered, focused or walked to: that quadrant's glyphs organise slightly. */
@@ -26,8 +28,10 @@ export type AsciiVortexBackgroundProps = {
   progress?: number;
   /**
    * `hero`: the ring sits on the inherited `--vortex-x` / `--vortex-y` variables (HeroCosmos
-   * `VORTEX_CENTRE`), sized like the hero's video ring; `backdrop`: centred and dimmer, behind /scan.
+   * `VORTEX_CENTRE`), sized like the hero's video ring; `backdrop`: centred and dimmer, behind /scan;
+   * `footer`: the quiet band behind the homepage footer (VortexBand): a wide, flattened ring, one
+   * dim look, half-speed, and it yields to the other two whenever one of them is drawing.
    */
-  variant?: "hero" | "backdrop";
+  variant?: AsciiVortexVariant;
   className?: string;
 };

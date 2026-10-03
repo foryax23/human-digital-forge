@@ -1,25 +1,22 @@
+import { Link } from "@tanstack/react-router";
+
 import { FOCUS_RING } from "@/components/system";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { PROJECTS } from "./projects";
-import { scrollToSection } from "./smooth-scroll";
 
 /**
  * The hero's proof line: how many live projects the studio has launched (the
- * real count from PROJECTS), linking to the work section. No thumbnails, stock
- * avatars or claims.
+ * real count from PROJECTS), linking to /portfolio, where they live. No
+ * thumbnails, stock avatars or claims.
  */
 export function HeroProof({ className }: { className?: string }) {
   const { t } = useI18n();
   const count = PROJECTS.length;
 
   return (
-    <a
-      href="#work"
-      onClick={(event) => {
-        event.preventDefault();
-        scrollToSection("work");
-      }}
+    <Link
+      to="/portfolio"
       className={cn("group/proof flex flex-col gap-1 rounded-md py-1 pr-2", FOCUS_RING, className)}
     >
       <span className="type-body-sm flex items-center gap-2 whitespace-nowrap text-white/85">
@@ -36,6 +33,6 @@ export function HeroProof({ className }: { className?: string }) {
           →
         </span>
       </span>
-    </a>
+    </Link>
   );
 }

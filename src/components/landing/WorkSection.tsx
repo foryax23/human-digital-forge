@@ -1,91 +1,14 @@
-import { useId, useState } from "react";
+import { useId } from "react";
 
-import { ProjectPreview } from "@/components/landing/ProjectPreview";
-import {
-  FEATURED_PROJECTS,
-  PROJECTS,
-  projectImages,
-  projectTitle,
-  type Project,
-} from "@/components/landing/projects";
-import { ButtonLink, Muted, SectionHeader, Status } from "@/components/system";
+import { projectImages, projectTitle, type Project } from "@/components/landing/projects";
+import { Status } from "@/components/system";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-/*
- * Grid placement in card order. lg+: two large frames side by side (7/5, the pair
- * shares the height of the 7-column 16:10 frame), then three 16:10 frames (4/4/4).
- * md: the first frame full width, then two by two. Phones: one column.
- */
-const SPANS = [
-  "md:col-span-12 lg:col-span-7",
-  "md:col-span-6 lg:col-span-5",
-  "md:col-span-6 lg:col-span-4",
-  "md:col-span-6 lg:col-span-4",
-  "md:col-span-6 lg:col-span-4",
-];
-
 /**
- * Selected work (#work): the featured published projects as plain image frames with
- * the caption under the image. Each card opens the preview, which pages through every
- * project.
+ * One project as an image frame with its caption below; opens the preview. Used by
+ * /portfolio, the one page that shows the work (the homepage section was removed).
  */
-export function WorkSection() {
-  const { t, lang } = useI18n();
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  return (
-    <section id="work" aria-labelledby="work-heading" className="section-y scroll-mt-20">
-      <div className="container-vx">
-        <SectionHeader
-          headingId="work-heading"
-          title={
-            <>
-              {t("Launched projects,", "Proiecte lansate,")}{" "}
-              <Muted>
-                {lang === "ro" ? (
-                  // Keeps "site-uri" whole: the hyphen is not a line-break point here.
-                  <>
-                    de la <span className="whitespace-nowrap">site-uri</span> la aplicații private.
-                  </>
-                ) : (
-                  "from websites to private apps."
-                )}
-              </Muted>
-            </>
-          }
-          lead={t(
-            "We designed, built and launched each of them. Open any one for a quick look.",
-            "Le-am proiectat, construit și lansat noi. Deschide oricare pentru o privire rapidă.",
-          )}
-          actions={
-            // The count matches the hero's "N proiecte lansate" (every project, not only these).
-            <ButtonLink to="/portfolio" variant="secondary">
-              {t(`All projects (${PROJECTS.length})`, `Toate proiectele (${PROJECTS.length})`)}
-            </ButtonLink>
-          }
-        />
-
-        <ul role="list" className="grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-12 md:gap-y-10">
-          {FEATURED_PROJECTS.map((project, index) => (
-            <WorkCard
-              key={project.slug}
-              project={project}
-              // The second frame matches the first one's height on lg+ instead of keeping 16:10.
-              fill={index === 1}
-              spanClass={SPANS[index % SPANS.length]}
-              onOpen={() => setOpenIndex(PROJECTS.indexOf(project))}
-            />
-          ))}
-        </ul>
-      </div>
-
-      <ProjectPreview projects={PROJECTS} index={openIndex} onIndexChange={setOpenIndex} />
-    </section>
-  );
-}
-
-/** One project as an image frame with its caption below; opens the preview. Shared with /portfolio. */
 export function WorkCard({
   project,
   fill,

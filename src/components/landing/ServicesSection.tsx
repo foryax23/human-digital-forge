@@ -6,7 +6,8 @@ import { useI18n } from "@/i18n";
 import { TechGroups } from "./TechStack";
 
 type Service = {
-  slug: string;
+  /** Also the file name of its icon in /public/media/services. */
+  slug: "websites" | "digital-products" | "ai-automation" | "consultancy";
   to: LinkProps["to"];
   title: string;
   description: string;
@@ -15,8 +16,34 @@ type Service = {
 };
 
 /**
- * The four services as a numbered hairline list, one row per service (number, title and
- * description, what you get, a link to its page). Shared by the homepage and /services.
+ * One rendered icon per service (scripts/brand/render-service-icons.mjs; the owner's choice,
+ * plan §2.15): 320 px WebP with a PNG fallback, shown at 44 to 80 px. Every render puts the
+ * art's top at 12% of the frame, so the icons line up with the titles. Decorative: the row's
+ * link is already named by the title. It never moves; the title underline is the hover state.
+ */
+function ServiceIcon({ slug }: { slug: Service["slug"] }) {
+  return (
+    // Phones: the frame's empty lower edge (under the art) tucks into the gap below.
+    <picture className="-mb-1.5 md:mb-0 md:self-start">
+      <source srcSet={`/media/services/${slug}.webp`} type="image/webp" />
+      <img
+        src={`/media/services/${slug}.png`}
+        width={320}
+        height={320}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        className="block size-11 select-none md:size-16 lg:size-[4.5rem] xl:size-20"
+      />
+    </picture>
+  );
+}
+
+/**
+ * The four services as a hairline list, one row per service (icon, title and description,
+ * what you get, a link to its page). Shared by the homepage and /services. Below 768 px the
+ * icon sits beside the title and the description runs the full width under both.
  */
 export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3" }) {
   const { t } = useI18n();
@@ -73,31 +100,35 @@ export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3
 
   return (
     <ul role="list" className="border-t border-rule">
-      {services.map((service, index) => {
+      {services.map((service) => {
         const titleId = `service-${service.slug}-title`;
         const descriptionId = `service-${service.slug}-description`;
         return (
           <li key={service.slug} className="border-b border-line-1">
+            {/* Phones: icon | title | chevron, then the text across the full width (the text
+                block's wrapper dissolves into the grid). From 768 px: icon | text | (what you
+                get, from 1024 px) | Detalii, on the title's baseline. */}
             <Link
               to={service.to}
               aria-labelledby={titleId}
               aria-describedby={descriptionId}
-              className="group grid grid-cols-[2rem_minmax(0,1fr)_auto] items-baseline gap-x-3 py-5 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-line/55 md:grid-cols-[3rem_minmax(0,1fr)_auto] md:gap-x-6 lg:grid-cols-[3rem_minmax(0,1fr)_17.5rem_auto] lg:gap-x-8 xl:grid-cols-[3rem_minmax(0,1fr)_23.75rem_3rem]"
+              className="group grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-4 py-4 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-line/55 md:grid-cols-[4rem_minmax(0,1fr)_auto] md:items-baseline md:gap-x-6 md:py-5 lg:grid-cols-[4.5rem_minmax(0,1fr)_17.5rem_auto] lg:gap-x-8 xl:grid-cols-[5rem_minmax(0,1fr)_23.75rem_3rem]"
             >
-              <span aria-hidden className="type-num text-[0.8125rem] text-fg-3">
-                {index + 1}
-              </span>
-              <div className="min-w-0">
+              <ServiceIcon slug={service.slug} />
+              <div className="contents md:block md:min-w-0">
                 <Heading
                   id={titleId}
-                  className="type-h3 text-fg decoration-fg/40 underline-offset-4 group-hover:underline group-focus-visible:underline"
+                  className="type-h3 col-start-2 row-start-1 text-fg decoration-fg/40 underline-offset-4 group-hover:underline group-focus-visible:underline md:col-start-auto md:row-start-auto"
                 >
                   {service.title}
                 </Heading>
-                <p id={descriptionId} className="type-body mt-1 max-w-[60ch] text-pretty text-fg-2">
+                <p
+                  id={descriptionId}
+                  className="type-body col-span-full mt-1.5 max-w-[60ch] text-pretty text-fg-2 md:mt-1"
+                >
                   {service.description}
                 </p>
-                <p className="mt-2 text-[0.8125rem] leading-[1.35] text-fg-3 lg:hidden">
+                <p className="col-span-full mt-2 text-[0.8125rem] leading-[1.35] text-fg-3 lg:hidden">
                   {service.deliverables}
                 </p>
               </div>
@@ -106,12 +137,12 @@ export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3
               </p>
               <span
                 aria-hidden
-                className="justify-self-end text-sm text-fg-2 transition-colors group-hover:text-fg"
+                className="col-start-3 row-start-1 justify-self-end text-sm text-fg-2 transition-colors group-hover:text-fg md:col-start-auto md:row-start-auto"
               >
                 <span className="hidden underline decoration-fg/30 underline-offset-4 group-hover:decoration-fg md:inline">
                   {t("Details", "Detalii")}
                 </span>
-                <ChevronRight className="size-4 translate-y-0.5 text-fg-3 md:hidden" />
+                <ChevronRight className="block size-4 text-fg-3 md:hidden" />
               </span>
             </Link>
           </li>

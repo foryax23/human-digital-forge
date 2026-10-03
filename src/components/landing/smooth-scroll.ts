@@ -3,8 +3,8 @@ import { gsap, prefersReducedMotion } from "./gsap";
 /** Space kept above a section when scrolling to it: the 64 px nav plus 16 px. */
 export const NAV_OFFSET = 80;
 
-/** Section ids on the homepage, in page order. "top" is the hero. */
-export const SECTION_IDS = ["top", "work", "services", "pricing", "contact"] as const;
+/** Section ids on the homepage, in page order. "top" is the hero. (The projects live on /portfolio.) */
+export const SECTION_IDS = ["top", "services", "pricing", "contact"] as const;
 export type SectionId = (typeof SECTION_IDS)[number];
 
 /**

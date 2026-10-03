@@ -8,6 +8,7 @@ import { ButtonLink, FOCUS_RING, IconButton, Status } from "@/components/system"
 import { useI18n } from "@/i18n";
 import { COMPANY_LINE } from "@/lib/scan/legal/company";
 import { cn } from "@/lib/utils";
+import { VortexBand } from "./ascii";
 import { useMotionPause } from "./motion-pause";
 import { prefersReducedMotion } from "./motion-prefs";
 import { CONTACT_EMAIL, SIGNOFF_VIDEO } from "./media";
@@ -49,6 +50,20 @@ const COLUMNS: { en: string; ro: string; links: FooterLink[] }[] = [
 ];
 
 const linkClass = cn("rounded-sm text-sm text-fg-2 transition-colors hover:text-fg", FOCUS_RING);
+
+/**
+ * The vortex band (VortexBand): a strip at the top of the footer, above the closing line, and
+ * the footer's only divider (no hairline above it). The ring is only gently widened (at most
+ * 2x), so its arms stay curved and it reads as the hero's vortex, cut through its eye. The
+ * mask fades the strip in from the top and out well above the heading and the e-mail, so no
+ * text sits on any of it: it ends at 64% of the strip, and the content starts below that.
+ */
+const BAND = cn(
+  "inset-x-0 top-0 h-[180px] md:h-[220px]",
+  "[mask-image:linear-gradient(to_bottom,transparent,black_24%,black_42%,transparent_64%)]",
+  "[--band-opacity:0.42] [--band-y:40%]",
+  "[--band-w:300px] [--band-sx:1.6] md:[--band-w:400px] md:[--band-sx:1.8] lg:[--band-w:560px] lg:[--band-sx:2]",
+);
 
 /**
  * The brand sign-off: the wordmark with its light sweep (the owner's logo animation),
@@ -149,7 +164,14 @@ function PauseButton() {
  * `compact` (the other pages, via SiteLayout, which close with their own call to action)
  * drops the closing line and keeps the sign-off, the columns and the legal bar.
  */
-export function ContactFooter({ compact = false }: { compact?: boolean }) {
+export function ContactFooter({
+  compact = false,
+  band = !compact,
+}: {
+  compact?: boolean;
+  /** The quiet ASCII vortex band behind the top of the footer (homepage by default). */
+  band?: boolean;
+}) {
   const { t, lang } = useI18n();
 
   return (
@@ -157,11 +179,13 @@ export function ContactFooter({ compact = false }: { compact?: boolean }) {
       id={compact ? undefined : "contact"}
       aria-labelledby={compact ? undefined : "contact-heading"}
       className={cn(
-        "scroll-mt-20 border-t border-line-1 pb-6",
-        compact ? "pt-4" : "pt-12 md:pt-16",
+        "relative scroll-mt-20 overflow-hidden pb-6",
+        !band && "border-t border-line-1",
+        compact ? "pt-4" : band ? "pt-32 md:pt-36" : "pt-12 md:pt-16",
       )}
     >
-      <div className="container-vx">
+      {band && <VortexBand className={BAND} />}
+      <div className="container-vx relative">
         {!compact && (
           <div className="grid gap-6 lg:grid-cols-12 lg:items-end lg:gap-12">
             <div className="lg:col-span-7">

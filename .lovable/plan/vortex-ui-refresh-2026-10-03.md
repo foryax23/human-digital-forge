@@ -139,7 +139,8 @@ a 34% "rule" line for section and table heads.
    The first useful number sits in the top half of the first screen.
 7. **No decoration.** No glow, blur, gradient text or border, icon tile, pill, stock image, halftone,
    pulsing dot, hover lift or hover scale. An icon appears only if it does something (download, copy,
-   edit, close, external link).
+   edit, close, external link). One owner-approved exception: the four rendered service icons
+   (§2.15, §4).
 8. **Spend boldness once.** The hero (ASCII vortex, underline search, uppercase eyebrow) is loud;
    everything after it is quiet so the data reads first.
 
@@ -833,6 +834,14 @@ minus the removed ones: Work, Services, Process, Consultation, Pricing, Contact.
   `fg-3` (48 px column) | title SG 600 20 + description 15 `fg-2` max 60ch | deliverables as one comma
   line 13 `fg-3` (280 px column) | link "Detalii" (no arrow circle). Mobile stacks. No circular stock
   thumbnails, no pill rows, no mono tag strings. Target ≈ 600 px (was 947).
+  **Owner decision (2026-10-03), replaces the number column:** one 3D-rendered icon per service,
+  in the violet palette, made by `scripts/brand/render-service-icons.mjs` (one rig, one plate form,
+  one yaw; art top at 12% of the frame). Shown at 80 px maximum (44 / 64 / 72 / 80 px), top-aligned
+  with the title; on phones a 44 px icon sits beside the title and the description runs full width.
+  No number column, no hover motion (the title underline is the hover state), `alt=""` (the row is
+  named by its title), and no cyan in the renders (white or violet details only). Rows ≈ 120 px.
+  The homepage no longer shows the projects (owner decision): /portfolio has them, reached from
+  the hero proof, the nav and the footer.
 - **Process (`landing/ProcessSection.tsx`, stops using `ui/features-with-panel.tsx`):** 5 columns
   on ≥ 1024, each with a 1 px `rule` on top, number `type-pnum` 13 `fg-3`, title `type-h4`, 2 lines
   14 `fg-2`; vertical list with hairlines on mobile. No photos, autoplay, gradient number circles or
@@ -1107,6 +1116,8 @@ Probe: `scratchpad/ui-refresh/plan/probe-plan.ts` (run from the repo with
   dentalsmile.ro").
 - **The icons that stay:** functional only (download, copy, edit, close, external link, chevron,
   spinner, check in the step bar). No icon-in-tile, icon-in-circle or decorative icon before a label.
+  The one exception, chosen by the owner: the four rendered service icons in the services list
+  (§2.15), one per row, never in a tile or circle, never animated.
 
 ---
 

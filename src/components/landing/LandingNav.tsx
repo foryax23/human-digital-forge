@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, type LinkProps } from "@tanstack/react-router";
 import { Menu } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -15,28 +15,32 @@ import { cn } from "@/lib/utils";
 /** One name per thing, the same as the section titles and the footer. */
 const SECTION_LABELS: Record<SectionId, { en: string; ro: string }> = {
   top: { en: "Home", ro: "Acasă" },
-  work: { en: "Projects", ro: "Proiecte" },
   services: { en: "Services", ro: "Servicii" },
   pricing: { en: "Pricing", ro: "Prețuri" },
   contact: { en: "Contact", ro: "Contact" },
 };
 
+/** The two pages in the bar: the projects (no longer a homepage section) and the product. */
+const PAGE_ITEMS = {
+  projects: { to: "/portfolio", en: "Projects", ro: "Proiecte" },
+  scan: { to: "/scan", en: "Vortex Scan", ro: "Vortex Scan" },
+} as const satisfies Record<string, { to: LinkProps["to"]; en: string; ro: string }>;
+type PageItem = keyof typeof PAGE_ITEMS;
+
 /**
- * The bar's links: the homepage sections in page order with Vortex Scan, the product,
- * before Contact. No "Acasă": the logo leads home.
+ * The bar's links: the homepage sections first, in page order, then the two pages (Proiecte,
+ * the /portfolio page, and Vortex Scan, the product), then Contact. No "Acasă": the logo
+ * leads home.
  */
-const BAR_ITEMS = ["work", "services", "pricing", "scan", "contact"] as const;
+const BAR_ITEMS = ["services", "pricing", "projects", "scan", "contact"] as const;
 type BarItem = (typeof BAR_ITEMS)[number];
 
-const SCAN_LABEL = { en: "Vortex Scan", ro: "Vortex Scan" };
+const isPageItem = (item: BarItem): item is PageItem => item in PAGE_ITEMS;
 
-/** Pages in the phone menu that the section links do not already cover. */
-const MENU_PAGES = navLinks
-  .filter((link) => link.to !== "/services" && link.to !== "/contact")
-  .map((link) =>
-    // The section link is "Proiecte"; the page with every project gets its own name.
-    link.to === "/portfolio" ? { ...link, en: "All projects", ro: "Toate proiectele" } : link,
-  );
+/** Pages in the phone menu that the section and page links above do not already cover. */
+const MENU_PAGES = navLinks.filter(
+  (link) => link.to !== "/services" && link.to !== "/contact" && link.to !== "/portfolio",
+);
 
 /** Lets modified clicks (new tab / window) through to the browser. */
 function isPlainClick(event: MouseEvent) {
@@ -202,7 +206,8 @@ export function LandingNav({
     to: "/" as const,
     hash: id === "top" ? undefined : id,
   });
-  const logoClass = cn("flex shrink-0 items-center justify-self-start rounded-md", FOCUS_RING);
+  // 44 px tall: the logo is a touch target on phones.
+  const logoClass = cn("flex h-11 shrink-0 items-center justify-self-start rounded-md", FOCUS_RING);
 
   /** A homepage section as a row in the phone menu. */
   const menuSectionItem = (id: SectionId) => (
@@ -221,6 +226,15 @@ export function LandingNav({
           {sectionLabel(id)}
         </a>
       )}
+    </li>
+  );
+
+  /** A page (/portfolio, /scan) as a row in the phone menu. */
+  const menuPageItem = (id: PageItem) => (
+    <li key={id} className="border-b border-line-1">
+      <Link to={PAGE_ITEMS[id].to} onClick={closeMenu} className={menuLinkClass(false)}>
+        {t(PAGE_ITEMS[id].en, PAGE_ITEMS[id].ro)}
+      </Link>
     </li>
   );
 
@@ -262,14 +276,14 @@ export function LandingNav({
         <ul className="hidden items-center lg:flex">
           {BAR_ITEMS.map((id: BarItem) => (
             <li key={id}>
-              {id === "scan" ? (
+              {isPageItem(id) ? (
                 <Link
-                  to="/scan"
+                  to={PAGE_ITEMS[id].to}
                   className={BAR_LINK}
                   activeProps={{ className: "text-fg" }}
                   inactiveProps={{ className: "text-fg-2 hover:text-fg" }}
                 >
-                  {t(SCAN_LABEL.en, SCAN_LABEL.ro)}
+                  {t(PAGE_ITEMS[id].en, PAGE_ITEMS[id].ro)}
                 </Link>
               ) : offPage ? (
                 <Link {...homeLink(id)} className={barLinkClass(false)}>
@@ -309,7 +323,7 @@ export function LandingNav({
               <IconButton
                 size="md"
                 label={t("Open menu", "Deschide meniul")}
-                className="-mr-2 lg:hidden"
+                className="-mr-2 size-11 lg:hidden"
               >
                 <Menu aria-hidden />
               </IconButton>
@@ -335,12 +349,10 @@ export function LandingNav({
 
               <nav aria-label={t("Menu", "Meniu")} className="px-5">
                 <ul>
-                  {(["work", "services", "pricing"] as const).map(menuSectionItem)}
-                  <li className="border-b border-line-1">
-                    <Link to="/scan" onClick={closeMenu} className={menuLinkClass(false)}>
-                      {t(SCAN_LABEL.en, SCAN_LABEL.ro)}
-                    </Link>
-                  </li>
+                  {menuSectionItem("services")}
+                  {menuSectionItem("pricing")}
+                  {menuPageItem("projects")}
+                  {menuPageItem("scan")}
                   {MENU_PAGES.map((link) => (
                     <li key={link.to} className="border-b border-line-1">
                       <Link to={link.to} onClick={closeMenu} className={menuLinkClass(false)}>

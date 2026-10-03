@@ -35,6 +35,20 @@ export const LOOKS: Record<AsciiVortexState, Look> = {
 };
 export const LOOK_KEYS = Object.keys(LOOKS.idle) as Array<keyof Look>;
 
+/**
+ * The footer band's only look, whatever the state: a little dimmer and sparser than idle, no
+ * glow and no cyan lean, so it reads as an echo of the hero rather than a second hero.
+ */
+export const QUIET: Look = {
+  gain: 0.9,
+  centre: 0,
+  cyan: 0,
+  contrast: 1.15,
+  glow: 0,
+  pull: 1,
+  spin: 0,
+};
+
 /** The orbit sectors in quadrant order (0 = the 0-90 degree quadrant), as the renderers index them. */
 export const SECTORS = (Object.keys(SECTOR_ANGLES) as OrbitSector[]).sort(
   (a, b) => SECTOR_ANGLES[a].from - SECTOR_ANGLES[b].from,

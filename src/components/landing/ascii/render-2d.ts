@@ -344,7 +344,13 @@ export function create2dRenderer(canvas: HTMLCanvasElement): Renderer | null {
           c.drawImage(glyphs, tile * tileW, bucket * tileH, tileW, tileH, x, y, tileW, tileH);
 
           const top = level - (GLYPHS.length - GLOW_LEVELS);
-          if (top >= 0 && tile < GLYPHS.length && eff > glowFloor && glowN < MAX_GLOWS) {
+          if (
+            glowAmt > 0 &&
+            top >= 0 &&
+            tile < GLYPHS.length &&
+            eff > glowFloor &&
+            glowN < MAX_GLOWS
+          ) {
             glowX[glowN] = x + pad - glowPad;
             glowY[glowN] = y + pad - glowPad;
             glowT[glowN] = bucket * GLOW_LEVELS + top;

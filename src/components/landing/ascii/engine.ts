@@ -13,6 +13,7 @@ import {
   LOOK_KEYS,
   LOOKS,
   MAX_FLIPS,
+  QUIET,
   ringMask,
   SECTORS,
   TUNE,
@@ -21,7 +22,7 @@ import {
 import { create2dRenderer } from "./render-2d";
 import { createGlRenderer } from "./render-gl";
 import type { Grid, Renderer, View } from "./renderer";
-import type { AsciiVortexState, OrbitSector } from "./types";
+import type { AsciiVortexState, AsciiVortexVariant, OrbitSector } from "./types";
 
 /*
  * The ASCII vortex engine. The looping swirl video plays in a hidden <video>;
@@ -32,6 +33,8 @@ import type { AsciiVortexState, OrbitSector } from "./types";
  * looks (focus, scanning, ...) are a handful of numbers eased toward their
  * targets. Drawing stops whenever nothing can be seen: hidden tab, hero off
  * screen, the page-wide pause switch; reduced motion gets one static frame.
+ * The footer band (variant "footer") is a quieter copy: one dim look, the clip at
+ * half speed, and it waits while a hero or /scan engine is drawing (see `leads`).
  */
 
 export type AsciiEngine = {
@@ -55,7 +58,7 @@ export type AsciiEngineOptions = {
   /** The poster ring under the canvas: the source of the static frame. */
   poster: HTMLImageElement;
   src: string;
-  variant: "hero" | "backdrop";
+  variant: AsciiVortexVariant;
   reducedMotion: boolean;
   /** The first ASCII frame is on the canvas. */
   onReady: () => void;
@@ -83,6 +86,22 @@ const SLOW_2D_MS = 20;
 const SLOW_FRAME_MS = 34;
 /** WebGL: median ms between drawn video frames above which it renders at 1x, then coarser at 24 fps. */
 const SLOW_GL_INTERVAL = 52;
+/** Playback rate of the footer band's clip: half the hero's speed (a quarter of the master's). */
+const QUIET_RATE = 0.5;
+
+/*
+ * One vortex loop at a time. A hero or /scan engine whose loop runs is a lead; the footer
+ * band only runs while there is none. On the homepage the two are never on screen
+ * together, but a very tall window or a short page must not run two loops at once.
+ */
+const leads = new Set<symbol>();
+const followers = new Set<() => void>();
+function setLead(id: symbol, on: boolean) {
+  if (on === leads.has(id)) return;
+  if (on) leads.add(id);
+  else leads.delete(id);
+  for (const sync of followers) sync();
+}
 
 type DevStats = {
   renderer: "webgl2" | "2d" | "none";
@@ -105,11 +124,18 @@ type DevStats = {
 export function createAsciiEngine(opts: AsciiEngineOptions): AsciiEngine | null {
   const { layer, ring, host, video, poster, variant, reducedMotion } = opts;
   if (typeof document.createElement("canvas").getContext !== "function") return null;
+  const quiet = variant === "footer";
+  const rate = quiet ? QUIET_RATE : 1;
+  const lookFor = (s: AsciiVortexState) => (quiet ? QUIET : LOOKS[s]);
+  const id = Symbol(variant);
 
   const pointerOn =
     variant === "hero" && !reducedMotion && window.matchMedia("(pointer: fine)").matches;
   // Fewer columns on low-core devices from the start.
   const weak = (navigator.hardwareConcurrency || 8) <= 4;
+
+  /** Development handle on window: the hero's (or /scan's) and the footer band's apart. */
+  const devKey = quiet ? "__asciiVortexFooter" : "__asciiVortex";
 
   // --- state -------------------------------------------------------------------------------
   let renderer: Renderer | null = null;
@@ -134,8 +160,8 @@ export function createAsciiEngine(opts: AsciiEngineOptions): AsciiEngine | null 
   let videoFrames = 0; // requestVideoFrameCallback count (0 = not supported or not fired yet)
   let vfcId = 0;
 
-  const look: Look = { ...LOOKS.idle };
-  const target: Look = { ...LOOKS.idle };
+  const look: Look = { ...lookFor("idle") };
+  const target: Look = { ...lookFor("idle") };
   const sectorW = new Float32Array(SECTORS.length);
   let sector: OrbitSector | null = null;
   let progress = 0;
@@ -417,7 +443,8 @@ export function createAsciiEngine(opts: AsciiEngineOptions): AsciiEngine | null 
     !paused &&
     visible &&
     !blocked &&
-    !document.hidden;
+    !document.hidden &&
+    (!quiet || leads.size === 0);
 
   function tick(now: number) {
     raf = 0;
@@ -482,7 +509,8 @@ export function createAsciiEngine(opts: AsciiEngineOptions): AsciiEngine | null 
     } else if (degrade < 2) {
       const gaps = new Float32Array(59);
       for (let j = 1; j < 60; j++) gaps[j - 1] = stamps[j] - stamps[j - 1];
-      if (percentile(gaps, 59, 0.5) <= SLOW_GL_INTERVAL) return;
+      // The footer's clip delivers new frames at half the rate: judge it against that.
+      if (percentile(gaps, 59, 0.5) <= SLOW_GL_INTERVAL / rate) return;
       degrade++;
       if (degrade === 1 && Math.min(window.devicePixelRatio || 1, 2) > 1.2) lowRes = true;
       else {
@@ -496,11 +524,14 @@ export function createAsciiEngine(opts: AsciiEngineOptions): AsciiEngine | null 
 
   function sync() {
     if (destroyed || failed || !started) return;
-    if (shouldRun()) {
+    const run = shouldRun();
+    if (!quiet) setLead(id, run);
+    if (run) {
       if (video.paused && video.getAttribute("src")) {
         video.play().catch((err: unknown) => {
           if (err instanceof DOMException && err.name === "NotAllowedError") {
             blocked = true;
+            if (!quiet) setLead(id, false);
             drawStill();
             window.addEventListener("pointerdown", retry, { once: true });
             window.addEventListener("keydown", retry, { once: true });
@@ -530,6 +561,7 @@ export function createAsciiEngine(opts: AsciiEngineOptions): AsciiEngine | null 
     failed = true;
     if (raf) cancelAnimationFrame(raf);
     raf = 0;
+    setLead(id, false);
     video.pause();
     opts.onFail();
   }
@@ -611,6 +643,8 @@ export function createAsciiEngine(opts: AsciiEngineOptions): AsciiEngine | null 
     }
     if (!reducedMotion) {
       video.muted = true;
+      // load() resets playbackRate to the default: set the default first.
+      if (quiet) video.defaultPlaybackRate = video.playbackRate = rate;
       video.src = opts.src;
       video.load();
       if ("requestVideoFrameCallback" in video) {
@@ -637,7 +671,7 @@ export function createAsciiEngine(opts: AsciiEngineOptions): AsciiEngine | null 
   const api: AsciiEngine = {
     setState(next) {
       state = next;
-      Object.assign(target, LOOKS[next]);
+      Object.assign(target, lookFor(next));
       settle();
     },
     setSector(next) {
@@ -667,6 +701,8 @@ export function createAsciiEngine(opts: AsciiEngineOptions): AsciiEngine | null 
       if (raf) cancelAnimationFrame(raf);
       if (measureRaf) cancelAnimationFrame(measureRaf);
       raf = 0;
+      followers.delete(sync);
+      setLead(id, false);
       resizeObserver.disconnect();
       intersection.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
@@ -682,9 +718,10 @@ export function createAsciiEngine(opts: AsciiEngineOptions): AsciiEngine | null 
       video.removeAttribute("src");
       video.load();
       dropRenderer();
-      if (import.meta.env.DEV) delete (window as { __asciiVortex?: unknown }).__asciiVortex;
+      if (import.meta.env.DEV) delete (window as unknown as Record<string, unknown>)[devKey];
     },
   };
+  if (quiet) followers.add(sync);
 
   if (import.meta.env.DEV) {
     const stats = (): DevStats => {
@@ -706,7 +743,7 @@ export function createAsciiEngine(opts: AsciiEngineOptions): AsciiEngine | null 
       };
     };
     Object.assign(window, {
-      __asciiVortex: {
+      [devKey]: {
         stats,
         get running() {
           return raf !== 0;

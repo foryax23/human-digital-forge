@@ -1,3 +1,9 @@
 export { AsciiVortexBackground } from "./AsciiVortexBackground";
-export type { AsciiVortexBackgroundProps, AsciiVortexState, OrbitSector } from "./types";
+export { VortexBand } from "./VortexBand";
+export type {
+  AsciiVortexBackgroundProps,
+  AsciiVortexState,
+  AsciiVortexVariant,
+  OrbitSector,
+} from "./types";
 export { SECTOR_ANGLES } from "./types";

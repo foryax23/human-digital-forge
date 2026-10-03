@@ -6,18 +6,28 @@ import { SWIRL_VIDEO } from "../media";
 import { useMotionPause } from "../motion-pause";
 import { prefersReducedMotion, useIsomorphicLayoutEffect } from "../motion-prefs";
 import { createAsciiEngine, type AsciiEngine } from "./engine";
-import type { AsciiVortexBackgroundProps } from "./types";
+import type { AsciiVortexBackgroundProps, AsciiVortexVariant } from "./types";
 
-/** The ring box of the old video ring: square, stretched 1.32x, centred on its point. */
-const RING_BOX = "absolute aspect-square -translate-x-1/2 -translate-y-1/2 scale-x-[1.32]";
-const RING_PLACE = {
-  hero: "left-[var(--vortex-x,50%)] top-[var(--vortex-y,47%)] w-[max(110vw,96vh)] lg:w-[max(92vw,100vh)]",
-  backdrop: "left-1/2 top-[47%] w-[max(96vw,96vh)] opacity-60",
+/** The ring box: square, centred on its point; the engine measures its transformed rect. */
+const RING_BOX = "absolute aspect-square -translate-x-1/2 -translate-y-1/2";
+/**
+ * Hero and /scan: the old video ring, stretched 1.32x. Footer: a wide, flattened ring placed
+ * by the band's own variables (VortexBand sets them per breakpoint).
+ */
+const RING_PLACE: Record<AsciiVortexVariant, string> = {
+  hero: "scale-x-[1.32] left-[var(--vortex-x,50%)] top-[var(--vortex-y,47%)] w-[max(110vw,96vh)] lg:w-[max(92vw,100vh)]",
+  backdrop: "scale-x-[1.32] left-1/2 top-[47%] w-[max(96vw,96vh)] opacity-60",
+  footer:
+    "left-[var(--band-x,50%)] top-[var(--band-y,50%)] w-[var(--band-w,60vw)] scale-x-[var(--band-sx,2.4)]",
 };
 const RING_MASK =
   "absolute inset-0 [mask-image:radial-gradient(closest-side,black_45%,rgb(0_0_0/0.55)_68%,transparent_92%)]";
-/** The canvas once drawn: the /scan backdrop sits dimmer behind its steps. */
-const HOST_SHOWN = { hero: "opacity-100", backdrop: "opacity-[0.62]" };
+/** The canvas once drawn: the /scan backdrop sits dimmer behind its steps, the footer band dimmer still. */
+const HOST_SHOWN: Record<AsciiVortexVariant, string> = {
+  hero: "opacity-100",
+  backdrop: "opacity-[0.62]",
+  footer: "opacity-[var(--band-opacity,0.5)]",
+};
 const RING_MEDIA =
   "h-full w-full object-cover opacity-80 mix-blend-screen brightness-[0.8] saturate-[0.9]";
 
@@ -26,7 +36,9 @@ const RING_MEDIA =
  * re-drawn live as fine coloured ASCII glyphs (see engine.ts), landing exactly
  * where the video ring sat. The server renders the poster ring, which the
  * canvas replaces once its first frame is drawn; without a usable canvas, or if
- * the sampling video fails, the original video ring comes back.
+ * the sampling video fails, the original video ring comes back. The footer band
+ * never shows the poster or the video ring: it stays empty until its glyphs are
+ * drawn, and stays empty if they can't be.
  */
 export function AsciiVortexBackground({
   state = "idle",
@@ -98,6 +110,8 @@ export function AsciiVortexBackground({
   }, [typingPulse]);
 
   const ascii = mode === "ascii";
+  const footer = variant === "footer";
+  if (footer && !ascii) return null;
   return (
     <div
       ref={layerRef}
@@ -110,7 +124,7 @@ export function AsciiVortexBackground({
           className={cn(
             RING_MASK,
             "transition-opacity duration-700",
-            ascii && ready && "opacity-0",
+            ((ascii && ready) || footer) && "opacity-0",
           )}
         >
           {ascii ? (

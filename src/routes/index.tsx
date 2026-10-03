@@ -7,7 +7,6 @@ import { MotionPauseProvider } from "@/components/landing/motion-pause";
 import { LandingNav } from "@/components/landing/LandingNav";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { TechBand } from "@/components/landing/TechStack";
-import { WorkSection } from "@/components/landing/WorkSection";
 import { ServicesSection } from "@/components/landing/ServicesSection";
 import { ProcessSection } from "@/components/landing/ProcessSection";
 import { ConsultationSection } from "@/components/home/ConsultationSection";
@@ -58,8 +57,8 @@ function Index() {
           <main>
             <HeroSection />
             <TechBand />
-            <WorkSection />
             <ServicesSection />
+            {/* No projects section: the work lives on /portfolio (hero proof, nav, footer). */}
             <ProcessSection />
             <ConsultationSection />
             <PricingSection />
