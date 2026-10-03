@@ -82,25 +82,45 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Vortex HUB" },
-      { name: "description", content: "Vortex Hub is a digital services platform for creating websites, digital products, and AI automations." },
+      {
+        name: "description",
+        content:
+          "Vortex Hub is a digital services platform for creating websites, digital products, and AI automations.",
+      },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Vortex HUB" },
-      { property: "og:description", content: "Vortex Hub is a digital services platform for creating websites, digital products, and AI automations." },
+      {
+        property: "og:description",
+        content:
+          "Vortex Hub is a digital services platform for creating websites, digital products, and AI automations.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      // The 1200x630 social card below needs the large card (`summary` crops it to a square).
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Vortex HUB" },
-      { name: "twitter:description", content: "Vortex Hub is a digital services platform for creating websites, digital products, and AI automations." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/61ac4c53-4f04-4946-8717-cdccb63b835b/id-preview-c4902d72--4e363bda-6ae5-4174-8381-392055876cdd.lovable.app-1781047202723.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/61ac4c53-4f04-4946-8717-cdccb63b835b/id-preview-c4902d72--4e363bda-6ae5-4174-8381-392055876cdd.lovable.app-1781047202723.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Vortex Hub is a digital services platform for creating websites, digital products, and AI automations.",
+      },
+      // Social card: the wordmark on the brand glow (scripts/brand/build-media.sh). Crawlers
+      // need an absolute URL.
+      { property: "og:image", content: "https://vortexhub.dev/og-image.jpg" },
+      { property: "og:image:type", content: "image/jpeg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "Vortex Hub" },
+      { name: "twitter:image", content: "https://vortexhub.dev/og-image.jpg" },
+      { name: "twitter:image:alt", content: "Vortex Hub" },
     ],
     links: [
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap",
       },
 
       {

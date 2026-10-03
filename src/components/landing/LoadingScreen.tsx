@@ -1,29 +1,67 @@
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
 
 import { useI18n } from "@/i18n";
+import { cn } from "@/lib/utils";
+import { INTRO_VIDEO, LOGO_WORDMARK, SIGNOFF_VIDEO } from "./media";
+import { useMotionPause } from "./motion-pause";
 
+/** The assemble animation settles on the held wordmark here (seconds). */
+const INTRO_HOLD_AT = 4.3;
+/** How long the hold shows before the curtain lifts (seconds). */
+const HOLD_BEAT = 0.3;
+/** The video must be playing by then, or the counter takes over (ms). */
+const START_TIMEOUT_MS = 2500;
+/** A playing video that stops advancing this long hands over to the counter (ms). */
+const STALL_MS = 2500;
+/** Fallback counter: 000 → 100 in this long, then a short hold (ms). */
 const COUNT_MS = 2700;
-const HOLD_MS = 400;
-const WORD_MS = 900;
-
-const WORDS = {
-  en: ["Design", "Build", "Automate"],
-  ro: ["Proiectăm", "Construim", "Automatizăm"],
-} as const;
-const WORD_COUNT = WORDS.en.length;
+const COUNT_HOLD_MS = 400;
 
 const EASE = [0.25, 0.1, 0.25, 1] as const;
 
+type IntroClip = {
+  src: string;
+  /** Portrait phones get the vertical logo animation, which runs to its end. */
+  portrait: boolean;
+};
+
 /**
- * Homepage intro curtain: a 000 → 100 counter, cycling service words and a
- * brand-gradient progress bar, then the whole screen slides up as the page
- * transition. Rendered by IntroProvider; it only counts once `active` is true.
+ * Chosen after mount: orientation, screen size and codec support decide. The
+ * WebM files are 1080p VP9: the lightest choice for big screens and for the
+ * vertical clip; smaller landscape screens get the 720p MP4 (lighter still).
+ */
+function pickClip(): IntroClip {
+  const portrait = window.matchMedia("(orientation: portrait) and (max-width: 767px)").matches;
+  const webm = document.createElement("video").canPlayType('video/webm; codecs="vp9"') !== "";
+  if (portrait) {
+    return { src: webm ? SIGNOFF_VIDEO.portrait.webm : SIGNOFF_VIDEO.portrait.mp4, portrait };
+  }
+  const large = window.innerWidth * (window.devicePixelRatio || 1) > 1600;
+  return {
+    src: !large ? INTRO_VIDEO.mp4_720 : webm ? INTRO_VIDEO.webm : INTRO_VIDEO.mp4_1080,
+    portrait,
+  };
+}
+
+/**
+ * Homepage intro curtain: the owner's brand animation (the swirl gathers into
+ * the Vortex Hub wordmark) over the night background, a slim brand progress
+ * bar and a small counter that follow the video, and a skip button (or Esc).
+ * The whole screen slides up as the page transition once the wordmark holds.
+ * If the video can't start (or stalls), a 2.7 s counter finishes the intro, so
+ * it never hangs. Rendered by IntroProvider; it only runs once `active` is true.
  */
 export function LoadingScreen({ active, onComplete }: { active: boolean; onComplete: () => void }) {
-  const { t, lang } = useI18n();
-  const [count, setCount] = useState(0);
-  const [wordIndex, setWordIndex] = useState(0);
+  const { t } = useI18n();
+  const { paused } = useMotionPause();
+  const [clip, setClip] = useState<IntroClip | null>(null);
+  const [fallback, setFallback] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  const counterRef = useRef<HTMLSpanElement>(null);
+  const progressRef = useRef(0);
   const onCompleteRef = useRef(onComplete);
   const completedRef = useRef(false);
 
@@ -31,41 +69,100 @@ export function LoadingScreen({ active, onComplete }: { active: boolean; onCompl
     onCompleteRef.current = onComplete;
   }, [onComplete]);
 
+  const finish = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    onCompleteRef.current();
+  }, []);
+
+  /** Progress 0 … 1 on the bar and the counter, written straight to the DOM. */
+  const show = useCallback((progress: number) => {
+    progressRef.current = progress;
+    if (barRef.current) barRef.current.style.transform = `scaleX(${progress})`;
+    if (counterRef.current) {
+      counterRef.current.textContent = String(Math.round(progress * 100)).padStart(3, "0");
+    }
+  }, []);
+
+  // Pick the clip once the loader runs; the pause switch means no video at all.
   useEffect(() => {
     if (!active) return;
+    if (paused) setFallback(true);
+    else setClip((current) => current ?? pickClip());
+  }, [active, paused]);
 
+  // Follow the video: progress, hold, failure to start, stalls.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!active || !clip || fallback || !video) return;
+
+    const startedAt = performance.now();
+    let frame = 0;
+    let started = false;
+    let lastTime = -1;
+    let lastChange = startedAt;
+
+    const tick = () => {
+      frame = requestAnimationFrame(tick);
+      const now = performance.now();
+      const time = video.currentTime;
+      if (time !== lastTime) {
+        lastTime = time;
+        lastChange = now;
+        if (time > 0 && !started) {
+          started = true;
+          setPlaying(true);
+        }
+      }
+      if (!started) {
+        if (now - startedAt > START_TIMEOUT_MS) setFallback(true);
+        return;
+      }
+      if (!video.ended && now - lastChange > STALL_MS) {
+        setFallback(true);
+        return;
+      }
+      const end = clip.portrait
+        ? Number.isFinite(video.duration) && video.duration > 0
+          ? video.duration
+          : SIGNOFF_VIDEO.durationSec
+        : INTRO_HOLD_AT + HOLD_BEAT;
+      show(Math.min(1, time / end));
+      if (video.ended || time >= end) {
+        cancelAnimationFrame(frame);
+        finish();
+      }
+    };
+
+    const onError = () => setFallback(true);
+    video.addEventListener("error", onError);
+    frame = requestAnimationFrame(tick);
+    video.play().catch(() => setFallback(true));
+
+    return () => {
+      cancelAnimationFrame(frame);
+      video.removeEventListener("error", onError);
+    };
+  }, [active, clip, fallback, finish, show]);
+
+  // Fallback: the counter runs on from wherever the video got to.
+  useEffect(() => {
+    if (!active || !fallback) return;
+    videoRef.current?.pause();
+    const from = progressRef.current;
     let frame = 0;
     let timeout: ReturnType<typeof setTimeout> | undefined;
     let start: number | null = null;
-    let lastCount = -1;
-    let lastWord = -1;
 
     const tick = (now: number) => {
-      if (start === null) start = now;
-      const elapsed = now - start;
-      const nextCount = Math.min(100, Math.round((elapsed / COUNT_MS) * 100));
-      // Same clock as the counter, so the last word holds (instead of wrapping
-      // back to the first) during the final beat before the curtain lifts.
-      const nextWord = Math.floor(Math.min(elapsed, COUNT_MS - 1) / WORD_MS) % WORD_COUNT;
-
-      if (nextCount !== lastCount) {
-        lastCount = nextCount;
-        setCount(nextCount);
-      }
-      if (nextWord !== lastWord) {
-        lastWord = nextWord;
-        setWordIndex(nextWord);
-      }
-
-      if (nextCount < 100) {
+      start ??= now;
+      const progress = Math.min(1, from + (now - start) / COUNT_MS);
+      show(progress);
+      if (progress < 1) {
         frame = requestAnimationFrame(tick);
         return;
       }
-      timeout = setTimeout(() => {
-        if (completedRef.current) return;
-        completedRef.current = true;
-        onCompleteRef.current();
-      }, HOLD_MS);
+      timeout = setTimeout(finish, COUNT_HOLD_MS);
     };
 
     frame = requestAnimationFrame(tick);
@@ -73,11 +170,17 @@ export function LoadingScreen({ active, onComplete }: { active: boolean; onCompl
       cancelAnimationFrame(frame);
       clearTimeout(timeout);
     };
-  }, [active]);
+  }, [active, fallback, finish, show]);
 
-  // Server render and hydration are inactive: show the resting 000 frame.
-  const shownCount = active ? count : 0;
-  const shownWord = active ? wordIndex : 0;
+  // Esc skips, like the button.
+  useEffect(() => {
+    if (!active) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") finish();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [active, finish]);
 
   return (
     <motion.div
@@ -92,44 +195,71 @@ export function LoadingScreen({ active, onComplete }: { active: boolean; onCompl
       exit={{ y: "-100%" }}
       transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
     >
-      <motion.p
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: EASE }}
-        className="absolute left-0 top-0 px-6 py-6 text-xs uppercase tracking-[0.3em] text-muted-foreground md:px-10 md:py-10"
-      >
-        Vortex Hub
-      </motion.p>
+      {/* The brand animation; its black background drops out with `screen`. The
+          edges fade so particles never end on a hard line. */}
+      {active && clip && !fallback && (
+        <div aria-hidden className="absolute inset-0 flex items-center justify-center">
+          <video
+            ref={videoRef}
+            src={clip.src}
+            muted
+            playsInline
+            preload="auto"
+            disablePictureInPicture
+            tabIndex={-1}
+            className={cn(
+              "pointer-events-none h-full w-full object-contain mix-blend-screen transition-opacity duration-300 [mask-image:radial-gradient(ellipse_at_center,black_55%,transparent_72%)]",
+              !clip.portrait && "max-w-[1120px]",
+              playing ? "opacity-100" : "opacity-0",
+            )}
+          />
+        </div>
+      )}
 
-      <div aria-hidden className="absolute inset-0 flex items-center justify-center px-6">
-        {/* initial={false}: the first word is part of the server-rendered frame. */}
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.span
-            // Keyed by position, so a language switch swaps the text without replaying.
-            key={shownWord}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.35, ease: EASE }}
-            className="block font-display text-4xl font-semibold tracking-tight text-foreground/80 md:text-6xl lg:text-7xl"
-          >
-            {WORDS[lang][shownWord]}
-          </motion.span>
-        </AnimatePresence>
-      </div>
+      {/* Without the video: the wordmark itself, while the counter runs. */}
+      {fallback && (
+        <motion.div
+          aria-hidden
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.7, ease: EASE }}
+          className="absolute inset-0 flex items-center justify-center px-8"
+        >
+          <picture className="contents">
+            <source type="image/webp" srcSet={LOGO_WORDMARK.webp} />
+            <img
+              src={LOGO_WORDMARK.png}
+              alt=""
+              width={LOGO_WORDMARK.width}
+              height={LOGO_WORDMARK.height}
+              className="h-auto w-full max-w-[min(34rem,80vw)] drop-shadow-[0_0_40px_rgb(124_92_255/0.35)]"
+            />
+          </picture>
+        </motion.div>
+      )}
 
-      <div
-        aria-hidden
-        className="absolute bottom-0 right-0 px-6 py-6 font-display text-6xl font-semibold leading-none tabular-nums md:px-10 md:py-10 md:text-8xl lg:text-9xl"
-      >
-        {String(shownCount).padStart(3, "0")}
+      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-6 px-6 pb-6 md:px-10 md:pb-9">
+        <span ref={counterRef} aria-hidden className="type-tech tabular-nums text-foreground/45">
+          000
+        </span>
+        <button
+          type="button"
+          onClick={finish}
+          className="type-label group inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.03] px-4 py-2 text-foreground/70 backdrop-blur transition-colors hover:border-white/35 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#89cbf6] focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          {t("Skip intro", "Sari peste")}
+          <kbd className="type-tech hidden rounded border border-white/15 px-1.5 py-0.5 text-foreground/50 md:inline">
+            Esc
+          </kbd>
+        </button>
       </div>
 
       <div aria-hidden className="absolute inset-x-0 bottom-0 h-[3px] bg-border/50">
         <div
+          ref={barRef}
           className="accent-gradient h-full w-full"
           style={{
-            transform: `scaleX(${shownCount / 100})`,
+            transform: "scaleX(0)",
             transformOrigin: "left",
             boxShadow: "0 0 8px oklch(0.585 0.225 282 / 0.45)",
           }}
