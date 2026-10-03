@@ -36,5 +36,43 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    // Deep research portability (plan A5): steps, parsers, report logic and the LLM layer
+    // import nothing from the app, TanStack or React and never read process.env, so they
+    // can move to Cloudflare Workflows unchanged. A folder block replaces the rule's global
+    // options, so the server-only entry above is repeated here.
+    files: ["src/lib/deep/{steps,parse,report,llm}/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "server-only",
+              message:
+                "TanStack Start does not use the Next.js `server-only` package. Rename the module to `*.server.ts` or mark it with `@tanstack/react-start/server-only`.",
+            },
+          ],
+          patterns: [
+            {
+              group: ["@/*"],
+              message: "Deep steps get everything through StepEnv (src/lib/deep/env.server.ts).",
+            },
+            {
+              group: ["@tanstack/*", "react", "react-dom"],
+              message: "Deep steps, parsers and the LLM layer stay framework-free.",
+            },
+          ],
+        },
+      ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "MemberExpression[object.name='process'][property.name='env']",
+          message: "Read configuration in env.server.ts and pass it through StepEnv.",
+        },
+      ],
+    },
+  },
   eslintPluginPrettier,
 );

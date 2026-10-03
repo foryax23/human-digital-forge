@@ -1,0 +1,142 @@
+{
+  "_note": "Golden set of plan D5: the 10 trial companies. FY2025 figures as recorded by the engine trial on 2026-10-03 (ANAF bilanț). 'requires' lists what an expectation depends on; an expectation whose requirement is missing in a run is reported as 'n/a', never as passed.",
+  "allowHosts": [
+    "vortexhub.dev",
+    "doriotdent.ro",
+    "skiriders.ro",
+    "rostconstruct.ro",
+    "confiscal.ro",
+    "exprestransport.ro",
+    "esthetique.ro",
+    "pasta.ro",
+    "libris.ro"
+  ],
+  "companies": [
+    {
+      "cui": "54747928",
+      "name": "Vortex Hub",
+      "site": "https://vortexhub.dev/",
+      "expect": {
+        "firm": "new",
+        "siteStatus": "verified",
+        "siteProofAny": ["reg_no", "cui"],
+        "lights": { "bani": "neverificat" }
+      },
+      "notes": "New firm (registered 2026): no ANAF bilanț calls at all. vortexhub.dev is the owner-confirmed site (passed as the quick-scan hint); proof by the J number. Peers through the Rev.3 → Rev.2 map need the MF shard."
+    },
+    {
+      "cui": "9259999",
+      "name": "Doriot Dent",
+      "expect": {
+        "firm": "established",
+        "turnover2025": 15385652,
+        "employees2025": 16,
+        "siteStatus": "verified",
+        "siteProofAny": ["cui", "reg_no", "registry"],
+        "vocab": "b2b_wholesale",
+        "peersMin": { "n": 5, "requires": "shard" }
+      },
+      "notes": "CUI on /contact (trial)."
+    },
+    {
+      "cui": "7924521",
+      "name": "Restaurant Lloyd",
+      "expect": {
+        "firm": "established",
+        "turnover2025": 1625468,
+        "employees2025": 8,
+        "siteStatus": "none",
+        "lights": { "echipa": "atentie", "online": "atentie" },
+        "vocab": "food"
+      },
+      "notes": "Staff 40 → 8. No website: guessed namesakes (lloyd.com …) are not on the allow-list and are never fetched in the golden run."
+    },
+    {
+      "cui": "37355711",
+      "name": "Skiriders Shop",
+      "expect": {
+        "firm": "established",
+        "turnover2025": 170310,
+        "employees2025": 1,
+        "siteStatusAny": ["broken_certificate", "parked"],
+        "lights": { "online": "de_rezolvat" },
+        "vocab": "retail"
+      },
+      "notes": "Expired TLS certificate on the registry site (trial). Since then the http version shows the host's 'account suspended' page: status parked (hosting suspended), certificate failure kept in site.https."
+    },
+    {
+      "cui": "8229329",
+      "name": "Rost Construct Com",
+      "expect": {
+        "firm": "established",
+        "turnover2025": 1730593,
+        "employees2025": 2,
+        "registryStatus": "dead",
+        "tedAwards": { "n": 20, "requires": "ted" }
+      },
+      "notes": "Registry domain dead. rost.com.ro (a Bucharest namesake) is not on the allow-list. TED is off in golden live runs."
+    },
+    {
+      "cui": "8643290",
+      "name": "Confiscal",
+      "expect": {
+        "firm": "established",
+        "turnover2025": 249470,
+        "employees2025": 1,
+        "registryStatus": "dead",
+        "courtsFound": { "requires": "courts" }
+      },
+      "notes": "Registry domain dead; court cases through the CONFISCALSRL variant (courts off in golden live runs)."
+    },
+    {
+      "cui": "3365133",
+      "name": "Expres Transport",
+      "expect": {
+        "firm": "established",
+        "turnover2025": 13000841,
+        "employees2025": 25,
+        "siteStatus": "verified",
+        "siteProofAny": ["reg_no", "cui", "registry"],
+        "vocab": "transport"
+      },
+      "notes": "Verified through the legacy J format (J02/151/1993 = J1993000151025)."
+    },
+    {
+      "cui": "15266478",
+      "name": "Esthetique Beauty Center",
+      "expect": {
+        "firm": "established",
+        "turnover2025": 187721,
+        "employees2025": 1,
+        "siteStatus": "parked",
+        "crawlSkipped": true,
+        "vocab": "beauty"
+      },
+      "notes": "\"esthetique.ro este de vânzare!\""
+    },
+    {
+      "cui": "2566619",
+      "name": "Vancsa-Multipast",
+      "expect": {
+        "firm": "established",
+        "turnover2025": 2301192,
+        "employees2025": 10,
+        "siteStatus": "verified",
+        "vocab": "manufacturing"
+      },
+      "notes": "CUI on /contact (trial)."
+    },
+    {
+      "cui": "1094992",
+      "name": "Libris",
+      "expect": {
+        "firm": "established",
+        "turnover2025": 94500727,
+        "employees2025": 106,
+        "siteStatus": "verified",
+        "vocab": "retail"
+      },
+      "notes": "The server sends no Content-Type: HTML sniffing."
+    }
+  ]
+}
