@@ -1,0 +1,175 @@
+/* Tech logos (TechStack.tsx): the logo item, the marquee mechanics of the band under
+   the hero and its still fallback. Layout and type stay in Tailwind classes. */
+
+/* One logo: white file, quiet at rest, full on hover. Symbols carry their name beside
+   them in the same white. Phones scale every logo by --logo-scale. */
+.item {
+  --logo-scale: 1;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  opacity: 0.55;
+  transition: opacity 200ms ease;
+}
+.item img {
+  display: block;
+  width: auto;
+  max-width: none; /* preflight's max-width: 100% would let the logos collapse in the marquee */
+  height: calc(var(--logo-h) * var(--logo-scale));
+}
+.name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.9375rem; /* 15px: close to the cap height of the small wordmarks */
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: #fff; /* = the white of the files */
+}
+@media (hover: hover) {
+  .item:hover {
+    opacity: 1;
+  }
+}
+@media (max-width: 767px) {
+  .item {
+    --logo-scale: 0.86;
+  }
+  .name {
+    font-size: 0.875rem;
+  }
+}
+
+/* ---------- Band (TechBand) ---------- */
+
+/* The left fade is wider than the right one, so no clipped half-logo sits against
+   the caption's divider. */
+.viewport {
+  --fade-start: 112px;
+  --fade-end: 64px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    transparent 8px,
+    #000 var(--fade-start),
+    #000 calc(100% - var(--fade-end)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    transparent 8px,
+    #000 var(--fade-start),
+    #000 calc(100% - var(--fade-end)),
+    transparent
+  );
+}
+
+/* Two identical lists; moving the track by half its width lands the copy exactly
+   where the first list started, so the loop has no seam. Local keyframes: CSS Modules
+   scope animation names. */
+.track {
+  display: flex;
+  flex: none; /* a flex item: without this it shrinks to its min-content and the lists overlap */
+  width: max-content;
+  animation: tech-scroll var(--duration, 50s) linear infinite;
+  will-change: transform;
+}
+.list {
+  --gap: 56px;
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  margin: 0;
+  padding: 0 var(--gap) 0 0; /* trailing gap keeps the -50% loop exact */
+  list-style: none;
+}
+@keyframes tech-scroll {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* Pauses: under the pointer (not after a tap), while focus is inside, off-screen
+   (data-onscreen, set by an IntersectionObserver) and with the page-wide pause switch. */
+@media (hover: hover) {
+  .viewport:hover .track {
+    animation-play-state: paused;
+  }
+}
+.viewport:focus-within .track,
+.band[data-onscreen="false"] .track,
+:global(html[data-motion="paused"]) .track {
+  animation-play-state: paused;
+}
+
+@media (max-width: 767px) {
+  .band {
+    --duration: 40s;
+  }
+  /* Inside the container's gutter, like the hairlines above and below it. */
+  .viewport {
+    --fade-start: 40px;
+    --fade-end: 40px;
+    height: 52px;
+  }
+  .list {
+    --gap: 40px;
+  }
+}
+
+/* Reduced motion: one still copy, wrapped, no fade. CSS decides at first paint, so
+   nothing below the band moves. */
+@media (prefers-reduced-motion: reduce) {
+  .item {
+    transition: none;
+  }
+  .track {
+    flex: 1;
+    width: auto;
+    animation: none;
+  }
+  .list[aria-hidden="true"] {
+    display: none;
+  }
+  .viewport {
+    height: auto;
+    margin-inline: 0;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .list {
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 14px 40px;
+    padding: 18px 0 18px 32px;
+  }
+}
+/* From 1280 px the ten fit on one even row: logos at 90%, names at 14 px. */
+@media (prefers-reduced-motion: reduce) and (min-width: 1280px) {
+  .list {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    gap: 0 10px;
+    padding: 0 0 0 20px;
+    min-height: 70px;
+  }
+  .item {
+    --logo-scale: 0.9;
+    gap: 0.375rem;
+  }
+  .name {
+    font-size: 0.875rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) and (max-width: 767px) {
+  .list {
+    gap: 12px 28px;
+    padding: 12px 0 18px;
+  }
+}
