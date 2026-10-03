@@ -29,12 +29,14 @@ import { Route as AiAutomationRouteImport } from './routes/ai-automation'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
+import { Route as DashboardResearchRouteImport } from './routes/dashboard.research'
 import { Route as DashboardProjectsRouteImport } from './routes/dashboard.projects'
 import { Route as DashboardNewRequestRouteImport } from './routes/dashboard.new-request'
 import { Route as DashboardMessagesRouteImport } from './routes/dashboard.messages'
 import { Route as DashboardFilesRouteImport } from './routes/dashboard.files'
 import { Route as DashboardConsultationsRouteImport } from './routes/dashboard.consultations'
 import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
+import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
@@ -141,6 +143,11 @@ const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardResearchRoute = DashboardResearchRouteImport.update({
+  id: '/research',
+  path: '/research',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardProjectsRoute = DashboardProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
@@ -169,6 +176,11 @@ const DashboardConsultationsRoute = DashboardConsultationsRouteImport.update({
 const DashboardBillingRoute = DashboardBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAdminRoute = DashboardAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => DashboardRoute,
 } as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
@@ -221,12 +233,14 @@ export interface FileRoutesByFullPath {
   '/websites': typeof WebsitesRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/consultations': typeof DashboardConsultationsRoute
   '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/new-request': typeof DashboardNewRequestRoute
   '/dashboard/projects': typeof DashboardProjectsRoute
+  '/dashboard/research': typeof DashboardResearchRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -253,12 +267,14 @@ export interface FileRoutesByTo {
   '/websites': typeof WebsitesRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/consultations': typeof DashboardConsultationsRoute
   '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/new-request': typeof DashboardNewRequestRoute
   '/dashboard/projects': typeof DashboardProjectsRoute
+  '/dashboard/research': typeof DashboardResearchRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard': typeof DashboardIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -287,12 +303,14 @@ export interface FileRoutesById {
   '/websites': typeof WebsitesRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/dashboard/admin': typeof DashboardAdminRoute
   '/dashboard/billing': typeof DashboardBillingRoute
   '/dashboard/consultations': typeof DashboardConsultationsRoute
   '/dashboard/files': typeof DashboardFilesRoute
   '/dashboard/messages': typeof DashboardMessagesRoute
   '/dashboard/new-request': typeof DashboardNewRequestRoute
   '/dashboard/projects': typeof DashboardProjectsRoute
+  '/dashboard/research': typeof DashboardResearchRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -322,12 +340,14 @@ export interface FileRouteTypes {
     | '/websites'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/dashboard/admin'
     | '/dashboard/billing'
     | '/dashboard/consultations'
     | '/dashboard/files'
     | '/dashboard/messages'
     | '/dashboard/new-request'
     | '/dashboard/projects'
+    | '/dashboard/research'
     | '/dashboard/settings'
     | '/dashboard/'
     | '/.lovable/oauth/consent'
@@ -354,12 +374,14 @@ export interface FileRouteTypes {
     | '/websites'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/dashboard/admin'
     | '/dashboard/billing'
     | '/dashboard/consultations'
     | '/dashboard/files'
     | '/dashboard/messages'
     | '/dashboard/new-request'
     | '/dashboard/projects'
+    | '/dashboard/research'
     | '/dashboard/settings'
     | '/dashboard'
     | '/.lovable/oauth/consent'
@@ -387,12 +409,14 @@ export interface FileRouteTypes {
     | '/websites'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
+    | '/dashboard/admin'
     | '/dashboard/billing'
     | '/dashboard/consultations'
     | '/dashboard/files'
     | '/dashboard/messages'
     | '/dashboard/new-request'
     | '/dashboard/projects'
+    | '/dashboard/research'
     | '/dashboard/settings'
     | '/dashboard/'
     | '/.lovable/oauth/consent'
@@ -568,6 +592,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/research': {
+      id: '/dashboard/research'
+      path: '/research'
+      fullPath: '/dashboard/research'
+      preLoaderRoute: typeof DashboardResearchRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/projects': {
       id: '/dashboard/projects'
       path: '/projects'
@@ -610,6 +641,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardBillingRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/admin': {
+      id: '/dashboard/admin'
+      path: '/admin'
+      fullPath: '/dashboard/admin'
+      preLoaderRoute: typeof DashboardAdminRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/.well-known/oauth-protected-resource': {
       id: '/.well-known/oauth-protected-resource'
       path: '/.well-known/oauth-protected-resource'
@@ -649,23 +687,27 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteChildren {
+  DashboardAdminRoute: typeof DashboardAdminRoute
   DashboardBillingRoute: typeof DashboardBillingRoute
   DashboardConsultationsRoute: typeof DashboardConsultationsRoute
   DashboardFilesRoute: typeof DashboardFilesRoute
   DashboardMessagesRoute: typeof DashboardMessagesRoute
   DashboardNewRequestRoute: typeof DashboardNewRequestRoute
   DashboardProjectsRoute: typeof DashboardProjectsRoute
+  DashboardResearchRoute: typeof DashboardResearchRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAdminRoute: DashboardAdminRoute,
   DashboardBillingRoute: DashboardBillingRoute,
   DashboardConsultationsRoute: DashboardConsultationsRoute,
   DashboardFilesRoute: DashboardFilesRoute,
   DashboardMessagesRoute: DashboardMessagesRoute,
   DashboardNewRequestRoute: DashboardNewRequestRoute,
   DashboardProjectsRoute: DashboardProjectsRoute,
+  DashboardResearchRoute: DashboardResearchRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }

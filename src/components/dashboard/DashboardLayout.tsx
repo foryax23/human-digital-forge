@@ -35,7 +35,7 @@ type NavItem = {
     | "/dashboard/billing"
     | "/dashboard/settings"
     | "/dashboard/admin"
-    | "/scan";
+    | "/dashboard/research";
 };
 
 const navItems: NavItem[] = [
@@ -45,7 +45,7 @@ const navItems: NavItem[] = [
   { label: "Messages", icon: MessagesSquare, to: "/dashboard/messages" },
   { label: "Files", icon: Files, to: "/dashboard/files" },
   { label: "Consultations", icon: CalendarCheck, to: "/dashboard/consultations" },
-  { label: "Deep research", icon: Telescope, to: "/scan" },
+  { label: "Deep research", icon: Telescope, to: "/dashboard/research" },
   { label: "Billing", icon: CreditCard, to: "/dashboard/billing" },
   { label: "Settings", icon: Settings, to: "/dashboard/settings" },
 ];
