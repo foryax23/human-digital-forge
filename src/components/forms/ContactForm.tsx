@@ -16,7 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export function ContactForm() {
+/** `prefill` seeds the description, e.g. a Vortex Scan request from the homepage search. */
+export function ContactForm({ prefill }: { prefill?: string } = {}) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -59,7 +60,6 @@ export function ContactForm() {
       </div>
     );
   }
-
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -106,7 +106,7 @@ export function ContactForm() {
 
       <div className="space-y-2">
         <Label htmlFor="description">Brief description of the request</Label>
-        <Textarea id="description" name="description" rows={5} required />
+        <Textarea id="description" name="description" rows={5} required defaultValue={prefill} />
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
@@ -134,7 +134,10 @@ export function ContactForm() {
 
       <div className="flex items-start gap-3">
         <Checkbox id="consent" required className="mt-1" />
-        <Label htmlFor="consent" className="text-sm font-normal leading-relaxed text-muted-foreground">
+        <Label
+          htmlFor="consent"
+          className="text-sm font-normal leading-relaxed text-muted-foreground"
+        >
           I agree to Vortex Hub handling the information in this enquiry to respond to my request.
         </Label>
       </div>
