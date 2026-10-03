@@ -239,15 +239,20 @@ export async function testCodeValid(config: DeepConfig, code: string): Promise<b
 export function ticketAdmitted(config: DeepConfig, via: AccessVia, uid: string): boolean {
   if (config.mode === "disabled") return false;
   const isAdmin = config.adminUserIds.includes(uid.toLowerCase());
-  if (via === "admin") return isAdmin;
+  // An admin admitted by e-mail (confirmed Google sign-in, checked by checkDeepAccess at start and
+  // resume) keeps the ticket while admin e-mails are configured: this check makes no I/O, and
+  // emptying DEEP_RESEARCH_ADMIN_EMAILS revokes it at the next step (Eng 3).
+  if (via === "admin") return isAdmin || config.adminEmails.length > 0;
   if (isAdmin) return true;
   switch (config.mode) {
     case "code":
-      return via === "code";
+      // Premium subscribers are admitted in code mode too (A4).
+      return via === "code" || via === "premium";
     case "open":
       return via === "code" || via === "open";
     case "premium":
-      return via === "code" || via === "premium";
+      // "free": the account's free Premium report (D24), admitted for the run it started.
+      return via === "code" || via === "premium" || via === "free";
     default:
       return false;
   }
@@ -393,6 +398,20 @@ export const STEP_HARD_MS = 28_000;
 export const EXEMPT_BUDGET_MS = 50_000;
 export const SUBREQUEST_LIMIT = 40;
 export const PARALLEL_FETCHES = 4;
+/**
+ * Ledger requests (step claims, reservations and settles, compare-and-swap retries: about 8
+ * to 14 in a step that makes paid calls) go through supabase-js with the global fetch, so the
+ * counter never sees them. The steps that fetch many pages AND call Claude (audit, crawl)
+ * keep this many subrequests free for the ledger, so a step stays under the Worker's 50.
+ */
+export const LEDGER_ALLOWANCE = 12;
+
+/** Counted fetches a step may make (site, ANAF, DNS and asset requests). */
+export function siteFetchLimit(step: StepName): number {
+  return step === "audit" || step === "crawl"
+    ? SUBREQUEST_LIMIT - LEDGER_ALLOWANCE
+    : SUBREQUEST_LIMIT;
+}
 
 export function stepBudgetMs(step: StepName, part?: string): number {
   if (step === "pagespeed") return EXEMPT_BUDGET_MS;
@@ -559,7 +578,7 @@ export function createStepEnv(input: EnvInput, adapters: EnvAdapters): StepEnv {
   const now = adapters.now ?? (() => Date.now());
   const sleep = adapters.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const log = adapters.log ?? (() => undefined);
-  const counted = countedFetch(adapters.rawFetch);
+  const counted = countedFetch(adapters.rawFetch, siteFetchLimit(input.step));
   const deadline = input.startedAt + stepBudgetMs(input.step, input.part);
   const dns = adapters.dns ?? dohResolver(counted.fetch);
   const polite = createPoliteFetcher(

@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
+import { createClient } from "@supabase/supabase-js";
 
 import {
   PLAN_LABELS,
@@ -13,8 +14,36 @@ import {
 interface CheckoutInput {
   plan: PlanId;
   currency: Currency;
+  /** Ignored (plan B3): the account comes from the verified session token, never from the browser. */
   userId?: string | null;
+  /** Ignored (plan B3): see userId. */
   email?: string | null;
+}
+
+/**
+ * The signed-in account from the request's bearer token (attached to every server
+ * function call by src/integrations/supabase/auth-attacher.ts), verified with
+ * Supabase. Null for a visitor who is not signed in: checkout still works and
+ * Stripe asks for the e-mail, but no account ID from the browser is ever trusted
+ * (before, any user_id sent by a client went into the subscription metadata).
+ */
+async function verifiedAccount(): Promise<{ userId: string; email: string | null } | null> {
+  const header = getRequest()?.headers.get("authorization") ?? "";
+  if (!header.startsWith("Bearer ")) return null;
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return null;
+  try {
+    const supabase = createClient(url, key, {
+      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    });
+    const { data, error } = await supabase.auth.getClaims(header.slice(7));
+    const claims = data?.claims as { sub?: string; email?: string } | undefined;
+    if (error || !claims?.sub) return null;
+    return { userId: claims.sub, email: typeof claims.email === "string" ? claims.email : null };
+  } catch {
+    return null;
+  }
 }
 
 function getOrigin(): string {
@@ -33,16 +62,13 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
   .inputValidator((data: CheckoutInput) => {
     if (!isPlanId(data?.plan)) throw new Error("Invalid plan");
     if (!isCurrency(data?.currency)) throw new Error("Invalid currency");
-    return {
-      plan: data.plan,
-      currency: data.currency,
-      userId: typeof data.userId === "string" ? data.userId : null,
-      email: typeof data.email === "string" ? data.email : null,
-    };
+    // userId and email from the browser are dropped here: only the verified session counts.
+    return { plan: data.plan, currency: data.currency };
   })
   .handler(async ({ data }) => {
     const secretKey = process.env.STRIPE_SECRET_KEY;
     if (!secretKey) throw new Error("Stripe is not configured");
+    const account = await verifiedAccount();
 
     const { default: Stripe } = await import("stripe");
     const stripe = new Stripe(secretKey, {
@@ -54,7 +80,7 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      ...(data.email ? { customer_email: data.email } : {}),
+      ...(account?.email ? { customer_email: account.email } : {}),
       line_items: [
         {
           quantity: 1,
@@ -70,12 +96,12 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
       ],
       metadata: {
         plan: data.plan,
-        ...(data.userId ? { user_id: data.userId } : {}),
+        ...(account ? { user_id: account.userId } : {}),
       },
       subscription_data: {
         metadata: {
           plan: data.plan,
-          ...(data.userId ? { user_id: data.userId } : {}),
+          ...(account ? { user_id: account.userId } : {}),
         },
       },
       success_url: `${origin}/billing-success?session_id={CHECKOUT_SESSION_ID}`,

@@ -4,6 +4,7 @@ import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { CompanyDetails } from "@/components/shared/CompanyDetails";
 import { useI18n } from "@/i18n";
+import { DEEP_TERMS, DEEP_TERMS_VERSION } from "@/lib/scan/legal/lead-notice";
 
 const title = "Terms and Conditions | Vortex Hub";
 const description = "The terms that govern the use of Vortex Hub services and website.";
@@ -22,9 +23,17 @@ export const Route = createFileRoute("/terms")({
   component: TermsPage,
 });
 
-function Section({ heading, children }: { heading: string; children: React.ReactNode }) {
+function Section({
+  id,
+  heading,
+  children,
+}: {
+  id?: string;
+  heading: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="space-y-3">
+    <div id={id} className="scroll-mt-24 space-y-3">
       <h2 className="type-h3 text-fg">{heading}</h2>
       <div className="type-body space-y-3 text-fg-2">{children}</div>
     </div>
@@ -32,7 +41,8 @@ function Section({ heading, children }: { heading: string; children: React.React
 }
 
 function TermsPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const reportTerms = DEEP_TERMS[lang];
 
   return (
     <SiteLayout>
@@ -128,7 +138,26 @@ function TermsPage() {
             </p>
           </Section>
 
-          <Section heading={t("10. Governing law and disputes", "10. Legea aplicabilă și litigii")}>
+          {/* The report terms the deep-research start form links to: rendered from the same
+              constant that is stored with every run (lead-notice.ts, DEEP_TERMS_VERSION). */}
+          <Section id="rapoarte-vortex-scan" heading={`10. ${reportTerms.title}`}>
+            <p>
+              {t(
+                "These terms apply to the reports of Vortex Scan, including deep research (Cercetare aprofundată). You accept them in the form before a deep research starts.",
+                "Acești termeni se aplică rapoartelor Vortex Scan, inclusiv cercetării aprofundate. Îi accepți în formularul de dinainte de pornirea unei cercetări aprofundate.",
+              )}
+            </p>
+            <ol className="list-decimal space-y-1.5 pl-5 marker:text-fg-3">
+              {reportTerms.points.map((point) => (
+                <li key={point}>{point}</li>
+              ))}
+            </ol>
+            <p className="type-body-sm text-fg-3">
+              {t(`Version ${DEEP_TERMS_VERSION}`, `Versiunea ${DEEP_TERMS_VERSION}`)}
+            </p>
+          </Section>
+
+          <Section heading={t("11. Governing law and disputes", "11. Legea aplicabilă și litigii")}>
             <p>
               {t(
                 "These terms are governed by Romanian law. Disputes will be resolved by the competent courts of Romania. Consumers may also use the EU Online Dispute Resolution platform (ec.europa.eu/consumers/odr) and the Romanian consumer authority (ANPC, anpc.ro).",
@@ -137,7 +166,7 @@ function TermsPage() {
             </p>
           </Section>
 
-          <Section heading={t("11. Contact", "11. Contact")}>
+          <Section heading={t("12. Contact", "12. Contact")}>
             <p>
               {t("Questions can be sent to", "Întrebările pot fi trimise la")}{" "}
               <a

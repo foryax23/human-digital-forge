@@ -9,6 +9,7 @@ import type {
   RoadmapPhase,
   SimulationInputs,
 } from "@/lib/scan/types";
+import { officeHourValue } from "@/lib/deep/report/hourly";
 
 import {
   addEstimates,
@@ -28,13 +29,7 @@ import {
 import { bi, clamp, type OpportunityTemplate, type SignalContext, type VolumeModel } from "./model";
 import type { ResolvedOpportunity } from "./playbooks";
 import type { BusinessTypeDef } from "./taxonomy";
-import {
-  CAM_RATE,
-  DIVISION_GROSS_RON,
-  HOURS_PER_MONTH,
-  NATIONAL_GROSS_RON,
-  WAGE_SOURCE,
-} from "./wages";
+import { DIVISION_GROSS_RON, HOURS_PER_MONTH, WAGE_SOURCE } from "./wages";
 
 /* ------------------------------------------------------------ price book */
 
@@ -109,75 +104,29 @@ export type HourlyCost = {
   sector?: Bilingual;
 };
 
-const loaded = (gross: number) => Math.round((gross * (1 + CAM_RATE)) / HOURS_PER_MONTH);
-
 /**
- * Loaded hourly staff cost from INS average gross earnings for the company's
- * CAEN division (or the type's usual one), plus CAM, over 168 hours. Capped at
- * the national average because the work being automated is routine admin.
+ * The value of an hour of the work being automated (reception, booking,
+ * admin): the same role-based function as deep research
+ * (src/lib/deep/report/hourly.ts, plan A8 and D4), so the same owner never
+ * sees two hour values on /scan and /scan/deep. 1.2 × the gross minimum wage,
+ * plus CAM, over 168 hours (about 32 lei), capped by the activity's average
+ * gross pay (INS) when that is lower. The company's CAEN division decides the
+ * cap, else the business type's usual one.
  */
 export function hourlyCostFor(caen: string | undefined, type: BusinessTypeDef): HourlyCost {
   const code = caen?.replace(/\D/g, "");
-  const division =
-    code && code.length >= 2 && DIVISION_GROSS_RON[code.slice(0, 2)]
-      ? code.slice(0, 2)
-      : type.wageDivision && DIVISION_GROSS_RON[type.wageDivision]
-        ? type.wageDivision
-        : undefined;
+  const division = code && code.length >= 2 ? code.slice(0, 2) : type.wageDivision;
+  const hour = officeHourValue(division);
+  const capped = hour.cappedByDivision;
   const source = bi(`Source: ${WAGE_SOURCE.release.en}.`, `Sursa: ${WAGE_SOURCE.release.ro}.`);
-  const fmt = (value: number) => ({ en: formatNumber(value, "en"), ro: formatNumber(value, "ro") });
-  const sentence = (lead: Bilingual, hourly: number) =>
-    bi(
-      `${lead.en}, plus the 2.25% employer contribution (CAM), over ${HOURS_PER_MONTH} working hours a month = ${hourly} RON/hour. ${source.en}`,
-      `${lead.ro}, plus contribuția asiguratorie pentru muncă (CAM) de 2,25%, împărțit la ${HOURS_PER_MONTH} de ore lucrate pe lună = ${hourly} lei pe oră. ${source.ro}`,
-    );
-  const national = fmt(NATIONAL_GROSS_RON);
-
-  if (!division) {
-    const hourly = loaded(NATIONAL_GROSS_RON);
-    return {
-      hourlyCostRon: hourly,
-      grossRon: NATIONAL_GROSS_RON,
-      basis: sentence(
-        bi(
-          `National average gross monthly earnings (INS, ${WAGE_SOURCE.month.en}): ${national.en} RON`,
-          `Câștigul salarial mediu brut pe economie (INS, ${WAGE_SOURCE.month.ro}): ${national.ro} lei`,
-        ),
-        hourly,
-      ),
-    };
-  }
-
-  const { gross, label } = DIVISION_GROSS_RON[division];
-  const g = fmt(gross);
-  if (gross > NATIONAL_GROSS_RON) {
-    const hourly = loaded(NATIONAL_GROSS_RON);
-    return {
-      hourlyCostRon: hourly,
-      division,
-      grossRon: NATIONAL_GROSS_RON,
-      basis: sentence(
-        bi(
-          `Your sector (${label.en}, CAEN division ${division}) averages ${g.en} RON gross a month (INS, ${WAGE_SOURCE.month.en}), above the national average, so we use the national ${national.en} RON because the work being automated is routine admin`,
-          `Sectorul tău (${label.ro}, diviziunea CAEN ${division}) are un câștig mediu brut de ${g.ro} lei pe lună (INS, ${WAGE_SOURCE.month.ro}), peste media națională; folosim totuși media națională de ${national.ro} lei, pentru că se automatizează muncă administrativă de rutină`,
-        ),
-        hourly,
-      ),
-    };
-  }
-  const hourly = loaded(gross);
   return {
-    hourlyCostRon: hourly,
-    division,
-    grossRon: gross,
-    sector: label,
-    basis: sentence(
-      bi(
-        `INS average gross monthly earnings in ${label.en} (CAEN Rev.3 division ${division}), ${WAGE_SOURCE.month.en}: ${g.en} RON`,
-        `Câștigul salarial mediu brut INS în ${label.ro} (diviziunea CAEN Rev.3 ${division}), ${WAGE_SOURCE.month.ro}: ${g.ro} lei`,
-      ),
-      hourly,
-    ),
+    hourlyCostRon: hour.value,
+    grossRon: hour.grossRon,
+    division: capped,
+    sector: capped ? DIVISION_GROSS_RON[capped]?.label : undefined,
+    basis: capped
+      ? bi(`${hour.basis.en} ${source.en}`, `${hour.basis.ro} ${source.ro}`)
+      : hour.basis,
   };
 }
 
@@ -337,8 +286,9 @@ function costLine(ctx: EconomicsContext): Bilingual {
   const h = ctx.inputs.hourlyCostRon;
   return ctx.hourlyIsIns
     ? bi(
-        `Loaded staff cost ${h} RON/hour (INS average earnings, ${WAGE_SOURCE.month.en})`,
-        `Cost total angajator: ${h} lei pe oră (câștigul salarial mediu INS, ${WAGE_SOURCE.month.ro})`,
+        // The same hour value as deep research (src/lib/deep/report/hourly.ts).
+        `Loaded staff cost ${h} RON/hour for office and reception work (1.2 × the minimum wage, or the sector's average pay when lower, plus CAM)`,
+        `Cost total angajator: ${h} lei pe oră pentru munca de birou și recepție (1,2 × salariul minim sau salariul mediu din domeniu, dacă e mai mic, plus CAM)`,
       )
     : bi(
         `Staff cost ${h} RON/hour (your figure)`,

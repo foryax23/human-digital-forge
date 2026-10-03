@@ -98,10 +98,41 @@ export function containsPersonalName(text: string): boolean {
   return false;
 }
 
+/** E-mail addresses anywhere in a text ("ana.popescu@firma.ro"). */
+export const EMAIL_IN_TEXT = /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g;
+/** Romanian phone numbers anywhere in a text ("0722 123 456", "+40 256 123 456"). */
+export const PHONE_IN_TEXT = /(?:\+?40|\b0)[\d\s.-]{8,}\d/g;
+
+/** E-mail addresses in a text that are a person's (not office@, contact@, …). */
+export function personalEmailsIn(text: string): string[] {
+  return (text.match(EMAIL_IN_TEXT) ?? []).filter((e) => !isGenericEmail(e));
+}
+
+/**
+ * A quote or label with personal contact details removed: personal e-mail
+ * addresses and phone numbers become "…" (generic ones such as office@ stay).
+ */
+export function scrubPersonalContacts(text: string): string {
+  return collapse(
+    text.replace(EMAIL_IN_TEXT, (e) => (isGenericEmail(e) ? e : "…")).replace(PHONE_IN_TEXT, "…"),
+  );
+}
+
+/** "tel.", "mobil:", "e-mail" left behind once the number or the address is gone. */
+const CONTACT_WORDS = /(^|\s)(tel|telefon|mobil|mob|fax|phone|e-?mail|mail)\.?:?(?=\s|$)/gi;
+
 /** A role title as published, with any personal name stripped; null when nothing role-like is left. */
 export function cleanRoleTitle(value: string): string | null {
-  const text = collapse(value).replace(/\s*[,|–—-]\s*/g, " · ");
-  const parts = text.split(" · ").filter((part) => !looksLikePersonalName(part));
+  // E-mails and phone numbers never belong in a title (a personal one carries the name).
+  const text = collapse(value.replace(EMAIL_IN_TEXT, " ").replace(PHONE_IN_TEXT, " ")).replace(
+    /\s*[,|–—:-]\s*/g,
+    " · ",
+  );
+  const parts = text
+    .split(" · ")
+    .map((part) => part.trim())
+    .map((part) => part.replace(CONTACT_WORDS, "").trim())
+    .filter((part) => part && !looksLikePersonalName(part) && !containsPersonalName(part));
   const kept = collapse(parts.join(" · "));
   // A title, not a sentence: short, no closing period, no question.
   if (!kept || kept.length > 80 || /[.?!]$/.test(kept) || kept.split(" ").length > 8) return null;

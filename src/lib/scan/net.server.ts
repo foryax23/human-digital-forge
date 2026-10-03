@@ -258,7 +258,8 @@ async function queryDoh(name: string, type: "A" | "AAAA", signal?: AbortSignal) 
 
 /**
  * Resolves a host through DNS-over-HTTPS (Cloudflare). Null when the resolver
- * itself fails, so callers can fall back to the lexical checks.
+ * itself fails: safeFetch then refuses the request (fail closed); discovery
+ * treats the guess as unknown.
  */
 export function resolveHost(hostname: string): Promise<DnsAnswer | null> {
   const host = hostname.toLowerCase().replace(/\.+$/, "");
@@ -285,13 +286,27 @@ export function resolveHost(hostname: string): Promise<DnsAnswer | null> {
   })();
   dnsCache.set(host, { at: Date.now(), value });
   if (dnsCache.size > 500) dnsCache.delete(dnsCache.keys().next().value as string);
+  // A resolver failure is not remembered: the next request asks again.
+  void value.then((answer) => {
+    if (!answer && dnsCache.get(host)?.value === value) dnsCache.delete(host);
+  });
   return value;
 }
 
+/**
+ * Fails closed (plan B3): when the resolver itself fails we cannot tell whether
+ * the host points at a private address, so the request is refused instead of
+ * being sent unchecked.
+ */
 async function assertResolvesPublic(url: URL) {
   if (isIpLiteral(url.hostname)) return;
   const answer = await resolveHost(url.hostname);
-  if (!answer) return;
+  if (!answer) {
+    throw new SafeFetchError(
+      "dns",
+      `${url.hostname} could not be checked: the DNS resolver did not answer`,
+    );
+  }
   if (answer.nxdomain) throw new SafeFetchError("dns", `${url.hostname} does not resolve`);
   if (answer.addresses.some(isPrivateAddress)) {
     throw new SafeFetchError("blocked", `${url.hostname} resolves to a private address`);

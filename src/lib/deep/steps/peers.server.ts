@@ -16,6 +16,15 @@ import { caenRev3ToRev2, cleanCui, isValidCui, parseAnafV9 } from "../parse/regi
 import { fact, gap, isoDay, type StepDraft } from "./common.server";
 import { prettyName } from "./start.server";
 
+/** How a rank reads per metric (size is not "better"). */
+const RANK_WORD: Record<string, { en: string; ro: string }> = {
+  turnover: { en: "higher than", ro: "mai mare decât" },
+  employees: { en: "more than", ro: "mai mulți decât" },
+  revPerEmp: { en: "higher than", ro: "mai mare decât" },
+  marginPretax: { en: "better than", ro: "mai bine decât" },
+  growth3y: { en: "faster than", ro: "mai repede decât" },
+  daysToCollect: { en: "faster than", ro: "mai repede decât" },
+};
 /*
  * Step 4, "peers" (plan A3, D5, D8): same activity, similar size, near you,
  * only from the Ministry of Finance shard (official annual accounts). The
@@ -97,8 +106,8 @@ export async function runPeers(
   if (!shard) {
     return noPeers(
       bi(
-        "The comparison appears once we load the Ministry of Finance annual accounts",
-        "Comparația apare după ce încărcăm bilanțurile Ministerului Finanțelor",
+        "The comparison with similar firms is not ready yet: it needs the Ministry of Finance annual accounts of similar firms",
+        "Comparația cu firme similare nu e încă gata: are nevoie de bilanțurile firmelor similare, de la Ministerul Finanțelor",
       ),
     );
   }
@@ -202,8 +211,9 @@ export async function runPeers(
                 `locul ${band.rank.position} din ${band.rank.of}`,
               )
             : bi(
-                `better than ${band.betterThanOf100} of 100`,
-                `mai bine decât ${band.betterThanOf100} din 100`,
+                // Size is not "better": turnover and staff rank as higher / more than.
+                `${RANK_WORD[metric]?.en ?? "better than"} ${band.betterThanOf100} of 100`,
+                `${RANK_WORD[metric]?.ro ?? "mai bine decât"} ${band.betterThanOf100} din 100`,
               ),
           confidence: estimate ? "estimare" : "calculat",
         }),

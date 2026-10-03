@@ -9,6 +9,7 @@ import type {
   WebsiteStatus,
 } from "../contracts";
 import { bi, count } from "../parse/format";
+import { personalEmailsIn } from "../parse/people";
 
 import { fact } from "./common.server";
 
@@ -47,6 +48,17 @@ export function uniqueResults(results: StepResult[]): StepResult[] {
   });
 }
 
+/** A personal e-mail address in a people fact's value, display or quote. */
+function personalInPeopleFact(f: Fact): boolean {
+  const text = [
+    JSON.stringify(f.value ?? ""),
+    f.display?.ro,
+    f.display?.en,
+    f.evidence?.quote,
+  ].join(" ");
+  return personalEmailsIn(text).length > 0;
+}
+
 export function mergeFacts(input: StepResult[]): Fact[] {
   const results = uniqueResults(input);
   const merged = new Map<string, Fact>();
@@ -56,6 +68,8 @@ export function mergeFacts(input: StepResult[]): Fact[] {
   let pagesAsOf = "";
   for (const result of results) {
     for (const f of result.facts) {
+      // Last guard (A9): a people fact that carries a person's e-mail address is never kept.
+      if (f.section === "people" && personalInPeopleFact(f)) continue;
       if (f.predicate === "site.pages_read") {
         pagesRead.set(f.id, typeof f.value === "number" ? f.value : 0);
         pagesAsOf = f.asOf;

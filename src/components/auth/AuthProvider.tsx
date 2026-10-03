@@ -51,6 +51,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      // Signing out anywhere clears the deep research journal kept in this browser (the
+      // privacy page promises it); a dynamic import keeps journal.ts out of the auth bundle.
+      if (_event === "SIGNED_OUT")
+        void import("@/components/deep/journal")
+          .then((j) => j.clearJournal(j.browserStorage()))
+          .catch(() => undefined);
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       if (nextSession?.user) {

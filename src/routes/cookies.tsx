@@ -85,6 +85,51 @@ function CookiesPage() {
             </p>
           </Section>
 
+          <Section heading={t("Storage in your browser", "Ce păstrăm în browserul tău")}>
+            <p>
+              {t(
+                "Besides cookies, the site keeps a few entries in your browser's local storage. They are strictly necessary for what you ask for, stay on your device and are never sent to advertisers:",
+                "Pe lângă cookie-uri, site-ul păstrează câteva intrări în spațiul local al browserului. Sunt strict necesare pentru ce ceri, rămân pe dispozitivul tău și nu ajung la firme de publicitate:",
+              )}
+            </p>
+            <ul className="list-disc space-y-1.5 pl-5 marker:text-fg-3">
+              <li>
+                {t(
+                  "your language and your cookie choices;",
+                  "limba aleasă și opțiunile tale privind cookie-urile;",
+                )}
+              </li>
+              <li>
+                {t(
+                  "for deep research (Cercetare aprofundată): a journal of the research in progress and the finished report, per account, so a closed tab can continue; deleted when you sign out or press “Șterge din acest browser”;",
+                  "pentru cercetarea aprofundată: un jurnal al cercetării în curs și raportul terminat, pe cont, ca o filă închisă să poată continua; se șterg când te deconectezi sau apeși „Șterge din acest browser”;",
+                )}
+              </li>
+              <li>
+                {t(
+                  "the company you were about to research before signing in (kept for at most one hour), so you return to it after login.",
+                  "firma pe care urma să o cercetezi înainte de autentificare (păstrată cel mult o oră), ca să revii la ea după login.",
+                )}
+              </li>
+            </ul>
+          </Section>
+
+          {/* OWNER DECISION PENDING (plan D22): Lovable's built-in visitor statistics. Remove this
+              section if the owner turns them off in Lovable; keep it while they run. */}
+          <Section
+            heading={t(
+              "Visitor statistics from our hosting platform",
+              "Statistici de la platforma de găzduire",
+            )}
+          >
+            <p>
+              {t(
+                "Our hosting platform, Lovable, may add its own visitor statistics to our pages: a script served from our domain as /~flock.js that reports page visits to /~api/analytics, for us. It is added by the platform, not by our cookie banner. We are reviewing whether to keep it; while it runs, it is listed here and in the privacy policy (section 7).",
+                "Platforma noastră de găzduire, Lovable, poate adăuga propriile statistici despre vizitatori pe paginile noastre: un script servit de pe domeniul nostru ca /~flock.js, care raportează vizitele la /~api/analytics, pentru noi. Îl adaugă platforma, nu bannerul nostru de cookie-uri. Analizăm dacă îl păstrăm; cât timp funcționează, îl menționăm aici și în politica de confidențialitate (secțiunea 7).",
+              )}
+            </p>
+          </Section>
+
           <Section heading={t("Managing your preferences", "Gestionarea preferințelor")}>
             <p>
               {t(

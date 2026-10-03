@@ -1,14 +1,18 @@
 import process from "node:process";
 
+import { textProvesCompany } from "@/lib/deep/parse/registry";
+import { detectParked, domainGuesses as orderedGuesses, looksLikeHtml } from "@/lib/deep/parse/web";
 import { extractPage, foldText } from "@/lib/scan/audit/extract";
 import { findCuiInText } from "@/lib/scan/audit/signals";
 import {
   createRobotsCache,
   normalizeInputUrl,
   resolveHost,
+  SafeFetchError,
   safeFetch,
   urlBlockReason,
   type RobotsCache,
+  type SafeFetchResult,
 } from "@/lib/scan/net.server";
 import type { WebsiteDiscovery } from "@/lib/scan/types";
 
@@ -16,14 +20,28 @@ import type { WebsiteDiscovery } from "@/lib/scan/types";
  * Finds the company's website when the visitor didn't give one: verify the
  * registry/visitor URL first, then guess domains from the name (DNS first, so
  * non-existent guesses cost nothing), then Brave Search when keyed. A site
- * counts only when the page itself backs it up — the CUI printed on it
- * (strong) or the company name, plus the city (weaker). Only homepages are
- * opened, and never on a site whose robots.txt tells VortexScan to stay away.
+ * counts only when the page itself backs it up — the CUI or the Trade Register
+ * number (either format) printed on it (strong) or the company name, plus the
+ * city (weaker). Only homepages are opened, and never on a site whose
+ * robots.txt tells VortexScan to stay away.
+ *
+ * Hygiene from the deep-research trial (plan B4): pages without a content type
+ * are sniffed (libris.ro), "<domain> este de vânzare" pages count as parked
+ * (esthetique.ro), every live guess is checked, .ro and .dev first
+ * (vortexhub.dev sat behind a 4-guess cap), and a broken HTTPS certificate is
+ * retried over http and reported, instead of losing the site.
  */
 
 export { foldText };
 
-export type DiscoverInput = { cui?: string; name: string; city?: string; knownWebsite?: string };
+export type DiscoverInput = {
+  cui?: string;
+  name: string;
+  city?: string;
+  knownWebsite?: string;
+  /** Trade Register number (J…), accepted as proof in either format. */
+  regNo?: string;
+};
 
 const LEGAL_TOKENS = new Set([
   "srl",
@@ -121,6 +139,15 @@ function domainGuesses(name: string): string[] {
   return guesses.slice(0, 12);
 }
 
+/**
+ * The guesses to try, at most 12: the ordered list shared with deep research
+ * (.ro and .dev first, then .com, .eu, .net), then this module's own variants
+ * when there is room.
+ */
+export function allGuesses(name: string): string[] {
+  return [...new Set([...orderedGuesses(name), ...domainGuesses(name)])].slice(0, 12);
+}
+
 const PARKED =
   /domain (is )?for sale|domeniul? (este )?de v[aâ]nzare|buy this domain|this domain (may be|is) for sale|parked (free|domain)|sedoparking|afternic|dan\.com|domain has been registered|default web ?site page|site (în|in) construc[țt]ie|under construction|coming soon|account suspended|cont suspendat/i;
 
@@ -142,20 +169,38 @@ async function verifyCandidate(
   /** The URL came from the registry or the visitor, so a namesake is unlikely. */
   trusted = false,
 ): Promise<Verification | null> {
-  let result;
+  let result: SafeFetchResult;
+  let brokenCertificate = false;
   try {
     if ((await robots.get(new URL(url).origin)).optsOut) return null;
     result = await safeFetch(url, { timeoutMs, maxBytes: 1024 * 1024 });
-  } catch {
-    return null;
+  } catch (error) {
+    // A broken certificate is a finding, not a missing site: retry over http once.
+    if (!(error instanceof SafeFetchError && error.code === "tls") || !url.startsWith("https:"))
+      return null;
+    try {
+      result = await safeFetch(url.replace(/^https:/, "http:"), {
+        timeoutMs,
+        maxBytes: 1024 * 1024,
+      });
+      brokenCertificate = true;
+    } catch {
+      return null;
+    }
   }
-  if (result.status >= 400 || !/html/i.test(result.contentType)) return null;
+  if (result.status >= 400 || !looksLikeHtml(result.contentType, result.body.slice(0, 600)))
+    return null;
   const finalUrl = new URL(result.finalUrl);
   const page = extractPage(result.body, finalUrl.href, result.status);
   const host = finalUrl.hostname;
   const evidence = [origin];
+  if (brokenCertificate)
+    evidence.push("The HTTPS certificate is invalid; the site answers over http");
 
-  if (PARKED.test(`${page.title ?? ""} ${page.text.slice(0, 3000)}`) && page.wordCount < 400) {
+  if (
+    detectParked(result.body, host).parked ||
+    (PARKED.test(`${page.title ?? ""} ${page.text.slice(0, 3000)}`) && page.wordCount < 400)
+  ) {
     return {
       url: finalUrl.href,
       host,
@@ -171,11 +216,19 @@ async function verifyCandidate(
       .join(" "),
   );
   const cuiOnPage = findCuiInText(`${page.footerText} ${page.text}`, input.cui);
+  const regNoOnPage =
+    input.cui && input.regNo
+      ? textProvesCompany(`${page.footerText} ${page.text}`, { cui: input.cui, regNo: input.regNo })
+          .regNo
+      : false;
   let confidence = 0;
 
   if (input.cui && cuiOnPage === input.cui) {
     confidence = 0.97;
     evidence.push(`CUI ${input.cui} found on the page`);
+  } else if (regNoOnPage) {
+    confidence = 0.95;
+    evidence.push(`Trade Register number ${input.regNo} found on the page`);
   } else {
     const { core } = companyNameTokens(input.name);
     const distinctive = core.filter((token) => token.length >= 3);
@@ -281,7 +334,7 @@ export async function discoverWebsite(input: DiscoverInput): Promise<WebsiteDisc
   const robots = createRobotsCache();
   // DNS for the name guesses runs while the listed site is checked; it never touches the sites.
   const resolving = Promise.all(
-    domainGuesses(input.name).map(async (domain) => {
+    allGuesses(input.name).map(async (domain) => {
       const answer = await resolveHost(domain);
       return answer && !answer.nxdomain ? domain : null;
     }),
@@ -319,11 +372,11 @@ export async function discoverWebsite(input: DiscoverInput): Promise<WebsiteDisc
     }
   }
 
-  // 2. Domains guessed from the name; DNS weeded out the ones that don't exist.
+  // 2. Domains guessed from the name; DNS weeded out the ones that don't exist. Every live
+  // guess is checked (at most 12, .ro and .dev first).
   const live = (await resolving)
     .filter((domain): domain is string => Boolean(domain))
-    .filter((domain) => !fallback || fallback.host.replace(/^www\./, "") !== domain)
-    .slice(0, 4);
+    .filter((domain) => !fallback || fallback.host.replace(/^www\./, "") !== domain);
   const guessed = await Promise.all(
     live.map((domain) =>
       verifyCandidate(

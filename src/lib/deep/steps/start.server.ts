@@ -25,7 +25,12 @@ const SMALL = new Set(["si", "și", "de", "din", "la", "pe", "cu", "in", "în"])
 
 /** "PRODUCTIE PRESTARI SI COMERT \"VANCSA-MULTIPAST\" SRL" → "Productie Prestari si Comert \"Vancsa-Multipast\" SRL". */
 export function prettyName(name: string): string {
-  const words = titleCase(name.replace(/\s+/g, " ").trim()).split(" ");
+  // Registry quirks: quotes, doubled commas and "srl" glued to the name ("…Fiscal,,Confiscalsrl").
+  const cleaned = name
+    .replace(/[„“”"«»]/g, "")
+    .replace(/\s*,{2,}\s*/g, ", ")
+    .replace(/(\p{L})srl\b/giu, "$1 srl");
+  const words = titleCase(cleaned.replace(/\s+/g, " ").trim()).split(" ");
   return words
     .map((word, i) => {
       const bare = word.toLocaleLowerCase("ro").replace(/[^\p{L}.-]/gu, "");
@@ -37,8 +42,7 @@ export function prettyName(name: string): string {
         (_, before: string, ch: string) => before + ch.toLocaleUpperCase("ro"),
       );
     })
-    .join(" ")
-    .replace(/,,(\p{Ll})/gu, (_, ch: string) => `,,${ch.toLocaleUpperCase("ro")}`);
+    .join(" ");
 }
 
 export function caenLabelFor(

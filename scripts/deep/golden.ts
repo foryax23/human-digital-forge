@@ -41,7 +41,7 @@ import type { LlmClient } from "../../src/lib/deep/llm/types";
 import { engineStep, type EngineDeps } from "../../src/lib/deep/steps/dispatch.server";
 import { latestFiledYear } from "../../src/lib/deep/steps/money.server";
 import { runPipeline, type StepTiming } from "../../src/lib/deep/steps/pipeline.server";
-import { provisionalReportParts } from "../../src/lib/deep/steps/report-fallback.server";
+import { buildReportParts } from "../../src/lib/deep/report/index";
 import { issueTicket, type TicketIdentity } from "../../src/lib/deep/ticket.server";
 import { SCAN_USER_AGENT } from "../../src/lib/scan/legal/bot";
 import { isPrivateAddress } from "../../src/lib/scan/net.server";
@@ -244,7 +244,7 @@ function engineDeps(
     },
     storeFor: () => store,
     llmFor: () => llm,
-    reportBuilder: provisionalReportParts,
+    reportBuilder: buildReportParts,
   };
 }
 

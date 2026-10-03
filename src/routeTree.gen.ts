@@ -28,6 +28,7 @@ import { Route as BillingSuccessRouteImport } from './routes/billing-success'
 import { Route as AiAutomationRouteImport } from './routes/ai-automation'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as ScanDeepRouteImport } from './routes/scan_.deep'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardProjectsRouteImport } from './routes/dashboard.projects'
 import { Route as DashboardNewRequestRouteImport } from './routes/dashboard.new-request'
@@ -136,6 +137,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const ScanDeepRoute = ScanDeepRouteImport.update({
+  id: '/scan_/deep',
+  path: '/scan/deep',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -228,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/new-request': typeof DashboardNewRequestRoute
   '/dashboard/projects': typeof DashboardProjectsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/scan/deep': typeof ScanDeepRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/dashboard/new-request': typeof DashboardNewRequestRoute
   '/dashboard/projects': typeof DashboardProjectsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/scan/deep': typeof ScanDeepRoute
   '/dashboard': typeof DashboardIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -294,6 +302,7 @@ export interface FileRoutesById {
   '/dashboard/new-request': typeof DashboardNewRequestRoute
   '/dashboard/projects': typeof DashboardProjectsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
+  '/scan_/deep': typeof ScanDeepRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -329,6 +338,7 @@ export interface FileRouteTypes {
     | '/dashboard/new-request'
     | '/dashboard/projects'
     | '/dashboard/settings'
+    | '/scan/deep'
     | '/dashboard/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -361,6 +371,7 @@ export interface FileRouteTypes {
     | '/dashboard/new-request'
     | '/dashboard/projects'
     | '/dashboard/settings'
+    | '/scan/deep'
     | '/dashboard'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -394,6 +405,7 @@ export interface FileRouteTypes {
     | '/dashboard/new-request'
     | '/dashboard/projects'
     | '/dashboard/settings'
+    | '/scan_/deep'
     | '/dashboard/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -421,6 +433,7 @@ export interface RootRouteChildren {
   WebsitesRoute: typeof WebsitesRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  ScanDeepRoute: typeof ScanDeepRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
@@ -561,6 +574,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/scan_/deep': {
+      id: '/scan_/deep'
+      path: '/scan/deep'
+      fullPath: '/scan/deep'
+      preLoaderRoute: typeof ScanDeepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/settings': {
       id: '/dashboard/settings'
       path: '/settings'
@@ -696,6 +716,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  ScanDeepRoute: ScanDeepRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,

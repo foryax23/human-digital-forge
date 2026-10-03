@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { GoogleButton, AuthDivider } from "@/components/auth/GoogleButton";
+import { browserStorage, readPending } from "@/components/deep/journal";
+import { DEEP_PATH, safeNext } from "@/components/deep/safe-next";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 
@@ -22,9 +24,11 @@ const title = "Create account | Vortex Hub";
 const description = "Create a Vortex Hub client account to submit projects and track progress.";
 
 export const Route = createFileRoute("/register")({
+  // `next` names a path on this site only ("/…", never "//", "@" or "\\").
   validateSearch: (search: Record<string, unknown>) => {
     const result: { next?: string } = {};
-    if (typeof search.next === "string") result.next = search.next;
+    const next = safeNext(search.next);
+    if (next) result.next = next;
     return result;
   },
   head: () => ({
@@ -50,7 +54,7 @@ function RegisterPage() {
   const [company, setCompany] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const returnTo = next ?? "/dashboard";
+  const returnTo = safeNext(next) ?? "/dashboard";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -59,7 +63,9 @@ function RegisterPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}${returnTo}`,
+        // A pending deep research target (kept 1 hour in this browser) brings the confirmation
+        // link back to /scan/deep, where the target is restored.
+        emailRedirectTo: `${window.location.origin}${readPending(browserStorage(), Date.now()) ? DEEP_PATH : returnTo}`,
         data: {
           full_name: fullName,
           client_type: clientType,

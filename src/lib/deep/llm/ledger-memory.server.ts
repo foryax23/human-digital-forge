@@ -1,5 +1,6 @@
 import type {
   AccessReason,
+  AccessVia,
   DeepReport,
   DeepStore,
   FeedbackKind,
@@ -31,7 +32,7 @@ type Run = {
   id: string;
   userId: string;
   cui: string;
-  via: string;
+  via: AccessVia;
   status: RunStatus;
   budgetUsd: number;
   reservedUsd: number;
@@ -156,6 +157,7 @@ export function createMemoryStore(
         status: r.status,
         createdAt: new Date(r.createdAt).toISOString(),
         lastActivityAt: new Date(r.lastActivityAt).toISOString(),
+        via: r.via,
       };
     },
     async dayStats(userId) {
@@ -256,6 +258,22 @@ export function createMemoryStore(
       const units = Math.max(1, Math.floor(input.units ?? 1));
       const slotKey = `${input.runId}|${input.key}`;
       const slot = slots.get(slotKey) ?? { used: 0 };
+      // A stale exclusive claim (its step died before settling) gives its units back after 2 min.
+      if (
+        exclusive &&
+        slot.inFlightAt !== undefined &&
+        slot.inFlightAt <= now() - 2 * 60_000 &&
+        slot.result === undefined
+      ) {
+        let back = 0;
+        for (const [id, c] of claims) {
+          if (c.runId !== input.runId || c.key !== input.key || !c.exclusive) continue;
+          back += c.units;
+          claims.delete(id);
+        }
+        slot.used = Math.max(0, slot.used - (back || 1));
+        delete slot.inFlightAt;
+      }
       const left = input.max - slot.used;
       let granted: number;
       if (exclusive) {

@@ -165,3 +165,33 @@ test("people: names dropped, roles kept, e-mails counted", () => {
   assert.equal(peopleGates("9412").countsOnly, true);
   assert.equal(peopleGates("8891").skipPupils, true);
 });
+
+test("role titles lose personal e-mails, phones and names after a colon (A9)", () => {
+  assert.equal(cleanRoleTitle("Manager General ana.popescu@firma.ro"), "Manager General");
+  assert.equal(cleanRoleTitle("Director: Ion Popescu"), "Director");
+  assert.equal(cleanRoleTitle("Contabil șef, tel. 0722 123 456"), "Contabil șef");
+  assert.equal(cleanRoleTitle("Recepție office@clinica.ro"), null);
+  assert.equal(cleanRoleTitle("Medic stomatolog Dr. Ana Ionescu"), null);
+  for (const raw of [
+    "Manager General ana.popescu@firma.ro",
+    "Director: Ion Popescu",
+    "Asistentă medicală – maria.ionescu@clinica.ro – 0256 123 456",
+  ]) {
+    const out = cleanRoleTitle(raw) ?? "";
+    assert.doesNotMatch(out, /@/, raw);
+    assert.equal(containsPersonalName(out), false, raw);
+  }
+});
+
+test("personal contacts are scrubbed from quotes, generic ones stay", async () => {
+  const { scrubPersonalContacts, personalEmailsIn } =
+    await import("../../../src/lib/deep/parse/people");
+  assert.equal(
+    scrubPersonalContacts("Manager General ana.popescu@firma.ro, 0722 123 456"),
+    "Manager General …, …",
+  );
+  assert.equal(scrubPersonalContacts("Scrie-ne la office@firma.ro"), "Scrie-ne la office@firma.ro");
+  assert.deepEqual(personalEmailsIn("office@firma.ro și ana.popescu@firma.ro"), [
+    "ana.popescu@firma.ro",
+  ]);
+});

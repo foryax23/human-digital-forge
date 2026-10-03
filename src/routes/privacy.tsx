@@ -4,7 +4,12 @@ import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { CompanyDetails } from "@/components/shared/CompanyDetails";
 import { useI18n } from "@/i18n";
-import { LEAD_RETENTION_MONTHS, PRIVACY_EMAIL } from "@/lib/scan/legal/lead-notice";
+import {
+  DEEP_FEEDBACK_RETENTION_MONTHS,
+  DEEP_RETENTION_DAYS,
+  LEAD_RETENTION_MONTHS,
+  PRIVACY_EMAIL,
+} from "@/lib/scan/legal/lead-notice";
 import { SCAN_USER_AGENT } from "@/lib/scan/legal/bot";
 
 const title = "Privacy Policy | Vortex Hub";
@@ -97,8 +102,8 @@ function PrivacyPage() {
         kicker={t("Legal", "Legal")}
         title={t("Privacy Policy", "Politica de confidențialitate")}
         description={t(
-          "How we process personal data on vortexhub.dev, including in Vortex Scan, under the EU General Data Protection Regulation (GDPR) and Romanian law, and what rights you have. Last updated: 3 October 2026.",
-          "Cum prelucrăm datele cu caracter personal pe vortexhub.dev, inclusiv în Vortex Scan, conform Regulamentului general privind protecția datelor (GDPR) și legislației române, și ce drepturi ai. Ultima actualizare: 3 octombrie 2026.",
+          "How we process personal data on vortexhub.dev, including in Vortex Scan and its deep research, under the EU General Data Protection Regulation (GDPR) and Romanian law, and what rights you have. Last updated: 3 October 2026 (deep research added).",
+          "Cum prelucrăm datele cu caracter personal pe vortexhub.dev, inclusiv în Vortex Scan și în cercetarea aprofundată, conform Regulamentului general privind protecția datelor (GDPR) și legislației române, și ce drepturi ai. Ultima actualizare: 3 octombrie 2026 (am adăugat cercetarea aprofundată).",
         )}
       />
       <section className="container-vx section-y">
@@ -117,6 +122,13 @@ function PrivacyPage() {
                 "Vortex Hub S.R.L. este reprezentată de Mihai Dandea, Director.",
               )}
             </p>
+            <p>
+              {t(
+                "Contact person for data protection: Mihai Dandea, Director, at ",
+                "Persoana de contact pentru protecția datelor: Mihai Dandea, Director, la ",
+              )}
+              <Mail />.
+            </p>
           </Section>
 
           <Section heading={t("2. Data we collect", "2. Datele pe care le colectăm")}>
@@ -128,8 +140,8 @@ function PrivacyPage() {
             </p>
             <p>
               {t(
-                "What Vortex Scan reads about a company, and what we keep when you download a report, is explained in section 4.",
-                "Ce citește Vortex Scan despre o firmă și ce păstrăm când descarci un raport explicăm în secțiunea 4.",
+                "What Vortex Scan reads about a company, what we keep when you download a report and what deep research records are explained in section 4.",
+                "Ce citește Vortex Scan despre o firmă, ce păstrăm când descarci un raport și ce înregistrează cercetarea aprofundată explicăm în secțiunea 4.",
               )}
             </p>
           </Section>
@@ -139,6 +151,12 @@ function PrivacyPage() {
               {t(
                 "We process your data to: respond to enquiries and provide our services (performance of a contract); manage accounts and deliver projects (contract); send service communications and, where permitted, marketing (consent or legitimate interest); comply with legal and accounting obligations (legal obligation); and secure and improve the platform (legitimate interest).",
                 "Prelucrăm datele tale pentru a: răspunde solicitărilor și a furniza serviciile noastre (executarea unui contract); gestiona conturile și livra proiecte (contract); trimite comunicări de serviciu și, unde este permis, marketing (consimțământ sau interes legitim); respecta obligațiile legale și contabile (obligație legală); și securiza și îmbunătăți platforma (interes legitim).",
+              )}
+            </p>
+            <p>
+              {t(
+                "For deep research (section 4): the report is made at your request, under the report terms you accept (article 6(1)(b) GDPR); marketing messages only if you tick the optional box (consent, article 6(1)(a) GDPR and article 12 of Law 506/2004); spend limits, abuse prevention and security (legitimate interest, article 6(1)(f)); a call you ask for with “Sună-mă” (article 6(1)(b)).",
+                "Pentru cercetarea aprofundată (secțiunea 4): raportul îl facem la cererea ta, după termenii raportului pe care îi accepți (art. 6 alin. (1) lit. b GDPR); mesaje de marketing doar dacă bifezi căsuța opțională (consimțământ, art. 6 alin. (1) lit. a GDPR și art. 12 din Legea 506/2004); limitele de cost, prevenirea abuzurilor și securitatea (interes legitim, lit. f); o discuție pe care o ceri cu „Sună-mă” (lit. b).",
               )}
             </p>
           </Section>
@@ -209,8 +227,8 @@ function PrivacyPage() {
                     "Nu colectăm nume de angajați, e-mailuri personale sau date despre persoane din alte surse, nu căutăm după persoane și nu facem profiluri.",
                   ),
                   t(
-                    "The scan doesn't use artificial intelligence and makes no automated decisions about people.",
-                    "Scanarea nu folosește inteligență artificială și nu ia decizii automate despre persoane.",
+                    "The quick scan doesn't use artificial intelligence. Deep research may use it to draft text (section 5). Neither makes automated decisions about people.",
+                    "Scanarea rapidă nu folosește inteligență artificială. Cercetarea aprofundată o poate folosi ca să redacteze textul (secțiunea 5). Niciuna nu ia decizii automate despre persoane.",
                   ),
                   t(
                     "We don't contact a company because someone else scanned it, and we don't tell it who asked for the report.",
@@ -289,6 +307,69 @@ function PrivacyPage() {
               />
             </Subsection>
 
+            <Subsection
+              id="vortex-scan-deep"
+              heading={t("Deep research (Cercetare aprofundată)", "Cercetare aprofundată")}
+            >
+              <p>
+                {t(
+                  "Deep research is a longer report about one company that a signed-in account asks for at /scan/deep. It is also the article 14 GDPR notice for the data we read about the researched company.",
+                  "Cercetarea aprofundată este un raport mai lung despre o firmă, cerut de un cont autentificat pe /scan/deep. Ține loc și de informarea cerută de articolul 14 din GDPR pentru datele pe care le citim despre firma cercetată.",
+                )}
+              </p>
+              <p>{t("What we record about you:", "Ce înregistrăm despre tine:")}</p>
+              <List
+                items={[
+                  t(
+                    "Your account ID and e-mail (from the sign-in), your relationship to the company (owner, employee, client or supplier, competitor, other), the company's CUI, the report language and your answers to the optional questions (estimated turnover, clients a month, average ticket, hour value).",
+                    "ID-ul contului și e-mailul tău (de la autentificare), relația ta cu firma (proprietar, angajat, client sau furnizor, concurent, altceva), CUI-ul firmei, limba raportului și răspunsurile tale la întrebările opționale (cifra de afaceri estimată, clienți pe lună, valoarea medie a unei vânzări, valoarea unei ore).",
+                  ),
+                  t(
+                    "The run record: the report, when it was made, its status, its verification code, the cost of the AI calls and the step timings; the record of the notice and report terms you accepted (version, text, time) and of your marketing choice. We store no IP address.",
+                    "Evidența cercetării: raportul, când a fost făcut, starea, codul de verificare, costul apelurilor AI și duratele pașilor; evidența notei de informare și a termenilor raportului pe care i-ai acceptat (versiunea, textul, ora) și a alegerii tale privind marketingul. Nu păstrăm adresa IP.",
+                  ),
+                  t(
+                    "Feedback you send (useful or not, a reported error, a correction, a rival removed or added, the price question) and, if you ask for a call with “Sună-mă”, your phone number and the time of day you prefer.",
+                    "Părerile pe care ni le trimiți (util sau nu, o eroare raportată, o corectare, un concurent scos sau adăugat, întrebarea despre preț) și, dacă ceri o discuție cu „Sună-mă”, numărul tău de telefon și momentul zilei pe care îl preferi.",
+                  ),
+                  t(
+                    "In your browser only: a journal of the research in progress and the finished report (so a closed tab can continue), until you delete it with “Șterge din acest browser” or sign out.",
+                    "Doar în browserul tău: un jurnal al cercetării în curs și raportul terminat (ca o filă închisă să poată continua), până îl ștergi cu „Șterge din acest browser” sau te deconectezi.",
+                  ),
+                ]}
+              />
+              <p>{t("What we read about the company:", "Ce citim despre firmă:")}</p>
+              <List
+                items={[
+                  t(
+                    "ANAF (company record and the annual accounts filed for 2019 to 2025), the Trade Register open data (ONRC), the Ministry of Finance annual accounts of similar companies (data.gov.ro, CC BY 4.0), the court portal (portal.just.ro: case counts by role and category only), EU tenders (TED), and Google PageSpeed for the website's speed.",
+                    "ANAF (datele firmei și bilanțurile depuse pentru 2019–2025), datele deschise ale Registrului Comerțului (ONRC), bilanțurile firmelor similare de la Ministerul Finanțelor (data.gov.ro, CC BY 4.0), portalul instanțelor (portal.just.ro: doar numărul de dosare pe rol și categorie), licitațiile europene (TED) și Google PageSpeed pentru viteza site-ului.",
+                  ),
+                  t(
+                    "At most 30 public pages of the company's own website, and only the homepage of the similar companies named in the report (see the robot below). A Google rating, when shown, is displayed only during your session and never stored, sent to the AI or printed.",
+                    "Cel mult 30 de pagini publice ale site-ului firmei și doar pagina principală a firmelor similare numite în raport (vezi robotul de mai jos). O notă Google, când apare, e afișată doar în sesiunea ta și nu e păstrată, trimisă la AI sau tipărită.",
+                  ),
+                ]}
+              />
+              <p>
+                {t(
+                  "Personal data we may meet by accident, and what we do with it: we refuse sole traders, individual and family businesses (PFA, II, IF) entirely; for a registered office in a flat we show only the locality and county; names found on websites are not kept: we keep counts and job titles only (for example “3 medici”), never names; nothing from court files is stored, only counts by role and category; personal e-mail addresses are counted, never shown. We don't build profiles of people and we don't contact a company because someone researched it.",
+                  "Date personale pe care le putem întâlni întâmplător și ce facem cu ele: refuzăm complet PFA-urile, întreprinderile individuale și familiale (PFA, II, IF); pentru un sediu într-un apartament arătăm doar localitatea și județul; numele găsite pe site-uri nu le păstrăm: păstrăm doar numere și titluri de posturi (de exemplu „3 medici”), niciodată nume; din dosarele de instanță nu păstrăm nimic, doar numărul lor pe rol și categorie; adresele de e-mail personale le numărăm, nu le arătăm. Nu facem profiluri despre persoane și nu contactăm o firmă pentru că a cercetat-o cineva.",
+                )}
+              </p>
+              <p>
+                {t(
+                  "Who sees a report: only the account that made it and, while reports are kept on our servers, Vortex Hub's administrators for support and abuse handling. We don't tell the company who researched it. To object to the research of your company or to ask for a correction or deletion, write to ",
+                  "Cine vede un raport: doar contul care l-a făcut și, cât timp rapoartele sunt păstrate pe serverele noastre, administratorii Vortex Hub, pentru asistență și prevenirea abuzurilor. Nu spunem firmei cine a cercetat-o. Ca să te opui cercetării firmei tale sau să ceri o corectare sau o ștergere, scrie-ne la ",
+                )}
+                <Mail />
+                {t(
+                  " (subject “Cercetare aprofundată”); we answer within one month.",
+                  " (subiect „Cercetare aprofundată”); răspundem în cel mult o lună.",
+                )}
+              </p>
+            </Subsection>
+
             <Subsection heading={t("How long we keep it", "Cât păstrăm")}>
               <List
                 items={[
@@ -307,6 +388,18 @@ function PrivacyPage() {
                   t(
                     "Marketing consent: until you withdraw it. The record of the consent is kept as long as the request.",
                     "Acordul de marketing: până îl retragi. Evidența acordului o păstrăm cât păstrăm cererea.",
+                  ),
+                  t(
+                    `Deep research runs (the report, the notice and terms record) and the records of paid AI calls: ${DEEP_RETENTION_DAYS} days, then we delete them automatically.`,
+                    `Cercetările aprofundate (raportul, evidența notei și a termenilor) și evidența apelurilor AI plătite: ${DEEP_RETENTION_DAYS} de zile, apoi le ștergem automat.`,
+                  ),
+                  t(
+                    `Feedback on a deep research: ${DEEP_FEEDBACK_RETENTION_MONTHS} months. Call requests (“Sună-mă”): ${LEAD_RETENTION_MONTHS} months, like other requests.`,
+                    `Părerile despre o cercetare aprofundată: ${DEEP_FEEDBACK_RETENTION_MONTHS} luni. Cererile de discuție („Sună-mă”): ${LEAD_RETENTION_MONTHS} de luni, ca celelalte cereri.`,
+                  ),
+                  t(
+                    "We keep no raw web pages: the text of the pages read is used during the research and then dropped; the report keeps short quotes of at most 200 characters (120 on sites that reserve text and data mining).",
+                    "Nu păstrăm pagini web întregi: textul paginilor citite e folosit în timpul cercetării și apoi aruncat; raportul păstrează citate scurte de cel mult 200 de caractere (120 pe site-urile care își rezervă extragerea de text și date).",
                   ),
                 ]}
               />
@@ -357,6 +450,7 @@ function PrivacyPage() {
                 )}
               </p>
               <Code>{SCAN_USER_AGENT}</Code>
+              <p>{t("The quick scan:", "Scanarea rapidă:")}</p>
               <List
                 items={[
                   t(
@@ -385,6 +479,31 @@ function PrivacyPage() {
                   ),
                 ]}
               />
+              <p>{t("Deep research:", "Cercetarea aprofundată:")}</p>
+              <List
+                items={[
+                  t(
+                    "It reads robots.txt before the first page on every host (the VortexScan rules or, without them, the rules for all robots) and honours Crawl-delay.",
+                    "Citește robots.txt înaintea primei pagini pe fiecare site (regulile pentru VortexScan sau, în lipsa lor, cele pentru toți roboții) și respectă Crawl-delay.",
+                  ),
+                  t(
+                    "It reads at most 30 public pages of the company's site per research, one request at a time, at least 1 second apart, and the homepage only once. For the similar companies named in the report (at most 6 in one research) it reads only the homepage, the same way.",
+                    "Citește cel mult 30 de pagini publice ale site-ului firmei la o cercetare, câte o cerere pe rând, la cel puțin o secundă distanță, iar pagina principală o singură dată. Pentru firmele similare numite în raport (cel mult 6 la o cercetare) citește doar pagina principală, la fel.",
+                  ),
+                  t(
+                    "It never goes around logins, CAPTCHAs or bot checks: at a refusal (401, 403, repeated 429) it stops and notes “site-ul blochează accesul automat”.",
+                    "Nu ocolește niciodată autentificări, CAPTCHA sau verificări anti-bot: la un refuz (401, 403, 429 repetat) se oprește și notează „site-ul blochează accesul automat”.",
+                  ),
+                  t(
+                    "On sites that reserve text and data mining it keeps only short facts and quotes of at most 120 characters, and no page text is sent to the AI.",
+                    "Pe site-urile care își rezervă extragerea de text și date păstrează doar fapte și citate scurte, de cel mult 120 de caractere, și nu trimite text din pagini la AI.",
+                  ),
+                  t(
+                    "It never opens pages on social networks or company directories.",
+                    "Nu deschide niciodată pagini de pe rețele sociale sau din cataloage de firme.",
+                  ),
+                ]}
+              />
               <p>
                 {t(
                   "To block the robot completely, add this to robots.txt:",
@@ -392,10 +511,38 @@ function PrivacyPage() {
                 )}
               </p>
               <Code>{"User-agent: VortexScan\nDisallow: /"}</Code>
+              <p>
+                {t(
+                  "To ask for removal or correction of data, write to Mihai Dandea, Director, at ",
+                  "Ca să ceri eliminarea sau corectarea datelor, scrie-i lui Mihai Dandea, Director, la ",
+                )}
+                <Mail />.
+              </p>
             </Subsection>
           </Section>
 
-          <Section heading={t("5. Uploaded files", "5. Fișiere încărcate")}>
+          <Section
+            id="ai"
+            heading={t(
+              "5. Artificial intelligence (deep research)",
+              "5. Inteligența artificială (cercetarea aprofundată)",
+            )}
+          >
+            <p>
+              {t(
+                "Deep research may draft the text of the report with Claude, made by Anthropic, which works for us as a processor. Anthropic receives only facts about the researched company (from registers and its filed accounts) and public text from its website. Your e-mail, name and phone, and the data of the people who download reports, are never sent to it.",
+                "Cercetarea aprofundată poate redacta textul raportului cu Claude, de la Anthropic, care lucrează pentru noi ca persoană împuternicită. Anthropic primește doar fapte despre firma cercetată (din registre și din bilanțurile depuse) și text public de pe site-ul ei. E-mailul, numele și telefonul tău și datele celor care descarcă rapoarte nu îi sunt trimise niciodată.",
+              )}
+            </p>
+            <p>
+              {t(
+                "Every AI sentence must cite a fact and is checked by code before it is shown; numbers are calculated by code, not by the AI. AI text is labelled on the screen and in the PDF. Without AI the report is built by rules and labelled “Analiză pe reguli, fără AI”. No automated decision is taken about you or about people.",
+                "Fiecare propoziție scrisă de AI trebuie să citeze un fapt și e verificată de cod înainte să fie afișată; cifrele le calculează codul, nu AI-ul. Textul redactat cu AI e marcat pe ecran și în PDF. Fără AI, raportul e construit pe reguli și marcat „Analiză pe reguli, fără AI”. Nu se ia nicio decizie automată despre tine sau despre persoane.",
+              )}
+            </p>
+          </Section>
+
+          <Section heading={t("6. Uploaded files", "6. Fișiere încărcate")}>
             <p>
               {t(
                 "Files you upload are treated as confidential. They are stored securely and are never sent to third-party AI tools or other external services without a clear, separate consent process.",
@@ -405,7 +552,7 @@ function PrivacyPage() {
           </Section>
 
           <Section
-            heading={t("6. Sharing and processors", "6. Partajare și persoane împuternicite")}
+            heading={t("7. Sharing and processors", "7. Partajare și persoane împuternicite")}
           >
             <p>
               {t(
@@ -419,9 +566,23 @@ function PrivacyPage() {
                 "Pentru Vortex Scan: Lovable și Cloudflare găzduiesc site-ul și răspund la interogările DNS; Supabase stochează cererile de raport; Google PageSpeed Insights primește adresa site-ului analizat; Brave Search primește numele firmei și localitatea când căutăm un site. ANAF și ONRC sunt surse publice, nu persoane împuternicite.",
               )}
             </p>
+            <p>
+              {t(
+                "For deep research, also: Supabase stores the run records, feedback and call requests; Anthropic (United States) drafts the report text from company facts and public website text, under the EU-US Data Privacy Framework or standard contractual clauses; Google Places, only when we turn on the display of a Google rating, receives the company name and town.",
+                "Pentru cercetarea aprofundată, în plus: Supabase stochează evidența cercetărilor, părerile și cererile de discuție; Anthropic (Statele Unite) redactează textul raportului din fapte despre firmă și text public de pe site, în baza Cadrului UE-SUA privind protecția datelor sau a clauzelor contractuale standard; Google Places, doar când activăm afișarea notei Google, primește numele firmei și localitatea.",
+              )}
+            </p>
+            {/* OWNER DECISION PENDING (plan D22): Lovable's built-in visitor statistics. Remove this
+                paragraph if the owner turns them off in Lovable; keep it while they run. */}
+            <p>
+              {t(
+                "Our hosting platform, Lovable, may add its own visitor statistics to our pages (a script served from our domain as /~flock.js, reporting to /~api/analytics), which count page visits for us. We are reviewing whether to keep them; while they run they are listed here and in the Cookie Policy.",
+                "Platforma noastră de găzduire, Lovable, poate adăuga propriile statistici despre vizitatori pe paginile noastre (un script servit de pe domeniul nostru ca /~flock.js, care raportează la /~api/analytics), care numără vizitele pentru noi. Analizăm dacă le păstrăm; cât timp funcționează, le menționăm aici și în Politica de cookie-uri.",
+              )}
+            </p>
           </Section>
 
-          <Section heading={t("7. International transfers", "7. Transferuri internaționale")}>
+          <Section heading={t("8. International transfers", "8. Transferuri internaționale")}>
             <p>
               {t(
                 "Where data is transferred outside the European Economic Area, we ensure appropriate safeguards are in place, such as adequacy decisions or Standard Contractual Clauses.",
@@ -430,16 +591,16 @@ function PrivacyPage() {
             </p>
           </Section>
 
-          <Section heading={t("8. Retention", "8. Păstrarea datelor")}>
+          <Section heading={t("9. Retention", "9. Păstrarea datelor")}>
             <p>
               {t(
-                "We keep personal data only as long as necessary for the purposes above or as required by law (for example, accounting records). When no longer needed, data is securely deleted or anonymised. The Vortex Scan periods are listed in section 4.",
-                "Păstrăm datele cu caracter personal doar atât timp cât este necesar pentru scopurile de mai sus sau conform cerințelor legale (de exemplu, evidențele contabile). Când nu mai sunt necesare, datele sunt șterse în siguranță sau anonimizate. Termenele pentru Vortex Scan sunt în secțiunea 4.",
+                `We keep personal data only as long as necessary for the purposes above or as required by law (for example, accounting records). When no longer needed, data is securely deleted or anonymised. The Vortex Scan periods are listed in section 4: deep research runs and paid AI call records ${DEEP_RETENTION_DAYS} days, feedback ${DEEP_FEEDBACK_RETENTION_MONTHS} months, report and call requests ${LEAD_RETENTION_MONTHS} months, the browser journal until you delete it or sign out.`,
+                `Păstrăm datele cu caracter personal doar atât timp cât este necesar pentru scopurile de mai sus sau conform cerințelor legale (de exemplu, evidențele contabile). Când nu mai sunt necesare, datele sunt șterse în siguranță sau anonimizate. Termenele pentru Vortex Scan sunt în secțiunea 4: cercetările aprofundate și evidența apelurilor AI plătite ${DEEP_RETENTION_DAYS} de zile, părerile ${DEEP_FEEDBACK_RETENTION_MONTHS} luni, cererile de raport și de discuție ${LEAD_RETENTION_MONTHS} de luni, jurnalul din browser până îl ștergi sau te deconectezi.`,
               )}
             </p>
           </Section>
 
-          <Section heading={t("9. Your rights", "9. Drepturile tale")}>
+          <Section heading={t("10. Your rights", "10. Drepturile tale")}>
             <p>
               {t(
                 "Under GDPR you have the right to access, rectify, erase and restrict processing of your data, the right to data portability, the right to object, and the right to withdraw consent at any time. To exercise any of these rights, contact us using the details below.",
@@ -454,7 +615,7 @@ function PrivacyPage() {
             </p>
           </Section>
 
-          <Section heading={t("10. Security", "10. Securitate")}>
+          <Section heading={t("11. Security", "11. Securitate")}>
             <p>
               {t(
                 "We apply appropriate technical and organisational measures to protect your data against unauthorised access, loss or alteration.",
@@ -463,16 +624,22 @@ function PrivacyPage() {
             </p>
           </Section>
 
-          <Section heading={t("11. Cookies", "11. Cookie-uri")}>
+          <Section heading={t("12. Cookies", "12. Cookie-uri")}>
             <p>
               {t(
                 "We use cookies as described in our Cookie Policy, where you can also manage your preferences.",
                 "Folosim cookie-uri conform Politicii noastre de cookie-uri, unde îți poți gestiona și preferințele.",
               )}
             </p>
+            <p>
+              {t(
+                "Deep research keeps a journal of your research and the company you were about to research in your browser's local storage. Both are strictly necessary for the service you asked for, stay on your device and are deleted when you sign out or press “Șterge din acest browser”. Lovable's visitor statistics, while they run, are described in section 7 and in the Cookie Policy.",
+                "Cercetarea aprofundată păstrează în spațiul local al browserului un jurnal al cercetării tale și firma pe care urma să o cercetezi. Ambele sunt strict necesare pentru serviciul cerut, rămân pe dispozitivul tău și se șterg când te deconectezi sau apeși „Șterge din acest browser”. Statisticile Lovable despre vizitatori, cât timp funcționează, sunt descrise în secțiunea 7 și în Politica de cookie-uri.",
+              )}
+            </p>
           </Section>
 
-          <Section heading={t("12. Contact", "12. Contact")}>
+          <Section heading={t("13. Contact", "13. Contact")}>
             <p>
               {t(
                 "For any privacy question or request, write to",

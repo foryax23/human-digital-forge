@@ -37,6 +37,8 @@ export const findCompanyWebsite = createServerFn({ method: "POST" })
         name: z.string().min(2).max(200),
         city: z.string().max(120).optional(),
         knownWebsite: z.string().max(2048).optional(),
+        /** The Trade Register number from the company profile: accepted as proof in either format. */
+        regNo: z.string().max(40).optional(),
       })
       .parse(input),
   )

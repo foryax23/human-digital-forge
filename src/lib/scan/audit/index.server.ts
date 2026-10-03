@@ -34,15 +34,36 @@ import { detectTechnologies, toDetectedTechnologies } from "./technologies";
  * Everything after the homepage is optional: whatever finishes in time is
  * used, the rest is skipped. The homepage the visitor asked for skips
  * robots.txt, unless robots.txt names VortexScan and disallows "/".
+ *
+ * Polite mode (`politeness: "deep"`, plan B4, for deep research): one request
+ * in flight, at least 1 s between requests (robots.txt included), at most 3
+ * asset HEAD checks (no favicon or app-bundle probe), a 22 s budget inside the
+ * step's 25 s, and the page texts handed back in-process
+ * (auditWebsitePolite), so the caller never fetches the homepage again. The
+ * quick scan keeps today's behaviour.
  */
 
 const TOTAL_BUDGET_MS = 15_000;
+const DEEP_BUDGET_MS = 22_000;
+// 1 s plus a margin: the slot is booked before DNS and the connection, so two requests can
+// reach the host a few ms closer than the booked gap.
+const DEEP_GAP_MS = 1050;
+const DEEP_ASSET_HEADS = 3;
 const MAX_EXTRA_PAGES = 5;
 const MAX_IN_FLIGHT = 2;
 const HTML_FOR_FINGERPRINTS = 1_500_000;
 const EXTRA_HTML_FOR_FINGERPRINTS = 300_000;
 
-export type AuditInput = { url: string; cui?: string; name?: string };
+export type AuditPoliteness = "quick" | "deep";
+export type AuditInput = {
+  url: string;
+  cui?: string;
+  name?: string;
+  /** "deep": one request at a time, ≥ 1 s apart, ≤ 3 asset HEAD checks (default "quick"). */
+  politeness?: AuditPoliteness;
+};
+/** A page the polite audit read, as text, for the caller (deep research extraction). */
+export type AuditedPage = { url: string; status: number; html: string };
 
 const EMPTY_SIGNALS: SiteSignals = {
   hasContactForm: false,
@@ -116,9 +137,22 @@ type Run = {
   started: number;
   signal: AbortSignal;
   limit: ReturnType<typeof createLimiter>;
+  budgetMs: number;
+  /** Polite mode: the minimum time between two requests, and when the next may start. */
+  gapMs: number;
+  nextAt: number;
+  deep: boolean;
 };
 
-const left = (run: Run) => TOTAL_BUDGET_MS - (Date.now() - run.started);
+const left = (run: Run) => run.budgetMs - (Date.now() - run.started);
+
+/** Polite mode: waits until the next request may start, then books the slot after it. */
+async function spaced(run: Run) {
+  if (!run.gapMs) return;
+  const wait = run.nextAt - Date.now();
+  if (wait > 0) await new Promise<void>((resolve) => setTimeout(resolve, wait));
+  run.nextAt = Date.now() + run.gapMs;
+}
 
 /** safeFetch inside the budget and the in-flight limit; null when skipped or failed. */
 async function budgetFetch(
@@ -127,6 +161,7 @@ async function budgetFetch(
   options: SafeFetchOptions = {},
 ): Promise<SafeFetchResult | null> {
   return run.limit(async () => {
+    await spaced(run);
     const remaining = left(run) - 300;
     if (remaining < 800) return null;
     try {
@@ -166,6 +201,7 @@ async function fetchHomepage(rawInput: string, start: URL, run: Run) {
     const url = queue.shift()!;
     if (tried.has(url.href)) continue;
     tried.add(url.href);
+    await spaced(run);
     const remaining = left(run) - 1000;
     if (remaining < 1500) break;
     try {
@@ -359,14 +395,14 @@ async function checkHttpRedirect(run: Run, finalUrl: URL): Promise<boolean | und
   return result.status < 400 ? false : undefined;
 }
 
-async function probeImages(run: Run, home: PageFacts): Promise<ImageProbe[]> {
+async function probeImages(run: Run, home: PageFacts, limit = 4): Promise<ImageProbe[]> {
   const sources = [
     ...new Set(
       home.images
         .map((image) => image.src)
         .filter((src) => /^https?:\/\//.test(src) && !/\.svg(\?|$)/i.test(src)),
     ),
-  ].slice(0, 4);
+  ].slice(0, limit);
   const probes = await Promise.all(
     sources.map(async (url): Promise<ImageProbe | null> => {
       const result = await budgetFetch(run, url, {
@@ -470,6 +506,27 @@ function unreachableAudit(
 }
 
 export async function auditWebsite(input: AuditInput): Promise<WebsiteAudit> {
+  return (await runAudit(input)).audit;
+}
+
+/**
+ * The polite audit for deep research (B4): the audit plus the pages it read,
+ * returned in-process. Always runs in "deep" politeness.
+ */
+export async function auditWebsitePolite(
+  input: Omit<AuditInput, "politeness">,
+): Promise<{ audit: WebsiteAudit; pages: AuditedPage[] }> {
+  const { audit, pages } = await runAudit({ ...input, politeness: "deep" });
+  return { audit, pages: pages.map((p) => ({ url: p.url, status: p.status, html: p.html })) };
+}
+
+async function runAudit(input: AuditInput): Promise<{ audit: WebsiteAudit; pages: PageFacts[] }> {
+  const read: PageFacts[] = [];
+  const audit = await auditOnce(input, read);
+  return { audit, pages: read };
+}
+
+async function auditOnce(input: AuditInput, read: PageFacts[]): Promise<WebsiteAudit> {
   const fetchedAt = new Date().toISOString();
   const start = normalizeInputUrl(input.url);
   if (!start) {
@@ -482,18 +539,27 @@ export async function auditWebsite(input: AuditInput): Promise<WebsiteAudit> {
     ]);
   }
 
+  const deep = input.politeness === "deep";
+  const budgetMs = deep ? DEEP_BUDGET_MS : TOTAL_BUDGET_MS;
   const controller = new AbortController();
-  const budget = setTimeout(() => controller.abort(), TOTAL_BUDGET_MS);
+  const budget = setTimeout(() => controller.abort(), budgetMs);
   const run: Run = {
     started: Date.now(),
     signal: controller.signal,
-    limit: createLimiter(MAX_IN_FLIGHT),
+    limit: createLimiter(deep ? 1 : MAX_IN_FLIGHT),
+    budgetMs,
+    gapMs: deep ? DEEP_GAP_MS : 0,
+    nextAt: 0,
+    deep,
   };
   const robotsCache = createRobotsCache(run.signal);
 
   try {
     // The owner's explicit no comes before the visitor's request.
-    if ((await robotsCache.get(start.origin)).optsOut) {
+    const optOut = (await robotsCache.get(start.origin)).optsOut;
+    // Polite mode: robots.txt counts as a request, so the homepage waits its turn.
+    if (deep) run.nextAt = Date.now() + run.gapMs;
+    if (optOut) {
       return unreachableAudit(start.href, start.hostname, fetchedAt, [
         scanOptOutFinding(start.hostname),
       ]);
@@ -537,7 +603,11 @@ export async function auditWebsite(input: AuditInput): Promise<WebsiteAudit> {
         scanOptOutFinding(finalUrl.hostname),
       ]);
     }
-    const robotsPromise = run.limit(() => robotsCache.get(origin));
+    const robotsPromise = run.limit(async () => {
+      // Another origin's robots.txt is a request to that host: spaced like the rest.
+      if (origin !== start.origin) await spaced(run);
+      return robotsCache.get(origin);
+    });
     const [robots, sitemap, httpRedirectsToHttps, crawl, images, assets, faviconFound, appBundle] =
       await Promise.all([
         robotsPromise,
@@ -548,15 +618,21 @@ export async function auditWebsite(input: AuditInput): Promise<WebsiteAudit> {
         contentAvailable
           ? robotsPromise.then((policy) => crawlPages(run, home, finalUrl, policy))
           : Promise.resolve({ pages: [], broken: [] }),
-        contentAvailable ? probeImages(run, home) : Promise.resolve([]),
+        // Polite mode: at most 3 asset HEAD checks in all (one image, the stylesheet, the script).
+        contentAvailable
+          ? probeImages(run, home, deep ? DEEP_ASSET_HEADS - 2 : 4)
+          : Promise.resolve([]),
         contentAvailable ? probeAssets(run, home, finalUrl) : Promise.resolve([]),
-        contentAvailable && !home.favicon ? probeFavicon(run, origin) : Promise.resolve(false),
-        contentAvailable && home.clientRendered
+        contentAvailable && !home.favicon && !deep
+          ? probeFavicon(run, origin)
+          : Promise.resolve(false),
+        contentAvailable && home.clientRendered && !deep
           ? probeAppBundle(run, home, finalUrl)
           : Promise.resolve(undefined),
       ]);
 
     const pages = [home, ...crawl.pages];
+    read.push(...pages);
     const technologies = detectTechnologies({
       html: [
         home.html.slice(0, HTML_FOR_FINGERPRINTS),

@@ -29,6 +29,7 @@ import {
   Tag,
 } from "@/components/system";
 import { cn } from "@/lib/utils";
+import { DeepEntry } from "@/components/deep/DeepEntry";
 import { LeadGateDialog } from "../LeadGateDialog";
 import { StepBarActions } from "../ScanShell";
 import { formatNumber, NBSP, pick } from "../report/format";
@@ -111,6 +112,7 @@ export function ResultsStep({ blueprint, onBack }: { blueprint: Blueprint; onBac
           />
         </div>
 
+        <DeepEntry variant="full" blueprint={blueprint} className="mt-8" />
         <div className="mt-8 border-t border-line-1 pt-4">
           <Button
             variant="ghost"

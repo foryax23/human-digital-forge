@@ -1,0 +1,125 @@
+/*
+ * The deep report's light theme (plan A10, D10). The page sits inside .cinematic (night
+ * tokens); the light report re-declares the :root light values of src/styles.css in this
+ * scope. "system" follows prefers-color-scheme, "light" always applies. A test compares
+ * these values with :root in src/styles.css (tests/deep/ui/theme.test.ts).
+ */
+
+.scope {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.light {
+  --vx-s1: #fdfdfa;
+  --vx-s2: #ffffff;
+  --vx-s3: #efede6;
+  --vx-fill-1: rgb(20 22 40 / 0.025);
+  --vx-fill-2: rgb(20 22 40 / 0.05);
+  --vx-fill-3: rgb(20 22 40 / 0.085);
+  --vx-line-1: rgb(20 22 40 / 0.08);
+  --vx-line-2: rgb(20 22 40 / 0.12);
+  --vx-line-3: rgb(20 22 40 / 0.2);
+  --vx-rule: rgb(20 22 40 / 0.4);
+  --vx-fg: #1f2128;
+  --vx-fg-2: #474a58;
+  --vx-fg-3: #646777;
+  --vx-fg-4: #a4a6b2;
+  --vx-brand: #5b52f0;
+  --vx-brand-hover: #4f46e5;
+  --vx-brand-line: #5b52f0;
+  --vx-brand-fg: #463dd6;
+  --vx-brand-tint: rgb(91 82 240 / 0.1);
+  --vx-ok: #1e8a5a;
+  --vx-warn: #b07a12;
+  --vx-bad: #c03a32;
+  --vx-echo: #1f9bb0;
+  --background: oklch(0.97 0.007 88.6);
+  --foreground: oklch(0.208 0.011 260.7);
+  --card: oklch(0.995 0.003 106.5);
+  --card-foreground: oklch(0.208 0.011 260.7);
+  --popover: oklch(0.995 0.003 106.5);
+  --popover-foreground: oklch(0.208 0.011 260.7);
+  --primary: oklch(0.513 0.229 277.5);
+  --primary-foreground: oklch(0.969 0.004 106.5);
+  --secondary: oklch(0.94 0.008 88.6);
+  --secondary-foreground: oklch(0.208 0.011 260.7);
+  --muted: oklch(0.94 0.008 88.6);
+  --muted-foreground: oklch(0.45 0.012 260.7);
+  --accent: oklch(0.92 0.01 88.6);
+  --accent-foreground: oklch(0.208 0.011 260.7);
+  --border: oklch(0.884 0.012 79.8);
+  --input: oklch(0.884 0.012 79.8);
+  --ring: oklch(0.513 0.229 277.5);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  .system {
+    --vx-s1: #fdfdfa;
+    --vx-s2: #ffffff;
+    --vx-s3: #efede6;
+    --vx-fill-1: rgb(20 22 40 / 0.025);
+    --vx-fill-2: rgb(20 22 40 / 0.05);
+    --vx-fill-3: rgb(20 22 40 / 0.085);
+    --vx-line-1: rgb(20 22 40 / 0.08);
+    --vx-line-2: rgb(20 22 40 / 0.12);
+    --vx-line-3: rgb(20 22 40 / 0.2);
+    --vx-rule: rgb(20 22 40 / 0.4);
+    --vx-fg: #1f2128;
+    --vx-fg-2: #474a58;
+    --vx-fg-3: #646777;
+    --vx-fg-4: #a4a6b2;
+    --vx-brand: #5b52f0;
+    --vx-brand-hover: #4f46e5;
+    --vx-brand-line: #5b52f0;
+    --vx-brand-fg: #463dd6;
+    --vx-brand-tint: rgb(91 82 240 / 0.1);
+    --vx-ok: #1e8a5a;
+    --vx-warn: #b07a12;
+    --vx-bad: #c03a32;
+    --vx-echo: #1f9bb0;
+    --background: oklch(0.97 0.007 88.6);
+    --foreground: oklch(0.208 0.011 260.7);
+    --card: oklch(0.995 0.003 106.5);
+    --card-foreground: oklch(0.208 0.011 260.7);
+    --popover: oklch(0.995 0.003 106.5);
+    --popover-foreground: oklch(0.208 0.011 260.7);
+    --primary: oklch(0.513 0.229 277.5);
+    --primary-foreground: oklch(0.969 0.004 106.5);
+    --secondary: oklch(0.94 0.008 88.6);
+    --secondary-foreground: oklch(0.208 0.011 260.7);
+    --muted: oklch(0.94 0.008 88.6);
+    --muted-foreground: oklch(0.45 0.012 260.7);
+    --accent: oklch(0.92 0.01 88.6);
+    --accent-foreground: oklch(0.208 0.011 260.7);
+    --border: oklch(0.884 0.012 79.8);
+    --input: oklch(0.884 0.012 79.8);
+    --ring: oklch(0.513 0.229 277.5);
+    color-scheme: light;
+  }
+}
+
+/* Older readers (plan A10): body text 16 px on phones inside the report. */
+.report {
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+/* Reduced motion removes every transition in the deep page (the global rule shortens them;
+   here they go entirely). */
+@media (prefers-reduced-motion: reduce) {
+  .scope *,
+  .scope *::before,
+  .scope *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Print: light pages, no sticky bar, no controls. */
+@media print {
+  .noPrint {
+    display: none !important;
+  }
+}

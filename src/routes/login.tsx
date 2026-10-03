@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GoogleButton, AuthDivider } from "@/components/auth/GoogleButton";
+import { safeNext } from "@/components/deep/safe-next";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 
@@ -15,10 +16,13 @@ const title = "Login | Vortex Hub";
 const description = "Access your Vortex Hub projects, messages and completed deliveries.";
 
 export const Route = createFileRoute("/login")({
+  // `next` and `redirect` name a path on this site only ("/…", never "//", "@" or "\\").
   validateSearch: (search: Record<string, unknown>) => {
     const result: { redirect?: string; next?: string } = {};
-    if (typeof search.redirect === "string") result.redirect = search.redirect;
-    if (typeof search.next === "string") result.next = search.next;
+    const redirect = safeNext(search.redirect);
+    const next = safeNext(search.next);
+    if (redirect) result.redirect = redirect;
+    if (next) result.next = next;
     return result;
   },
   head: () => ({
@@ -42,7 +46,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"login" | "forgot">("login");
 
-  const returnTo = next ?? redirect ?? "/dashboard";
+  const returnTo = safeNext(next) ?? safeNext(redirect) ?? "/dashboard";
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();

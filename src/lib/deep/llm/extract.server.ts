@@ -3,7 +3,12 @@ import * as z from "zod/v4";
 import { sha256Hex } from "../attest.server";
 import type { Fact, StepName } from "../contracts";
 import { bi, lei } from "../parse/format";
-import { cleanRoleTitle, containsPersonalName, looksLikePersonalName } from "../parse/people";
+import {
+  cleanRoleTitle,
+  containsPersonalName,
+  looksLikePersonalName,
+  scrubPersonalContacts,
+} from "../parse/people";
 import { amountInQuote, verifyQuote } from "../parse/quotes";
 import { clip, fold, normalizeForQuote } from "../parse/text";
 
@@ -217,9 +222,17 @@ export function extractionToFacts(
         : null,
     );
   });
+  // People facts: a title with a name in it is dropped, and the quote keeps no personal
+  // e-mail or phone (the rules path applies the same checks, rules-extract.ts).
+  const personQuote = (found: { quote: string; url: string } | null) =>
+    found ? { ...found, quote: scrubPersonalContacts(found.quote) } : null;
+  const roleTitle = (raw: string) => {
+    const title = cleanRoleTitle(raw);
+    return title && !containsPersonalName(title) ? title : null;
+  };
   data.jobs.slice(0, 8).forEach((j, i) => {
-    const ok = check(j);
-    const title = cleanRoleTitle(j.title);
+    const ok = personQuote(check(j));
+    const title = roleTitle(j.title);
     push(
       ok && title
         ? ({
@@ -232,8 +245,8 @@ export function extractionToFacts(
     );
   });
   data.roles.slice(0, 10).forEach((r, i) => {
-    const ok = check(r);
-    const title = cleanRoleTitle(r.title);
+    const ok = personQuote(check(r));
+    const title = roleTitle(r.title);
     const shown = r.count && r.count > 1 ? `${title} (${r.count})` : title;
     push(
       ok && title
@@ -247,9 +260,13 @@ export function extractionToFacts(
     );
   });
   data.departments.slice(0, 8).forEach((d, i) => {
-    const ok = check(d);
+    const ok = personQuote(check(d));
+    const plain = scrubPersonalContacts(d.name);
     const name =
-      cleanRoleTitle(d.name) ?? (looksLikePersonalName(d.name) ? null : clip(d.name, 60));
+      roleTitle(d.name) ??
+      (looksLikePersonalName(plain) || containsPersonalName(plain) || plain.includes("…")
+        ? null
+        : clip(plain, 60));
     push(
       ok && name
         ? ({

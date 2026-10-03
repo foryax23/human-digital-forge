@@ -7,5 +7,6 @@ Disallow: /reset-password
 Disallow: /billing-success
 Disallow: /api/
 Disallow: /mcp
+Disallow: /scan/deep
 
 Sitemap: https://vortexhub.dev/sitemap.xml

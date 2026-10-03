@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 
 import type { ScanState } from "@/components/scan/scan-state";
+import { DeepEntry } from "@/components/deep/DeepEntry";
 import { Button, Panel } from "@/components/system";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useI18n } from "@/i18n";
@@ -100,6 +101,7 @@ export function OverviewStep({
           presence={presence}
           onEdit={onEdit}
         />
+        <DeepEntry variant="compact" blueprint={blueprint} />
 
         <Panel as="section" aria-label={t("Findings", "Rezultatele analizei")}>
           <Tabs value={tab} onValueChange={(value) => setTab(value as TabId)}>

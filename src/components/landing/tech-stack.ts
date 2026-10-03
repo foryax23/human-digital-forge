@@ -56,7 +56,25 @@ export type Tech = {
   display?: "logo" | "name";
   /** Its sentence of the footer attribution, English, word for word (logos plan §3). */
   attribution: string;
+  /** Where the logo file came from, so it can be traced and replaced (deep plan C3.3). */
+  provenance: TechProvenance;
 };
+
+export type TechProvenance = {
+  /** The file the owner sent. */
+  file: string;
+  /** The day the owner sent it. */
+  received: string;
+  /** What we did to it for the white band. */
+  transform: string;
+  /** Where the official file comes from (or the permission page), once approved. */
+  official: string;
+};
+
+const RECEIVED = "2026-10-03";
+const RASTER =
+  "trimmed, recoloured to a white alpha silhouette, lossless WebP at 2x the desktop height";
+const VECTOR = "source vector, filled white";
 
 /** Global switch: false shows every mark as its name, with no logo files loaded. */
 export const TECH_LOGOS_ENABLED = true;
@@ -87,6 +105,12 @@ export const TECH_STACK: readonly Tech[] = [
     logo: logo("claude", "webp", 20, 20, "symbol"),
     // Anthropic is folded into Claude: its sentence travels with this mark.
     attribution: "Anthropic and Claude are trademarks of Anthropic, PBC.",
+    provenance: {
+      file: "anthropic.webp",
+      received: RECEIVED,
+      transform: RASTER,
+      official: "https://www.anthropic.com/press-kit",
+    },
   },
   {
     id: "openai",
@@ -94,6 +118,12 @@ export const TECH_STACK: readonly Tech[] = [
     group: "ai",
     logo: logo("openai", "webp", 20, 20, "symbol"),
     attribution: "OpenAI is a trademark of OpenAI.",
+    provenance: {
+      file: "ChatGPT-Logo.svg.webp",
+      received: RECEIVED,
+      transform: RASTER,
+      official: "https://openai.com/brand/",
+    },
   },
   {
     id: "gemini",
@@ -101,6 +131,13 @@ export const TECH_STACK: readonly Tech[] = [
     group: "ai",
     logo: logo("gemini", "svg", 18, 18, "symbol"),
     attribution: "Google and Gemini are trademarks of Google LLC.",
+    provenance: {
+      file: "google-gemini-app-icon-on-a-transparent-background-free-png.webp",
+      received: RECEIVED,
+      transform:
+        "front face of the 3D tile render (a stock file, replace first), fitted as a four-point star, filled white",
+      official: "https://support.google.com/contact/brand_request_form",
+    },
   },
   {
     id: "n8n",
@@ -108,6 +145,12 @@ export const TECH_STACK: readonly Tech[] = [
     group: "automation",
     logo: logo("n8n", "svg", 89, 24, "wordmark"),
     attribution: "n8n is a trademark of n8n GmbH.",
+    provenance: {
+      file: "N8n-logo-new.svg",
+      received: RECEIVED,
+      transform: VECTOR,
+      official: "https://n8n.io/brandguidelines/n8n_logos.zip",
+    },
   },
   {
     id: "supabase",
@@ -115,6 +158,12 @@ export const TECH_STACK: readonly Tech[] = [
     group: "data",
     logo: logo("supabase", "webp", 19, 20, "symbol"),
     attribution: "Supabase is a trademark of Supabase, Inc.",
+    provenance: {
+      file: "supabase.webp",
+      received: RECEIVED,
+      transform: RASTER,
+      official: "https://supabase.com/brand-assets.zip",
+    },
   },
   {
     id: "stripe",
@@ -122,6 +171,12 @@ export const TECH_STACK: readonly Tech[] = [
     group: "data",
     logo: logo("stripe", "webp", 48, 20, "wordmark"),
     attribution: "Stripe is a trademark of Stripe, Inc.",
+    provenance: {
+      file: "Stripe-Logo.png",
+      received: RECEIVED,
+      transform: RASTER,
+      official: "https://stripe.com/newsroom/brand-assets",
+    },
   },
   {
     id: "cloudflare",
@@ -130,6 +185,12 @@ export const TECH_STACK: readonly Tech[] = [
     logo: logo("cloudflare", "webp", 90, 30, "wordmark"),
     attribution:
       "Cloudflare is a trademark and/or registered trademark of Cloudflare, Inc. in the United States and other jurisdictions.",
+    provenance: {
+      file: "Cloudflare-logo.png",
+      received: RECEIVED,
+      transform: RASTER,
+      official: "https://www.cloudflare.com/press/press-kit/",
+    },
   },
   {
     id: "vercel",
@@ -138,6 +199,13 @@ export const TECH_STACK: readonly Tech[] = [
     logo: logo("vercel", "svg", 80, 16, "wordmark"),
     attribution:
       "Vercel, the Vercel design, Next.js and related marks, designs and logos are trademarks or registered trademarks of Vercel, Inc. or its affiliates in the US and other countries.",
+    provenance: {
+      file: "Vercel_logo_2025.svg",
+      received: RECEIVED,
+      transform: VECTOR,
+      official:
+        "https://k2mkucxia43oc7fa.public.blob.vercel-storage.com/front/press/vercel-assets.zip",
+    },
   },
   {
     id: "aws",
@@ -146,6 +214,12 @@ export const TECH_STACK: readonly Tech[] = [
     logo: logo("aws", "webp", 40, 24, "wordmark"),
     attribution:
       "Amazon Web Services and AWS are trademarks of Amazon.com, Inc. or its affiliates.",
+    provenance: {
+      file: "AWS-Logo-PNG-Pic.png",
+      received: RECEIVED,
+      transform: RASTER,
+      official: "https://aws.amazon.com/trademark-guidelines",
+    },
   },
   {
     id: "azure",
@@ -153,6 +227,12 @@ export const TECH_STACK: readonly Tech[] = [
     group: "cloud",
     logo: logo("azure", "webp", 20, 19, "symbol"),
     attribution: "Microsoft and Azure are trademarks of the Microsoft group of companies.",
+    provenance: {
+      file: "azure.png",
+      received: RECEIVED,
+      transform: `${RASTER}; a hairline kept between the ribbons`,
+      official: "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+    },
   },
 ];
 

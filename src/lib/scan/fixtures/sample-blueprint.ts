@@ -290,15 +290,15 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
   scores: {
     digitalMaturity: 47,
     websiteHealth: 56,
-    automationPotential: 80,
+    automationPotential: 75,
   },
   headline: {
-    en: "Dental Smile Clinic SRL could win back about 60 hours a month.",
-    ro: "Dental Smile Clinic SRL poate câștiga cam 60 de ore pe lună.",
+    en: "Dental Smile Clinic SRL could win back about 55 hours a month.",
+    ro: "Dental Smile Clinic SRL poate câștiga cam 55 de ore pe lună.",
   },
   summary: {
-    en: "We found 6 tasks that can be automated, led by automatic reminders, online booking and reviews. The hours won back are worth about 3,500 RON a month, at 59 RON an hour. The website scores 56 out of 100; we found 5 issues worth fixing first (starting with “slow first screen on mobile”) that could turn more visits into patients.",
-    ro: "Am găsit 6 activități care se pot automatiza, mai ales reamintiri automate, programări online și recenzii. Orele câștigate valorează cam 3.500 lei pe lună, la 59 lei pe oră. Site-ul are scorul 56 din 100; am găsit 5 probleme de rezolvat întâi (prima: „primul ecran se încarcă greu pe mobil”); rezolvate, pot transforma mai multe vizite în pacienți.",
+    en: "We found 5 tasks that can be automated, led by automatic reminders, online booking and reviews. The hours won back are worth about 1,700 RON a month, at 32 RON an hour. The website scores 56 out of 100; we found 5 issues worth fixing first (starting with “slow first screen on mobile”) that could turn more visits into patients.",
+    ro: "Am găsit 5 activități care se pot automatiza, mai ales reamintiri automate, programări online și recenzii. Orele câștigate valorează cam 1.700 lei pe lună, la 32 lei pe oră. Site-ul are scorul 56 din 100; am găsit 5 probleme de rezolvat întâi (prima: „primul ecran se încarcă greu pe mobil”); rezolvate, pot transforma mai multe vizite în pacienți.",
   },
   opportunities: [
     {
@@ -324,9 +324,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 17,
       },
       monthlySavingsRon: {
-        low: 690,
-        high: 1330,
-        mid: 980,
+        low: 370,
+        high: 720,
+        mid: 530,
       },
       setupCostRon: {
         low: 1200,
@@ -339,8 +339,8 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 260,
       },
       paybackMonths: {
-        low: 1,
-        high: 8.6,
+        low: 2,
+        high: 36,
       },
       tools: ["WhatsApp Business API", "SMS gateway", "Calendar sync"],
       assumptions: [
@@ -353,8 +353,8 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
           ro: "Cea mai mare parte din această muncă se face automat",
         },
         {
-          en: "Loaded staff cost 59 RON/hour (INS average earnings, July 2026)",
-          ro: "Cost total angajator: 59 lei pe oră (câștigul salarial mediu INS, iulie 2026)",
+          en: "Loaded staff cost 32 RON/hour for office and reception work (1.2 × the minimum wage, or the sector's average pay when lower, plus CAM)",
+          ro: "Cost total angajator: 32 lei pe oră pentru munca de birou și recepție (1,2 × salariul minim sau salariul mediu din domeniu, dacă e mai mic, plus CAM)",
         },
         {
           en: "Tools include about 160 RON a month of messages or AI usage (0.15–0.50 RON each)",
@@ -389,9 +389,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 15,
       },
       monthlySavingsRon: {
-        low: 520,
-        high: 1350,
-        mid: 890,
+        low: 280,
+        high: 730,
+        mid: 480,
       },
       setupCostRon: {
         low: 3000,
@@ -404,8 +404,8 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 180,
       },
       paybackMonths: {
-        low: 2.4,
-        high: 22.2,
+        low: 4.8,
+        high: 36,
       },
       tools: ["Booking calendar", "Google Business Profile", "Website integration"],
       assumptions: [
@@ -418,8 +418,8 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
           ro: "Cam jumătate din această muncă se face automat",
         },
         {
-          en: "Loaded staff cost 59 RON/hour (INS average earnings, July 2026)",
-          ro: "Cost total angajator: 59 lei pe oră (câștigul salarial mediu INS, iulie 2026)",
+          en: "Loaded staff cost 32 RON/hour for office and reception work (1.2 × the minimum wage, or the sector's average pay when lower, plus CAM)",
+          ro: "Cost total angajator: 32 lei pe oră pentru munca de birou și recepție (1,2 × salariul minim sau salariul mediu din domeniu, dacă e mai mic, plus CAM)",
         },
         {
           en: "The automatable share is the part of bookings we expect to move online.",
@@ -450,9 +450,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 7,
       },
       monthlySavingsRon: {
-        low: 280,
-        high: 560,
-        mid: 410,
+        low: 150,
+        high: 300,
+        mid: 220,
       },
       setupCostRon: {
         low: 1200,
@@ -465,8 +465,8 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 120,
       },
       paybackMonths: {
-        low: 2.4,
-        high: 27.8,
+        low: 5,
+        high: 36,
       },
       tools: ["Patient / client database", "WhatsApp / SMS", "Booking link"],
       assumptions: [
@@ -479,8 +479,8 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
           ro: "Cea mai mare parte din această muncă se face automat",
         },
         {
-          en: "Loaded staff cost 59 RON/hour (INS average earnings, July 2026)",
-          ro: "Cost total angajator: 59 lei pe oră (câștigul salarial mediu INS, iulie 2026)",
+          en: "Loaded staff cost 32 RON/hour for office and reception work (1.2 × the minimum wage, or the sector's average pay when lower, plus CAM)",
+          ro: "Cost total angajator: 32 lei pe oră pentru munca de birou și recepție (1,2 × salariul minim sau salariul mediu din domeniu, dacă e mai mic, plus CAM)",
         },
         {
           en: "Tools include about 20 RON a month of messages or AI usage (0.10–0.30 RON each)",
@@ -511,9 +511,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 7.5,
       },
       monthlySavingsRon: {
-        low: 240,
-        high: 710,
-        mid: 440,
+        low: 130,
+        high: 380,
+        mid: 240,
       },
       setupCostRon: {
         low: 3000,
@@ -526,7 +526,7 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 240,
       },
       paybackMonths: {
-        low: 5.1,
+        low: 11.5,
         high: 36,
       },
       tools: ["AI assistant (Claude)", "Website chat", "WhatsApp Business API"],
@@ -540,8 +540,8 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
           ro: "Cam jumătate din această muncă se face automat",
         },
         {
-          en: "Loaded staff cost 59 RON/hour (INS average earnings, July 2026)",
-          ro: "Cost total angajator: 59 lei pe oră (câștigul salarial mediu INS, iulie 2026)",
+          en: "Loaded staff cost 32 RON/hour for office and reception work (1.2 × the minimum wage, or the sector's average pay when lower, plus CAM)",
+          ro: "Cost total angajator: 32 lei pe oră pentru munca de birou și recepție (1,2 × salariul minim sau salariul mediu din domeniu, dacă e mai mic, plus CAM)",
         },
         {
           en: "Tools include about 40 RON a month of messages or AI usage (0.05–0.20 RON each)",
@@ -572,9 +572,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 7.9,
       },
       monthlySavingsRon: {
-        low: 330,
-        high: 610,
-        mid: 470,
+        low: 180,
+        high: 330,
+        mid: 250,
       },
       setupCostRon: {
         low: 1200,
@@ -587,8 +587,8 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 130,
       },
       paybackMonths: {
-        low: 2.2,
-        high: 19.2,
+        low: 4.4,
+        high: 36,
       },
       tools: ["WhatsApp / SMS", "Google Business Profile"],
       assumptions: [
@@ -601,8 +601,8 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
           ro: "Cea mai mare parte din această muncă se face automat",
         },
         {
-          en: "Loaded staff cost 59 RON/hour (INS average earnings, July 2026)",
-          ro: "Cost total angajator: 59 lei pe oră (câștigul salarial mediu INS, iulie 2026)",
+          en: "Loaded staff cost 32 RON/hour for office and reception work (1.2 × the minimum wage, or the sector's average pay when lower, plus CAM)",
+          ro: "Cost total angajator: 32 lei pe oră pentru munca de birou și recepție (1,2 × salariul minim sau salariul mediu din domeniu, dacă e mai mic, plus CAM)",
         },
         {
           en: "Tools include about 30 RON a month of messages or AI usage (0.05–0.20 RON each)",
@@ -611,63 +611,6 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         {
           en: "Hours are what the same follow-ups would cost by hand; the main gain is more reviews, which we don't put a price on.",
           ro: "Orele reprezintă costul acelorași mesaje trimise manual; câștigul principal sunt recenziile în plus, pe care nu le evaluăm în bani.",
-        },
-      ],
-    },
-    {
-      id: "lead-capture-crm",
-      title: {
-        en: "Every enquiry in one shared list",
-        ro: "Toate cererile într-o listă comună",
-      },
-      problem: {
-        en: "Enquiries arrive by phone, email, WhatsApp and forms and are tracked in notebooks or inboxes, so follow-ups get forgotten.",
-        ro: "Solicitările vin pe telefon, e-mail, WhatsApp și formulare și sunt ținute în agende sau în căsuța de e-mail, așa că revenirile la clienți se uită.",
-      },
-      solution: {
-        en: "Forms, emails and WhatsApp messages create contacts and deals automatically, with follow-up reminders and a clear pipeline.",
-        ro: "Formularele, e-mailurile și mesajele WhatsApp creează automat contacte și oportunități de vânzare, cu reamintiri pentru revenire și o evidență clară a fiecărei etape.",
-      },
-      process: "sales",
-      impact: "high",
-      complexity: "medium",
-      hoursSavedPerMonth: {
-        low: 2.7,
-        high: 8,
-        mid: 5,
-      },
-      monthlySavingsRon: {
-        low: 160,
-        high: 470,
-        mid: 300,
-      },
-      setupCostRon: {
-        low: 3000,
-        high: 6000,
-        mid: 4500,
-      },
-      monthlyToolCostRon: {
-        low: 100,
-        high: 250,
-        mid: 180,
-      },
-      paybackMonths: {
-        low: 8.1,
-        high: 36,
-      },
-      tools: ["HubSpot / Pipedrive", "WhatsApp Business", "Website forms"],
-      assumptions: [
-        {
-          en: "About 80 enquiries a month for a team of 6, 5–10 minutes each by hand",
-          ro: "Aproximativ 80 de solicitări pe lună pentru o echipă de 6 persoane, câte 5–10 minute de lucru manual fiecare",
-        },
-        {
-          en: "About half of that work handled automatically",
-          ro: "Cam jumătate din această muncă se face automat",
-        },
-        {
-          en: "Loaded staff cost 59 RON/hour (INS average earnings, July 2026)",
-          ro: "Cost total angajator: 59 lei pe oră (câștigul salarial mediu INS, iulie 2026)",
         },
       ],
     },
@@ -767,33 +710,33 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
   ],
   totals: {
     hoursSavedPerMonth: {
-      low: 38,
-      high: 86,
-      mid: 59,
+      low: 35,
+      high: 78,
+      mid: 54,
     },
     monthlySavingsRon: {
-      low: 2220,
-      high: 5030,
-      mid: 3490,
+      low: 1110,
+      high: 2460,
+      mid: 1720,
     },
     annualSavingsRon: {
-      low: 26640,
-      high: 60360,
-      mid: 41880,
+      low: 13320,
+      high: 29520,
+      mid: 20640,
     },
     setupCostRon: {
-      low: 12600,
-      high: 25500,
-      mid: 19050,
+      low: 9600,
+      high: 19500,
+      mid: 14550,
     },
     paybackMonths: {
-      low: 2.8,
+      low: 4.8,
       high: 36,
     },
     breakEven: {
-      month: 12,
-      higherVolume: 10,
-      lowerVolume: 15,
+      month: 22,
+      higherVolume: 16,
+      lowerVolume: null,
     },
   },
   strategies: [
@@ -851,12 +794,13 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
       },
       investmentLevel: 2,
       investmentRon: {
-        low: 6900,
-        high: 15000,
-        mid: 10950,
+        low: 3900,
+        high: 9000,
+        mid: 6450,
       },
-      opportunityIds: ["review-requests", "lead-capture-crm"],
-      recommended: false,
+      opportunityIds: ["review-requests"],
+      recommended: true,
+      startReason: "acquire-gaps",
     },
     {
       id: "automate",
@@ -909,8 +853,7 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 8200,
       },
       opportunityIds: ["appointment-reminders", "online-booking", "recall-reminders"],
-      recommended: true,
-      startReason: "automate-payback",
+      recommended: false,
     },
     {
       id: "assist",
@@ -1077,20 +1020,16 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
       },
       tag: "growth",
       title: {
-        en: "Reviews and one list of enquiries",
-        ro: "Recenzii și evidența solicitărilor",
+        en: "Reviews",
+        ro: "Recenzii",
       },
       items: [
         {
           en: "Review requests after each visit",
           ro: "Cereri de recenzii după fiecare vizită",
         },
-        {
-          en: "Every enquiry in one shared list",
-          ro: "Toate cererile într-o listă comună",
-        },
       ],
-      opportunityIds: ["review-requests", "lead-capture-crm"],
+      opportunityIds: ["review-requests"],
     },
   ],
   projection: [
@@ -1123,9 +1062,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
     {
       month: 3,
       cumulativeSavingsRon: {
-        low: 750,
-        high: 1620,
-        mid: 1140,
+        low: 400,
+        high: 880,
+        mid: 620,
       },
       cumulativeCostRon: {
         low: 8690,
@@ -1136,311 +1075,311 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
     {
       month: 4,
       cumulativeSavingsRon: {
-        low: 2360,
-        high: 5220,
-        mid: 3640,
+        low: 1270,
+        high: 2820,
+        mid: 1970,
       },
       cumulativeCostRon: {
-        low: 13300,
-        high: 27540,
-        mid: 20410,
+        low: 10300,
+        high: 21540,
+        mid: 15910,
       },
     },
     {
       month: 5,
       cumulativeSavingsRon: {
-        low: 4330,
-        high: 9710,
-        mid: 6750,
+        low: 2290,
+        high: 5110,
+        mid: 3560,
       },
       cumulativeCostRon: {
-        low: 13870,
-        high: 29190,
-        mid: 21520,
+        low: 10770,
+        high: 22940,
+        mid: 16840,
       },
     },
     {
       month: 6,
       cumulativeSavingsRon: {
-        low: 6550,
-        high: 14740,
-        mid: 10240,
+        low: 3400,
+        high: 7570,
+        mid: 5280,
       },
       cumulativeCostRon: {
-        low: 14440,
-        high: 30840,
-        mid: 22630,
+        low: 11240,
+        high: 24340,
+        mid: 17770,
       },
     },
     {
       month: 7,
       cumulativeSavingsRon: {
-        low: 8770,
-        high: 19770,
-        mid: 13730,
+        low: 4510,
+        high: 10030,
+        mid: 7000,
       },
       cumulativeCostRon: {
-        low: 15010,
-        high: 32490,
-        mid: 23740,
+        low: 11710,
+        high: 25740,
+        mid: 18700,
       },
     },
     {
       month: 8,
       cumulativeSavingsRon: {
-        low: 10990,
-        high: 24800,
-        mid: 17220,
+        low: 5620,
+        high: 12490,
+        mid: 8720,
       },
       cumulativeCostRon: {
-        low: 15580,
-        high: 34140,
-        mid: 24850,
+        low: 12180,
+        high: 27140,
+        mid: 19630,
       },
     },
     {
       month: 9,
       cumulativeSavingsRon: {
-        low: 13210,
-        high: 29830,
-        mid: 20710,
+        low: 6730,
+        high: 14950,
+        mid: 10440,
       },
       cumulativeCostRon: {
-        low: 16150,
-        high: 35790,
-        mid: 25960,
+        low: 12650,
+        high: 28540,
+        mid: 20560,
       },
     },
     {
       month: 10,
       cumulativeSavingsRon: {
-        low: 15430,
-        high: 34860,
-        mid: 24200,
+        low: 7840,
+        high: 17410,
+        mid: 12160,
       },
       cumulativeCostRon: {
-        low: 16720,
-        high: 37440,
-        mid: 27070,
+        low: 13120,
+        high: 29940,
+        mid: 21490,
       },
     },
     {
       month: 11,
       cumulativeSavingsRon: {
-        low: 17650,
-        high: 39890,
-        mid: 27690,
+        low: 8950,
+        high: 19870,
+        mid: 13880,
       },
       cumulativeCostRon: {
-        low: 17290,
-        high: 39090,
-        mid: 28180,
+        low: 13590,
+        high: 31340,
+        mid: 22420,
       },
     },
     {
       month: 12,
       cumulativeSavingsRon: {
-        low: 19870,
-        high: 44920,
-        mid: 31180,
+        low: 10060,
+        high: 22330,
+        mid: 15600,
       },
       cumulativeCostRon: {
-        low: 17860,
-        high: 40740,
-        mid: 29290,
+        low: 14060,
+        high: 32740,
+        mid: 23350,
       },
     },
     {
       month: 13,
       cumulativeSavingsRon: {
-        low: 22090,
-        high: 49950,
-        mid: 34670,
+        low: 11170,
+        high: 24790,
+        mid: 17320,
       },
       cumulativeCostRon: {
-        low: 18430,
-        high: 42390,
-        mid: 30400,
+        low: 14530,
+        high: 34140,
+        mid: 24280,
       },
     },
     {
       month: 14,
       cumulativeSavingsRon: {
-        low: 24310,
-        high: 54980,
-        mid: 38160,
+        low: 12280,
+        high: 27250,
+        mid: 19040,
       },
       cumulativeCostRon: {
-        low: 19000,
-        high: 44040,
-        mid: 31510,
+        low: 15000,
+        high: 35540,
+        mid: 25210,
       },
     },
     {
       month: 15,
       cumulativeSavingsRon: {
-        low: 26530,
-        high: 60010,
-        mid: 41650,
+        low: 13390,
+        high: 29710,
+        mid: 20760,
       },
       cumulativeCostRon: {
-        low: 19570,
-        high: 45690,
-        mid: 32620,
+        low: 15470,
+        high: 36940,
+        mid: 26140,
       },
     },
     {
       month: 16,
       cumulativeSavingsRon: {
-        low: 28750,
-        high: 65040,
-        mid: 45140,
+        low: 14500,
+        high: 32170,
+        mid: 22480,
       },
       cumulativeCostRon: {
-        low: 20140,
-        high: 47340,
-        mid: 33730,
+        low: 15940,
+        high: 38340,
+        mid: 27070,
       },
     },
     {
       month: 17,
       cumulativeSavingsRon: {
-        low: 30970,
-        high: 70070,
-        mid: 48630,
+        low: 15610,
+        high: 34630,
+        mid: 24200,
       },
       cumulativeCostRon: {
-        low: 20710,
-        high: 48990,
-        mid: 34840,
+        low: 16410,
+        high: 39740,
+        mid: 28000,
       },
     },
     {
       month: 18,
       cumulativeSavingsRon: {
-        low: 33190,
-        high: 75100,
-        mid: 52120,
+        low: 16720,
+        high: 37090,
+        mid: 25920,
       },
       cumulativeCostRon: {
-        low: 21280,
-        high: 50640,
-        mid: 35950,
+        low: 16880,
+        high: 41140,
+        mid: 28930,
       },
     },
     {
       month: 19,
       cumulativeSavingsRon: {
-        low: 35410,
-        high: 80130,
-        mid: 55610,
+        low: 17830,
+        high: 39550,
+        mid: 27640,
       },
       cumulativeCostRon: {
-        low: 21850,
-        high: 52290,
-        mid: 37060,
+        low: 17350,
+        high: 42540,
+        mid: 29860,
       },
     },
     {
       month: 20,
       cumulativeSavingsRon: {
-        low: 37630,
-        high: 85160,
-        mid: 59100,
+        low: 18940,
+        high: 42010,
+        mid: 29360,
       },
       cumulativeCostRon: {
-        low: 22420,
-        high: 53940,
-        mid: 38170,
+        low: 17820,
+        high: 43940,
+        mid: 30790,
       },
     },
     {
       month: 21,
       cumulativeSavingsRon: {
-        low: 39850,
-        high: 90190,
-        mid: 62590,
+        low: 20050,
+        high: 44470,
+        mid: 31080,
       },
       cumulativeCostRon: {
-        low: 22990,
-        high: 55590,
-        mid: 39280,
+        low: 18290,
+        high: 45340,
+        mid: 31720,
       },
     },
     {
       month: 22,
       cumulativeSavingsRon: {
-        low: 42070,
-        high: 95220,
-        mid: 66080,
+        low: 21160,
+        high: 46930,
+        mid: 32800,
       },
       cumulativeCostRon: {
-        low: 23560,
-        high: 57240,
-        mid: 40390,
+        low: 18760,
+        high: 46740,
+        mid: 32650,
       },
     },
     {
       month: 23,
       cumulativeSavingsRon: {
-        low: 44290,
-        high: 100250,
-        mid: 69570,
+        low: 22270,
+        high: 49390,
+        mid: 34520,
       },
       cumulativeCostRon: {
-        low: 24130,
-        high: 58890,
-        mid: 41500,
+        low: 19230,
+        high: 48140,
+        mid: 33580,
       },
     },
     {
       month: 24,
       cumulativeSavingsRon: {
-        low: 46510,
-        high: 105280,
-        mid: 73060,
+        low: 23380,
+        high: 51850,
+        mid: 36240,
       },
       cumulativeCostRon: {
-        low: 24700,
-        high: 60540,
-        mid: 42610,
+        low: 19700,
+        high: 49540,
+        mid: 34510,
       },
     },
   ],
   offer: {
-    planId: "pro",
+    planId: "growth",
     title: {
-      en: "Pro",
-      ro: "Pro",
+      en: "Growth",
+      ro: "Growth",
     },
     why: {
-      en: "The plan has 4 stages; with Pro we build them with you and keep them running.",
-      ro: "Planul are 4 etape; cu Pro le construim împreună și le ținem în funcțiune.",
+      en: "The plan has 4 stages; Growth covers the guided setup and ongoing support.",
+      ro: "Planul are 4 etape; Growth acoperă implementarea ghidată și suportul continuu.",
     },
     includes: [
       {
-        en: "Hands-on help building the 4 stages of the plan",
-        ro: "Ajutor practic la construirea celor 4 etape din plan",
+        en: "2 hours of live consultation on Zoom",
+        ro: "2 ore de consultanță live pe Zoom",
       },
       {
-        en: "Unlimited live support from our team while they run",
-        ro: "Suport live nelimitat din partea echipei noastre, cât timp rulează",
+        en: "Guided setup of the 4 stages of the plan",
+        ro: "Configurare ghidată pentru cele 4 etape din plan",
       },
       {
-        en: "A direct priority line to us",
-        ro: "Legătură directă, cu prioritate, cu echipa noastră",
+        en: "Priority scheduling and email support",
+        ro: "Programări cu prioritate și suport pe e-mail",
       },
     ],
     priceNote: {
-      en: "1,000 RON a month, plus the setup (fixed price after a call)",
-      ro: "1.000 lei pe lună, plus implementarea (preț fix după discuție)",
+      en: "250 RON a month, plus the setup (fixed price after a call)",
+      ro: "250 lei pe lună, plus implementarea (preț fix după discuție)",
     },
   },
   assumptions: {
-    hourlyCostRon: 59,
+    hourlyCostRon: 32,
     hourlyCostBasis: {
-      en: "Your sector (human health, CAEN division 86) averages 11,137 RON gross a month (INS, July 2026), above the national average, so we use the national 9,709 RON because the work being automated is routine admin, plus the 2.25% employer contribution (CAM), over 168 working hours a month = 59 RON/hour. Source: INS press release no. 229 of 11 Sept 2026; TEMPO table FOM107G.",
-      ro: "Sectorul tău (sănătate umană, diviziunea CAEN 86) are un câștig mediu brut de 11.137 lei pe lună (INS, iulie 2026), peste media națională; folosim totuși media națională de 9.709 lei, pentru că se automatizează muncă administrativă de rutină, plus contribuția asiguratorie pentru muncă (CAM) de 2,25%, împărțit la 168 de ore lucrate pe lună = 59 lei pe oră. Sursa: comunicatul INS nr. 229 din 11 sept. 2026; tabelul TEMPO FOM107G.",
+      en: "1.2 × the gross minimum wage (4,325 lei, HG nr. 146/2026 (Monitorul Oficial, 13.03.2026)) = 5,190 lei a month, plus the 2.25% employer contribution (CAM), over 168 working hours a month = 32 lei an hour. Reception, booking and admin work are paid close to the minimum wage in every sector.",
+      ro: "1,2 × salariul minim brut (4.325 lei, HG nr. 146/2026 (Monitorul Oficial, 13.03.2026)) = 5.190 lei pe lună, plus contribuția asiguratorie pentru muncă (CAM) de 2,25%, împărțit la 168 de ore lucrate pe lună = 32 lei pe oră. Munca de recepție, programări și birou e plătită aproape de salariul minim în orice domeniu.",
     },
     teamSize: {
       low: 4,
@@ -1448,7 +1387,7 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
     },
     simulation: {
       teamSize: 6,
-      hourlyCostRon: 59,
+      hourlyCostRon: 32,
       volumeFactor: 1,
     },
     notes: [

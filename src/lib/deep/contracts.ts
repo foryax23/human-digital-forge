@@ -35,7 +35,12 @@ export type AccessReason =
   | "run_not_found"
   | "too_large"
   /** Additive: ANAF did not answer the identity call ("ANAF nu răspunde acum, încearcă în câteva minute"). */
-  | "anaf_unavailable";
+  | "anaf_unavailable"
+  /**
+   * Additive (Eng 3, B1): the start form accepted an older version of the report terms
+   * (DEEP_TERMS_VERSION in src/lib/scan/legal/lead-notice.ts); show the current text again.
+   */
+  | "terms_outdated";
 export type StoreKind = "stopgap" | "tables";
 export type DeepAccess = {
   mode: DeepMode;
@@ -62,6 +67,11 @@ export type DeepAccess = {
     ledger?: "memory_rules_only" | "memory_ai_per_isolate";
     /** Additive: an unknown DEEP_EXTRACT_MODEL value (ignored; Haiku 4.5 is used). */
     unknownExtractModel?: string;
+    /**
+     * Additive (fix wave): why AI is off, when it is: no Anthropic key, today's budget used,
+     * the breaker open, or no persistent spend ledger.
+     */
+    aiOff?: "no_key" | "day_budget" | "breaker" | "storage";
   };
 };
 export type Relationship = "proprietar" | "angajat" | "client_furnizor" | "concurent" | "altceva";
@@ -243,6 +253,8 @@ export type AreaLight = {
   reason: Bilingual;
   factIds: string[];
   provisional?: true;
+  /** Additive (fix wave): what the reason leaves out ("fără comparație cu firme similare încă"). */
+  note?: Bilingual;
 };
 export type Estimate = {
   /** "time.booking.v1", "profit.margin_gap.v1" */
@@ -269,6 +281,8 @@ export type Action = {
   cost: {
     diyLei?: number;
     diyHours?: number;
+    /** Additive (fix wave): the do-it-yourself path in words, when it is not one number. */
+    diyHow?: Bilingual;
     vortex?: { setupLei: number; monthlyLei: number };
   };
   who: "singur" | "contabil" | "cu_vortex";
@@ -479,7 +493,15 @@ export interface DeepStore {
   getRun(
     runId: string,
     userId: string,
-  ): Promise<{ status: RunStatus; createdAt: string; lastActivityAt: string } | null>;
+  ): Promise<{
+    status: RunStatus;
+    createdAt: string;
+    lastActivityAt: string;
+    /** Additive (Eng 3): the researched company (call requests carry it). */
+    cui?: string;
+    /** Additive (fix wave): how the run was admitted, for the entitlement re-check. */
+    via?: AccessVia;
+  } | null>;
   dayStats(userId: string): Promise<{ userRuns: number; allRuns: number; allUsd: number }>;
   reserve(input: {
     runId: string;
@@ -561,6 +583,10 @@ export interface DeepStore {
   runSpend?(
     runId: string,
   ): Promise<{ budgetUsd: number; spentUsd: number; reservedUsd: number } | null>;
+  /** Optional (additive, Eng 3): runs this account started as its free Premium report (D24). */
+  freeRunsUsed?(userId: string): Promise<number>;
+  /** Optional (additive, Eng 3): the spend breaker is open (no paid call for now). */
+  breakerOpen?(): Promise<boolean>;
 }
 
 /** Input of startDeepRun (src/lib/deep.functions.ts). */
@@ -569,7 +595,8 @@ export type StartDeepRunInput = {
   site?: string;
   relationship: Relationship;
   lang: Lang;
-  consent: { termsVersion: string; marketing: boolean };
+  /** `lang`: the language the notice and boxes were shown in (the record is built in it). */
+  consent: { termsVersion: string; marketing: boolean; lang?: Lang };
   testCode?: string;
   owner?: OwnerInputs;
   corrections?: Correction[];

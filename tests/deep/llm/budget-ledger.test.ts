@@ -383,3 +383,15 @@ test("a forced $0.10 run budget is never exceeded; ledger errors send nothing", 
   assert.deepEqual(failed, { kind: "refused", reason: "ledger_error" });
   assert.equal(sent, 0, "no ledger, no Claude call");
 });
+
+test("a step that died before settling gives its claim back after 2 minutes (memory ledger)", async () => {
+  const clock = virtualClock();
+  const store = createMemoryStore({ now: clock.now });
+  const { runId } = await newRun(store, 0.5);
+  const claim = () => store.claimStep({ runId, userId: "u1", key: "money", max: 1 });
+  assert.equal((await claim()).ok, true);
+  assert.deepEqual(await claim(), { ok: false, reason: "in_flight" });
+  clock.t += 2 * 60_000 + 1;
+  const retry = await claim();
+  assert.equal(retry.ok, true, "the retry runs instead of a lost step");
+});

@@ -1,0 +1,312 @@
+
+=== Skiriders Shop (37355711) · proprietar · vocab retail · firm established
+headline [bani.growing_keeps_less]: Firma ta crește, dar îți rămân tot mai puțini lei din 100.
+  Bani: atentie · îți rămân 33 din 100, față de 52 în 2022  [money.margin_pretax.2025, money.turnover.2022, money.profit_pretax.2022]
+  Clienți: neverificat · niciun site confirmat de verificat  [site.status]
+  Online: de_rezolvat · domeniu parcat sau de vânzare  [site.status]
+  Echipă: bine · un salariat  [people.employees.2025]
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  finding 1: Domeniul afișează o pagină parcată sau «de vânzare» · Adresa site-ului arată un domeniu parcat sau de vânzare.
+  finding 2: 170 mii lei · Cifra de afaceri a crescut cu 11% între 2024 și 2025, de la 153 mii lei la 170 mii lei.
+  action 1: Mută site-ul de pe domeniul parcat sau nefuncțional · cu_vortex · cine te caută găsește firma, nu un anunț de vânzare
+  meaning: Din 2023 până în 2025, cifra de afaceri a crescut cu 82%, iar cheltuielile au crescut cu 30%. Primul pas: mută site-ul de pe domeniul parcat sau nefuncțional.
+  customer: Domeniul afișează o pagină parcată sau «de vânzare».
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  ifNothing: Dacă tendința din 2023–2025 continuă, cifra ta de afaceri din 2026 ar putea fi între 190 mii lei și 278 mii lei.
+  counts: {"officialSources":3,"pagesRead":0,"facts":69,"estimates":0}
+
+=== Skiriders Shop (37355711) · client_furnizor · vocab retail · firm established
+headline [bani.growing_keeps_less]: Skiriders Shop SRL crește, dar îi rămân tot mai puțini lei din 100.
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  Bani: atentie · rămân 33 din 100, față de 52 în 2022  [money.margin_pretax.2025, money.turnover.2022, money.profit_pretax.2022]
+  Echipă: bine · un salariat  [people.employees.2025]
+  Online: de_rezolvat · domeniu parcat sau de vânzare  [site.status]
+  Clienți: neverificat · niciun site confirmat de verificat  [site.status]
+  finding 1: Domeniul afișează o pagină parcată sau «de vânzare» · Adresa site-ului arată un domeniu parcat sau de vânzare.
+  finding 2: 170 mii lei · Cifra de afaceri a crescut cu 11% între 2024 și 2025, de la 153 mii lei la 170 mii lei.
+  meaning: Din 2023 până în 2025, cifra de afaceri a crescut cu 82%, iar cheltuielile au crescut cu 30%. Înainte să lucrați împreună, verificați la sursă registrele pe care nu le-am verificat noi.
+  customer: Domeniul afișează o pagină parcată sau «de vânzare».
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  ifNothing: Dacă tendința din 2023–2025 continuă, cifra de afaceri din 2026 ar putea fi între 190 mii lei și 278 mii lei.
+  counts: {"officialSources":3,"pagesRead":0,"facts":69,"estimates":0}
+  due diligence: Starea la ANAF: Activă (înregistrată) | Plătitor de TVA: Nu | Bilanțuri: Bilanțuri pentru 7 din 7 ani | Datorii la stat (lista ANAF a datornicilor): neverificat de noi | Buletinul procedurilor de insolvență (BPI): neverificat de noi | Arhiva electronică de garanții (RNPM): neverificat de noi | Dosare în instanță (portal.just.ro): neverificat de noi | Administratori (certificat constatator ONRC): neverificat de noi
+
+=== Vortex Hub (54747928) · proprietar · vocab professional · firm new
+headline [new_firm]: Încă nu ai bilanț depus; iată ce am verificat în rest.
+  Bani: neverificat · încă nu ai bilanț depus  [money.filed]
+  Clienți: bine · ușor de contactat  [site.contact.present, site.booking.present]
+  Online: atentie · CUI-ul nu apare pe site  [site.cui.present, site.reg_no.present]
+  Echipă: neverificat · încă nu apare în bilanț  []
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  action 0 (obligatoriu): Pune pe site codul fiscal (CUI) și datele firmei · singur · obligatoriu prin lege (Legea 365/2002)
+  action 1: Mesaje automate de reamintire înainte de programări · cu_vortex · 0 lei (0–0) time_value_month
+  action 2: Revendică sau completează profilul Google · singur · apari cu datele corecte în căutările Google și pe hartă
+  meaning: Fără bilanț depus, nu putem spune încă cât îți rămâne din fiecare 100 de lei facturați. Pe cele 11 pagini citite, un client nou găsește cum să ia legătura cu firma, dar nu poate face o întâlnire online. Primul pas: mesaje automate de reamintire înainte de programări.
+  customer: Pe site găsește un telefon, un e-mail sau un formular de contact. | Poate trimite o cerere prin formularul de pe site. | Vede prețuri pe site.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  counts: {"officialSources":2,"pagesRead":11,"facts":46,"estimates":0}
+
+=== Vortex Hub (54747928) · client_furnizor · vocab professional · firm new
+headline [new_firm]: Vortex Hub SRL nu are încă bilanț depus; iată ce am verificat în rest.
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  Bani: neverificat · încă nu are bilanț depus  [money.filed]
+  Echipă: neverificat · încă nu apare în bilanț  []
+  Online: atentie · CUI-ul nu apare pe site  [site.cui.present, site.reg_no.present]
+  Clienți: bine · ușor de contactat  [site.contact.present, site.booking.present]
+  meaning: Fără bilanț depus, nu putem spune încă cât rămâne din fiecare 100 de lei facturați. Pe cele 11 pagini citite, un client nou găsește cum să ia legătura cu firma, dar nu poate face o întâlnire online. Înainte să lucrați împreună, verificați la sursă registrele pe care nu le-am verificat noi.
+  customer: Pe site găsește un telefon, un e-mail sau un formular de contact. | Poate trimite o cerere prin formularul de pe site. | Vede prețuri pe site.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  counts: {"officialSources":2,"pagesRead":11,"facts":46,"estimates":0}
+  due diligence: Starea la ANAF: Activă (înregistrată) | Plătitor de TVA: Nu | Bilanțuri: Încă nu are bilanț depus | Datorii la stat (lista ANAF a datornicilor): neverificat de noi | Buletinul procedurilor de insolvență (BPI): neverificat de noi | Arhiva electronică de garanții (RNPM): neverificat de noi | Dosare în instanță (portal.just.ro): neverificat de noi | Administratori (certificat constatator ONRC): neverificat de noi
+
+=== Restaurant Lloyd (7924521) · proprietar · vocab food · firm established
+headline [bani.loss]: Firma ta a încheiat 2025 pe pierdere.
+  Bani: de_rezolvat · pierdere în 2025  [money.profit_net.2025]
+  Clienți: neverificat · niciun site confirmat de verificat  [site.status]
+  Online: atentie · nu am găsit un site al firmei  [site.status]
+  Echipă: atentie · salariați 40 → 8  [people.employees_change]
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  finding 1: -61% · 2023–2025: cheltuielile au scăzut cu 61%, cifra de afaceri a scăzut cu 68%.
+  finding 2: 40 → 8 · Numărul mediu de salariați a scăzut de la 40 la 8 între 2024 și 2025.
+  finding 3: 1,63 mil. lei · Cifra de afaceri a scăzut cu 51% între 2024 și 2025, de la 3,30 la 1,63 mil. lei.
+  action 1: Un site al firmei · cu_vortex · cine te caută pe Google găsește datele firmei, serviciile și o cale de contact
+  meaning: Din 2023 până în 2025, cifra de afaceri a scăzut cu 68%, iar cheltuielile au scăzut cu 61%. Primul pas: un site al firmei.
+  customer: Nu am găsit un site al firmei.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  ifNothing: Dacă tendința din 2023–2025 continuă, cifra ta de afaceri din 2026 ar putea fi între 801 mii lei și 1,05 mil. lei.
+  counts: {"officialSources":2,"pagesRead":0,"facts":66,"estimates":0}
+
+=== Restaurant Lloyd (7924521) · client_furnizor · vocab food · firm established
+headline [bani.loss]: Restaurant Lloyd SRL a încheiat 2025 pe pierdere.
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  Bani: de_rezolvat · pierdere în 2025  [money.profit_net.2025]
+  Echipă: atentie · salariați 40 → 8  [people.employees_change]
+  Online: atentie · nu am găsit un site al firmei  [site.status]
+  Clienți: neverificat · niciun site confirmat de verificat  [site.status]
+  finding 1: -61% · 2023–2025: cheltuielile au scăzut cu 61%, cifra de afaceri a scăzut cu 68%.
+  finding 2: 40 → 8 · Numărul mediu de salariați a scăzut de la 40 la 8 între 2024 și 2025.
+  finding 3: 1,63 mil. lei · Cifra de afaceri a scăzut cu 51% între 2024 și 2025, de la 3,30 la 1,63 mil. lei.
+  meaning: Din 2023 până în 2025, cifra de afaceri a scăzut cu 68%, iar cheltuielile au scăzut cu 61%. Înainte să lucrați împreună, verificați la sursă registrele pe care nu le-am verificat noi.
+  customer: Nu am găsit un site al firmei.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  ifNothing: Dacă tendința din 2023–2025 continuă, cifra de afaceri din 2026 ar putea fi între 801 mii lei și 1,05 mil. lei.
+  counts: {"officialSources":2,"pagesRead":0,"facts":66,"estimates":0}
+  due diligence: Starea la ANAF: Activă (înregistrată) | Plătitor de TVA: Da | Bilanțuri: Bilanțuri pentru 7 din 7 ani | Datorii la stat (lista ANAF a datornicilor): neverificat de noi | Buletinul procedurilor de insolvență (BPI): neverificat de noi | Arhiva electronică de garanții (RNPM): neverificat de noi | Dosare în instanță (portal.just.ro): neverificat de noi | Administratori (certificat constatator ONRC): neverificat de noi
+
+=== Rost Construct Com (8229329) · proprietar · vocab retail · firm established
+headline [bani.profit_down]: Profitul firmei tale a scăzut cu 59% față de 2024.
+  Bani: atentie · profitul a scăzut cu 59% față de 2024  [money.profit_change, money.margin_pretax.2025]
+  Clienți: neverificat · niciun site confirmat de verificat  [site.status]
+  Online: de_rezolvat · domeniul nu funcționează  [site.status]
+  Echipă: bine · 2 salariați  [people.employees.2025]
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  finding 1: Domeniul nu funcționează · Adresa site-ului nu se deschide.
+  finding 2: 1,73 mil. lei · Cifra de afaceri a scăzut cu 20% între 2024 și 2025, de la 2,17 la 1,73 mil. lei.
+  finding 3: 3 lei din 100 · Din fiecare 100 de lei facturați în 2025 ți-au rămas 3 lei, înainte de impozit.
+  action 1: Mută site-ul de pe domeniul parcat sau nefuncțional · cu_vortex · cine te caută găsește firma, nu un anunț de vânzare
+  meaning: Din 2023 până în 2025, cifra de afaceri a scăzut cu 10%, iar cheltuielile au scăzut cu 8%. Primul pas: mută site-ul de pe domeniul parcat sau nefuncțional.
+  customer: Domeniul nu funcționează.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  counts: {"officialSources":3,"pagesRead":0,"facts":69,"estimates":0}
+
+=== Rost Construct Com (8229329) · client_furnizor · vocab retail · firm established
+headline [bani.profit_down]: Profitul firmei Rost Construct Com SRL a scăzut cu 59% față de 2024.
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  Bani: atentie · profitul a scăzut cu 59% față de 2024  [money.profit_change, money.margin_pretax.2025]
+  Echipă: bine · 2 salariați  [people.employees.2025]
+  Online: de_rezolvat · domeniul nu funcționează  [site.status]
+  Clienți: neverificat · niciun site confirmat de verificat  [site.status]
+  finding 1: Domeniul nu funcționează · Adresa site-ului nu se deschide.
+  finding 2: 1,73 mil. lei · Cifra de afaceri a scăzut cu 20% între 2024 și 2025, de la 2,17 la 1,73 mil. lei.
+  finding 3: 3 lei din 100 · Din fiecare 100 de lei facturați în 2025 firmei i-au rămas 3 lei, înainte de impozit.
+  meaning: Din 2023 până în 2025, cifra de afaceri a scăzut cu 10%, iar cheltuielile au scăzut cu 8%. Înainte să lucrați împreună, verificați la sursă registrele pe care nu le-am verificat noi.
+  customer: Domeniul nu funcționează.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  counts: {"officialSources":3,"pagesRead":0,"facts":69,"estimates":0}
+  due diligence: Starea la ANAF: Activă (înregistrată) | Plătitor de TVA: Da | Bilanțuri: Bilanțuri pentru 7 din 7 ani | Datorii la stat (lista ANAF a datornicilor): neverificat de noi | Buletinul procedurilor de insolvență (BPI): neverificat de noi | Arhiva electronică de garanții (RNPM): neverificat de noi | Dosare în instanță (portal.just.ro): neverificat de noi | Administratori (certificat constatator ONRC): neverificat de noi
+
+=== Doriot Dent (9259999) · proprietar · vocab b2b_wholesale · firm established
+headline [bani.margin_down]: Din 100 de lei îți rămân 7, față de 11 în 2022.
+  Bani: atentie · îți rămân 7 din 100, față de 11 în 2022  [money.margin_pretax.2025, money.turnover.2022, money.profit_pretax.2022]
+  Clienți: bine · ușor de contactat  [site.contact.present, site.booking.present]
+  Online: atentie · 2 probleme importante pe site  [site.audit.important]
+  Echipă: bine · angajezi  [people.hiring, people.employees.2025]
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  finding 1: 15,4 mil. lei · Cifra de afaceri a crescut cu 13% între 2024 și 2025, de la 13,57 la 15,39 mil. lei.
+  action 1: Cere acordul vizitatorilor înainte de statisticile despre vizitatori · cu_vortex · statisticile despre vizitatori respectă regulile privind cookie-urile (de verificat cu un specialist)
+  meaning: Din 2023 până în 2025, cifra de afaceri a crescut cu 25%, iar cheltuielile au crescut cu 28%. Pe cele 18 pagini citite, un client nou găsește cum să ia legătura cu firma, dar nu poate face o cerere de ofertă online. Primul pas: cere acordul vizitatorilor înainte de statisticile despre vizitatori.
+  customer: Pe site găsește un telefon, un e-mail sau un formular de contact. | Poate trimite o cerere prin formularul de pe site. | Vede prețuri pe 8 pagini.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  ifNothing: Dacă tendința din 2023–2025 continuă, cifra ta de afaceri din 2026 ar putea fi între 16,9 mil. lei și 17,4 mil. lei.
+  counts: {"officialSources":3,"pagesRead":18,"facts":131,"estimates":0}
+
+=== Doriot Dent (9259999) · client_furnizor · vocab b2b_wholesale · firm established
+headline [bani.margin_down]: Din 100 de lei, Doriot Dent SRL păstrează 7, față de 11 în 2022.
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  Bani: atentie · rămân 7 din 100, față de 11 în 2022  [money.margin_pretax.2025, money.turnover.2022, money.profit_pretax.2022]
+  Echipă: bine · angajează  [people.hiring, people.employees.2025]
+  Online: atentie · 2 probleme importante pe site  [site.audit.important]
+  Clienți: bine · ușor de contactat  [site.contact.present, site.booking.present]
+  finding 1: 15,4 mil. lei · Cifra de afaceri a crescut cu 13% între 2024 și 2025, de la 13,57 la 15,39 mil. lei.
+  meaning: Din 2023 până în 2025, cifra de afaceri a crescut cu 25%, iar cheltuielile au crescut cu 28%. Pe cele 18 pagini citite, un client nou găsește cum să ia legătura cu firma, dar nu poate face o cerere de ofertă online. Înainte să lucrați împreună, verificați la sursă registrele pe care nu le-am verificat noi.
+  customer: Pe site găsește un telefon, un e-mail sau un formular de contact. | Poate trimite o cerere prin formularul de pe site. | Vede prețuri pe 8 pagini.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  ifNothing: Dacă tendința din 2023–2025 continuă, cifra de afaceri din 2026 ar putea fi între 16,9 mil. lei și 17,4 mil. lei.
+  counts: {"officialSources":3,"pagesRead":18,"facts":131,"estimates":0}
+  due diligence: Starea la ANAF: Activă (înregistrată) | Plătitor de TVA: Da | Bilanțuri: Bilanțuri pentru 7 din 7 ani | Datorii la stat (lista ANAF a datornicilor): neverificat de noi | Buletinul procedurilor de insolvență (BPI): neverificat de noi | Arhiva electronică de garanții (RNPM): neverificat de noi | Dosare în instanță (portal.just.ro): neverificat de noi | Administratori (certificat constatator ONRC): neverificat de noi
+
+=== Libris (1094992) · proprietar · vocab retail · firm established
+headline [money.turnover_down_costs_up]: Cifra de afaceri a scăzut cu 3,5%, iar cheltuielile au crescut.
+  Bani: bine · profit în fiecare din ultimii 3 ani  [money.profit_pretax.2025, money.profit_pretax.2024, money.profit_pretax.2023]
+  Clienți: bine · ușor de contactat  [site.contact.present, site.booking.present]
+  Online: bine · site-ul funcționează  [site.audit.important]
+  Echipă: bine · 106 salariați  [people.employees.2025]
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  finding 1: +23% · 2023–2025: cheltuielile au crescut cu 23%, cifra de afaceri a crescut cu 17%.
+  finding 2: 4 lei din 100 · Din fiecare 100 de lei facturați în 2025 ți-au rămas 4 lei, înainte de impozit.
+  action 1: Cere acordul vizitatorilor înainte de statisticile despre vizitatori · cu_vortex · statisticile despre vizitatori respectă regulile privind cookie-urile (de verificat cu un specialist)
+  action 2: Revendică sau completează profilul Google · singur · apari cu datele corecte în căutările Google și pe hartă
+  meaning: Din 2023 până în 2025, cifra de afaceri a crescut cu 17%, iar cheltuielile au crescut cu 23%. Pe cele 26 de pagini citite, un client nou găsește cum să ia legătura cu firma. Primul pas: cere acordul vizitatorilor înainte de statisticile despre vizitatori.
+  customer: Pe site găsește un telefon, un e-mail sau un formular de contact. | Vede prețuri pe 10 pagini.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  counts: {"officialSources":3,"pagesRead":26,"facts":137,"estimates":0}
+
+=== Libris (1094992) · client_furnizor · vocab retail · firm established
+headline [money.turnover_down_costs_up]: La Libris SRL, cifra de afaceri a scăzut cu 3,5%, iar cheltuielile au crescut.
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  Bani: bine · profit în fiecare din ultimii 3 ani  [money.profit_pretax.2025, money.profit_pretax.2024, money.profit_pretax.2023]
+  Echipă: bine · 106 salariați  [people.employees.2025]
+  Online: bine · site-ul funcționează  [site.audit.important]
+  Clienți: bine · ușor de contactat  [site.contact.present, site.booking.present]
+  finding 1: +23% · 2023–2025: cheltuielile au crescut cu 23%, cifra de afaceri a crescut cu 17%.
+  finding 2: 4 lei din 100 · Din fiecare 100 de lei facturați în 2025 firmei i-au rămas 4 lei, înainte de impozit.
+  meaning: Din 2023 până în 2025, cifra de afaceri a crescut cu 17%, iar cheltuielile au crescut cu 23%. Pe cele 26 de pagini citite, un client nou găsește cum să ia legătura cu firma. Înainte să lucrați împreună, verificați la sursă registrele pe care nu le-am verificat noi.
+  customer: Pe site găsește un telefon, un e-mail sau un formular de contact. | Vede prețuri pe 10 pagini.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  counts: {"officialSources":3,"pagesRead":26,"facts":137,"estimates":0}
+  due diligence: Starea la ANAF: Activă (înregistrată) | Plătitor de TVA: Da | Bilanțuri: Bilanțuri pentru 7 din 7 ani | Datorii la stat (lista ANAF a datornicilor): neverificat de noi | Buletinul procedurilor de insolvență (BPI): neverificat de noi | Arhiva electronică de garanții (RNPM): neverificat de noi | Dosare în instanță (portal.just.ro): neverificat de noi | Administratori (certificat constatator ONRC): neverificat de noi
+
+=== Esthetique Beauty Center (15266478) · proprietar · vocab beauty · firm established
+headline [positive.growth]: Firma ta merge bine: cifra de afaceri a crescut cu 18%.
+  Bani: bine · profit în fiecare din ultimii 3 ani  [money.profit_pretax.2025, money.profit_pretax.2024, money.profit_pretax.2023]
+  Clienți: neverificat · niciun site confirmat de verificat  [site.status]
+  Online: de_rezolvat · domeniu parcat sau de vânzare  [site.status]
+  Echipă: bine · un salariat  [people.employees.2025]
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  finding 1: Domeniul afișează o pagină parcată sau «de vânzare» · Adresa site-ului arată un domeniu parcat sau de vânzare.
+  finding 2: 25 lei din 100 · Din fiecare 100 de lei facturați în 2025 ți-au rămas 25 lei, înainte de impozit.
+  action 1: Mută site-ul de pe domeniul parcat sau nefuncțional · cu_vortex · cine te caută găsește firma, nu un anunț de vânzare
+  meaning: Din 2023 până în 2025, cifra de afaceri a crescut cu 80%, iar cheltuielile au crescut cu 42%. Primul pas: mută site-ul de pe domeniul parcat sau nefuncțional.
+  customer: Domeniul afișează o pagină parcată sau «de vânzare».
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  ifNothing: Dacă tendința din 2023–2025 continuă, cifra ta de afaceri din 2026 ar putea fi între 222 mii lei și 286 mii lei.
+  counts: {"officialSources":3,"pagesRead":0,"facts":69,"estimates":0}
+
+=== Esthetique Beauty Center (15266478) · client_furnizor · vocab beauty · firm established
+headline [positive.growth]: Esthetique Beauty Center SRL merge bine: cifra de afaceri a crescut cu 18%.
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  Bani: bine · profit în fiecare din ultimii 3 ani  [money.profit_pretax.2025, money.profit_pretax.2024, money.profit_pretax.2023]
+  Echipă: bine · un salariat  [people.employees.2025]
+  Online: de_rezolvat · domeniu parcat sau de vânzare  [site.status]
+  Clienți: neverificat · niciun site confirmat de verificat  [site.status]
+  finding 1: Domeniul afișează o pagină parcată sau «de vânzare» · Adresa site-ului arată un domeniu parcat sau de vânzare.
+  finding 2: 25 lei din 100 · Din fiecare 100 de lei facturați în 2025 firmei i-au rămas 25 lei, înainte de impozit.
+  meaning: Din 2023 până în 2025, cifra de afaceri a crescut cu 80%, iar cheltuielile au crescut cu 42%. Înainte să lucrați împreună, verificați la sursă registrele pe care nu le-am verificat noi.
+  customer: Domeniul afișează o pagină parcată sau «de vânzare».
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  ifNothing: Dacă tendința din 2023–2025 continuă, cifra de afaceri din 2026 ar putea fi între 222 mii lei și 286 mii lei.
+  counts: {"officialSources":3,"pagesRead":0,"facts":69,"estimates":0}
+  due diligence: Starea la ANAF: Activă (înregistrată) | Plătitor de TVA: Da | Bilanțuri: Bilanțuri pentru 7 din 7 ani | Datorii la stat (lista ANAF a datornicilor): neverificat de noi | Buletinul procedurilor de insolvență (BPI): neverificat de noi | Arhiva electronică de garanții (RNPM): neverificat de noi | Dosare în instanță (portal.just.ro): neverificat de noi | Administratori (certificat constatator ONRC): neverificat de noi
+
+=== Vancsa-Multipast (2566619) · proprietar · vocab manufacturing · firm established
+headline [bani.growing_keeps_less]: Firma ta crește, dar îți rămân tot mai puțini lei din 100.
+  Bani: atentie · profitul a scăzut cu 79% față de 2024  [money.profit_change, money.margin_pretax.2025]
+  Clienți: bine · ușor de contactat  [site.contact.present, site.booking.present]
+  Online: atentie · o problemă importantă pe site  [site.audit.important]
+  Echipă: bine · 10 salariați  [people.employees.2025]
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  finding 1: 2,3 mil. lei · Cifra de afaceri a crescut cu 1,2% între 2024 și 2025, de la 2,27 la 2,30 mil. lei.
+  action 1: Revendică sau completează profilul Google · singur · apari cu datele corecte în căutările Google și pe hartă
+  meaning: Din 2023 până în 2025, cifra de afaceri a scăzut cu 12%, iar cheltuielile au scăzut cu 8%. Pe cele 10 pagini citite, un client nou găsește cum să ia legătura cu firma. Primul pas: revendică sau completează profilul Google.
+  customer: Pe site găsește un telefon, un e-mail sau un formular de contact.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  counts: {"officialSources":3,"pagesRead":10,"facts":92,"estimates":0}
+
+=== Vancsa-Multipast (2566619) · client_furnizor · vocab manufacturing · firm established
+headline [bani.growing_keeps_less]: Productie Prestari si Comert Vancsa-Multipast SRL crește, dar îi rămân tot mai puțini lei din 100.
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  Bani: atentie · profitul a scăzut cu 79% față de 2024  [money.profit_change, money.margin_pretax.2025]
+  Echipă: bine · 10 salariați  [people.employees.2025]
+  Online: atentie · o problemă importantă pe site  [site.audit.important]
+  Clienți: bine · ușor de contactat  [site.contact.present, site.booking.present]
+  finding 1: 2,3 mil. lei · Cifra de afaceri a crescut cu 1,2% între 2024 și 2025, de la 2,27 la 2,30 mil. lei.
+  meaning: Din 2023 până în 2025, cifra de afaceri a scăzut cu 12%, iar cheltuielile au scăzut cu 8%. Pe cele 10 pagini citite, un client nou găsește cum să ia legătura cu firma. Înainte să lucrați împreună, verificați la sursă registrele pe care nu le-am verificat noi.
+  customer: Pe site găsește un telefon, un e-mail sau un formular de contact.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  counts: {"officialSources":3,"pagesRead":10,"facts":92,"estimates":0}
+  due diligence: Starea la ANAF: Activă (înregistrată) | Plătitor de TVA: Da | Bilanțuri: Bilanțuri pentru 7 din 7 ani | Datorii la stat (lista ANAF a datornicilor): neverificat de noi | Buletinul procedurilor de insolvență (BPI): neverificat de noi | Arhiva electronică de garanții (RNPM): neverificat de noi | Dosare în instanță (portal.just.ro): neverificat de noi | Administratori (certificat constatator ONRC): neverificat de noi
+
+=== Expres Transport (3365133) · proprietar · vocab transport · firm established
+headline [positive.growth]: Firma ta merge bine: cifra de afaceri a crescut cu 19%.
+  Bani: bine · profit în fiecare din ultimii 3 ani  [money.profit_pretax.2025, money.profit_pretax.2024, money.profit_pretax.2023]
+  Clienți: bine · ușor de contactat  [site.contact.present, site.booking.present]
+  Online: atentie · CUI-ul nu apare pe site  [site.cui.present, site.reg_no.present]
+  Echipă: bine · 25 de salariați  [people.employees.2025]
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  finding 1: 10 lei din 100 · Din fiecare 100 de lei facturați în 2025 ți-au rămas 10 lei, înainte de impozit.
+  action 0 (obligatoriu): Pune pe site codul fiscal (CUI) și datele firmei · singur · obligatoriu prin lege (Legea 365/2002)
+  meaning: Din 2023 până în 2025, cifra de afaceri a crescut cu 35%, iar cheltuielile au crescut cu 32%. Pe cele 6 pagini citite, un client nou găsește cum să ia legătura cu firma, dar nu poate face o cerere de ofertă online. Primul pas: pune pe site codul fiscal (CUI) și datele firmei.
+  customer: Pe site găsește un telefon, un e-mail sau un formular de contact. | Poate trimite o cerere prin formularul de pe site.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  ifNothing: Dacă tendința din 2023–2025 continuă, cifra ta de afaceri din 2026 ar putea fi între 14,8 mil. lei și 15,4 mil. lei.
+  counts: {"officialSources":3,"pagesRead":6,"facts":92,"estimates":0}
+
+=== Expres Transport (3365133) · client_furnizor · vocab transport · firm established
+headline [positive.growth]: Expres Transport SRL merge bine: cifra de afaceri a crescut cu 19%.
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  Bani: bine · profit în fiecare din ultimii 3 ani  [money.profit_pretax.2025, money.profit_pretax.2024, money.profit_pretax.2023]
+  Echipă: bine · 25 de salariați  [people.employees.2025]
+  Online: atentie · CUI-ul nu apare pe site  [site.cui.present, site.reg_no.present]
+  Clienți: bine · ușor de contactat  [site.contact.present, site.booking.present]
+  finding 1: 10 lei din 100 · Din fiecare 100 de lei facturați în 2025 firmei i-au rămas 10 lei, înainte de impozit.
+  meaning: Din 2023 până în 2025, cifra de afaceri a crescut cu 35%, iar cheltuielile au crescut cu 32%. Pe cele 6 pagini citite, un client nou găsește cum să ia legătura cu firma, dar nu poate face o cerere de ofertă online. Înainte să lucrați împreună, verificați la sursă registrele pe care nu le-am verificat noi.
+  customer: Pe site găsește un telefon, un e-mail sau un formular de contact. | Poate trimite o cerere prin formularul de pe site.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  ifNothing: Dacă tendința din 2023–2025 continuă, cifra de afaceri din 2026 ar putea fi între 14,8 mil. lei și 15,4 mil. lei.
+  counts: {"officialSources":3,"pagesRead":6,"facts":92,"estimates":0}
+  due diligence: Starea la ANAF: Activă (înregistrată) | Plătitor de TVA: Da | Bilanțuri: Bilanțuri pentru 7 din 7 ani | Datorii la stat (lista ANAF a datornicilor): neverificat de noi | Buletinul procedurilor de insolvență (BPI): neverificat de noi | Arhiva electronică de garanții (RNPM): neverificat de noi | Dosare în instanță (portal.just.ro): neverificat de noi | Administratori (certificat constatator ONRC): neverificat de noi
+
+=== Confiscal (8643290) · proprietar · vocab professional · firm established
+headline [bani.growing_keeps_less]: Firma ta crește, dar îți rămân tot mai puțini lei din 100.
+  Bani: atentie · profitul a scăzut cu 19% față de 2024  [money.profit_change, money.margin_pretax.2025]
+  Clienți: neverificat · niciun site confirmat de verificat  [site.status]
+  Online: de_rezolvat · domeniul nu funcționează  [site.status]
+  Echipă: bine · un salariat  [people.employees.2025]
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  finding 1: Domeniul nu funcționează · Adresa site-ului nu se deschide.
+  finding 2: 249 mii lei · Cifra de afaceri a crescut cu 28% între 2024 și 2025, de la 195 mii lei la 249 mii lei.
+  action 1: Mută site-ul de pe domeniul parcat sau nefuncțional · cu_vortex · cine te caută găsește firma, nu un anunț de vânzare
+  meaning: Din 2023 până în 2025, cifra de afaceri a crescut cu 90%, iar cheltuielile au scăzut cu 3,7%. Primul pas: mută site-ul de pe domeniul parcat sau nefuncțional.
+  customer: Domeniul nu funcționează.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  ifNothing: Dacă tendința din 2023–2025 continuă, cifra ta de afaceri din 2026 ar putea fi între 319 mii lei și 371 mii lei.
+  counts: {"officialSources":3,"pagesRead":0,"facts":69,"estimates":0}
+
+=== Confiscal (8643290) · client_furnizor · vocab professional · firm established
+headline [bani.growing_keeps_less]: Consilier Financiar Contabil si Fiscal, Confiscal SRL crește, dar îi rămân tot mai puțini lei din 100.
+  Risc: neverificat · instanțe neverificate  [identity.status]
+  Bani: atentie · profitul a scăzut cu 19% față de 2024  [money.profit_change, money.margin_pretax.2025]
+  Echipă: bine · un salariat  [people.employees.2025]
+  Online: de_rezolvat · domeniul nu funcționează  [site.status]
+  Clienți: neverificat · niciun site confirmat de verificat  [site.status]
+  finding 1: Domeniul nu funcționează · Adresa site-ului nu se deschide.
+  finding 2: 249 mii lei · Cifra de afaceri a crescut cu 28% între 2024 și 2025, de la 195 mii lei la 249 mii lei.
+  meaning: Din 2023 până în 2025, cifra de afaceri a crescut cu 90%, iar cheltuielile au scăzut cu 3,7%. Înainte să lucrați împreună, verificați la sursă registrele pe care nu le-am verificat noi.
+  customer: Domeniul nu funcționează.
+  rivals: Comparația cu firme similare nu e încă gata; apare aici când încărcăm bilanțurile lor.
+  ifNothing: Dacă tendința din 2023–2025 continuă, cifra de afaceri din 2026 ar putea fi între 319 mii lei și 371 mii lei.
+  counts: {"officialSources":3,"pagesRead":0,"facts":69,"estimates":0}
+  due diligence: Starea la ANAF: Activă (înregistrată) | Plătitor de TVA: Da | Bilanțuri: Bilanțuri pentru 7 din 7 ani | Datorii la stat (lista ANAF a datornicilor): neverificat de noi | Buletinul procedurilor de insolvență (BPI): neverificat de noi | Arhiva electronică de garanții (RNPM): neverificat de noi | Dosare în instanță (portal.just.ro): neverificat de noi | Administratori (certificat constatator ONRC): neverificat de noi
+
+PROBLEMS:
+none

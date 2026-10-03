@@ -152,3 +152,57 @@ Prioritar, Potențial ridicat, "Bun" on automation potential, €/€€/€€�
 - Lower-case titles inside sentences with `lcFirst`; keep acronyms (AI, AWB, SEO) as they are.
 - Business type in a sentence: `o afacere de tipul „Clinică stomatologică”`, or a parenthesis
   (`afacerea ta (clinică stomatologică)`), since the label has no article.
+
+## Cercetare aprofundată (deep research)
+
+The deep report reads the same word list as its verifier and templates
+(`src/lib/deep/report/words.ts`), so the quick scan and the deep report never drift apart. The
+"Cifre" and "Dovezi" tabs may use a technical term with an explanation on tap; the top layer
+("Pe scurt", the PDF's first pages, the summary text) uses the words on the right.
+
+| Avoid                                     | Write                                                                            |
+| ----------------------------------------- | -------------------------------------------------------------------------------- |
+| Vânzări                                   | Cifra de afaceri                                                                 |
+| marjă; "din 100 de lei încasați"          | "din fiecare 100 de lei facturați, îți rămân X"                                  |
+| mediana, P25–P75, jumătatea din mijloc    | "o firmă obișnuită din activitatea ta", "majoritatea: între X și Y"              |
+| peste 41% din clinici                     | "mai bine decât 41 din 100" (20 firms or more) or "a 3-a din 9" (fewer than 20)  |
+| reclamant / pârât; "2 dosare"             | "ai deschis 2 procese" / "ai fost dat în judecată"                               |
+| raportul de lichiditate                   | (not shown in v1)                                                                |
+| neprezentări                              | "clienți care nu vin la programare"                                              |
+| PageSpeed, GA4, SEO, API, CAEN, CUI (top) | "testul de viteză Google", "statistici despre vizitatori", "apari în căutări"    |
+| Calcul Vortex                             | "Estimarea noastră (vezi ipotezele)"                                             |
+| Firma e sănătoasă                         | "Nu apar semnale de risc în registrele publice verificate"                       |
+| Angajați 2025                             | "Salariați, medie 2025 (din bilanț)"                                             |
+| date valabile la <azi>                    | "Verificat azi, <data> · bilanț 2025"                                            |
+| Nu ai programare online                   | "Nu am găsit programare online pe cele N pagini citite"                          |
+| Cu noi                                    | "Cu Vortex Hub"                                                                  |
+| Premium · deschis pentru test             | "Gratuit în perioada de test" (open, code) / "Inclus în Growth și Pro" (premium) |
+| Nu facem dosare despre oameni             | "Nu facem profiluri despre persoane"                                             |
+| partener (for a business contact)         | colaborator, client, furnizor                                                    |
+
+Banned everywhere in the deep top layer: "fără clienți pierduți", "garantat", "singura
+problemă", "Esențial", "Impact mare", "Recomandat", "Partener", "sănătos" (for a ratio).
+
+**The five lines** use their own status set, separate from the quick scan's score tiers
+(Bun / Acceptabil / Slab): ■ Bine, ◆ Atenție, ● De rezolvat, □ Neverificat. Each reason is at
+most 40 characters ("îți rămân 9 lei din 100"). Third parties read the same reasons in the third
+person ("rămân 9 lei din 100", "angajează").
+
+**Confidence legend** ("Dovezi"): Confirmat (official source or the firm's own site), Probabil,
+Calculat (our arithmetic on official figures), Estimare (our estimate, see the assumptions),
+Declarat de tine.
+
+**Money.** Three kinds of money are never added together: "valoarea orelor câștigate" (lei pe
+lună), "profit în plus pe an, înainte de impozit" and cash collected sooner (not valued in v1).
+The value of an hour of office work is the same on /scan and /scan/deep: 1,2 × salariul minim
+brut + CAM, împărțit la 168 de ore (about 32 lei), or the activity's average pay when lower, said
+next to the first lei figure ("presupunem 32 lei/oră pentru munca de birou · schimbă"). One
+calendar: 21 de zile lucrătoare și 168 de ore pe lună.
+
+**Sector words** (`src/lib/deep/vocab.ts`, by CAEN division): pacient / programare / recepție and
+the line "Pacienți" (86); clientă sau client, programare (96); client sau oaspete, rezervare,
+sală (56); oaspete, rezervare and the line "Oaspeți" (55); client, comandă, magazin (47); client,
+cerere de ofertă, "Ca un client care cere o ofertă" (46); client sau distribuitor, comandă
+(10–33); client, programare la service (45); client, cerere de ofertă, ofertare (41–43);
+client, cerere de ofertă, dispecerat (49–53); client, proiect (62–63); client, întâlnire, birou
+(69–74); client, cerere, echipă (everything else).

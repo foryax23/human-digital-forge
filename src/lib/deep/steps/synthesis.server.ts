@@ -13,6 +13,7 @@ import type {
 } from "../contracts";
 import type { StepEnv } from "../env.server";
 import { sectionsToBrief, synthesize } from "../llm/synthesis.server";
+import { SECTOR_WORDS } from "../vocab";
 
 import { isoDay, type StepDraft } from "./common.server";
 import {
@@ -22,7 +23,7 @@ import {
   mergeGaps,
   peersFromFacts,
 } from "./merge.server";
-import { SECTOR_WORDS, type ReportBuilder, type ReportParts } from "./report-fallback.server";
+import type { ReportBuilder, ReportParts } from "./report-fallback.server";
 
 /*
  * Step 9, "synthesis" (plan A3, A7): part "warm" writes the prompt cache;

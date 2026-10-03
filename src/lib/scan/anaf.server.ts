@@ -1,3 +1,8 @@
+import {
+  isNaturalPersonEntity,
+  isResidentialAddress,
+  naturalPersonForm as naturalPersonFormOf,
+} from "@/lib/deep/parse/registry";
 import { loadCaenLabel } from "@/lib/scan/caen";
 import { prettifyCompanyName } from "@/lib/scan/company-search";
 import type { CompanyProfile } from "@/lib/scan/types";
@@ -126,43 +131,31 @@ function cleanAddress(raw?: string): string | undefined {
 
 /* ------------------------------------------------------------- privacy */
 
-/**
- * Sole traders, individual and family businesses and individual practices.
- * ONRC files natural persons under "F" numbers; the name rules match the
- * company index build (scripts/scan/build-company-index.mjs), which leaves
- * these out for the same reason.
+/*
+ * Sole traders, individual and family businesses and individual practices, and
+ * seats in a flat: one rule for the quick scan and deep research (plan B2), in
+ * the pure src/lib/deep/parse/registry.ts (unit-tested there). ONRC files
+ * natural persons under "F" numbers; the name rules match the company index
+ * build (scripts/scan/build-company-index.mjs). The flat test now also counts
+ * "et." / "etaj" (stricter than before: a seat on a numbered floor shows the
+ * locality and county only).
  */
-const NATURAL_PERSON_FORM =
-  /persoan[aă] fizic|[iî]ntreprindere (individual|familial)|asocia[tț]ie familial|^(pf|pfa|ii|if|af)$/i;
-const NATURAL_PERSON_NAME =
-  /persoan[aă] fizic[aă]|[iî]ntreprindere (individual|familial)|asocia[tț]ie familial|\b(cabinet|birou)\b.*\bindividual|\s(p\.?f\.?a\.?|p\.?f\.?|i\.?i\.?|i\.?f\.?|a\.?f\.?)$/i;
-
 function isNaturalPerson(general: NonNullable<AnafRecord["date_generale"]>): boolean {
-  if (/^F/i.test(general.nrRegCom?.trim() ?? "")) return true;
-  if (/persoan[aă] fizic/i.test(fixCedilla(general.forma_organizare ?? ""))) return true;
-  if (NATURAL_PERSON_FORM.test(fixCedilla(general.forma_juridica ?? "").trim())) return true;
-  return NATURAL_PERSON_NAME.test(
-    fixCedilla(general.denumire ?? "")
-      .replace(/\s+/g, " ")
-      .trim(),
-  );
+  return isNaturalPersonEntity({
+    legalForm: general.forma_juridica,
+    name: general.denumire,
+    regNo: general.nrRegCom,
+    organizationForm: general.forma_organizare,
+  });
 }
 
 /** A readable legal form for a natural-person business. */
 function naturalPersonForm(general: NonNullable<AnafRecord["date_generale"]>): string {
-  const text = fixCedilla(`${general.forma_juridica ?? ""} ${general.denumire ?? ""}`)
-    .replace(/\s+/g, " ")
-    .trim();
-  if (/familial|\si\.?f\.?$/i.test(text)) return "Întreprindere familială (IF)";
-  if (/[iî]ntreprindere individual|\si\.?i\.?$/i.test(text)) {
-    return "Întreprindere individuală (II)";
-  }
-  if (/autorizat|\bp\.?f\.?a\.?$/i.test(text)) return "Persoană fizică autorizată (PFA)";
-  return "Persoană fizică (activitate independentă)";
+  return naturalPersonFormOf({ legalForm: general.forma_juridica, name: general.denumire });
 }
 
-/** Apartment-block markers (ap., bl., sc., cam.): a seat in a flat is usually a home. */
-const FLAT = /(^|[\s,.])(ap|apt|apartament|bl|bloc|sc|scara|cam|camera)(\.|\s)\s*\w/i;
+/** Apartment-block markers (ap., bl., sc., et., cam.): a seat in a flat is usually a home. */
+const FLAT = { test: (value: string) => isResidentialAddress(value) };
 
 const fold = (s: string) =>
   s

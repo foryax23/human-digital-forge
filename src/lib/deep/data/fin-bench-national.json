@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "generatedBy": "scripts/scan/build-fin-shards.mjs",
+    "sample": true,
+    "note": "SYNTHETIC SAMPLE built from tests/deep/shard/synthetic.mjs: not real companies. Class keys carry a SAMPLE- prefix so no real CAEN lookup can match. Replaced by the real build once the Ministry of Finance download is approved.",
+    "year": 2025,
+    "builtAt": "2026-10-03T00:00:00.000Z",
+    "source": "Sursa: Ministerul Finanțelor, situații financiare 2025, data.gov.ro, CC BY 4.0",
+    "datasetDate": "2026-06-11",
+    "metrics": ["turnover", "marginPretax", "employees", "revPerEmp", "growth"],
+    "fields": ["p25", "p50", "p75", "n"],
+    "hiddenUnder": 5
+  },
+  "classes": {
+    "SAMPLE-0111": {
+      "n": 8,
+      "turnover": [273467, 342213, 542674, 8],
+      "marginPretax": [0.12, 0.12, 0.12, 8],
+      "employees": [3, 5, 7, 8],
+      "revPerEmp": [55444, 78408, 121027, 8],
+      "growth": [0.1111, 0.1111, 0.1111, 8]
+    },
+    "SAMPLE-4941": {
+      "n": 30,
+      "turnover": [1380484, 3250356, 6833455, 30],
+      "marginPretax": [-0.0063, 0.0854, 0.1629, 30],
+      "employees": [9.3, 17.5, 23, 30],
+      "revPerEmp": [83956, 196892, 604999, 30],
+      "growth": [-0.0178, 0.0805, 0.1126, 30]
+    },
+    "SAMPLE-6201": {
+      "n": 6,
+      "turnover": [219299, 295200, 343140, 6],
+      "marginPretax": [0.2, 0.2, 0.2, 6],
+      "employees": [1, 1.5, 2.8, 6],
+      "revPerEmp": [182067, 216447, 259057, 6]
+    },
+    "SAMPLE-8623": {
+      "n": 63,
+      "turnover": [588738, 835379, 2348458, 63],
+      "marginPretax": [0.0137, 0.0926, 0.1795, 63],
+      "employees": [4, 10, 14, 63],
+      "revPerEmp": [55140, 137238, 290321, 63],
+      "growth": [-0.0538, 0.0638, 0.1761, 63]
+    }
+  }
+}
