@@ -1,15 +1,19 @@
 /*
  * A fake Supabase client for the persistence tests: in-memory tables behind
  * the subset of the supabase-js query builder the deep stores use (select with
- * head counts, insert/update/delete with returning, eq/neq/gte/lt/lte/in on
- * columns and on JSON paths "answers->>key", order, limit, maybeSingle,
- * single) plus scripted RPC handlers and error injection. It never talks to a
- * network: the real database is never touched by a test.
+ * head counts, insert/upsert/update/delete with returning, eq/neq/gte/lt/lte/in
+ * on columns and on JSON paths "answers->>key", order, limit, maybeSingle,
+ * single), column defaults per table (as the SQL declares them), the primary key on
+ * insert (23505), HEAD requests to a missing table answered as the real client
+ * does (no error, no count), scripted RPC
+ * handlers (fake-lovable-sql.ts ports the applied SQL functions) and error
+ * injection. It never talks to a network: the real database is never touched by
+ * a test.
  */
 
 type Row = Record<string, unknown>;
 export type DbError = { code?: string; message?: string };
-type Op = "select" | "insert" | "update" | "delete";
+type Op = "select" | "insert" | "upsert" | "update" | "delete";
 
 export type FakeOptions = {
   now?: () => number;
@@ -50,6 +54,8 @@ export class FakeSupabase {
     (args: Record<string, unknown>) => { data: unknown; error: DbError | null }
   > = {};
   log: Array<{ table?: string; fn?: string; op?: Op; args?: unknown }> = [];
+  /** Column defaults per table, applied on insert before the given values (SQL `default`). */
+  defaults: Record<string, (now: number) => Row> = {};
   constructor(public opts: FakeOptions = {}) {}
 
   now() {
@@ -73,6 +79,16 @@ export class FakeSupabase {
   rows(table: string): Row[] {
     return (this.tables[table] ??= []);
   }
+
+  /** A new row as the database would store it: id, created_at, then the table's defaults. */
+  newRow(table: string, values: Row): Row {
+    return {
+      id: globalThis.crypto.randomUUID(),
+      created_at: new Date(this.now()).toISOString(),
+      ...(this.defaults[table]?.(this.now()) ?? {}),
+      ...clone(values),
+    };
+  }
 }
 
 class Query implements PromiseLike<{ data: unknown; error: DbError | null; count: number | null }> {
@@ -85,6 +101,7 @@ class Query implements PromiseLike<{ data: unknown; error: DbError | null; count
   private returning = false;
   private head = false;
   private count = false;
+  private conflict: string[] = ["id"];
 
   constructor(
     private db: FakeSupabase,
@@ -101,6 +118,12 @@ class Query implements PromiseLike<{ data: unknown; error: DbError | null; count
   insert(rows: unknown) {
     this.op = "insert";
     this.payload = rows;
+    return this;
+  }
+  upsert(rows: unknown, opts?: { onConflict?: string }) {
+    this.op = "upsert";
+    this.payload = rows;
+    if (opts?.onConflict) this.conflict = opts.onConflict.split(",").map((c) => c.trim());
     return this;
   }
   update(patch: unknown) {
@@ -178,6 +201,10 @@ class Query implements PromiseLike<{ data: unknown; error: DbError | null; count
     const op = this.op ?? "select";
     this.db.log.push({ table: this.table, op });
     const err = this.db.opts.fail?.({ table: this.table, op });
+    // As the real client does: a HEAD request to a missing table gets a 404 with no body,
+    // which postgrest-js reports as success with no count (status 204, error null).
+    if (err && this.head && op === "select" && err.code === "PGRST205")
+      return { data: null, error: null, count: null };
     if (err) return { data: null, error: err, count: null };
     const all = this.db.rows(this.table);
     const match = () => all.filter((row) => this.filters.every((f) => f(row)));
@@ -205,13 +232,34 @@ class Query implements PromiseLike<{ data: unknown; error: DbError | null; count
         return shape(match());
       case "insert": {
         const list = (Array.isArray(this.payload) ? this.payload : [this.payload]) as Row[];
-        const inserted = list.map((r) => ({
-          id: globalThis.crypto.randomUUID(),
-          created_at: new Date(this.db.now()).toISOString(),
-          ...clone(r),
-        }));
+        const inserted = list.map((r) => this.db.newRow(this.table, r));
+        // The primary key: an id already present is refused, and nothing is inserted.
+        if (inserted.some((r) => all.some((row) => String(row.id) === String(r.id))))
+          return {
+            data: null,
+            error: { code: "23505", message: "duplicate key value violates unique constraint" },
+            count: null,
+          };
         all.push(...inserted);
         return this.returning ? shape(inserted) : { data: null, error: null, count: null };
+      }
+      case "upsert": {
+        const list = (Array.isArray(this.payload) ? this.payload : [this.payload]) as Row[];
+        const out: Row[] = [];
+        for (const r of list) {
+          const hit = all.find((row) =>
+            this.conflict.every((c) => String(row[c]) === String(r[c])),
+          );
+          if (hit) {
+            Object.assign(hit, clone(r));
+            out.push(hit);
+          } else {
+            const row = this.db.newRow(this.table, r);
+            all.push(row);
+            out.push(row);
+          }
+        }
+        return this.returning ? shape(out) : { data: null, error: null, count: null };
       }
       case "update": {
         const rows = match();

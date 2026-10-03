@@ -738,13 +738,21 @@ function LivePage({ search, setSearch }: { search: DeepSearch; setSearch: SetSea
     content = (
       <section className="max-w-[40rem]">
         <h2 className="type-title text-fg">
-          {t("We can't find this research in this browser", "Nu găsim cercetarea în acest browser")}
+          {t("We can't open this research here", "Nu putem deschide cercetarea aici")}
         </h2>
         <p className="mt-2 text-fg-2">
           {t(
-            "Reports stay in the browser where they were made until server storage is on. Start a new one from Vortex Scan.",
-            "Rapoartele rămân în browserul în care au fost făcute, până pornim salvarea pe server. Pornește una nouă din Vortex Scan.",
+            "An unfinished research continues only in the browser where it started, and finished reports are kept for 90 days on the account that made them.",
+            "O cercetare neterminată continuă doar în browserul în care a pornit, iar rapoartele terminate rămân 90 de zile în contul care le-a făcut.",
           )}
+        </p>
+        <p className="mt-4">
+          <Link
+            to="/dashboard/research"
+            className="font-medium text-fg underline underline-offset-4"
+          >
+            {t("See your reports", "Vezi rapoartele tale")}
+          </Link>
         </p>
       </section>
     );
@@ -831,10 +839,18 @@ function NoCompany({ uid }: { uid: string | null }) {
           "Caută firma în Vortex Scan; cercetarea aprofundată pornește din rezultatele ei.",
         )}
       </p>
-      <p className="mt-4">
+      <p className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
         <Link to="/scan" className="font-medium text-fg underline underline-offset-4">
           {t("Go to Vortex Scan", "Mergi la Vortex Scan")}
         </Link>
+        {uid ? (
+          <Link
+            to="/dashboard/research"
+            className="font-medium text-fg underline underline-offset-4"
+          >
+            {t("All your reports", "Toate rapoartele tale")}
+          </Link>
+        ) : null}
       </p>
       {list.length ? (
         <div className="mt-8">

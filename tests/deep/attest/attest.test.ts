@@ -7,6 +7,7 @@ import {
   normalizeVerificationCode,
   openCursor,
   reportAttestation,
+  storedReportGenuine,
   sealCursor,
   sealResult,
   verificationCode,
@@ -185,4 +186,27 @@ test("report attestation and verification code", async () => {
   );
   assert.equal(normalizeVerificationCode(code.toLowerCase().replace("-", " ")), code);
   assert.equal(normalizeVerificationCode("12"), null);
+});
+
+test("a stored report is genuine only when its attestation recomputes (public verification)", async () => {
+  const report = { schema: 1, runId: "run-1", cui: "3365133", facts: [] } as unknown as DeepReport;
+  const reportAtt = await reportAttestation(SECRET, "run-1", report);
+  const code = verificationCode(reportAtt);
+  // Stored as JSON (jsonb): key order and the code inside the report do not matter.
+  const stored = JSON.parse(JSON.stringify({ ...report, verifyCode: code })) as DeepReport;
+  const genuine = { runId: "run-1", report: stored, reportAtt };
+  assert.equal(await storedReportGenuine(SECRET, genuine, code), true);
+  // A planted row: any report, any att, the code it claims.
+  assert.equal(
+    await storedReportGenuine(
+      SECRET,
+      { ...genuine, report: { ...stored, cui: "1" } as DeepReport },
+      code,
+    ),
+    false,
+  );
+  assert.equal(await storedReportGenuine(SECRET, { ...genuine, runId: "run-2" }, code), false);
+  assert.equal(await storedReportGenuine(SECRET, { ...genuine, reportAtt: "forged" }, code), false);
+  assert.equal(await storedReportGenuine("another-secret-0123456789", genuine, code), false);
+  assert.equal(await storedReportGenuine(SECRET, genuine, "AAAA-AAAA"), false);
 });

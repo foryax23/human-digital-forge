@@ -13,6 +13,7 @@ import {
   DEEP_PLAN,
   type AccessReason,
   type AccessVia,
+  type AdminBy,
   type ConsentRecord,
   type DeepReport,
   type DeepStepInput,
@@ -218,6 +219,8 @@ export async function engineStart(
   args: {
     uid: string;
     via: AccessVia;
+    /** For via "admin": how the admin was admitted (kept in the ticket for the step checks). */
+    adminBy?: AdminBy;
     input: StartDeepRunInput;
     store: DeepStore;
     storeKind: TicketPayload["store"];
@@ -300,6 +303,7 @@ export async function engineStart(
       uid: args.uid,
       cui,
       via: args.via,
+      ...(args.via === "admin" && args.adminBy ? { adminBy: args.adminBy } : {}),
       store: args.storeKind,
       budgetUsd: deps.config.runBudgetUsd,
       lang: args.input.lang,
@@ -398,7 +402,7 @@ export async function engineStep(
   const t = checked.payload;
   if (deps.config.mode === "disabled") return { kind: "refused", reason: "mode_disabled" };
   // Still entitled now (an admin removed, or the mode switched back, takes effect here).
-  if (!ticketAdmitted(deps.config, t.via, args.uid))
+  if (!ticketAdmitted(deps.config, t.via, args.uid, t.adminBy))
     return { kind: "refused", reason: "admin_only" };
   const store = deps.storeFor(t.store);
   const input = args.input;

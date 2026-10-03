@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { resetAnafIsolateClock } from "../../../src/lib/deep/anaf-pacer.server";
+import { storedReportGenuine } from "../../../src/lib/deep/attest.server";
 import { readDeepConfig } from "../../../src/lib/deep/env.server";
 import type { DeepDb } from "../../../src/lib/deep/persist-db.server";
 import { createStopgapStore, STOPGAP } from "../../../src/lib/deep/persist-stopgap.server";
@@ -10,9 +10,10 @@ import { buildReportParts } from "../../../src/lib/deep/report/index";
 import { engineStep, type EngineDeps } from "../../../src/lib/deep/steps/dispatch.server";
 import { runPipeline } from "../../../src/lib/deep/steps/pipeline.server";
 import { deepConsentRecord, DEEP_TERMS_VERSION } from "../../../src/lib/scan/legal/lead-notice";
-import { fakeDns, html, json, scriptedFetch, virtualClock } from "../steps/helpers";
+import { fakeDns, virtualClock } from "../steps/helpers";
 
 import { FakeSupabase } from "./fake-supabase";
+import { network } from "./pipeline-net";
 
 /*
  * A whole run through the real dispatcher on the stopgap store (fake
@@ -21,87 +22,8 @@ import { FakeSupabase } from "./fake-supabase";
  * its verification code. No network: ANAF and the site are scripted.
  */
 
-const fixture = (name: string) =>
-  readFileSync(new URL(`../../fixtures/deep/${name}`, import.meta.url), "utf8");
-const V9 = JSON.parse(fixture("anaf-v9.json")).records as Record<string, unknown>;
-const BILANT = JSON.parse(fixture("bilant.json"));
 const SECRET = "stopgap-pipeline-secret-0123456789";
 const UID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
-
-function bilantFor(cui: string, year: number) {
-  if (cui !== "3365133" || year < 2019)
-    return { an: year, cui: Number(cui), deni: "", caen: 0, den_caen: "", i: [] };
-  const scale = 1 - (2025 - year) * 0.08;
-  const base = BILANT.expres2025;
-  return {
-    ...base,
-    an: year,
-    i: base.i.map((row: { indicator: string; val_indicator: number }) => ({
-      ...row,
-      val_indicator:
-        row.indicator === "I20"
-          ? Math.round(25 - (2025 - year))
-          : Math.round(row.val_indicator * scale),
-    })),
-  };
-}
-
-const HOME = `<!doctype html><html lang="ro"><head><title>Expres Transport – transport marfă</title></head>
-<body><nav><a href="/contact">Contact</a></nav><main><h1>Transport rutier de mărfuri din Pecica</h1>
-<p>Facem transport intern și internațional. Cere o ofertă la telefon sau prin formular.</p></main>
-<footer>EXPRES TRANSPORT SRL · CUI RO3365133 · J02/151/1993</footer></body></html>`;
-const CONTACT = `<html lang="ro"><body><h1>Contact</h1><p>Telefon: <a href="tel:+40257000000">0257 000 000</a></p>
-<form class="wpcf7"><input type="text" name="n"><input type="email" name="e"><textarea name="m"></textarea></form></body></html>`;
-
-function network(clock: ReturnType<typeof virtualClock>) {
-  return scriptedFetch(
-    [
-      [
-        /PlatitorTvaRest\/v9\/tva/,
-        async (_u, init) => {
-          const asked = JSON.parse(String(init?.body ?? "[]")) as Array<{ cui: number }>;
-          return json({
-            cod: 200,
-            found: asked.map(({ cui }) => V9[String(cui)]).filter(Boolean),
-            notFound: [],
-          });
-        },
-      ],
-      [
-        /webservicesp\.anaf\.ro\/bilant/,
-        (u) => json(bilantFor(u.searchParams.get("cui")!, Number(u.searchParams.get("an")))),
-      ],
-      [
-        /portalquery\.just\.ro/,
-        () =>
-          new Response(
-            "<soap:Envelope><soap:Body><CautareDosareResponse><CautareDosareResult></CautareDosareResult></CautareDosareResponse></soap:Body></soap:Envelope>",
-            { status: 200, headers: { "content-type": "text/xml" } },
-          ),
-      ],
-      [/api\.ted\.europa\.eu/, () => json({ notices: [], totalNoticeCount: 0 })],
-      [
-        /exprestransport\.ro\/robots\.txt$/,
-        () =>
-          new Response("User-agent: *\nDisallow: /wp-admin\n", {
-            status: 200,
-            headers: { "content-type": "text/plain" },
-          }),
-      ],
-      [
-        /^https:\/\/exprestransport\.ro\/$/,
-        () =>
-          new Response(null, {
-            status: 301,
-            headers: { location: "https://www.exprestransport.ro/" },
-          }),
-      ],
-      [/^https:\/\/www\.exprestransport\.ro\/$/, () => html(HOME)],
-      [/exprestransport\.ro\/contact$/, () => html(CONTACT)],
-    ],
-    clock,
-  );
-}
 
 test("a full rules-only run on the stopgap store: claims, replay without a second ANAF call, stored report", async () => {
   resetAnafIsolateClock();
@@ -175,7 +97,14 @@ test("a full rules-only run on the stopgap store: claims, replay without a secon
   const json = (v: unknown) => JSON.parse(JSON.stringify(v));
   assert.deepEqual(
     json(await store.loadReport!({ verifyCode: report.verifyCode! })),
-    json({ report, reportAtt: run.reportAtt }),
+    json({ runId: run.runId, report, reportAtt: run.reportAtt }),
+  );
+  // The public check recomputes the attestation from the stored (JSON) report.
+  const stored = (await store.loadReport!({ verifyCode: report.verifyCode! }))!;
+  assert.equal(await storedReportGenuine(SECRET, stored, report.verifyCode!), true);
+  assert.equal(
+    await storedReportGenuine(SECRET, { ...stored, runId: "forged" }, report.verifyCode!),
+    false,
   );
 
   // Step results for replay are separate rows (the run row stays small).

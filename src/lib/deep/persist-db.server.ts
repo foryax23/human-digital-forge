@@ -2,6 +2,8 @@ import process from "node:process";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import type { Database as GeneratedDatabase } from "@/integrations/supabase/types";
+
 import { bucharestDayStart } from "./llm/ledger-memory.server";
 
 /* -------------------------------------------------- the hand-written schema */
@@ -21,46 +23,76 @@ type AuditLeadRow = {
   recommendation: string | null;
   answers: unknown;
 };
-type DeepRunRow = {
+
+/*
+ * The deep tables as they are APPLIED to the live database: Lovable's migration
+ * drizzle/migrations/0000_admin_roles_and_deep_ledger.sql (the source of truth),
+ * mirrored in the generated src/integrations/supabase/types.ts. The conformance
+ * checks at the end of this block fail the typecheck if a column used here is
+ * renamed or retyped there.
+ */
+export type DeepRunRow = {
   id: string;
   user_id: string;
   cui: string;
   company_name: string | null;
-  relationship: string;
+  relationship: string | null;
   lang: string;
-  access_via: string;
-  status: string;
+  /** How the run was admitted: admin, code, open, premium or free. */
+  via: string;
   ai_mode: string;
+  /** running, partial, succeeded, failed or canceled. */
+  status: string;
   budget_usd: number;
   reserved_usd: number;
   spent_usd: number;
+  consent: unknown;
   report: unknown;
   report_att: string | null;
   verify_code: string | null;
-  consent: unknown;
   metrics: unknown;
   error: string | null;
   created_at: string;
   last_activity_at: string;
-  finished_at: string | null;
-  expires_at: string;
 };
+type DeepSlotRow = {
+  run_id: string;
+  key: string;
+  used: number;
+  in_flight_at: string | null;
+  result: unknown;
+};
+type DeepClaimRow = { id: string; run_id: string; key: string; units: number; exclusive: boolean };
+type DeepBreakerRow = { id: number; until: string; reason: string | null };
 type DeepFeedbackRow = {
-  id: number;
-  run_id: string | null;
-  user_id: string | null;
+  id: string;
+  run_id: string;
+  user_id: string;
   kind: string;
   fact_id: string | null;
   message: string | null;
   value: unknown;
   created_at: string;
 };
+type DeepCallRequestRow = {
+  id: string;
+  run_id: string;
+  user_id: string;
+  email: string | null;
+  phone: string;
+  call_when: string;
+  cui: string | null;
+  lang: string | null;
+  created_at: string;
+};
 
 /**
- * The tables and functions deep research reads (docs/deep/2026-10-03-deep-research.sql
- * and the existing audit_leads and subscribers), written by hand so the generated
- * src/integrations/supabase/types.ts is never edited and the code compiles before
- * the SQL file is applied.
+ * The tables and functions deep research reads: Lovable's applied deep ledger and
+ * admin roles, the optional additive functions of
+ * drizzle/migrations/0001_deep_research_additions.sql (absent until the owner applies
+ * it; every caller falls back), and the existing audit_leads (the stopgap) and
+ * subscribers. Written by hand so the optional functions compile before they exist
+ * and the generated types.ts is never edited.
  */
 export type DeepDatabase = {
   __InternalSupabase: { PostgrestVersion: "14.5" };
@@ -78,80 +110,49 @@ export type DeepDatabase = {
         },
         { email: string }
       >;
-      deep_runs: Table<DeepRunRow, Partial<DeepRunRow>>;
-      deep_steps: Table<
-        {
+      user_roles: Table<
+        { id: string; user_id: string; role: "admin" | "moderator" | "user"; created_at: string },
+        { user_id: string; role: "admin" | "moderator" | "user" }
+      >;
+      deep_runs: Table<
+        DeepRunRow,
+        Partial<DeepRunRow> & { user_id: string; cui: string; via: string }
+      >;
+      deep_slots: Table<DeepSlotRow, Partial<DeepSlotRow> & { run_id: string; key: string }>;
+      deep_claims: Table<DeepClaimRow, Partial<DeepClaimRow> & { run_id: string; key: string }>;
+      deep_breaker: Table<DeepBreakerRow, Partial<DeepBreakerRow>>;
+      deep_feedback: Table<
+        DeepFeedbackRow,
+        Partial<DeepFeedbackRow> & { run_id: string; user_id: string; kind: string }
+      >;
+      deep_call_requests: Table<
+        DeepCallRequestRow,
+        Partial<DeepCallRequestRow> & {
           run_id: string;
-          step_key: string;
-          used: number;
-          in_flight_at: string | null;
-          result: unknown;
-          updated_at: string;
-        },
-        { run_id: string; step_key: string }
+          user_id: string;
+          phone: string;
+          call_when: string;
+        }
       >;
-      deep_settings: Table<
-        { key: string; value: unknown; updated_at: string },
-        { key: string; value: unknown }
-      >;
-      deep_feedback: Table<DeepFeedbackRow, Partial<DeepFeedbackRow> & { kind: string }>;
     };
     Views: { [_ in never]: never };
     Functions: {
-      deep_start_run: Fn<
-        {
-          p_user: string;
-          p_cui: string;
-          p_company: string | null;
-          p_relationship: string;
-          p_lang: string;
-          p_via: string;
-          p_budget: number;
-          p_ai_mode: string;
-          p_consent: unknown;
-          p_user_cap: number;
-          p_global_cap: number;
-          p_allow_same_company: boolean;
-        },
-        Array<{ run_id: string | null; reason: string; replay_run: string | null }>
-      >;
+      /** Lovable (applied): money reservation under the run's row lock and the day lock. */
       deep_reserve: Fn<
         {
           p_run: string;
-          p_idem: string;
+          p_key: string;
           p_kind: string;
           p_step: string;
           p_model: string | null;
           p_usd: number;
           p_day_cap: number;
+          p_day_start: string;
         },
-        Array<{ call_id: number | null; reason: string; replay: unknown }>
+        unknown
       >;
       deep_settle: Fn<
-        {
-          p_call: number;
-          p_usd: number;
-          p_in: number;
-          p_out: number;
-          p_cache_read: number;
-          p_cache_write: number;
-          p_result: unknown;
-        },
-        number | null
-      >;
-      deep_claim_step: Fn<
-        {
-          p_run: string;
-          p_user: string;
-          p_key: string;
-          p_max: number;
-          p_units: number;
-          p_exclusive: boolean;
-        },
-        Array<{ claim_id: number | null; reason: string; granted: number; replay: unknown }>
-      >;
-      deep_settle_step: Fn<
-        { p_run: string; p_claim: number; p_used: number | null; p_result: unknown },
+        { p_call: string; p_usd: number; p_usage: unknown; p_result: unknown },
         undefined
       >;
       deep_finish: Fn<
@@ -166,17 +167,68 @@ export type DeepDatabase = {
         },
         undefined
       >;
-      deep_trip_breaker: Fn<{ p_minutes: number; p_reason: string }, undefined>;
-      deep_day_stats: Fn<
-        { p_user: string },
-        Array<{ user_runs: number; all_runs: number; all_usd: number }>
+      deep_claim_step: Fn<
+        {
+          p_run: string;
+          p_user: string;
+          p_key: string;
+          p_max: number;
+          p_units: number;
+          p_exclusive: boolean;
+        },
+        unknown
       >;
-      deep_purge_expired: Fn<Record<string, never>, number>;
+      deep_settle_step: Fn<
+        { p_run: string; p_claim: string; p_used: number | null; p_result: unknown },
+        undefined
+      >;
+      has_role: Fn<{ _user_id: string; _role: "admin" | "moderator" | "user" }, boolean>;
+      /** Optional (0001): run start with the caps under the day lock. */
+      deep_start_run: Fn<
+        {
+          p_user: string;
+          p_cui: string;
+          p_company: string | null;
+          p_relationship: string;
+          p_lang: string;
+          p_via: string;
+          p_budget: number;
+          p_ai_mode: string;
+          p_consent: unknown;
+          p_user_cap: number;
+          p_global_cap: number;
+          p_allow_same_company: boolean;
+          p_day_start: string;
+        },
+        unknown
+      >;
+      /** Optional (0001): give back the units of a step claim whose step died (> 2 min). */
+      deep_reclaim_step: Fn<{ p_run: string; p_user: string; p_key: string }, boolean>;
     };
     Enums: { [_ in never]: never };
     CompositeTypes: { [_ in never]: never };
   };
 };
+
+/*
+ * Conformance with the applied schema (types.ts, generated by Lovable): every column
+ * this layer reads must exist there with a compatible type. A failure here means the
+ * live tables changed; fix the store, never types.ts.
+ */
+type Generated = GeneratedDatabase["public"]["Tables"];
+type Conforms<Live, Ours> = {
+  [K in keyof Ours]: K extends keyof Live ? ([Live[K]] extends [Ours[K]] ? true : false) : false;
+};
+type AllTrue<T> = T[keyof T] extends true ? true : false;
+const schemaConforms: [
+  AllTrue<Conforms<Generated["deep_runs"]["Row"], DeepRunRow>>,
+  AllTrue<Conforms<Generated["deep_slots"]["Row"], DeepSlotRow>>,
+  AllTrue<Conforms<Generated["deep_claims"]["Row"], DeepClaimRow>>,
+  AllTrue<Conforms<Generated["deep_breaker"]["Row"], DeepBreakerRow>>,
+  AllTrue<Conforms<Generated["deep_feedback"]["Row"], DeepFeedbackRow>>,
+  AllTrue<Conforms<Generated["deep_call_requests"]["Row"], DeepCallRequestRow>>,
+] = [true, true, true, true, true, true];
+void schemaConforms;
 
 /*
  * The database handle both deep-research stores use (plan A6). The server

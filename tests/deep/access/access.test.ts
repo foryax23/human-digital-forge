@@ -4,9 +4,15 @@ import { test } from "node:test";
 
 import {
   checkDeepAccess,
+  configForUser,
+  isDeepAdmin,
+  resetRoleCache,
+  supabaseLookups,
   type AccessLookups,
   type AccountInfo,
 } from "../../../src/lib/deep/access.server";
+import type { DeepDb } from "../../../src/lib/deep/persist-db.server";
+import { FakeSupabase } from "../persist/fake-supabase";
 import type { AccessReason, DeepStore } from "../../../src/lib/deep/contracts";
 import { readDeepConfig, ticketAdmitted } from "../../../src/lib/deep/env.server";
 import { createMemoryStore } from "../../../src/lib/deep/llm/ledger-memory.server";
@@ -124,7 +130,8 @@ test("the access matrix: five modes × anonymous, signed-in, test code, Premium,
     },
     premium: {
       anonymous: "login_required",
-      signedIn: "via:free",
+      // No free runs by default (DEEP_FREE_RUNS_PER_USER=0): plans are assigned by an admin.
+      signedIn: "premium_required",
       code: "via:code",
       premium: "via:premium",
       admin: "via:admin",
@@ -189,8 +196,8 @@ test("test codes are SHA-256 hashes; a wrong code or the hash itself does not op
   assert.equal((await check("code", USER, sha(CODE))).reason, "code_required");
 });
 
-test("Premium: tiers from DEEP_RESEARCH_PREMIUM_TIERS; one free report per account, then premium_required", async () => {
-  const cfg = config("premium");
+test("Premium: tiers from DEEP_RESEARCH_PREMIUM_TIERS; free reports only when set, then premium_required", async () => {
+  const cfg = config("premium", { DEEP_FREE_RUNS_PER_USER: "1" });
   const run = (tiers: string[], free: number) =>
     checkDeepAccess(
       { userId: USER },
@@ -211,6 +218,32 @@ test("Premium: tiers from DEEP_RESEARCH_PREMIUM_TIERS; one free report per accou
     },
   );
   assert.equal(none.reason, "premium_required");
+  assert.equal(readDeepConfig({}).freeRunsPerUser, 0, "no free runs unless set");
+
+  // A free run needs the confirmed identity open mode asks for (throwaway accounts).
+  const free = (info: AccountInfo, env: Record<string, string> = {}) =>
+    checkDeepAccess(
+      { userId: USER },
+      { config: cfg, store: store(), lookups: lookups({ [USER]: info }, {}), env },
+    );
+  assert.equal(
+    (await free({ email: "a@b.ro", emailConfirmed: false, google: false })).reason,
+    "premium_required",
+  );
+  assert.equal(
+    (await free({ email: "a@b.ro", emailConfirmed: true, google: false })).reason,
+    "premium_required",
+  );
+  assert.equal(
+    (
+      await free(
+        { email: "a@b.ro", emailConfirmed: true, google: false },
+        { DEEP_OPEN_REQUIRES_GOOGLE: "off" },
+      )
+    ).via,
+    "free",
+  );
+  assert.equal((await free({ email: "a@b.ro", emailConfirmed: true, google: true })).via, "free");
 });
 
 test("open mode: a confirmed e-mail, and Google or a test code while DEEP_OPEN_REQUIRES_GOOGLE is on", async () => {
@@ -360,7 +393,7 @@ test("entry visibility: hidden unless allowed, or DEEP_ENTRY_PUBLIC=on for login
 });
 
 test("tickets stay admitted per mode: free runs in Premium, e-mail admins while e-mails are set", () => {
-  const premium = config("premium");
+  const premium = config("premium", { DEEP_FREE_RUNS_PER_USER: "1" });
   assert.equal(ticketAdmitted(premium, "free", USER), true);
   assert.equal(ticketAdmitted(premium, "open", USER), false);
   assert.equal(ticketAdmitted(config("admin"), "code", USER), false);
@@ -370,10 +403,164 @@ test("tickets stay admitted per mode: free runs in Premium, e-mail admins while 
     DEEP_RESEARCH_ADMIN_USER_IDS: "",
     DEEP_RESEARCH_ADMIN_EMAILS: "mihai@example.ro",
   });
-  assert.equal(ticketAdmitted(emails, "admin", USER), true);
+  // Only a ticket admitted by e-mail is kept by the e-mail list; one admitted by ID or role
+  // (or an old ticket that does not say) stops once the ID or the role is gone.
+  assert.equal(ticketAdmitted(emails, "admin", USER, "email"), true);
+  assert.equal(ticketAdmitted(emails, "admin", USER, "role"), false);
+  assert.equal(ticketAdmitted(emails, "admin", USER, "id"), false);
+  assert.equal(ticketAdmitted(emails, "admin", USER), false);
   assert.equal(
-    ticketAdmitted(config("admin", { DEEP_RESEARCH_ADMIN_USER_IDS: "" }), "admin", USER),
+    ticketAdmitted(config("admin", { DEEP_RESEARCH_ADMIN_USER_IDS: "" }), "admin", USER, "email"),
     false,
+    "admin e-mails emptied: the e-mail ticket stops too",
   );
   assert.equal(ticketAdmitted(config("disabled"), "admin", ADMIN), false);
+});
+
+test("Lovable's admin role (user_roles) makes an admin, with no env entry; errors fail closed", async () => {
+  resetRoleCache();
+  const ROLE = "eeeeeeee-0000-4000-8000-000000000005";
+  const role = (answer: boolean | "throw"): AccessLookups => ({
+    ...lookups({ [ROLE]: { email: "owner@example.ro", emailConfirmed: true, google: true } }),
+    async adminRole(id) {
+      if (answer === "throw") throw new Error("down");
+      return answer && id === ROLE;
+    },
+  });
+  const cfg = config("admin", { DEEP_RESEARCH_ADMIN_USER_IDS: "" });
+  const yes = await checkDeepAccess(
+    { userId: ROLE },
+    { config: cfg, store: store(), lookups: role(true), env: {} },
+  );
+  assert.equal(yes.allowed, true);
+  assert.equal(yes.via, "admin");
+  assert.ok(yes.admin);
+  resetRoleCache();
+  const down = await checkDeepAccess(
+    { userId: ROLE },
+    { config: cfg, store: store(), lookups: role("throw"), env: {} },
+  );
+  assert.equal(down.allowed, false);
+  assert.equal(down.reason, "admin_only");
+  // The failed lookup is not cached: the next call, seconds later, asks again and admits.
+  const back = await checkDeepAccess(
+    { userId: ROLE },
+    { config: cfg, store: store(), lookups: role(true), env: {} },
+  );
+  assert.equal(back.via, "admin");
+  assert.equal(back.adminBy, "role");
+  // A lookup that answers null (an error the lookup caught itself) is not cached either.
+  resetRoleCache();
+  const nulls: AccessLookups = { ...role(true), adminRole: async () => null };
+  assert.equal((await configForUser(ROLE, { config: cfg, lookups: nulls })).adminUserIds.length, 0);
+  assert.ok(
+    (await configForUser(ROLE, { config: cfg, lookups: role(true) })).adminUserIds.includes(ROLE),
+  );
+
+  // configForUser adds a role admin to the config, so the step checks (no I/O) admit the ticket.
+  resetRoleCache();
+  const resolved = await configForUser(ROLE, { config: cfg, lookups: role(true) });
+  assert.ok(resolved.adminUserIds.includes(ROLE));
+  assert.equal(ticketAdmitted(resolved, "admin", ROLE), true);
+  assert.equal(ticketAdmitted(cfg, "admin", ROLE), false);
+  // Cached per isolate for a minute: the second lookup is not made.
+  let lookupsMade = 0;
+  const counting: AccessLookups = {
+    ...role(true),
+    async adminRole(id) {
+      lookupsMade++;
+      return id === ROLE;
+    },
+  };
+  resetRoleCache();
+  await configForUser(ROLE, { config: cfg, lookups: counting });
+  await configForUser(ROLE, { config: cfg, lookups: counting });
+  assert.equal(lookupsMade, 1);
+  // Env admins and the kill switch need no lookup.
+  await configForUser(ADMIN, { config: config("admin"), lookups: counting });
+  await configForUser(ROLE, { config: config("disabled"), lookups: counting });
+  assert.equal(lookupsMade, 1);
+  resetRoleCache();
+});
+
+test("the role lookup reads user_roles with the service role; a Google sign-in is a confirmed identity", async () => {
+  const ROLE = "eeeeeeee-0000-4000-8000-000000000005";
+  const db = new FakeSupabase();
+  db.rows("user_roles").push({ id: "r1", user_id: ROLE, role: "admin" });
+  db.rows("user_roles").push({ id: "r2", user_id: USER, role: "user" });
+  const real = supabaseLookups(db as unknown as DeepDb);
+  assert.equal(await real.adminRole!(ROLE), true);
+  assert.equal(await real.adminRole!(USER), false);
+  const broken = supabaseLookups(
+    new FakeSupabase({ fail: () => ({ code: "XX000" }) }) as unknown as DeepDb,
+  );
+  // A failed lookup answers null ("unknown"), which is never cached as "not admin".
+  assert.equal(await broken.adminRole!(ROLE), null);
+  assert.equal(await supabaseLookups(null).adminRole!(ROLE), null);
+
+  // The account lookup: a Google identity for the account's own address counts as a
+  // confirmed e-mail even before email_confirmed_at; another address does not, nor does
+  // app_metadata.providers (it does not carry the identity's address).
+  const account = (user: Record<string, unknown>) =>
+    supabaseLookups(
+      Object.assign(new FakeSupabase(), {
+        auth: { admin: { getUserById: async () => ({ data: { user }, error: null }) } },
+      }) as unknown as DeepDb,
+    ).account(ROLE);
+  assert.deepEqual(
+    await account({
+      email: "Owner@Example.ro",
+      email_confirmed_at: null,
+      identities: [{ provider: "google", identity_data: { email: "owner@example.ro" } }],
+      app_metadata: {},
+    }),
+    { email: "Owner@Example.ro", emailConfirmed: true, google: true },
+  );
+  assert.deepEqual(
+    await account({
+      email: "owner@example.ro",
+      email_confirmed_at: null,
+      identities: [{ provider: "google", identity_data: { email: "someone@gmail.com" } }],
+      app_metadata: { providers: ["email", "google"] },
+    }),
+    { email: "owner@example.ro", emailConfirmed: false, google: false },
+  );
+  assert.deepEqual(
+    await account({
+      email: "owner@example.ro",
+      email_confirmed_at: "2026-10-01T00:00:00Z",
+      identities: [{ provider: "email", identity_data: { email: "owner@example.ro" } }],
+    }),
+    { email: "owner@example.ro", emailConfirmed: true, google: false },
+  );
+});
+
+test("how an admin was admitted is reported for the ticket: ID, role or e-mail", async () => {
+  resetRoleCache();
+  const ROLE = "eeeeeeee-0000-4000-8000-000000000005";
+  const lk: AccessLookups = {
+    ...lookups({ [ROLE]: { email: "owner@example.ro", emailConfirmed: true, google: true } }),
+    adminRole: async (id) => id === ROLE,
+  };
+  const cfg = config("admin", { DEEP_RESEARCH_ADMIN_EMAILS: "mihai@example.ro" });
+  const by = async (id: string, c = cfg) =>
+    (await checkDeepAccess({ userId: id }, { config: c, store: store(), lookups: lk, env: {} }))
+      .adminBy;
+  assert.equal(await by(ADMIN), "id");
+  assert.equal(await by(ROLE), "role");
+  assert.equal(await by(USER), undefined);
+  // The same e-mail account, not in the ID list: admitted by e-mail.
+  assert.equal(
+    await by(
+      ADMIN,
+      config("admin", {
+        DEEP_RESEARCH_ADMIN_USER_IDS: "",
+        DEEP_RESEARCH_ADMIN_EMAILS: "mihai@example.ro",
+      }),
+    ),
+    "email",
+  );
+  assert.equal(await isDeepAdmin(ROLE, { config: cfg, lookups: lk }), true);
+  assert.equal(await isDeepAdmin(USER, { config: cfg, lookups: lk }), false);
+  resetRoleCache();
 });

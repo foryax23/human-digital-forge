@@ -150,10 +150,11 @@ function setup(
     reportBuilder: opts.builder ?? provisionalReportParts,
     now: clock.now,
   };
-  const start = async () => {
+  const start = async (adminBy?: "id" | "role" | "email") => {
     const s = await engineStart(deps, {
       uid: UID,
       via: "admin",
+      adminBy,
       input: {
         cui: "3365133",
         relationship: "proprietar",
@@ -437,6 +438,26 @@ test("a ticket stops working when its holder is no longer admitted", async () =>
   assert.deepEqual(await t.step({ ticket, step: "signals" }), {
     kind: "refused",
     reason: "mode_disabled",
+  });
+});
+
+test("an admin ticket records how the admin was admitted; only an e-mail one outlives the ID list", async () => {
+  const t = setup();
+  const byEmail = (await t.start("email")).ticket;
+  const payload = JSON.parse(Buffer.from(byEmail.split(".")[0], "base64url").toString("utf8"));
+  assert.equal(payload.adminBy, "email");
+  const other = setup(); // one active run per account: the second ticket comes from its own ledger
+  const byRole = (await other.start("role")).ticket;
+  // The account is no longer in the ID list (nor holds the role); admin e-mails are set.
+  t.deps.config = readDeepConfig({ DEEP_RESEARCH_ADMIN_EMAILS: "owner@example.ro" });
+  other.deps.config = t.deps.config;
+  assert.notDeepEqual(await t.step({ ticket: byEmail, step: "signals" }), {
+    kind: "refused",
+    reason: "admin_only",
+  });
+  assert.deepEqual(await other.step({ ticket: byRole, step: "signals" }), {
+    kind: "refused",
+    reason: "admin_only",
   });
 });
 

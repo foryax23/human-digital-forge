@@ -1,5 +1,5 @@
 import { fromBase64Url, hmacB64, safeEqual, toBase64Url } from "./attest.server";
-import type { AccessVia, Lang, OwnerInputs, Relationship, StoreKind } from "./contracts";
+import type { AccessVia, AdminBy, Lang, OwnerInputs, Relationship, StoreKind } from "./contracts";
 
 /*
  * Run tickets (plan A5): base64url(payload).hmac, issued by startDeepRun and
@@ -34,6 +34,8 @@ export type TicketPayload = {
   uid: string;
   cui: string;
   via: AccessVia;
+  /** For via "admin": how the admin was admitted (ticketAdmitted keeps e-mail admins only). */
+  adminBy?: AdminBy;
   store: StoreKind | "memory";
   budgetUsd: number;
   lang: Lang;

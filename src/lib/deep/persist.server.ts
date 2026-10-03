@@ -2,14 +2,17 @@ import type { DeepStore, StoreKind } from "./contracts";
 import { createMemoryStore, type MemoryStore } from "./llm/ledger-memory.server";
 import { deepDb, isMissingRelation, type DeepDb } from "./persist-db.server";
 import { createStopgapStore, type StopgapStore } from "./persist-stopgap.server";
-import { createTablesStore } from "./persist-tables.server";
+import { createTablesStore, type TablesStore } from "./persist-tables.server";
 
 /*
- * Store selection for "Cercetare aprofundată" (plan A6, D16).
+ * The one store module of "Cercetare aprofundată" (plan A6, D16): which store a
+ * run uses. The stores themselves are persist-tables.server.ts (Lovable's applied
+ * deep ledger, drizzle/migrations/0000_admin_roles_and_deep_ledger.sql) and
+ * persist-stopgap.server.ts (rows in audit_leads, for a database without those
+ * tables, e.g. a fresh preview or a restored backup).
  *
- * - Feature detection decides the store only for NEW runs: the server tables
- *   of docs/deep/2026-10-03-deep-research.sql when they exist, else the
- *   stopgap in audit_leads. "Tables missing" (PGRST205 / 42P01) is cached for
+ * - Feature detection decides the store only for NEW runs: the tables when they
+ *   exist, else the stopgap. "Tables missing" (PGRST205 / 42P01) is cached for
  *   5 minutes, "tables present" for 1 hour; any other error means the ledger
  *   is unavailable and startDeepRun refuses ("ledger_unavailable").
  * - The store kind is written into the run ticket and a run never switches
@@ -20,7 +23,7 @@ import { createTablesStore } from "./persist-tables.server";
  *   script, and for tickets issued before this change ("memory").
  */
 
-export type TablesStore = ReturnType<typeof createTablesStore>;
+export type { TablesStore };
 export type PersistentStore = TablesStore | StopgapStore;
 
 type Detection = { kind: StoreKind; until: number };
@@ -41,8 +44,9 @@ export type PersistDeps = {
 
 /**
  * Which store the tables' presence selects: "tables", "stopgap", or null when
- * the ledger cannot be reached. The probe reads deep_steps, which only exists
- * once the whole 2026-10-03 file was applied (one transaction).
+ * the ledger cannot be reached. The probe reads deep_slots, which only exists
+ * once Lovable's whole 0000 migration was applied (one file: runs, calls, slots,
+ * claims, breaker, feedback, call requests and their functions).
  */
 export async function detectStoreKind(deps: PersistDeps = {}): Promise<StoreKind | null> {
   const now = deps.now ?? (() => Date.now());
@@ -50,7 +54,11 @@ export async function detectStoreKind(deps: PersistDeps = {}): Promise<StoreKind
   const db = deps.db === undefined ? deepDb() : deps.db;
   if (!db) return null;
   try {
-    const { error } = await db.from("deep_steps").select("run_id", { head: true }).limit(1);
+    // A GET, never a HEAD (`{ head: true }`): PostgREST answers a missing table with 404 and
+    // the PGRST205 code in the body, but a HEAD response has no body, and postgrest-js turns
+    // "404 with an empty body" into success (status 204, error null), so a database without
+    // the tables would be detected as "tables". One row at most, one column.
+    const { error } = await db.from("deep_slots").select("run_id").limit(1);
     if (!error) {
       detected = { kind: "tables", until: now() + PRESENT_TTL_MS };
       return "tables";

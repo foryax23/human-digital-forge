@@ -418,9 +418,14 @@ test("finish keeps the report for a retried finish and for the verification code
     verifyCode: "7KQ4M2XD",
     metrics: { kept: 3 },
   });
-  assert.deepEqual(await store.loadReport!({ runId: a, userId: U1 }), { report, reportAtt: "att" });
+  assert.deepEqual(await store.loadReport!({ runId: a, userId: U1 }), {
+    runId: a,
+    report,
+    reportAtt: "att",
+  });
   assert.equal(await store.loadReport!({ runId: a, userId: U2 }), null);
   assert.deepEqual(await store.loadReport!({ verifyCode: "7KQ4M2XD" }), {
+    runId: a,
     report,
     reportAtt: "att",
   });

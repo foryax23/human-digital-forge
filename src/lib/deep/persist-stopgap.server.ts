@@ -559,21 +559,24 @@ export function createStopgapStore(db: DeepDb, opts: StopgapOptions = {}): Stopg
     async loadReport(q) {
       if ("verifyCode" in q) {
         const { data, error } = await leads()
-          .select("answers")
+          .select("id, answers")
           .eq("recommendation", STOPGAP.run)
           .eq("answers->>verifyCode", q.verifyCode)
           .limit(1);
         if (error) throw new Error("deep_stopgap.verify");
-        const run = (data as Array<{ answers: StopgapRun }> | null)?.[0]?.answers;
-        return run?.report && run.reportAtt
-          ? { report: run.report, reportAtt: run.reportAtt }
+        const found = (data as Array<{ id: string; answers: StopgapRun }> | null)?.[0];
+        const run = found?.answers;
+        // The run ID is the row's ID (the ticket's runId): the public check recomputes the
+        // report attestation with it, so a row written by anyone else cannot pass.
+        return found && run?.report && run.reportAtt
+          ? { runId: found.id, report: run.report, reportAtt: run.reportAtt }
           : null;
       }
       const row = await readRun(q.runId);
       if (row === "error") throw new Error("deep_stopgap.load_report");
       if (!row || row.answers.userId !== q.userId) return null;
       return row.answers.report && row.answers.reportAtt
-        ? { report: row.answers.report, reportAtt: row.answers.reportAtt }
+        ? { runId: row.id, report: row.answers.report, reportAtt: row.answers.reportAtt }
         : null;
     },
 

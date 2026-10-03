@@ -12,6 +12,8 @@ import {
   LogOut,
   Bell,
   Menu,
+  ShieldCheck,
+  Telescope,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -31,7 +33,9 @@ type NavItem = {
     | "/dashboard/files"
     | "/dashboard/consultations"
     | "/dashboard/billing"
-    | "/dashboard/settings";
+    | "/dashboard/settings"
+    | "/dashboard/admin"
+    | "/dashboard/research";
 };
 
 const navItems: NavItem[] = [
@@ -47,10 +51,20 @@ const navItems: NavItem[] = [
 
 function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: () => void }) {
   const { pathname } = useLocation();
+  const { isAdmin } = useAuth();
+  // Deep research is admin-only for now (plans assigned by an admin come later); the page
+  // itself runs the same server access check as /scan/deep.
+  const items: NavItem[] = isAdmin
+    ? [
+        ...navItems,
+        { label: "Deep research", icon: Telescope, to: "/dashboard/research" },
+        { label: "Admin panel", icon: ShieldCheck, to: "/dashboard/admin" },
+      ]
+    : navItems;
 
   return (
     <nav className="flex flex-1 flex-col gap-1" aria-label="Dashboard">
-      {navItems.map((item) => {
+      {items.map((item) => {
         const active = pathname === item.to;
         return (
           <Link

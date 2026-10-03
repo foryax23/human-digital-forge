@@ -78,8 +78,8 @@
 | Component | Status | Notes |
 |---|---|---|
 | Engine `src/lib/deep/**` | IP | Another team is editing it now. 404 on live |
-| Access modes | P | `disabled / admin / code / open / premium`. Admins by user ID (`DEEP_RESEARCH_ADMIN_USER_IDS`). Premium defaults to Growth and Pro, plus 1 free report per account |
-| Storage tables | S | `docs/deep/2026-10-03-deep-research.sql` written, not applied. `audit_leads` is the stopgap |
+| Access modes | P | `disabled / admin / code / open / premium`. Admins by user ID (`DEEP_RESEARCH_ADMIN_USER_IDS`). Premium defaults to Growth and Pro; no free report since 2026-10-04 (`DEEP_FREE_RUNS_PER_USER` defaults to 0). Admins also by Lovable's `user_roles` admin role |
+| Storage tables | P | Superseded 2026-10-04: Lovable's `drizzle/migrations/0000_admin_roles_and_deep_ledger.sql` is applied (the deep tables and functions); the only pending SQL is the additive `drizzle/migrations/0001_deep_research_additions.sql`. `audit_leads` remains the stopgap for a database without the tables |
 | Budgets | W | $1.50 per run, 3 runs per user per day, 10 non-admin runs per day in total ($15 a day). Expected cost about €0.94 per run |
 | Call-back block ("Recomandări de la Mihai Dandea") | P | The best conversion block on the platform, but only here. In `src/components/deep/contact.ts` the `SIGNATORY` phone, WhatsApp and photo are all `null`, so the Call and WhatsApp buttons are hidden and the photo slot shows "MD". "Sună-mă" requests go to `audit_leads` and nobody is alerted |
 

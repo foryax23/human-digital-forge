@@ -278,6 +278,25 @@ export function verificationCode(reportAtt: string): string {
   return `${out.slice(0, 4)}-${out.slice(4, 8)}`;
 }
 
+/**
+ * A stored report is genuine: its attestation, recomputed from the run ID and the report
+ * as stored, equals the stored one, and `code` is that attestation's own code. A row found
+ * by its code alone proves nothing: whoever can write the row cannot compute the HMAC.
+ */
+export async function storedReportGenuine(
+  secret: string,
+  stored: { runId: string; report: DeepReport; reportAtt: string },
+  code: string,
+): Promise<boolean> {
+  if (!stored.runId || !stored.report || typeof stored.reportAtt !== "string") return false;
+  try {
+    const att = await reportAttestation(secret, stored.runId, stored.report);
+    return safeEqual(att, stored.reportAtt) && verificationCode(att) === code;
+  } catch {
+    return false;
+  }
+}
+
 /** Normalises a typed code ("7kq4 m2xd", "7KQ4M2XD", O→0, I/L→1) for lookup. */
 export function normalizeVerificationCode(input: string): string | null {
   const clean = input

@@ -13,19 +13,20 @@ import type {
 } from "../contracts";
 
 /*
- * In-memory ledger with the same semantics as the SQL functions of plan A6
- * (deep_start_run, deep_reserve, deep_settle, deep_finish, breaker, day stats):
+ * In-memory ledger with the same semantics as the database ledger (Lovable's
+ * deep_reserve, deep_settle, deep_finish, deep_claim_step and deep_settle_step in
+ * drizzle/migrations/0000, plus deep_start_run and deep_reclaim_step of 0001 or their
+ * fallbacks in persist-tables.server.ts, the breaker and the day stats):
  * idempotency keys with replay of settled results, "in flight" for unsettled
  * reservations under 2 minutes, at most 5 attempts per key, the breaker, the
  * run budget and the day budget (all runs, admins included) checked inside
  * every reservation, and unsettled reservations counted as spent at finish;
  * run-level step claims (claimStep/settleStep) with replay of a used-up step.
  *
- * Used by the tests, the golden script and as the development fallback until
- * Eng 3's persist.server.ts lands. It lives in one isolate only, so on the
+ * Used by the tests and the golden script, and for tickets issued before the
+ * persistent stores existed ("memory"). It lives in one isolate only, so on the
  * Worker a run started in another isolate is unknown here and every paid call
- * for it is refused (fail closed). deep.functions.ts therefore allows it only
- * in admin mode; the persistent stores replace it before any other mode.
+ * for it is refused (fail closed); new runs always use a persistent store.
  */
 
 type Run = {
@@ -248,7 +249,9 @@ export function createMemoryStore(
           : runs.get(q.runId)?.userId === q.userId
             ? runs.get(q.runId)
             : undefined;
-      return r?.report && r.reportAtt ? { report: r.report, reportAtt: r.reportAtt } : null;
+      return r?.report && r.reportAtt
+        ? { runId: r.id, report: r.report, reportAtt: r.reportAtt }
+        : null;
     },
     async claimStep(input): Promise<StepClaim> {
       const r = runs.get(input.runId);

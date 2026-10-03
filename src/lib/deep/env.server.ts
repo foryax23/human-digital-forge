@@ -21,6 +21,7 @@ import {
 } from "./attest.server";
 import type {
   AccessVia,
+  AdminBy,
   Bilingual,
   DeepAccess,
   DeepMode,
@@ -112,6 +113,8 @@ export function readDeepConfig(
   const extractKnown = Boolean(extract && PRICES[extract]);
   const assetOrigin = source.DEEP_ASSET_ORIGIN?.trim();
   return {
+    // Unset or unknown: admins only (the owner's decision until plans assigned by an admin
+    // exist). An unknown value is also shown in the admin panel.
     mode: known ? (raw as DeepMode) : "admin",
     unknownMode: raw && !known ? raw : undefined,
     adminUserIds: list(source.DEEP_RESEARCH_ADMIN_USER_IDS).map((s) => s.toLowerCase()),
@@ -120,7 +123,8 @@ export function readDeepConfig(
     premiumTiers: list(source.DEEP_RESEARCH_PREMIUM_TIERS || "growth,pro").map((s) =>
       s.toLowerCase(),
     ),
-    freeRunsPerUser: num(source.DEEP_FREE_RUNS_PER_USER, 1),
+    // No free runs unless set: plans are assigned by an admin after a contract (owner, 2026-10-04).
+    freeRunsPerUser: num(source.DEEP_FREE_RUNS_PER_USER, 0),
     entryPublic: flag(source.DEEP_ENTRY_PUBLIC, false),
     userDailyCap: num(source.DEEP_USER_DAILY_RUN_CAP, 3),
     adminDailyCap: 20,
@@ -168,6 +172,8 @@ export async function provisionalAccess(
   args: {
     userId: string | null;
     testCode?: string;
+    /** An active Growth/Pro (DEEP_RESEARCH_PREMIUM_TIERS) subscription. */
+    premium?: boolean;
     persistence: StoreKind | "memory" | "unavailable";
     todayUsd?: number;
     userRunsToday?: number;
@@ -217,6 +223,7 @@ export async function provisionalAccess(
     case "open":
       return allow("open");
     case "premium":
+      if (args.premium) return allow("premium");
       return codeOk ? allow("code") : deny("premium_required");
     default:
       return deny("admin_only");
@@ -236,13 +243,20 @@ export async function testCodeValid(config: DeepConfig, code: string): Promise<b
  * step and on resume, no I/O): a removed admin, or a mode switched back (code or open →
  * admin), takes effect at the next step instead of when the 2-hour ticket expires.
  */
-export function ticketAdmitted(config: DeepConfig, via: AccessVia, uid: string): boolean {
+export function ticketAdmitted(
+  config: DeepConfig,
+  via: AccessVia,
+  uid: string,
+  adminBy?: AdminBy,
+): boolean {
   if (config.mode === "disabled") return false;
   const isAdmin = config.adminUserIds.includes(uid.toLowerCase());
-  // An admin admitted by e-mail (confirmed Google sign-in, checked by checkDeepAccess at start and
-  // resume) keeps the ticket while admin e-mails are configured: this check makes no I/O, and
-  // emptying DEEP_RESEARCH_ADMIN_EMAILS revokes it at the next step (Eng 3).
-  if (via === "admin") return isAdmin || config.adminEmails.length > 0;
+  // An admin ticket needs an admin in the config (env IDs, plus the role admins configForUser
+  // adds per request): removing the ID or the role stops the run at its next step. Only a
+  // ticket admitted by e-mail (a confirmed address with its Google identity, checked by
+  // checkDeepAccess at start and resume) is kept while admin e-mails are configured: this
+  // check makes no I/O, and emptying DEEP_RESEARCH_ADMIN_EMAILS revokes it at the next step.
+  if (via === "admin") return isAdmin || (adminBy === "email" && config.adminEmails.length > 0);
   if (isAdmin) return true;
   switch (config.mode) {
     case "code":

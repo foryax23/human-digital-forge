@@ -6,7 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { normalizeVerificationCode } from "@/lib/deep/attest.server";
+import { normalizeVerificationCode, storedReportGenuine } from "@/lib/deep/attest.server";
 import {
   DEEP_LIMITS,
   type AccessReason,
@@ -17,7 +17,7 @@ import {
   type DeepStore,
   type StartDeepRunOutput,
 } from "@/lib/deep/contracts";
-import { checkDeepAccess } from "@/lib/deep/access.server";
+import { checkDeepAccess, configForUser, isDeepAdmin } from "@/lib/deep/access.server";
 import {
   deepAssetOrigin,
   readDeepConfig,
@@ -28,6 +28,7 @@ import {
 import { createAnthropicTransport } from "@/lib/deep/llm/anthropic.server";
 import type { LlmClient } from "@/lib/deep/llm/types";
 import { storeFor, storeForNewRun, storeHoldingRun } from "@/lib/deep/persist.server";
+import type { DeepRunListItem } from "@/lib/deep/persist-tables.server";
 import { buildReportParts } from "@/lib/deep/report";
 import { engineStart, engineStep, type EngineDeps } from "@/lib/deep/steps/dispatch.server";
 import { issueTicket, readTicket } from "@/lib/deep/ticket.server";
@@ -41,10 +42,12 @@ import { DEEP_TERMS_VERSION, deepConsentRecord } from "@/lib/scan/legal/lead-not
  * getDeepAccess and verifyDeepReport requires a signed-in user.
  *
  * Modules behind the seams (Eng 3):
- * - access: checkDeepAccess (src/lib/deep/access.server.ts), the A4 table;
- * - storage: storeForNewRun / storeFor (src/lib/deep/persist.server.ts): the server
- *   tables when the SQL file is applied, else the stopgap in audit_leads; the kind is
- *   fixed in the ticket, and no Supabase credentials means "ledger_unavailable";
+ * - access: checkDeepAccess (src/lib/deep/access.server.ts), the A4 table. Admins come
+ *   from DEEP_RESEARCH_ADMIN_USER_IDS and from Lovable's "admin" role (user_roles), so
+ *   every handler resolves its config with configForUser before any step check;
+ * - storage: storeForNewRun / storeFor (src/lib/deep/persist.server.ts): Lovable's deep
+ *   tables (drizzle/migrations/0000) when present, else the stopgap in audit_leads; the
+ *   kind is fixed in the ticket, and no Supabase credentials means "ledger_unavailable";
  * - report logic: buildReportParts (src/lib/deep/report/index.ts);
  * - consent: deepConsentRecord and DEEP_TERMS_VERSION (src/lib/scan/legal/lead-notice.ts).
  */
@@ -118,25 +121,65 @@ async function runGuard(
   | { ok: true; store: DeepStore; run: { status: string; cui?: string } }
   | { ok: false; reason: AccessReason }
 > {
-  const config = readDeepConfig();
+  const config = await configForUser(userId);
   if (config.mode === "disabled") return { ok: false, reason: "mode_disabled" };
   const held = await storeHoldingRun(runId, userId).catch(() => null);
   if (!held) return { ok: false, reason: "run_not_found" };
-  if (opts.entitled && (!held.run.via || !ticketAdmitted(config, held.run.via, userId)))
-    return { ok: false, reason: "admin_only" };
+  if (opts.entitled) {
+    const via = held.run.via;
+    // An admin run: the account must still be an admin now, by ID, role or e-mail (the run
+    // row does not keep how it was admitted, and this guard can afford the lookup).
+    const admitted = !via
+      ? false
+      : via === "admin"
+        ? await isDeepAdmin(userId, { config }).catch(() => false)
+        : ticketAdmitted(config, via, userId);
+    if (!admitted) return { ok: false, reason: "admin_only" };
+  }
   return { ok: true, store: held.store, run: held.run };
 }
 
-/** Public verification lookups per isolate and minute (codes are 40 bits; this only slows scraping). */
-const verifyWindow = { start: 0, count: 0 };
-function verifyAllowed(now = Date.now()): boolean {
-  if (now - verifyWindow.start > 60_000) {
-    verifyWindow.start = now;
-    verifyWindow.count = 0;
-  }
-  verifyWindow.count++;
-  return verifyWindow.count <= 30;
+/**
+ * Counters per key, per isolate and minute, for at most `maxKeys` keys (the oldest goes
+ * first). The returned function counts one call for `key` and says whether it is within
+ * the limit.
+ */
+function perMinute(limit: number, maxKeys = 1000) {
+  const windows = new Map<string, { start: number; count: number }>();
+  return (key: string, now = Date.now()): boolean => {
+    let w = windows.get(key);
+    if (!w || now - w.start > 60_000) {
+      windows.delete(key);
+      w = { start: now, count: 0 };
+      windows.set(key, w);
+      if (windows.size > maxKeys) windows.delete(windows.keys().next().value as string);
+    }
+    w.count++;
+    return w.count <= limit;
+  };
 }
+
+/** The caller's address as Cloudflare reports it; one shared bucket without it (local dev). */
+function clientIp(): string {
+  return getRequest()?.headers.get("cf-connecting-ip")?.trim() || "unknown";
+}
+
+/**
+ * Public verification lookups (codes are 40 bits; this only slows scraping): 30 a minute
+ * per address, so one client cannot use up everyone's checks, and 600 a minute per isolate.
+ */
+const verifyPerIp = perMinute(30);
+const verifyPerIsolate = perMinute(600, 1);
+function verifyAllowed(): boolean {
+  return verifyPerIp(clientIp()) && verifyPerIsolate("all");
+}
+
+/**
+ * getDeepAccess per signed-in account: 20 a minute per isolate. Each call reads the day's
+ * runs, the breaker and possibly the account, so a script with one token cannot turn it
+ * into database load; a person never comes close.
+ */
+const accessPerUser = perMinute(20);
 
 /** The signed-in user for functions where login is optional (getDeepAccess). */
 async function optionalUserId(): Promise<string | null> {
@@ -280,11 +323,24 @@ export const getDeepAccess = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<DeepAccess> => {
     const config = readDeepConfig();
     const userId = await optionalUserId();
+    if (userId && config.mode !== "disabled" && !accessPerUser(userId)) {
+      return {
+        mode: config.mode,
+        allowed: false,
+        reason: "ledger_unavailable",
+        ai: false,
+        runsLeftToday: 0,
+        persistence: "unavailable",
+        budgetUsd: config.runBudgetUsd,
+        entryVisible: false,
+      };
+    }
     const store = config.mode === "disabled" ? null : await storeForNewRun().catch(() => null);
-    const { email: _email, ...access } = await checkDeepAccess(
-      { userId, testCode: data?.testCode },
-      { config, store },
-    );
+    const {
+      email: _email,
+      adminBy: _adminBy,
+      ...access
+    } = await checkDeepAccess({ userId, testCode: data?.testCode }, { config, store });
     return access;
   });
 
@@ -310,7 +366,7 @@ export const startDeepRun = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }): Promise<StartDeepRunOutput> => {
-    const config = readDeepConfig();
+    const config = await configForUser(context.userId);
     if (config.mode === "disabled") return { ok: false, reason: "mode_disabled" };
     // The report terms the form showed must be the current version (B1): the record is
     // built from the server's own text for it, never from text sent by the browser.
@@ -330,6 +386,7 @@ export const startDeepRun = createServerFn({ method: "POST" })
     return engineStart(engineDeps(config, secret), {
       uid: context.userId,
       via: access.via,
+      adminBy: access.adminBy,
       input: data,
       store,
       storeKind: store.kind,
@@ -343,7 +400,7 @@ export const deepStep = createServerFn({ method: "POST" })
   .middleware([bodyLimit, requireSupabaseAuth])
   .inputValidator((input: unknown) => stepInput.parse(input))
   .handler(async ({ data, context }): Promise<DeepStepOutput> => {
-    const config = readDeepConfig();
+    const config = await configForUser(context.userId);
     if (config.mode === "disabled") return { kind: "refused", reason: "mode_disabled" };
     const secret = await resolveRunSecret(config);
     if (!secret) return { kind: "refused", reason: "ledger_unavailable" };
@@ -364,7 +421,7 @@ export const resumeDeepRun = createServerFn({ method: "POST" })
       data,
       context,
     }): Promise<{ ok: true; ticket: string } | { ok: false; reason: AccessReason }> => {
-      const config = readDeepConfig();
+      const config = await configForUser(context.userId);
       if (config.mode === "disabled") return { ok: false, reason: "mode_disabled" };
       const secret = await resolveRunSecret(config);
       if (!secret || !data.ticket) return { ok: false, reason: "run_not_found" };
@@ -374,17 +431,20 @@ export const resumeDeepRun = createServerFn({ method: "POST" })
       });
       if (!old.ok || old.payload.runId !== data.runId)
         return { ok: false, reason: old.ok ? "run_not_found" : old.reason };
-      // Still entitled: a removed admin or a mode switched back is not renewed.
-      if (!ticketAdmitted(config, old.payload.via, context.userId))
-        return { ok: false, reason: "admin_only" };
-      // An admin admitted by e-mail is checked again for real (resume is rare, the I/O is fine):
-      // removing the address from DEEP_RESEARCH_ADMIN_EMAILS stops the renewals at once.
+      // Still entitled: a removed admin or a mode switched back is not renewed. An admin is
+      // checked again for real (resume is rare, the I/O is fine): removing the ID, the role
+      // or the address stops the renewals, and the new ticket records how the account is an
+      // admin now.
+      let adminBy = old.payload.adminBy;
       if (old.payload.via === "admin") {
         const access = await checkDeepAccess(
           { userId: context.userId },
           { config, store: storeFor(old.payload.store) },
         ).catch(() => null);
-        if (!access?.admin) return { ok: false, reason: "admin_only" };
+        if (!access?.admin || !access.adminBy) return { ok: false, reason: "admin_only" };
+        adminBy = access.adminBy;
+      } else if (!ticketAdmitted(config, old.payload.via, context.userId)) {
+        return { ok: false, reason: "admin_only" };
       }
       const run = await storeFor(old.payload.store)
         .getRun(data.runId, context.userId)
@@ -396,8 +456,14 @@ export const resumeDeepRun = createServerFn({ method: "POST" })
       ) {
         return { ok: false, reason: "run_not_found" };
       }
-      const { v: _v, iat: _iat, exp: _exp, ...rest } = old.payload;
-      return { ok: true, ticket: await issueTicket(secret, rest) };
+      const { v: _v, iat: _iat, exp: _exp, adminBy: _was, ...rest } = old.payload;
+      return {
+        ok: true,
+        ticket: await issueTicket(secret, {
+          ...rest,
+          ...(rest.via === "admin" && adminBy ? { adminBy } : {}),
+        }),
+      };
     },
   );
 
@@ -423,6 +489,47 @@ export const loadDeepRun = createServerFn({ method: "POST" })
     },
   );
 
+/**
+ * The signed-in account's research runs kept on the server (newest first, 90 days), for
+ * the dashboard's "Deep research" page; each opens in /scan/deep?run=<id>. With the
+ * stopgap (no deep tables) the list is empty and /scan/deep shows this browser's runs.
+ * Costs are included for admins only (by ID, role or e-mail, as the access check decides).
+ * Retention runs here too (at most once an hour per isolate), so expired runs are deleted
+ * even on days when no run is started.
+ */
+export const listDeepRuns = createServerFn({ method: "POST" })
+  .middleware([bodyLimit, requireSupabaseAuth])
+  .handler(
+    async ({
+      context,
+    }): Promise<
+      | {
+          ok: true;
+          storage: "tables" | "stopgap";
+          admin: boolean;
+          runs: Array<Omit<DeepRunListItem, "spentUsd"> & { spentUsd?: number }>;
+        }
+      | { ok: false; reason: AccessReason }
+    > => {
+      const config = await configForUser(context.userId);
+      if (config.mode === "disabled") return { ok: false, reason: "mode_disabled" };
+      const store = await storeForNewRun().catch(() => null);
+      if (!store) return { ok: false, reason: "ledger_unavailable" };
+      await store.purgeIfDue().catch(() => undefined);
+      const admin = await isDeepAdmin(context.userId, { config }).catch(() => false);
+      if (store.kind !== "tables" || !("listRuns" in store))
+        return { ok: true, storage: "stopgap", admin, runs: [] };
+      const runs = await store.listRuns(context.userId).catch(() => null);
+      if (!runs) return { ok: false, reason: "ledger_unavailable" };
+      return {
+        ok: true,
+        storage: "tables",
+        admin,
+        runs: runs.map(({ spentUsd, ...run }) => (admin ? { ...run, spentUsd } : run)),
+      };
+    },
+  );
+
 /** Public check of a PDF verification code (tables only). */
 export const verifyDeepReport = createServerFn({ method: "POST" })
   .middleware([bodyLimit])
@@ -437,7 +544,12 @@ export const verifyDeepReport = createServerFn({ method: "POST" })
       const code = normalizeVerificationCode(data.code);
       if (!code) return { ok: false, reason: "not_found" };
       if (!verifyAllowed()) return { ok: false, reason: "ledger_unavailable" };
-      // The tables first, then the stopgap rows (reports finished before the SQL was applied).
+      // A report is confirmed only when its attestation recomputes from the run ID and the
+      // stored report with the run secret: a row found by its code alone could have been
+      // written by anyone who can write that table (the stopgap's audit_leads in particular).
+      const secret = await resolveRunSecret(readDeepConfig());
+      if (!secret) return { ok: false, reason: "ledger_unavailable" };
+      // The tables first, then the stopgap rows (reports finished before the tables existed).
       let reachable = false;
       let found: Awaited<ReturnType<NonNullable<DeepStore["loadReport"]>>> = null;
       for (const kind of ["tables", "stopgap"] as const) {
@@ -449,7 +561,8 @@ export const verifyDeepReport = createServerFn({ method: "POST" })
         } catch {
           continue;
         }
-        if (found) break;
+        if (found && (await storedReportGenuine(secret, found, code))) break;
+        found = null;
       }
       if (!found) return { ok: false, reason: reachable ? "not_found" : "ledger_unavailable" };
       return {

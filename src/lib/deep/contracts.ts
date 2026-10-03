@@ -13,6 +13,11 @@ export type Bilingual = { en: string; ro: string };
 
 export type DeepMode = "disabled" | "admin" | "code" | "open" | "premium";
 export type AccessVia = "admin" | "code" | "open" | "premium" | "free";
+/**
+ * How an admin was admitted: by user ID (DEEP_RESEARCH_ADMIN_USER_IDS, or Lovable's admin
+ * role once configForUser has added it), by the role itself, or by admin e-mail.
+ */
+export type AdminBy = "id" | "role" | "email";
 export type AccessReason =
   | "mode_disabled"
   | "admin_only"
@@ -524,9 +529,10 @@ export interface DeepStore {
   }): Promise<void>;
   tripBreaker(minutes: number, reason: string): Promise<void>;
   /** Tables only. */
+  /** A finished run's report, with its run ID (the public check recomputes the attestation). */
   loadReport?(
     q: { runId: string; userId: string } | { verifyCode: string },
-  ): Promise<{ report: DeepReport; reportAtt: string } | null>;
+  ): Promise<{ runId: string; report: DeepReport; reportAtt: string } | null>;
   feedback(row: {
     runId: string;
     userId: string;

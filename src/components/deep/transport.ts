@@ -12,6 +12,7 @@ import type {
 import {
   deepStep,
   getDeepAccess,
+  listDeepRuns,
   loadDeepRun,
   logDeepEvent,
   reportDeepIssue,
@@ -41,6 +42,16 @@ export function fetchAccess(testCode?: string): Promise<DeepAccess> {
 }
 
 type Result = { ok: true } | { ok: false; reason: AccessReason };
+
+/** The account's research runs kept on the server (the dashboard's "Deep research" list). */
+export type RunList = Awaited<ReturnType<typeof listDeepRuns>>;
+export async function fetchRunList(): Promise<RunList> {
+  try {
+    return await listDeepRuns();
+  } catch {
+    return { ok: false, reason: "ledger_unavailable" };
+  }
+}
 
 /** Feedback, corrections, rival edits, the price question: refused without server storage. */
 export async function sendFeedback(row: {
