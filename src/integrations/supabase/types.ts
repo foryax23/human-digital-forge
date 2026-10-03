@@ -705,6 +705,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      deep_reclaim_step: {
+        Args: { p_key: string; p_run: string; p_user: string }
+        Returns: boolean
+      }
       deep_reserve: {
         Args: {
           p_day_cap: number
@@ -725,6 +729,24 @@ export type Database = {
       deep_settle_step: {
         Args: { p_claim: string; p_result: Json; p_run: string; p_used: number }
         Returns: undefined
+      }
+      deep_start_run: {
+        Args: {
+          p_ai_mode: string
+          p_allow_same_company: boolean
+          p_budget: number
+          p_company: string
+          p_consent: Json
+          p_cui: string
+          p_day_start: string
+          p_global_cap: number
+          p_lang: string
+          p_relationship: string
+          p_user: string
+          p_user_cap: number
+          p_via: string
+        }
+        Returns: Json
       }
       has_role: {
         Args: {
