@@ -18,6 +18,7 @@ import {
   intelFacts,
   mergeSocial,
   profileFacts,
+  profileGap,
   searchNews,
 } from "./intel.server";
 
@@ -257,10 +258,24 @@ export async function runSignals(env: StepEnv): Promise<StepDraft> {
     discoverSocial(env).catch(() => null),
     claudeProfile(env).catch(() => null),
   ]);
-  const intel = intelFacts(news, mergeSocial(searched, profile?.social), today);
-  facts.push(...profileFacts(profile, today));
-  facts.push(...intel.facts);
-  gaps.push(...intel.gaps);
+  // The press and profile parts never cost the step its court and tender results.
+  try {
+    const intel = intelFacts(news, mergeSocial(searched, profile?.social), today);
+    facts.push(...profileFacts(profile, today));
+    facts.push(...intel.facts);
+    gaps.push(...intel.gaps);
+    if (env.llm && !profile) gaps.push(profileGap(today));
+  } catch (error) {
+    env.log({ intel: "facts", error: String((error as Error)?.message ?? error) });
+    gaps.push(
+      gap(
+        "presence",
+        bi("Press and social profiles", "Presă și profiluri sociale"),
+        bi("Could not be read in this run", "Nu au putut fi citite în această rulare"),
+        today,
+      ),
+    );
+  }
   if (courts) {
     sourcesOk++;
     facts.push(...courtFacts(courts.summary, today));

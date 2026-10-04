@@ -38,8 +38,8 @@ export function summaryText(report: DeepReport, lang: Lang): string {
   const head = visible(report.brief.headline.sentences);
   const title =
     lang === "ro"
-      ? `${report.company.displayName} · Cercetare aprofundată Vortex Scan`
-      : `${report.company.displayName} · Vortex Scan deep research`;
+      ? `${report.company.displayName} · Deep Research Vortex Scan`
+      : `${report.company.displayName} · Vortex Scan Deep Research`;
   const first = report.actions.find((a) => !a.mandatory);
   const next = first
     ? lang === "ro"

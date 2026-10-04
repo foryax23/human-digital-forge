@@ -1,13 +1,71 @@
-import type { AccessReason, Bilingual } from "@/lib/deep/contracts";
+import type { AccessReason, Bilingual, DeepAccess } from "@/lib/deep/contracts";
 import { bi } from "@/lib/deep/parse/format";
+import { deepPlansText, deepValueText } from "@/lib/pricing";
 
 /*
  * The Romanian copy of the deep research page (Romanian is the source, English through
  * t(en, ro)), for the states the page can be in. Words follow the plan's table (A8):
  * "Cu Vortex Hub", never "cu noi"; "e-mail"; no scores; no "garantat".
+ *
+ * The offer (owner decision, 2026-10-04): "Primul raport Deep Research e gratuit", one per
+ * account; the owner's value estimate, always labelled "Estimarea noastră" (src/lib/pricing.ts);
+ * the plans by contract add more reports. Never "nelimitat", "garantat", or Deep Research
+ * "gratuit" in general. The free check needs a confirmed e-mail and, while
+ * DEEP_OPEN_REQUIRES_GOOGLE is on (the server's default, against throwaway accounts), a Google
+ * sign-in for that address unless an admin granted it: so the copy says "când intri cu Google"
+ * (true either way). With the switch off, FREE_HOW may also name a confirmed e-mail.
  */
 
-export const PAGE_TITLE = bi("Deep research", "Cercetare aprofundată");
+export const PAGE_TITLE = bi("Deep Research", "Deep Research");
+
+/** How an account gets the free report (see the note above on DEEP_OPEN_REQUIRES_GOOGLE). */
+export const FREE_HOW = bi(
+  "One per account, when you sign in with Google",
+  "Unul pe cont, când intri cu Google",
+);
+
+// A no-break space keeps "Deep Research" on one line in titles.
+export const FREE_FIRST = bi(
+  "Your first Deep\u00a0Research report is free",
+  "Primul raport Deep\u00a0Research e gratuit",
+);
+
+/*
+ * What every run delivers today. The comparison with rivals waits for the Ministry of Finance
+ * peer files (scripts/scan/build-fin-shards.mjs, not published yet: without them the peers and
+ * rivals are a gap); add "concurenți reali, comparați cifră cu cifră" here once they are live.
+ */
+export const REPORT_CONTENTS: Bilingual[] = [
+  bi(
+    "The accounts the company filed over the last 7 years, year by year",
+    "Bilanțurile depuse de firmă în ultimii 7 ani, an cu an",
+  ),
+  bi(
+    "Its website read as a new customer would, plus courts, public tenders and press",
+    "Site-ul citit ca de un client nou, plus instanțe, licitații publice și presă",
+  ),
+  bi(
+    "Three steps for the next 30 days; every sentence written with AI shows its source",
+    "Trei pași pentru următoarele 30 de zile; fiecare frază scrisă cu AI își arată sursa",
+  ),
+];
+
+/** "Estimarea noastră: circa 900 de lei de analiză într-un raport." */
+export const VALUE_ESTIMATE: Bilingual = deepValueText();
+
+const PLANS_LINE = deepPlansText();
+
+/** "Abonamentele prin contract includ mai multe rapoarte: Starter include 1 raport pe trimestru, …". */
+export const MORE_WITH_PLANS: Bilingual = bi(
+  `Plans by contract include more reports: ${PLANS_LINE.en}.`,
+  `Abonamentele prin contract includ mai multe rapoarte: ${PLANS_LINE.ro}.`,
+);
+
+/** The offer in one paragraph, for the pricing section. */
+export const FREE_SUMMARY = bi(
+  `${FREE_HOW.en}: 7 years of filed accounts, the website read as a new customer would and three steps for 30 days, with a source for every sentence written with AI. The plans include more reports.`,
+  `${FREE_HOW.ro}: bilanțurile din ultimii 7 ani, site-ul citit ca de un client nou și trei pași pentru 30 de zile, cu sursa la fiecare frază scrisă cu AI. Abonamentele includ rapoarte în plus.`,
+);
 
 /** The running note: the time left is next to the progress, so the note never names a duration. */
 export const RUNNING_NOTE = bi(
@@ -72,62 +130,67 @@ export type GateCopy = { title: Bilingual; body: Bilingual };
 /** What each refusal means for the visitor, in plain words. */
 export const REASON_COPY: Record<AccessReason, GateCopy> = {
   mode_disabled: {
-    title: bi("Deep research is switched off right now", "Cercetarea aprofundată e oprită acum"),
+    title: bi("Deep Research is switched off right now", "Deep Research e oprit acum"),
     body: bi(
       "We paused it for a while. The quick analysis on Vortex Scan still works.",
-      "Am oprit-o pentru o vreme. Analiza rapidă din Vortex Scan merge în continuare.",
+      "L-am oprit pentru o vreme. Analiza rapidă din Vortex Scan merge în continuare.",
     ),
   },
   login_required: {
-    title: bi("Sign in to start the research", "Intră în cont ca să pornești cercetarea"),
+    title: FREE_FIRST,
     body: bi(
-      "The research reads the official registers and the company's website, then writes a report only for you. We tie it to your account so you can pick it up again if you close the page.",
-      "Cercetarea citește registrele oficiale și site-ul firmei, apoi scrie un raport doar pentru tine. Îl legăm de contul tău, ca să îl poți relua dacă închizi pagina.",
+      `${FREE_HOW.en}. The report is only for you and stays on your account, so you can open it again if you close the page.`,
+      `${FREE_HOW.ro}. Raportul e doar al tău și rămâne în cont, ca să îl poți deschide din nou dacă închizi pagina.`,
     ),
   },
   email_unconfirmed: {
     title: bi("Confirm your e-mail address first", "Confirmă mai întâi adresa de e-mail"),
     body: bi(
-      "We sent you a confirmation link. Open it, then come back here: we keep the company you chose for an hour.",
-      "Ți-am trimis un link de confirmare. Deschide-l, apoi revino aici: păstrăm firma aleasă o oră.",
+      "We sent you a confirmation link; we keep the company you chose for an hour. For the free report, the simplest way is to sign in with Google on the same address: the account is confirmed in one step.",
+      "Ți-am trimis un link de confirmare; firma aleasă o păstrăm o oră. Pentru raportul gratuit, cel mai simplu e să intri cu Google pe aceeași adresă: contul e confirmat dintr-un pas.",
     ),
   },
+  /*
+   * admin_only reaches a client only when the account's deep checks could not be read (none
+   * left: the gate shows FREE_USED; one waiting for Google: FREE_NEEDS_GOOGLE): "try again",
+   * with the account ID to send.
+   */
   admin_only: {
-    title: bi("Deep research is in testing", "Cercetarea aprofundată e în test"),
+    title: bi(
+      "We can't start a report from this account right now",
+      "Nu putem porni acum un raport din acest cont",
+    ),
     body: bi(
-      "For now only the Vortex Hub team uses it. If you'd like to try it, send us your account ID.",
-      "Deocamdată o folosește doar echipa Vortex Hub. Dacă vrei să o încerci, trimite-ne ID-ul contului tău.",
+      "We couldn't check the account's free report. Try again in a few minutes; if it still doesn't work, send us your account ID and we'll look into it.",
+      "Nu am putut verifica raportul gratuit al contului. Încearcă din nou în câteva minute; dacă tot nu merge, trimite-ne ID-ul contului și ne uităm noi.",
     ),
   },
   code_required: {
     title: bi("Do you have a test code?", "Ai un cod de test?"),
     body: bi(
-      "Deep research is open to people who received a test code. It is free during the test.",
-      "Cercetarea aprofundată e deschisă celor care au primit un cod de test. În perioada de test e gratuită.",
+      "If we sent you a code, write it here. Without one, reports come with the plans by contract.",
+      "Dacă ai primit un cod de la Vortex Hub, scrie-l aici. Fără cod, rapoartele vin cu abonamentele prin contract.",
     ),
   },
   premium_required: {
-    title: bi(
-      "Included in the Starter, Growth and Pro plans",
-      "Inclusă în abonamentele Starter, Growth și Pro",
-    ),
+    title: bi("More reports come with a plan", "Rapoartele următoare vin cu un abonament"),
     body: bi(
-      "Each report covers the official registers and filed accounts, your website read as a new customer would, and three actions for the next 30 days. The plans are signed by contract.",
-      "Fiecare raport cuprinde registrele oficiale și bilanțurile, site-ul citit ca de un client nou și trei acțiuni pentru următoarele 30 de zile. Abonamentele se încheie prin contract.",
+      "The first Deep Research report is free, one per account. For more, the plans by contract include:",
+      "Primul raport Deep Research e gratuit, unul pe cont. Pentru mai multe, abonamentele prin contract includ:",
     ),
   },
   free_run_used: {
-    title: bi("Your free report is used", "Ai folosit raportul gratuit"),
+    title: bi("You used your free report", "Ai folosit raportul gratuit"),
     body: bi(
-      "Every account gets one full report for free. More reports come with the Starter, Growth and Pro plans.",
-      "Fiecare cont primește un raport complet gratuit. Următoarele vin cu abonamentele Starter, Growth și Pro.",
+      "The first report is free for every account; yours is in your reports. For new reports, the plans by contract include:",
+      "Primul raport e gratuit pentru fiecare cont; pe al tău îl găsești în rapoartele tale. Pentru rapoarte noi, abonamentele prin contract includ:",
     ),
   },
   daily_cap_user: {
     title: bi("You reached today's limit", "Ai ajuns la limita de azi"),
     body: bi(
-      "The limit resets at midnight, Romanian time. Your reports from today stay in this browser.",
-      "Limita se resetează la miezul nopții, ora României. Rapoartele de azi rămân în acest browser.",
+      "You can start again tomorrow, from midnight Romanian time. Your reports from today stay in this browser.",
+      "Poți porni din nou mâine, de la miezul nopții, ora României. Rapoartele de azi rămân în acest browser.",
     ),
   },
   daily_cap_global: {
@@ -152,10 +215,7 @@ export const REASON_COPY: Record<AccessReason, GateCopy> = {
     ),
   },
   natural_person: {
-    title: bi(
-      "No deep research for sole traders",
-      "Pentru PFA, II și IF nu facem cercetare aprofundată",
-    ),
+    title: bi("No Deep Research for sole traders", "Pentru PFA, II și IF nu facem Deep Research"),
     body: bi(
       "Sole trader or family business: we show only the name, activity and county. Their data belongs to a person, so we don't analyse it further.",
       "PFA, întreprindere individuală sau familială: afișăm doar numele, activitatea și județul. Datele lor țin de o persoană, așa că nu le analizăm mai departe.",
@@ -298,8 +358,138 @@ export function planStartsLaterCopy(args: { plan: string; startsOn: Bilingual })
       `Abonamentul ${args.plan} începe pe ${args.startsOn.ro}`,
     ),
     body: bi(
-      "Deep research comes with the plan from its first day.",
-      "Cercetarea aprofundată vine cu abonamentul din prima lui zi.",
+      "Deep Research reports come with the plan from its first day.",
+      "Rapoartele Deep Research vin cu abonamentul din prima lui zi.",
     ),
   };
+}
+
+/*
+ * The account's deep checks as getDeepAccess reports them (src/lib/deep/access.server.ts):
+ * `credits` (a new account has the free plan with 1), and, untyped in DeepAccess, `useCredit`
+ * (this run would spend one) and `plan` (a contract plan's reports this period).
+ */
+
+/** "Ai folosit raportul gratuit": no checks left and no plan, said plainly. */
+export const FREE_USED: GateCopy = REASON_COPY.free_run_used;
+
+/** The account has its free report, but the server wants a Google sign-in for its address first. */
+export const FREE_NEEDS_GOOGLE: GateCopy = {
+  title: bi("Your free report starts with Google", "Raportul gratuit se pornește cu Google"),
+  body: bi(
+    "Your account has its free report. To keep it away from throwaway accounts, you start it after signing in with Google on the same e-mail address.",
+    "Contul tău are raportul gratuit. Ca să nu ajungă la conturi de unică folosință, îl pornești după ce intri cu Google pe aceeași adresă de e-mail.",
+  ),
+};
+
+export type Credits = { plan: "free" | "premium"; left: number };
+
+const reportsWord = (n: number) =>
+  bi(`${n} report${n === 1 ? "" : "s"}`, n === 1 ? "1 raport" : `${n} rapoarte`);
+
+/**
+ * A refusal that did not spend a check (daily limits, storage down): "Nu pierzi nimic: raportul
+ * gratuit rămâne în cont." Null without checks left (or when they are unknown).
+ */
+export function creditsKeptLine(credits: Credits | undefined): Bilingual | null {
+  if (!credits || credits.left <= 0) return null;
+  if (credits.plan === "free" && credits.left === 1)
+    return bi(
+      "Nothing is lost: your free report stays on your account.",
+      "Nu pierzi nimic: raportul gratuit rămâne în cont.",
+    );
+  const n = reportsWord(credits.left);
+  return bi(
+    `Nothing is lost: you still have ${n.en} on your account.`,
+    `Nu pierzi nimic: îți rămân ${n.ro} în cont.`,
+  );
+}
+
+/**
+ * "Rapoarte rămase: 1 (primul e gratuit)", for the dashboard and the start form. Only the
+ * first report is called free: several checks an admin granted get no note.
+ */
+export function creditsLeftLine(credits: Credits): Bilingual {
+  const { plan, left } = credits;
+  const note =
+    plan === "premium"
+      ? bi(" (Premium)", " (Premium)")
+      : left === 1
+        ? bi(" (the first one is free)", " (primul e gratuit)")
+        : bi("", "");
+  return bi(`Reports left: ${left}${note.en}`, `Rapoarte rămase: ${left}${note.ro}`);
+}
+
+/** What getDeepAccess sends beyond DeepAccess (DeepAccessResult's additive fields). */
+export type AccessExtras = DeepAccess & {
+  useCredit?: true;
+  plan?: { plan: string; reports: number | null; used: number | null };
+  /** The free check waits for a Google sign-in (DEEP_OPEN_REQUIRES_GOOGLE). */
+  creditNeeds?: "google";
+};
+
+const planName = (id: string) => id.charAt(0).toUpperCase() + id.slice(1);
+/** "4 rapoarte" / "20 de rapoarte". */
+const roReports = (n: number) => `${n} ${n % 100 === 0 || n % 100 >= 20 ? "de " : ""}rapoarte`;
+
+/**
+ * Under "Pornește cercetarea": what this run uses (the free report, one of the checks left, or
+ * the plan). Null for admins, test codes and open mode.
+ */
+export function startCostLine(access: DeepAccess | null): Bilingual | null {
+  const a = access as AccessExtras | null;
+  if (!a?.allowed || a.via === "admin") return null;
+  const credits = a.credits;
+  if (a.useCredit && credits) {
+    if (credits.plan === "free" && credits.left === 1)
+      return bi(
+        "This uses your account's free report. If the research doesn't start, it isn't used up.",
+        "Folosești raportul gratuit al contului. Dacă cercetarea nu pornește, nu se consumă.",
+      );
+    return credits.left === 1
+      ? bi(
+          "This uses the last report left on your account.",
+          "Folosești ultimul raport rămas în cont.",
+        )
+      : bi(
+          `This uses 1 of the ${credits.left} reports left on your account.`,
+          `Folosești 1 din cele ${roReports(credits.left)} rămase în cont.`,
+        );
+  }
+  if (a.via === "premium" && a.plan)
+    return bi(
+      `Included in your ${planName(a.plan.plan)} plan.`,
+      `Inclus în abonamentul ${planName(a.plan.plan)}.`,
+    );
+  return null;
+}
+
+/**
+ * The entry's offer line on /scan: "Primul raport e gratuit." for a visitor who is not signed
+ * in or still has the free report, the checks left otherwise; `free` adds the value estimate.
+ */
+export function entryOfferLine(
+  access: DeepAccess | null,
+  preview: boolean,
+): { line: Bilingual; free: boolean } | null {
+  const free = { line: bi("Your first report is free.", "Primul raport e gratuit."), free: true };
+  if (preview) return free;
+  const a = access as AccessExtras | null;
+  if (!a) return null;
+  if (a.reason === "login_required") return free;
+  if (!a.allowed || a.via === "admin") return null;
+  if (a.useCredit && a.credits) {
+    if (a.credits.plan === "free" && a.credits.left === 1) return free;
+    const left = creditsLeftLine(a.credits);
+    return { line: bi(`${left.en}.`, `${left.ro}.`), free: false };
+  }
+  if (a.via === "premium" && a.plan)
+    return {
+      line: bi(
+        `Included in your ${planName(a.plan.plan)} plan.`,
+        `Inclus în abonamentul ${planName(a.plan.plan)}.`,
+      ),
+      free: false,
+    };
+  return null;
 }

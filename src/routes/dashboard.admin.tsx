@@ -251,7 +251,9 @@ function AdminContent() {
         <TabsContent value="users">
           <UsersTable
             profiles={data.profiles as UserRow[]}
-            subscribers={data.subscribers as { user_id: string; tier: string | null; status: string | null }[]}
+            subscribers={
+              data.subscribers as { user_id: string; tier: string | null; status: string | null }[]
+            }
             credits={data.credits}
             contracts={data.plans.active}
           />
@@ -930,9 +932,10 @@ function UsersTable({
   return (
     <div className="space-y-3">
       <p className="text-sm text-fg-2">
-        Everyone can run deep research with their checks. A new account gets 1 free check;
-        Premium gives 4. Changing the plan resets the checks to that amount; you can also set
-        any number of checks.
+        A new account gets 1 free check (it needs a Google sign-in while DEEP_OPEN_REQUIRES_GOOGLE
+        is on); Premium gives 4. Saving here counts as admin-granted, so that account no longer
+        needs Google. Changing the plan resets the checks to that amount; you can also set any
+        number of checks. Contract plans (Plans tab) add their own reports.
       </p>
       <Input
         placeholder="Search by email, name or company"

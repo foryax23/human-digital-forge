@@ -20,8 +20,24 @@ export const GATE_REASON: Partial<Record<DemoState, AccessReason>> = {
   "gate-test": "admin_only",
   "gate-cod": "code_required",
   "gate-premium": "premium_required",
+  "gate-folosit": "premium_required",
+  "gate-google": "premium_required",
   "gate-limita": "daily_cap_user",
   "gate-indisponibil": "ledger_unavailable",
+};
+
+/**
+ * The account's deep checks behind a sample gate: "gate-folosit" is a free account whose free
+ * report is used, "gate-google" an e-mail account whose free report waits for a Google
+ * sign-in; the limit and storage gates keep a free report that was not spent.
+ */
+export const GATE_ACCESS: Partial<
+  Record<DemoState, Pick<DeepAccess, "credits"> & { creditNeeds?: "google" }>
+> = {
+  "gate-folosit": { credits: { plan: "free", left: 0 } },
+  "gate-google": { credits: { plan: "free", left: 1 }, creditNeeds: "google" },
+  "gate-limita": { credits: { plan: "free", left: 1 } },
+  "gate-indisponibil": { credits: { plan: "free", left: 1 } },
 };
 
 export const REPORT_VARIANT: Partial<Record<DemoState, DemoVariant>> = {

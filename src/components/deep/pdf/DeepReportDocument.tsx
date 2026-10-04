@@ -30,14 +30,14 @@ export function DeepReportDocument({ variant = "full", ...input }: DeepReportDoc
     .join(" · ");
   return (
     <Document
-      title={ctx.t(`Deep research: ${ctx.name}`, `Cercetare aprofundată: ${ctx.name}`)}
+      title={ctx.t(`Deep Research: ${ctx.name}`, `Deep Research: ${ctx.name}`)}
       author={COMPANY.legalName}
       creator={COMPANY.legalName}
       producer={COMPANY.legalName}
       subject={subject}
       keywords={ctx.t(
-        "Vortex Hub, deep research, report",
-        "Vortex Hub, cercetare aprofundată, raport",
+        "Vortex Hub, Deep Research, report",
+        "Vortex Hub, Deep Research, cercetare aprofundată, raport",
       )}
       language={ctx.lang === "ro" ? "ro-RO" : "en-GB"}
     >

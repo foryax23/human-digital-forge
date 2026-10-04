@@ -85,10 +85,10 @@ export const PAGE_SEO = {
     robots: "noindex",
   },
   "/scan/deep": {
-    title: { en: "Deep research | Vortex Hub", ro: "Cercetare aprofundată | Vortex Hub" },
+    title: { en: "Deep Research | Vortex Hub", ro: "Deep Research | Vortex Hub" },
     description: {
-      en: "Vortex Scan deep research: official figures, similar firms, the website as a customer sees it and three actions in lei.",
-      ro: "Cercetarea aprofundată Vortex Scan: cifre oficiale, firme similare, site-ul văzut ca de un client și trei acțiuni calculate în lei.",
+      en: "Vortex Scan Deep Research: 7 years of filed accounts, the website read as a new customer would and three actions priced in lei. Your first report is free.",
+      ro: "Deep Research din Vortex Scan: bilanțurile din ultimii 7 ani, site-ul citit ca de un client nou și trei acțiuni calculate în lei. Primul raport e gratuit.",
     },
     robots: "noindex, nofollow",
   },
@@ -157,10 +157,10 @@ export const PAGE_SEO = {
     robots: "noindex",
   },
   "/dashboard/research": {
-    title: { en: "Deep research | Vortex Hub", ro: "Cercetare aprofundată | Vortex Hub" },
+    title: { en: "Deep Research | Vortex Hub", ro: "Deep Research | Vortex Hub" },
     description: {
       en: "Your deep company research reports.",
-      ro: "Rapoartele tale de cercetare aprofundată despre firme.",
+      ro: "Rapoartele tale Deep Research despre firme.",
     },
     robots: "noindex",
   },

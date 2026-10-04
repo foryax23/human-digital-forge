@@ -368,20 +368,41 @@ export const setDeepCredits = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const db = await adminDb(context);
-    const { data: existing } = await db
-      .from("deep_credits")
-      .select("plan, credits")
-      .eq("user_id", data.userId)
-      .maybeSingle();
-    const plan = data.plan ?? (existing?.plan as "free" | "premium" | undefined) ?? "free";
-    const credits = data.credits ?? (data.plan ? PLAN_CHECKS[data.plan] : (existing?.credits ?? 1));
-    const { error } = await db.from("deep_credits").upsert({
-      user_id: data.userId,
+    return saveDeepCredits(db, context.userId, data);
+  });
+
+/**
+ * The write behind setDeepCredits (service role, admin already checked). The current row is
+ * read first so that setting only the number keeps the plan: a failed read refuses instead of
+ * saving the free plan over a premium one. updated_by marks the checks as granted by an admin
+ * (src/lib/deep/access.server.ts: a granted check needs no Google sign-in).
+ */
+export async function saveDeepCredits(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: any,
+  adminId: string,
+  input: { userId: string; plan?: "free" | "premium"; credits?: number },
+  now = Date.now(),
+): Promise<{ ok: true; plan: "free" | "premium"; credits: number }> {
+  const { data: existing, error: readError } = await db
+    .from("deep_credits")
+    .select("plan, credits")
+    .eq("user_id", input.userId)
+    .maybeSingle();
+  if (readError) throw new Error("Could not read the plan");
+  const row = existing as { plan?: string; credits?: number } | null;
+  const plan = input.plan ?? (row?.plan === "premium" ? "premium" : "free");
+  const credits = input.credits ?? (input.plan ? PLAN_CHECKS[input.plan] : (row?.credits ?? 1));
+  const { error } = await db.from("deep_credits").upsert(
+    {
+      user_id: input.userId,
       plan,
       credits,
-      updated_at: new Date().toISOString(),
-      updated_by: context.userId,
-    });
-    if (error) throw new Error("Could not save the plan");
-    return { ok: true, plan, credits };
-  });
+      updated_at: new Date(now).toISOString(),
+      updated_by: adminId,
+    },
+    { onConflict: "user_id" },
+  );
+  if (error) throw new Error("Could not save the plan");
+  return { ok: true, plan, credits };
+}

@@ -10,7 +10,14 @@ import {
 } from "@/lib/client-plans";
 import { currentClientPlan, type PlanDb } from "@/lib/client-plans.server";
 
-import type { AccessReason, AccessVia, AdminBy, DeepAccess, DeepStore } from "./contracts";
+import type {
+  AccessReason,
+  AccessVia,
+  AdminBy,
+  DeepAccess,
+  DeepStore,
+  StartDeepRunOutput,
+} from "./contracts";
 import { readDeepConfig, testCodeValid, type DeepConfig } from "./env.server";
 import { deepDb, type DeepDb } from "./persist-db.server";
 import { storeForNewRun } from "./persist.server";
@@ -54,6 +61,25 @@ import { storeForNewRun } from "./persist.server";
  * listed tier with no quota there admits within the daily caps only, as before. Admins keep
  * their own caps and never use a plan's reports. A plan lookup or count that fails refuses
  * ("ledger_unavailable"), never admits.
+ *
+ * Deep checks (public.deep_credits, drizzle/migrations/0003): "Primul raport Deep Research e
+ * gratuit", one check per account (no row = the free plan with 1); an admin can grant more
+ * (plan premium, or any number). The order, in every mode but disabled:
+ *   1. admin; 2. a valid test code (code, open and premium modes: it spends nothing);
+ *   3. open mode, for an account it admits (spends nothing);
+ *   4. a deep check, spent atomically by startDeepRun (startWithDeepCheck below);
+ *   5. the mode: a plan's reports, the legacy free run, or the mode's refusal.
+ * A check needs a confirmed e-mail and, while DEEP_OPEN_REQUIRES_GOOGLE is on (the default),
+ * a Google identity for that address, unless an admin granted it (a row with updated_by, or
+ * plan premium): with e-mail auto-confirm on, throwaway accounts would otherwise each take a
+ * free AI report and use up the all-accounts cap and the day budget. A check is spent only on
+ * a full AI run: with AI off (no key, breaker, storage) or less than one run's budget left in
+ * the day, the account keeps it. Runs started with a check are recorded via "free" whatever
+ * the check's plan: a plan's quota counts only the runs the plan admitted (via "premium",
+ * persist-tables premiumRunsSince), so granted checks never use up a contract's reports.
+ * The daily caps (per account, all accounts) and the run and day budgets apply as for anyone.
+ * A check that cannot be used yet (e-mail, Google, AI off) never hides a plan or a code: the
+ * mode decides, and only a refusal of the gate is replaced by what the check is waiting for.
  */
 
 export type AccountInfo = { email?: string; emailConfirmed: boolean; google: boolean };
@@ -70,9 +96,14 @@ export type AccessLookups = {
    * null without one or before client_plans.sql is applied, "error" when the lookup failed.
    */
   clientPlan?(userId: string): Promise<Pick<ClientPlanRow, "plan"> | null | "error">;
-  /** Deep checks the admin granted (no row: a free account with 1); null when unreadable. */
-  credits?(userId: string): Promise<{ plan: "free" | "premium"; left: number } | null>;
+  /**
+   * The account's deep checks (no row: a free account with 1); `granted` when an admin set
+   * them (updated_by, or plan premium). Null when unreadable.
+   */
+  credits?(userId: string): Promise<DeepCredits | null>;
 };
+
+export type DeepCredits = { plan: "free" | "premium"; left: number; granted?: boolean };
 
 export type AccessDeps = {
   config?: DeepConfig;
@@ -96,6 +127,11 @@ export type DeepAccessResult = DeepAccess & {
   plan?: ResearchAllowance;
   /** The run spends one of the account's deep checks (startDeepRun takes it atomically). */
   useCredit?: true;
+  /**
+   * The account has a free check it cannot use yet: it needs a Google sign-in for its address
+   * (DEEP_OPEN_REQUIRES_GOOGLE). The refusal reason stays the mode's; the gate can say this.
+   */
+  creditNeeds?: "google";
 };
 
 /** A store that can count the runs started through a plan (the tables store). */
@@ -161,13 +197,16 @@ export function supabaseLookups(db: DeepDb | null = deepDb()): AccessLookups {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, error } = await (db as any)
           .from("deep_credits")
-          .select("plan, credits")
+          .select("plan, credits, updated_by")
           .eq("user_id", userId)
           .maybeSingle();
         if (error) return null;
-        if (!data) return { plan: "free", left: FREE_DEEP_CHECKS };
-        const row = data as { plan: string; credits: number };
-        return { plan: row.plan === "premium" ? "premium" : "free", left: Number(row.credits) || 0 };
+        if (!data) return { plan: "free", left: FREE_DEEP_CHECKS, granted: false };
+        const row = data as { plan: string; credits: number; updated_by?: string | null };
+        const plan = row.plan === "premium" ? "premium" : "free";
+        // deep_use_credit creates the row without updated_by; setDeepCredits always sets it.
+        const left = Math.max(0, Math.floor(Number(row.credits) || 0));
+        return { plan, left, granted: plan === "premium" || Boolean(row.updated_by) };
       } catch {
         return null;
       }
@@ -352,6 +391,35 @@ export async function planResearchAccess(
   return { admit: false, allowance: first };
 }
 
+/**
+ * Whether the account's deep check can admit this run: null without one (none left, or the
+ * credits unreadable: the mode decides, as before deep checks), "usable", or what it waits for.
+ */
+type CheckState =
+  | "usable"
+  | "google_required"
+  | "email_unconfirmed"
+  | "ledger_unavailable"
+  | "budget_exhausted";
+
+async function deepCheckState(
+  credits: DeepCredits | null,
+  getAccount: () => Promise<AccountInfo | null>,
+  opts: { openRequiresGoogle: boolean; aiReady: boolean; dayRoom: boolean },
+): Promise<CheckState | null> {
+  if (!credits || !(credits.left > 0)) return null;
+  const a = await getAccount();
+  if (!a) return "ledger_unavailable";
+  if (!a.emailConfirmed) return "email_unconfirmed";
+  // Throwaway accounts: the free check needs Google unless an admin granted the checks.
+  const granted = credits.granted === true || credits.plan === "premium";
+  if (opts.openRequiresGoogle && !a.google && !granted) return "google_required";
+  // Not spent on a rules-only report or on one the day budget could not finish.
+  if (!opts.dayRoom) return "budget_exhausted";
+  if (!opts.aiReady) return "ledger_unavailable";
+  return "usable";
+}
+
 /** Plan D2: `checkDeepAccess({ userId, testCode })`, with injectable dependencies for tests. */
 export async function checkDeepAccess(
   args: { userId: string | null; testCode?: string },
@@ -437,25 +505,48 @@ export async function checkDeepAccess(
     : false;
 
   const credits = lookups.credits ? await lookups.credits(userId).catch(() => null) : null;
-  if (credits) base.credits = credits;
+  // Only the plan and the count reach the browser (`granted` is the server's business).
+  if (credits) base.credits = { plan: credits.plan, left: credits.left };
+  const check = isAdmin
+    ? null
+    : await deepCheckState(credits, getAccount, {
+        openRequiresGoogle,
+        // A check buys a full AI report: AI available, and one run's budget left in the day.
+        aiReady: Boolean(config.anthropicKey) && persistent && Boolean(stats) && !breaker,
+        dayRoom: todayUsd + config.runBudgetUsd <= config.dayBudgetUsd + 1e-9,
+      });
+  /*
+   * The mode's refusal of the gate (no code, no plan, admins only), for an account whose free
+   * check is waiting for something: say what (confirm the e-mail, come back when the day has
+   * budget again, try again); a Google sign-in is flagged with the mode's reason kept.
+   */
+  const refuse = (reason: AccessReason): DeepAccessResult => {
+    const gate =
+      reason === "admin_only" || reason === "code_required" || reason === "premium_required";
+    if (!gate || !check || check === "usable") return deny(reason);
+    if (check === "google_required") return deny(reason, { creditNeeds: "google" });
+    return deny(check);
+  };
 
   let via: AccessVia | undefined;
   let useCredit = false;
-  if (isAdmin) via = "admin";
-  else if (credits && credits.left > 0) {
-    // Deep checks are open to everyone with a confirmed account; each run spends one.
+  const openAccount = async () => {
     const a = await getAccount();
-    if (!a) return deny("ledger_unavailable");
-    if (!a.emailConfirmed) return deny("email_unconfirmed");
-    via = credits.plan === "premium" ? "premium" : "free";
+    return Boolean(a && a.emailConfirmed && (!openRequiresGoogle || a.google));
+  };
+  if (isAdmin) via = "admin";
+  // A test code spends nothing, so it comes before the account's check (not in admin mode).
+  else if (codeOk && config.mode !== "admin") via = "code";
+  // Open mode admits the account anyway: its check stays for later.
+  else if (config.mode === "open" && (await openAccount())) via = "open";
+  else if (check === "usable") {
+    // Recorded as "free" whatever the check's plan: a contract's quota counts only its own
+    // runs (via "premium"), so a granted check never uses up a plan's reports.
+    via = "free";
     useCredit = true;
   } else {
     switch (config.mode) {
       case "code": {
-        if (codeOk) {
-          via = "code";
-          break;
-        }
         // Plans are admitted in code mode too (A4), within their reports.
         const a = await getAccount();
         const plan = await planResearchAccess(userId, a?.emailConfirmed ? a.email : undefined, {
@@ -465,27 +556,18 @@ export async function checkDeepAccess(
           now: now(),
         });
         if (plan.allowance) base.plan = plan.allowance;
-        if (!plan.admit) return deny("code_required");
+        if (!plan.admit) return refuse("code_required");
         via = "premium";
         break;
       }
       case "open": {
-        if (codeOk) {
-          via = "code";
-          break;
-        }
+        // Not admitted above: say why.
         const a = await getAccount();
         if (!a) return deny("ledger_unavailable");
         if (!a.emailConfirmed) return deny("email_unconfirmed");
-        if (openRequiresGoogle && !a.google) return deny("code_required");
-        via = "open";
-        break;
+        return refuse("code_required");
       }
       case "premium": {
-        if (codeOk) {
-          via = "code";
-          break;
-        }
         const a = await getAccount();
         const plan = await planResearchAccess(userId, a?.emailConfirmed ? a.email : undefined, {
           config,
@@ -502,10 +584,11 @@ export async function checkDeepAccess(
         if (plan.error) return deny("ledger_unavailable");
         if (config.freeRunsPerUser > 0) {
           // A free run needs the confirmed identity open mode asks for: otherwise throwaway
-          // accounts could use up the all-accounts cap and the day budget.
+          // accounts could use up the all-accounts cap and the day budget. Runs started with a
+          // deep check are "free" too, so the account's free run and its free check are one.
           if (!a) return deny("ledger_unavailable");
           if (!a.emailConfirmed || (openRequiresGoogle && !a.google))
-            return deny("premium_required");
+            return refuse("premium_required");
           if (!store?.freeRunsUsed) return deny("ledger_unavailable");
           const used = await store.freeRunsUsed(userId).catch(() => Number.POSITIVE_INFINITY);
           if (used < config.freeRunsPerUser) {
@@ -514,11 +597,11 @@ export async function checkDeepAccess(
           }
         }
         // No plan, or this period's reports are used (base.plan says which, and when they renew).
-        return deny("premium_required");
+        return refuse("premium_required");
       }
       default:
         // "admin", and any unknown value (already mapped to admin by readDeepConfig).
-        return deny("admin_only");
+        return refuse("admin_only");
     }
   }
 
@@ -533,4 +616,53 @@ export async function checkDeepAccess(
     entryVisible: true,
     ...(useCredit ? { useCredit: true as const } : {}),
   };
+}
+
+/** The account's deep checks as startDeepRun spends them (deep_use_credit, deep_refund_credit). */
+export type DeepCheckLedger = {
+  /** Takes one check atomically: true when taken, false with none left. Throws when it failed. */
+  spend(): Promise<boolean>;
+  refund(): Promise<void>;
+};
+
+/**
+ * Starts a run, spending one deep check first when the access says so (`useCredit`): taken
+ * atomically before the run starts, so two tabs cannot share one check, and given back when
+ * the run does not start (a refusal of the engine, or an error). A check that cannot be taken
+ * refuses: none left ("free_run_used", or "premium_required" for granted premium checks),
+ * or the ledger unreachable ("ledger_unavailable"). A failed refund is logged, never thrown
+ * over the run's own answer.
+ */
+export async function startWithDeepCheck(
+  access: Pick<DeepAccessResult, "useCredit" | "credits">,
+  ledger: DeepCheckLedger | null,
+  start: () => Promise<StartDeepRunOutput>,
+  log: (event: Record<string, unknown>) => void = () => undefined,
+): Promise<StartDeepRunOutput> {
+  if (!access.useCredit) return start();
+  if (!ledger) return { ok: false, reason: "ledger_unavailable" };
+  let taken: boolean;
+  try {
+    taken = await ledger.spend();
+  } catch (error) {
+    log({ deepCheck: "spend_error", error: String((error as Error)?.message ?? error) });
+    return { ok: false, reason: "ledger_unavailable" };
+  }
+  if (!taken)
+    return {
+      ok: false,
+      reason: access.credits?.plan === "premium" ? "premium_required" : "free_run_used",
+    };
+  let started = false;
+  try {
+    const out = await start();
+    started = out.ok;
+    return out;
+  } finally {
+    if (!started) {
+      await ledger.refund().catch((error: unknown) => {
+        log({ deepCheck: "refund_error", error: String((error as Error)?.message ?? error) });
+      });
+    }
+  }
 }

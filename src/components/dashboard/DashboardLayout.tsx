@@ -61,7 +61,7 @@ function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: 
     ? [
         ...navItems,
         {
-          label: ["Deep research", "Cercetare aprofundată"],
+          label: ["Deep Research", "Deep Research"],
           icon: Telescope,
           to: "/dashboard/research",
         },

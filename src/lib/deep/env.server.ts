@@ -8,6 +8,7 @@ import type { AuditContext, SitemapInfo } from "@/lib/scan/audit/model";
 import { runPageSpeed } from "@/lib/scan/audit/pagespeed.server";
 import { configureScanIndex, findCompanyByCui } from "@/lib/scan/company-search";
 import { SCAN_USER_AGENT } from "@/lib/scan/legal/bot";
+import { classifySocialUrl, normalizeSocialUrl } from "@/lib/scan/audit/social";
 import { isPrivateAddress, urlBlockReason } from "@/lib/scan/net.server";
 
 import { createAnafClient, type AnafClient } from "./anaf-pacer.server";
@@ -261,17 +262,16 @@ export function ticketAdmitted(
   // check makes no I/O, and emptying DEEP_RESEARCH_ADMIN_EMAILS revokes it at the next step.
   if (via === "admin") return isAdmin || (adminBy === "email" && config.adminEmails.length > 0);
   if (isAdmin) return true;
-  // Admin-granted deep checks: the check was spent at start, so the run continues in any mode.
+  // A run paid for at start continues in any mode but disabled: "free" (a deep check, spent
+  // atomically by startDeepRun, or the legacy free run) and "premium" (a plan's report,
+  // counted from the run itself). Switching the mode back must not cut a report in half.
   if (via === "premium" || via === "free") return true;
   switch (config.mode) {
     case "code":
-      // Premium subscribers are admitted in code mode too (A4).
+    case "premium":
       return via === "code";
     case "open":
       return via === "code" || via === "open";
-    case "premium":
-      // "free": the account's free Premium report (D24), admitted for the run it started.
-      return via === "code";
     default:
       return false;
   }
@@ -400,6 +400,8 @@ export type StepEnv = {
   auditSite(input: AuditSiteInput): Promise<AuditSiteResult | null>;
   pagespeed(url: string): Promise<PageSpeedSummary | null>;
   sources: { courts: boolean; ted: boolean; pagespeed: boolean };
+  /** The quick scan's social link rules (src/lib/scan/audit/social.ts): pure, no request. */
+  social: SocialLinks;
   llm: LlmClient | null;
   ledger: PaidLedger;
   /** Seals a cursor for this run and user; `purpose` is authenticated (a crawl cursor never opens as a site snapshot). */
@@ -409,6 +411,18 @@ export type StepEnv = {
   sleep(ms: number): Promise<void>;
   log(event: Record<string, unknown>): void;
   counters(): { subrequests: number; anafCalls: number; politeRequests: number };
+};
+
+export type SocialLinks = {
+  /** The platform of a profile or post link, or null (share buttons, embeds, other sites). */
+  classify(url: string): { platform: string; profile: boolean } | null;
+  /** The link as the report shows it: https, no trailing slash, m./mobile. → www. */
+  normalize(url: string): string;
+};
+
+export const SOCIAL_LINKS: SocialLinks = {
+  classify: classifySocialUrl,
+  normalize: normalizeSocialUrl,
 };
 
 /** Step wall-time budgets (plan A5): 25 s, aborted at 28 s; pagespeed and synthesis sections 50 s. */
@@ -691,6 +705,7 @@ export function createStepEnv(input: EnvInput, adapters: EnvAdapters): StepEnv {
     auditSite: adapters.auditSite ?? ((site) => auditFromPages(site)),
     pagespeed: adapters.pagespeed ?? ((url) => pageSpeedSummary(url)),
     sources: { courts: input.config.sourceCourts, ted: input.config.sourceTed, pagespeed: true },
+    social: SOCIAL_LINKS,
     llm: input.llm?.bindFetch
       ? { ...input.llm, transport: input.llm.bindFetch(counted.fetch) }
       : input.llm,

@@ -8,7 +8,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-import { OUTCOME } from "./copy";
+import { entryOfferLine, OUTCOME, VALUE_ESTIMATE } from "./copy";
 import { browserStorage, clearJournal, hasAnyJournal } from "./journal";
 import { DEEP_PATH } from "./safe-next";
 import { fetchAccess } from "./transport";
@@ -79,7 +79,7 @@ export function DeepEntry({
   preview?: boolean;
   className?: string;
 }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const access = useEntryAccess();
   const cui = cuiProp ?? blueprint?.company?.cui;
   const site = siteProp ?? verifiedSite(blueprint);
@@ -88,6 +88,7 @@ export function DeepEntry({
   if (!preview && !access?.entryVisible) return null;
   const search = { cui: Number(digits), ...(site ? { site } : {}) };
   const outcome = t(OUTCOME.en, OUTCOME.ro);
+  const offer = entryOfferLine(access, preview);
 
   if (variant === "compact") {
     return (
@@ -98,13 +99,12 @@ export function DeepEntry({
         )}
       >
         <p className="min-w-0 text-[0.9375rem] leading-[1.5] text-fg-2">
-          <span className="font-medium text-fg">
-            {t("Deep research", "Cercetare aprofundată")}:{" "}
-          </span>
+          <span className="font-medium text-fg">Deep Research: </span>
           {t(
-            "how much you keep of every 100 lei, what a customer sees on your site and 3 steps for the next 30 days.",
-            "cât păstrezi din 100 de lei, ce vede un client pe site și 3 pași pentru următoarele 30 de zile.",
+            "7 years of filed accounts, your site as a customer sees it and 3 steps for the next 30 days.",
+            "bilanțurile din ultimii 7 ani, site-ul văzut de un client și 3 pași pentru următoarele 30 de zile.",
           )}
+          {offer ? <span className="text-fg"> {offer.line[lang]}</span> : null}
         </p>
         <ButtonLink
           to={DEEP_PATH}
@@ -124,9 +124,15 @@ export function DeepEntry({
       <PanelBody className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
         <div className="min-w-0 max-w-[60ch]">
           <h2 id="deep-entry-title" className="type-h3 text-fg">
-            {t("Deep research", "Cercetare aprofundată")}
+            Deep Research
           </h2>
           <p className="mt-1.5 text-fg-2">{outcome}</p>
+          {offer ? (
+            <p className="mt-2 text-[0.875rem] text-fg-3">
+              <span className="font-medium text-fg">{offer.line[lang]}</span>
+              {offer.free ? ` ${VALUE_ESTIMATE[lang]}` : null}
+            </p>
+          ) : null}
         </div>
         <div className="flex shrink-0 flex-col items-start gap-1.5">
           {/* Secondary: /scan keeps its one violet button for the report download. */}
@@ -138,11 +144,8 @@ export function DeepEntry({
             className="h-11"
             iconEnd={<ArrowRight aria-hidden />}
           >
-            {t("Start the deep research", "Pornește cercetarea aprofundată")}
+            {t("Start Deep Research", "Pornește Deep Research")}
           </ButtonLink>
-          <p className="text-[0.8125rem] text-fg-3">
-            {t("Free during the test period", "Gratuit în perioada de test")}
-          </p>
           <ButtonLink
             to={DEEP_PATH}
             search={{ demo: "exemplu" }}

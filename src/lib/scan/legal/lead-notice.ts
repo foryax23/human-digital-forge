@@ -77,7 +77,7 @@ export type LeadConsentRecord = ConsentRecord;
  * new version; the form shows box 1 again for the new version.
  */
 export const DEEP_NOTICE_VERSION = "2026-10-03";
-export const DEEP_TERMS_VERSION = "2026-10-03";
+export const DEEP_TERMS_VERSION = "2026-10-04";
 
 /** Deep runs, paid-call records and step records are kept this long (A6, B6). */
 export const DEEP_RETENTION_DAYS = 90;
@@ -120,7 +120,7 @@ export const DEEP_TERMS: Record<Lang, { title: string; points: string[] }> = {
       "Când citezi date din raport, menționezi sursa lor (de exemplu: «Sursa: Ministerul Finanțelor, bilanț 2025»).",
       "Raportul este pentru tine și pentru firma ta; îl poți trimite contabilului, unui colaborator sau unei bănci, dar nu îl publici și nu îl revinzi.",
       `Dacă vezi o eroare, folosește «Raportează o eroare» din raport sau scrie-ne la ${PRIVACY_EMAIL}: verificăm în cel mult 5 zile lucrătoare și corectăm ce e greșit.`,
-      "În perioada de test cercetarea este gratuită, iar Vortex Hub o poate limita sau opri oricând.",
+      "Primul raport Deep Research al fiecărui cont e gratuit; rapoartele următoare vin cu abonamentele prin contract. Vortex Hub poate limita sau opri oricând raportul gratuit.",
     ],
   },
   en: {
@@ -132,7 +132,7 @@ export const DEEP_TERMS: Record<Lang, { title: string; points: string[] }> = {
       'When you quote data from a report, name its source (for example: "Source: Ministry of Finance, 2025 annual accounts").',
       "The report is for you and your company; you may send it to your accountant, a business associate or a bank, but you may not publish or resell it.",
       `If you see an error, use "Report an error" in the report or write to ${PRIVACY_EMAIL}: we review it within 5 working days and correct what is wrong.`,
-      "During the test period the research is free, and Vortex Hub may limit or stop it at any time.",
+      "Each account's first Deep Research report is free; further reports come with the plans by contract. Vortex Hub may limit or stop the free report at any time.",
     ],
   },
 };

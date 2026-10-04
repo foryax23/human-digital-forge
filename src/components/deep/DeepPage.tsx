@@ -33,6 +33,7 @@ import {
   demoAccess,
   demoReportFor,
   demoRunning,
+  GATE_ACCESS,
   GATE_REASON,
   type DemoState,
 } from "./fixtures/states";
@@ -377,6 +378,7 @@ function DemoPage({ search, setSearch }: { search: DeepSearch; setSearch: SetSea
         userId={DEMO_USER_ID}
         onCode={() => undefined}
         onRetry={() => undefined}
+        access={{ ...access, allowed: false, ...GATE_ACCESS[state] }}
       />
     );
   } else if (state === "intrare") {
@@ -770,6 +772,8 @@ function LivePage({ search, setSearch }: { search: DeepSearch; setSearch: SetSea
         replayRunId={research.refusal.replayRunId}
         unfinishedRunId={unfinished?.runId}
         onRetry={() => window.location.reload()}
+        // The checks read before the start: a run that did not start gives its check back.
+        access={access}
       />
     );
   } else if (accessError) {
@@ -782,6 +786,7 @@ function LivePage({ search, setSearch }: { search: DeepSearch; setSearch: SetSea
       <DeepGate
         reason={reason}
         userId={uid}
+        access={access}
         codeBusy={codeBusy}
         codeError={codeError}
         onCode={async (code) => {
@@ -835,8 +840,8 @@ function NoCompany({ uid }: { uid: string | null }) {
       <h2 className="type-title text-fg">{t("Choose a company", "Alege firma")}</h2>
       <p className="mt-2 text-fg-2">
         {t(
-          "Search the company in Vortex Scan; the deep research starts from its results.",
-          "Caută firma în Vortex Scan; cercetarea aprofundată pornește din rezultatele ei.",
+          "Search the company in Vortex Scan; Deep Research starts from its results.",
+          "Caută firma în Vortex Scan; Deep Research pornește din rezultatele ei.",
         )}
       </p>
       <p className="mt-4 flex flex-wrap gap-x-6 gap-y-2">

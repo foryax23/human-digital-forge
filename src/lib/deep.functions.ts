@@ -17,7 +17,13 @@ import {
   type DeepStore,
   type StartDeepRunOutput,
 } from "@/lib/deep/contracts";
-import { checkDeepAccess, configForUser, isDeepAdmin } from "@/lib/deep/access.server";
+import {
+  checkDeepAccess,
+  configForUser,
+  isDeepAdmin,
+  startWithDeepCheck,
+  type DeepCheckLedger,
+} from "@/lib/deep/access.server";
 import {
   deepAssetOrigin,
   readDeepConfig,
@@ -383,32 +389,39 @@ export const startDeepRun = createServerFn({ method: "POST" })
     if (!access.allowed || !access.via) return { ok: false, reason: access.reason ?? "admin_only" };
     // Lazy retention, at most once an hour per isolate (A6).
     await store.purgeIfDue().catch(() => undefined);
-    const credit = access.useCredit ? await spendDeepCheck(context.userId) : null;
-    if (credit && !credit.ok) return { ok: false, reason: "premium_required" };
-    const out = await engineStart(engineDeps(config, secret), {
-      uid: context.userId,
-      via: access.via,
-      adminBy: access.adminBy,
-      input: data,
-      store,
-      storeKind: store.kind,
-      // The record is built in the language the notice was shown in, not the report's.
-      consent: deepConsentRecord(data.consent.lang ?? data.lang, data.consent.marketing),
-      userCap: access.via === "admin" ? config.adminDailyCap : config.userDailyCap,
-    });
-    // A run that did not start gives its check back.
-    if (credit?.ok && !out.ok) await credit.refund();
-    return out;
+    const via = access.via;
+    // A deep check is taken before the run starts and given back when it does not start.
+    return startWithDeepCheck(
+      access,
+      access.useCredit ? await deepCheckLedger(context.userId).catch(() => null) : null,
+      () =>
+        engineStart(engineDeps(config, secret), {
+          uid: context.userId,
+          via,
+          adminBy: access.adminBy,
+          input: data,
+          store,
+          storeKind: store.kind,
+          // The record is built in the language the notice was shown in, not the report's.
+          consent: deepConsentRecord(data.consent.lang ?? data.lang, data.consent.marketing),
+          userCap: via === "admin" ? config.adminDailyCap : config.userDailyCap,
+        }),
+      (event) => console.log("[deep]", JSON.stringify(event).slice(0, 500)),
+    );
   });
 
-/** Spends one deep check atomically (service role); refund() returns it. */
-async function spendDeepCheck(userId: string) {
+/** The account's deep checks through the service role (deep_use_credit is atomic). */
+async function deepCheckLedger(userId: string): Promise<DeepCheckLedger> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data, error } = await supabaseAdmin.rpc("deep_use_credit", { _uid: userId });
   return {
-    ok: !error && data === true,
-    refund: async () => {
-      await supabaseAdmin.rpc("deep_refund_credit", { _uid: userId });
+    async spend() {
+      const { data, error } = await supabaseAdmin.rpc("deep_use_credit", { _uid: userId });
+      if (error) throw new Error(`deep_use_credit: ${error.code ?? ""} ${error.message ?? ""}`);
+      return data === true;
+    },
+    async refund() {
+      const { error } = await supabaseAdmin.rpc("deep_refund_credit", { _uid: userId });
+      if (error) throw new Error(`deep_refund_credit: ${error.code ?? ""} ${error.message ?? ""}`);
     },
   };
 }

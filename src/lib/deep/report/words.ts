@@ -85,7 +85,7 @@ export const WORD_SWAPS: Array<{ avoid: string; write: string }> = [
   },
   { avoid: "Cu noi", write: "Cu Vortex Hub" },
   { avoid: "email", write: "e-mail" },
-  { avoid: "Premium · deschis pentru test", write: "Gratuit în perioada de test" },
+  { avoid: "Premium · deschis pentru test", write: "Primul raport e gratuit" },
   { avoid: "Nu facem dosare despre oameni", write: "Nu facem profiluri despre persoane" },
 ];
 

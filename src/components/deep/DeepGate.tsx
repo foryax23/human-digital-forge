@@ -1,5 +1,6 @@
 import { useId, useState, type FormEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link, useLocation } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
@@ -10,20 +11,50 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyPlan, myPlanQueryKey } from "@/lib/client-plan.functions";
 import { CLIENT_PLANS, formatPlanDay, formatRenewalDay } from "@/lib/client-plans";
-import type { AccessReason } from "@/lib/deep/contracts";
+import type { AccessReason, DeepAccess } from "@/lib/deep/contracts";
 import { monthlyText, PLAN_CATALOG, PLAN_ORDER, reportsText } from "@/lib/pricing";
 import { useI18n } from "@/i18n";
+import { cn } from "@/lib/utils";
 
 import { SIGNATORY } from "./contact";
-import { planReportsUsedCopy, planStartsLaterCopy, REASON_COPY, type GateCopy } from "./copy";
+import {
+  creditsKeptLine,
+  FREE_NEEDS_GOOGLE,
+  FREE_USED,
+  MORE_WITH_PLANS,
+  planReportsUsedCopy,
+  planStartsLaterCopy,
+  REASON_COPY,
+  REPORT_CONTENTS,
+  VALUE_ESTIMATE,
+  type AccessExtras,
+  type GateCopy,
+} from "./copy";
 import { DEEP_PATH } from "./safe-next";
 
 /*
- * The access states (plan A4, A10) in plain Romanian: switched off, not signed in, e-mail not
- * confirmed, in testing (admins only, with the account ID to send), test code, Premium later,
- * daily limits, storage down, plus the refusals a start can get. The gate never embeds the
- * Google button in the server render: "Intră în cont" goes to /login?next=/scan/deep.
+ * The access states (plan A4, A10) in plain Romanian: switched off, not signed in ("Primul
+ * raport Deep Research e gratuit"), e-mail not confirmed, the free report used (no checks left
+ * and no plan: the plans and "Cere contractul"), a plan's reports used, test code, daily
+ * limits, storage down, plus the refusals a start can get. The gate never embeds the Google
+ * button in the server render: "Intră în cont" goes to /login?next=/scan/deep.
  */
+
+/** Refusals that mean "no checks left" once the account's checks are known to be 0. */
+const NO_CHECKS: AccessReason[] = [
+  "premium_required",
+  "admin_only",
+  "code_required",
+  "free_run_used",
+];
+/** Refusals that spend nothing (a check spent on a run that did not start is given back). */
+const NOTHING_SPENT: AccessReason[] = [
+  "daily_cap_user",
+  "daily_cap_global",
+  "ledger_unavailable",
+  "budget_exhausted",
+  "anaf_unavailable",
+];
 
 export function DeepGate({
   reason,
@@ -34,6 +65,7 @@ export function DeepGate({
   replayRunId,
   unfinishedRunId,
   onRetry,
+  access,
 }: {
   reason: AccessReason;
   userId?: string | null;
@@ -43,20 +75,40 @@ export function DeepGate({
   replayRunId?: string;
   unfinishedRunId?: string;
   onRetry?: () => void;
+  /** The access answer behind the refusal: the account's deep checks (absent when unknown). */
+  access?: DeepAccess | null;
 }) {
   const { t, lang } = useI18n();
+  const pathname = useLocation({ select: (l) => l.pathname });
+  const extras = access as AccessExtras | null | undefined;
+  const credits = extras?.credits;
+  // The free check is there but waits for a Google sign-in: the way to use it comes first.
+  const needsGoogle =
+    NO_CHECKS.includes(reason) && extras?.creditNeeds === "google" && (credits?.left ?? 0) > 0;
   const planCopy = usePlanGateCopy(reason);
-  const copy = planCopy ?? REASON_COPY[reason];
+  // No checks left and no plan that admits: say the free report is used, whatever the mode.
+  const freeUsed =
+    !needsGoogle &&
+    !planCopy &&
+    NO_CHECKS.includes(reason) &&
+    (reason === "free_run_used" || credits?.left === 0);
+  const copy = needsGoogle
+    ? FREE_NEEDS_GOOGLE
+    : (planCopy ?? (freeUsed ? FREE_USED : REASON_COPY[reason]));
+  const showPlans = !needsGoogle && !planCopy && (freeUsed || reason === "premium_required");
+  const kept = NOTHING_SPENT.includes(reason) ? creditsKeptLine(credits) : null;
   const titleId = useId();
-  const showSample = [
-    "login_required",
-    "admin_only",
-    "code_required",
-    "premium_required",
-    "free_run_used",
-    "mode_disabled",
-    "email_unconfirmed",
-  ].includes(reason);
+  const showSample =
+    !freeUsed &&
+    [
+      "login_required",
+      "admin_only",
+      "code_required",
+      "premium_required",
+      "mode_disabled",
+      "email_unconfirmed",
+    ].includes(reason);
+  const showReports = freeUsed && !pathname.startsWith("/dashboard/research");
 
   return (
     <section aria-labelledby={titleId} className="max-w-[40rem]">
@@ -64,41 +116,32 @@ export function DeepGate({
         {copy.title[lang]}
       </h2>
       <p className="mt-2 max-w-[60ch] text-fg-2">{copy.body[lang]}</p>
+      {kept ? <p className="mt-2 max-w-[60ch] text-fg">{kept[lang]}</p> : null}
 
-      {reason === "login_required" ? (
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <ButtonLink to="/login" search={{ next: DEEP_PATH }} size="lg" className="h-11">
-            {t("Sign in with Google or e-mail", "Intră cu Google sau cu e-mail")}
-          </ButtonLink>
-          <ButtonLink
-            to="/register"
-            search={{ next: DEEP_PATH }}
-            variant="secondary"
-            size="lg"
-            className="h-11"
-          >
-            {t("Create an account", "Creează cont")}
-          </ButtonLink>
+      {reason === "login_required" ? <LoginOffer /> : null}
+
+      {needsGoogle ? (
+        <div className="mt-5">
+          <GoogleLink />
         </div>
       ) : null}
-      {reason === "login_required" ? (
-        <p className="mt-3 text-[0.875rem] text-fg-3">
-          {t(
-            "With Google it takes one step. We keep the company you chose for an hour, while you make your account.",
-            "Cu Google durează un pas. Păstrăm firma aleasă o oră, cât îți faci contul.",
-          )}
-        </p>
+
+      {reason === "admin_only" && userId && !freeUsed && !needsGoogle ? (
+        <AccountId userId={userId} />
       ) : null}
 
-      {reason === "admin_only" && userId ? <AccountId userId={userId} /> : null}
+      {reason === "email_unconfirmed" ? (
+        <div className="mt-5 flex flex-col items-start gap-3 sm:flex-row">
+          <GoogleLink />
+          <ResendLink />
+        </div>
+      ) : null}
 
-      {reason === "email_unconfirmed" ? <ResendLink /> : null}
-
-      {reason === "code_required" && onCode ? (
+      {reason === "code_required" && onCode && !freeUsed ? (
         <CodeForm onCode={onCode} busy={codeBusy} error={codeError} />
       ) : null}
 
-      {planCopy ? (
+      {planCopy && !needsGoogle ? (
         <div className="mt-5">
           <ButtonLink to="/dashboard/billing" variant="secondary" size="lg" className="h-11">
             {t("See your plan", "Vezi abonamentul tău")}
@@ -106,10 +149,10 @@ export function DeepGate({
         </div>
       ) : null}
 
-      {!planCopy && (reason === "premium_required" || reason === "free_run_used") ? (
-        <div className="mt-5">
+      {showPlans ? (
+        <div className="mt-4">
           {/* The reports each plan includes (src/lib/pricing.ts), as the pricing section lists them. */}
-          <ul className="mb-4 space-y-1">
+          <ul className="mb-5 space-y-1">
             {PLAN_ORDER.map((id) => (
               <li key={id} className="flex flex-wrap gap-x-2 text-fg">
                 <span className="font-medium">{PLAN_CATALOG[id].name}</span>
@@ -119,9 +162,15 @@ export function DeepGate({
               </li>
             ))}
           </ul>
-          <ButtonLink to="/" hash="pricing" size="lg" className="h-11">
-            {t("See the plans", "Vezi abonamentele")}
-          </ButtonLink>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {/* Growth, the recommended plan, chosen in the form; the visitor can change it there. */}
+            <ButtonLink to="/contact" search={{ plan: "growth" }} size="lg" className="h-11">
+              {t("Request the contract", "Cere contractul")}
+            </ButtonLink>
+            <ButtonLink to="/" hash="pricing" variant="secondary" size="lg" className="h-11">
+              {t("See the plans", "Vezi abonamentele")}
+            </ButtonLink>
+          </div>
         </div>
       ) : null}
 
@@ -143,7 +192,8 @@ export function DeepGate({
 
       {(reason === "ledger_unavailable" ||
         reason === "anaf_unavailable" ||
-        reason === "terms_outdated") &&
+        reason === "terms_outdated" ||
+        (reason === "admin_only" && !freeUsed && !needsGoogle)) &&
       onRetry ? (
         <div className="mt-5">
           <Button size="lg" className="h-11" onClick={onRetry}>
@@ -152,7 +202,21 @@ export function DeepGate({
         </div>
       ) : null}
 
+      {reason === "code_required" && onCode && freeUsed ? (
+        <div className="mt-6 border-t border-line-1 pt-4">
+          <p className="font-medium text-fg">
+            {t("Do you have a test code?", "Ai un cod de test?")}
+          </p>
+          <CodeForm onCode={onCode} busy={codeBusy} error={codeError} className="mt-2" />
+        </div>
+      ) : null}
+
       <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2">
+        {showReports ? (
+          <ButtonLink to="/dashboard/research" variant="link" className="min-h-11">
+            {t("See your reports", "Vezi rapoartele tale")}
+          </ButtonLink>
+        ) : null}
         {showSample ? (
           <ButtonLink
             to={DEEP_PATH}
@@ -168,6 +232,52 @@ export function DeepGate({
         </ButtonLink>
       </div>
     </section>
+  );
+}
+
+/**
+ * Not signed in: what the free report contains, the owner's labelled value estimate, the way
+ * in ("Intră cu Google sau cu e-mail"), and that the plans by contract add more reports.
+ */
+function LoginOffer() {
+  const { t, lang } = useI18n();
+  return (
+    <>
+      <ul
+        aria-label={t("What the report contains", "Ce cuprinde raportul")}
+        className="mt-4 max-w-[60ch] space-y-1.5"
+      >
+        {REPORT_CONTENTS.map((line) => (
+          <li key={line.en} className="flex gap-2 text-fg-2">
+            <span aria-hidden className="text-fg-3">
+              –
+            </span>
+            {line[lang]}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-[0.875rem] text-fg-3">{VALUE_ESTIMATE[lang]}</p>
+      <div className="mt-5">
+        <GoogleLink />
+      </div>
+      <p className="mt-3 text-[0.875rem] text-fg-3">
+        {t(
+          "With Google your account is made in one step. We keep the company you chose for an hour.",
+          "Cu Google, contul se face dintr-un pas. Păstrăm firma aleasă o oră.",
+        )}
+      </p>
+      <p className="mt-5 max-w-[60ch] border-t border-line-1 pt-4 text-[0.875rem] text-fg-2">
+        {MORE_WITH_PLANS[lang]}{" "}
+        {/* An inline link in a sentence (no 44 px box, which would push the line apart). */}
+        <Link
+          to="/"
+          hash="pricing"
+          className="rounded-sm font-medium text-fg underline underline-offset-4"
+        >
+          {t("See the plans", "Vezi abonamentele")}
+        </Link>
+      </p>
+    </>
   );
 }
 
@@ -223,7 +333,7 @@ function usePlanGateCopy(reason: AccessReason): GateCopy | null {
 function AccountId({ userId }: { userId: string }) {
   const { t } = useI18n();
   const inbox = SIGNATORY.email;
-  const subject = encodeURIComponent(t("Deep research access", "Acces la cercetarea aprofundată"));
+  const subject = encodeURIComponent(t("Deep Research access", "Acces la Deep Research"));
   const body = encodeURIComponent(t(`My account ID: ${userId}`, `ID-ul contului meu: ${userId}`));
   const sendIdHref = `mailto:${inbox}?subject=${subject}&body=${body}`;
   return (
@@ -260,6 +370,19 @@ function AccountId({ userId }: { userId: string }) {
   );
 }
 
+/**
+ * "Intră cu Google": the sign-in page, back to /scan/deep after it. The gate never embeds the
+ * Google button itself (it renders on the server for the samples).
+ */
+function GoogleLink() {
+  const { t } = useI18n();
+  return (
+    <ButtonLink to="/login" search={{ next: DEEP_PATH }} size="lg" className="h-11">
+      {t("Sign in with Google", "Intră cu Google")}
+    </ButtonLink>
+  );
+}
+
 /** "Retrimite linkul": the confirmation e-mail again, for the signed-in account. */
 function ResendLink() {
   const { t } = useI18n();
@@ -269,12 +392,12 @@ function ResendLink() {
   if (!email) return null;
   if (state === "sent")
     return (
-      <p className="mt-4 text-fg" role="status">
+      <p className="text-fg sm:self-center" role="status">
         {t("We sent the link again.", "Am retrimis linkul.")}
       </p>
     );
   return (
-    <div className="mt-4">
+    <div>
       <Button
         variant="secondary"
         size="lg"
@@ -308,10 +431,12 @@ function CodeForm({
   onCode,
   busy,
   error,
+  className,
 }: {
   onCode: (code: string) => void;
   busy?: boolean;
   error?: boolean;
+  className?: string;
 }) {
   const { t } = useI18n();
   const id = useId();
@@ -321,7 +446,7 @@ function CodeForm({
     if (code.trim()) onCode(code.trim());
   };
   return (
-    <form onSubmit={submit} className="mt-5 flex max-w-sm flex-col gap-2">
+    <form onSubmit={submit} className={cn("flex max-w-sm flex-col gap-2", className ?? "mt-5")}>
       <label htmlFor={id} className="text-[0.8125rem] font-medium text-fg-2">
         {t("Test code", "Codul de test")}
       </label>

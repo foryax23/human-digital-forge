@@ -13,6 +13,8 @@ export const DEMO_STATES = [
   "gate-test",
   "gate-cod",
   "gate-premium",
+  "gate-folosit",
+  "gate-google",
   "gate-limita",
   "gate-indisponibil",
   "formular",

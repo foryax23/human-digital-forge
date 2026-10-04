@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Loader2, Search, Telescope } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
+import { creditsLeftLine, type AccessExtras } from "@/components/deep/copy";
 import { DeepGate } from "@/components/deep/DeepGate";
 import { fetchAccess, fetchRunList, type RunList } from "@/components/deep/transport";
 import { Button } from "@/components/ui/button";
@@ -60,7 +61,7 @@ function ResearchPage() {
         <div>
           <h1 className="flex items-center gap-3 text-3xl">
             <Telescope className="h-7 w-7 text-primary" aria-hidden />
-            {t("Deep research", "Cercetare aprofundată")}
+            Deep Research
           </h1>
           <p className="mt-1 max-w-2xl text-muted-foreground">
             {t(
@@ -84,7 +85,12 @@ function ResearchPage() {
       ) : access.allowed ? (
         <StartCard access={access} />
       ) : (
-        <DeepGate reason={access.reason ?? "admin_only"} userId={user?.id} onRetry={retry} />
+        <DeepGate
+          reason={access.reason ?? "admin_only"}
+          userId={user?.id}
+          access={access}
+          onRetry={retry}
+        />
       )}
 
       {list === null ? null : !list.ok ? (
@@ -115,7 +121,7 @@ function ResearchPage() {
 
 /** The shortest way in: a CUI opens the start form on /scan/deep (relationship, consent, start). */
 function StartCard({ access }: { access: DeepAccess }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const [cui, setCui] = useState("");
   const digits = cui.trim().replace(/^RO/i, "").replace(/\s+/g, "");
@@ -159,12 +165,12 @@ function StartCard({ access }: { access: DeepAccess }) {
         </Link>
       </p>
       <p className="mt-4 text-xs text-muted-foreground">
-        {access.credits && !access.admin
-          ? `${t("Deep checks left:", "Verificări rămase:")} ${access.credits.left} (${access.credits.plan === "premium" ? "Premium" : t("Free", "Gratuit")}) · `
-          : null}
-        {t("Runs left today:", "Rulări rămase azi:")} {access.runsLeftToday}
+        {/* A run that spends a check shows the reports left ("Rapoarte rămase: 1 (primul e gratuit)"). */}
+        {(access as AccessExtras).useCredit && access.credits
+          ? creditsLeftLine(access.credits)[lang]
+          : `${t("Runs left today:", "Rulări rămase azi:")} ${access.runsLeftToday}`}
         {access.admin ? ` · ${t("admin", "admin")}` : ""}
-        {` · ${access.ai ? t("text drafted with AI", "text redactat cu AI") : t("rule-based, no AI", "pe reguli, fără AI")}`}
+        {` · ${access.ai ? t("text drafted with\u00a0AI", "text redactat cu\u00a0AI") : t("rule-based, no AI", "pe reguli, fără AI")}`}
       </p>
     </section>
   );

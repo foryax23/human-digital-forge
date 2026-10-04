@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
+import { FREE_FIRST, FREE_SUMMARY, VALUE_ESTIMATE } from "@/components/deep/copy";
 import { ButtonLink, RECOMMENDED_RULE, SectionHeader } from "@/components/system";
 import { useI18n } from "@/i18n";
 import type { PlanId } from "@/lib/plans";
@@ -25,7 +26,8 @@ const RECOMMENDED: PlanId = "growth";
 
 /**
  * Plans & pricing (#pricing), from the price list in src/lib/pricing.ts: the free first
- * step, the three plans for after launch as one sheet of columns on hairline dividers,
+ * steps (the scan, and the first Deep Research report with the owner's labelled value
+ * estimate), the three plans for after launch as one sheet of columns on hairline dividers,
  * the terms in plain words and the fixed-price projects. Plans are sold by contract:
  * "Cere contractul" opens /contact with the plan chosen (no card checkout here).
  */
@@ -78,26 +80,45 @@ export function PricingSection() {
           )}
         />
 
-        {/* The free first step: a band above the plans, not a plan column. */}
-        <div className="mb-10 flex flex-col gap-4 border-y border-line-1 py-5 md:mb-12 md:flex-row md:items-center md:justify-between md:gap-8">
-          <div className="min-w-0">
-            <h3 className="type-h4 text-fg">
-              {t("The first step is free", "Primul pas e gratuit")}
-            </h3>
-            <p className="type-body-sm mt-1 max-w-[62ch] text-pretty text-fg-2">
-              {t(
-                "Scan your company with Vortex Scan, get the plan as a PDF and talk it through with us, with no commitment.",
-                "Îți scanezi firma cu Vortex Scan, primești planul în PDF și îl discutăm împreună, fără obligații.",
-              )}
-            </p>
+        {/* The free first steps: a band above the plans, not plan columns. */}
+        <div className="mb-10 border-y border-line-1 md:mb-12">
+          <div className="flex flex-col gap-4 py-5 md:flex-row md:items-center md:justify-between md:gap-8">
+            <div className="min-w-0">
+              <h3 className="type-h4 text-fg">
+                {t("The first step is free", "Primul pas e gratuit")}
+              </h3>
+              <p className="type-body-sm mt-1 max-w-[62ch] text-pretty text-fg-2">
+                {t(
+                  "Scan your company with Vortex Scan, get the plan as a PDF and talk it through with us, with no commitment.",
+                  "Îți scanezi firma cu Vortex Scan, primești planul în PDF și îl discutăm împreună, fără obligații.",
+                )}
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <ButtonLink to="/scan" variant="secondary">
+                {t("Scan your company", "Scanează-ți firma")}
+              </ButtonLink>
+              <ButtonLink to="/contact" variant="ghost">
+                {t("Talk to us", "Vorbește cu noi")}
+              </ButtonLink>
+            </div>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
-            <ButtonLink to="/scan" variant="secondary">
-              {t("Scan your company", "Scanează-ți firma")}
-            </ButtonLink>
-            <ButtonLink to="/contact" variant="ghost">
-              {t("Talk to us", "Vorbește cu noi")}
-            </ButtonLink>
+          <div className="flex flex-col gap-4 border-t border-line-1 py-5 md:flex-row md:items-center md:justify-between md:gap-8">
+            <div className="min-w-0">
+              <h3 className="type-h4 text-fg">{FREE_FIRST[lang]}</h3>
+              <p className="type-body-sm mt-1 max-w-[62ch] text-pretty text-fg-2">
+                {FREE_SUMMARY[lang]}
+              </p>
+              {/* The owner's value estimate: always labelled as ours, never a price or a discount. */}
+              <p className="mt-1.5 text-[0.8125rem] leading-[1.45] text-fg-3">
+                {VALUE_ESTIMATE[lang]}
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              <ButtonLink to="/scan/deep" search={{ demo: "exemplu" }} variant="secondary">
+                {t("See a sample report", "Vezi un exemplu de raport")}
+              </ButtonLink>
+            </div>
           </div>
         </div>
 

@@ -79,9 +79,7 @@ export function CoverPage({ ctx }: { ctx: DeepPdfContext }) {
         {ctx.sample ? <Tag>{sampleLabel(ctx)}</Tag> : null}
       </View>
       <View style={{ marginTop: 150 }}>
-        <Text style={{ ...T.label, fontSize: 9.4 }}>
-          {ctx.t("Deep research", "Cercetare aprofundată")}
-        </Text>
+        <Text style={{ ...T.label, fontSize: 9.4 }}>{ctx.t("Deep Research", "Deep Research")}</Text>
         <Text
           style={{
             fontFamily: FONT.display,
@@ -637,10 +635,7 @@ export function OnePage({ ctx }: { ctx: DeepPdfContext }) {
   const top = rankedActions(ctx).slice(0, 3);
   const checks = thirdPartyChecks(ctx).slice(0, 6);
   return (
-    <DeepPage
-      ctx={ctx}
-      label={ctx.t("Deep research · in short", "Cercetare aprofundată · pe scurt")}
-    >
+    <DeepPage ctx={ctx} label={ctx.t("Deep Research · in short", "Deep Research · pe scurt")}>
       <Text style={T.label}>
         {[ctx.pick(c.activity), c.city, `CUI ${c.cui}`].filter(Boolean).join(" · ")}
       </Text>

@@ -121,7 +121,7 @@ function PlanPanel({ data, className }: { data: ActivePlan; className?: string }
           {research && research.reports !== null && research.period !== null ? (
             reportsLeft === null ? (
               <Stat
-                label={t("Deep research", "Cercetare aprofundată")}
+                label="Deep Research"
                 value={research.reports}
                 unit={reportsLabel(research.reports, research.period, lang).replace(/^\d+\s/, "")}
               />
@@ -132,7 +132,7 @@ function PlanPanel({ data, className }: { data: ActivePlan; className?: string }
                   `${reportsLeft} of ${research.reports}`,
                   `${reportsLeft} din ${research.reports}`,
                 )}
-                sub={`${t(`Deep research, ${period}.`, `Cercetare aprofundată, ${period}.`)}${renewal}`}
+                sub={`Deep Research, ${period}.${renewal}`}
               />
             )
           ) : null}

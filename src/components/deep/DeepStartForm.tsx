@@ -20,7 +20,7 @@ import {
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-import { OUTCOME, RELATIONSHIPS } from "./copy";
+import { OUTCOME, RELATIONSHIPS, startCostLine } from "./copy";
 import { usd } from "./format";
 import { Disclosure } from "./report/shared";
 
@@ -72,6 +72,7 @@ export function DeepStartForm({
   }>({});
   const chosenLang: Lang = reportLang ?? lang;
   const notice = DEEP_NOTICE[lang];
+  const cost = sample ? null : startCostLine(access);
 
   const num = (v: string) => {
     const clean = v.replace(/\s/g, "").replace(/\./g, "").replace(",", ".");
@@ -120,7 +121,7 @@ export function DeepStartForm({
   return (
     <form onSubmit={submit} noValidate aria-labelledby={`${id}-title`} className="max-w-[44rem]">
       <h2 id={`${id}-title`} className="type-title text-balance text-fg">
-        {t("Start the deep research", "Pornește cercetarea aprofundată")}
+        {t("Start Deep Research", "Pornește Deep Research")}
       </h2>
       <p className="mt-2 max-w-[60ch] text-fg-2">{t(OUTCOME.en, OUTCOME.ro)}</p>
 
@@ -372,11 +373,11 @@ export function DeepStartForm({
         <Button type="submit" size="lg" className="h-11 w-full sm:w-auto" loading={busy}>
           {t("Start the research", "Pornește cercetarea")}
         </Button>
-        <span className="text-[0.875rem] text-fg-3">
-          {sample
-            ? t("Sample: nothing is sent.", "Exemplu: nu se trimite nimic.")
-            : t("Free during the test period", "Gratuit în perioada de test")}
-        </span>
+        {sample || cost ? (
+          <span className="text-[0.875rem] text-fg-3">
+            {sample ? t("Sample: nothing is sent.", "Exemplu: nu se trimite nimic.") : cost?.[lang]}
+          </span>
+        ) : null}
       </div>
     </form>
   );

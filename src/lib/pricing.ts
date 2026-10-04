@@ -264,10 +264,46 @@ export function reportsText(plan: PlanId): PriceText {
   );
 }
 
-/** "Cercetare aprofundată: 2 rapoarte pe lună" / "Deep research: 2 reports a month". */
+/** "Deep Research: 2 rapoarte pe lună" / "Deep Research: 2 reports a month". */
 export function deepReportsText(plan: PlanId): PriceText {
   const reports = reportsText(plan);
-  return t(`Deep research: ${reports.en}`, `Cercetare aprofundată: ${reports.ro}`);
+  return t(`Deep Research: ${reports.en}`, `Deep Research: ${reports.ro}`);
+}
+
+/**
+ * "Starter include 1 raport pe trimestru, Growth 2 pe lună, Pro 5 pe lună": the reports each
+ * plan adds to the free first one, in one line (the deep research gate and pages).
+ */
+export function deepPlansText(): PriceText {
+  const parts = PLAN_ORDER.map((id, i) => {
+    const { name, deepReports } = PLAN_CATALOG[id];
+    const { count, per } = deepReports;
+    const en = per === "month" ? "a month" : "a quarter";
+    const ro = per === "month" ? "pe lună" : "pe trimestru";
+    return i === 0
+      ? t(`${name} includes ${reportsText(id).en}`, `${name} include ${reportsText(id).ro}`)
+      : t(`${name} ${count} ${en}`, `${name} ${count} ${ro}`);
+  });
+  return t(parts.map((p) => p.en).join(", "), parts.map((p) => p.ro).join(", "));
+}
+
+/**
+ * The owner's value estimate for one Deep Research report (owner decision, 2026-10-04): about
+ * 200 USD of analysis, at the BNR reference rate of 2 October 2026 (1 USD = 4,7519 lei, so
+ * 950 lei), rounded down to the hundred. Shown only as an estimate ("Estimarea noastră"),
+ * never as a price, a discount or a fact. Change it here; every deep research surface reads it.
+ */
+export const DEEP_REPORT_VALUE = { usd: 200, usdRon: 4.7519, rateDate: "2026-10-02", lei: 900 };
+
+/** "Estimarea noastră: circa 900 de lei de analiză într-un raport." */
+export function deepValueText(): PriceText {
+  const lei = DEEP_REPORT_VALUE.lei;
+  // Romanian takes "de" from 20 up ("900 de lei"), as in hoursText.
+  const de = lei % 100 === 0 || lei % 100 >= 20 ? "de " : "";
+  return t(
+    `Our estimate: about ${groupedNumber(lei, "en")} RON of analysis in one report.`,
+    `Estimarea noastră: circa ${groupedNumber(lei, "ro")} ${de}lei de analiză într-un raport.`,
+  );
 }
 
 /** "Minimum 3 luni, apoi lunar" / "Fără perioadă minimă". */
