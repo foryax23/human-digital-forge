@@ -218,6 +218,15 @@ export type CompanyProfile = {
   phones: ProfileItem[];
   /** Signs the company's own website is compromised, hijacked or SEO-spammed. */
   siteAlerts: ProfileItem[];
+  /** Assets: OSIM/EUIPO trademarks, SEAP/SICAP contracts, EU funds, linked domains, mobile apps. */
+  trademarks: ProfileItem[];
+  publicContracts: ProfileItem[];
+  euFunds: ProfileItem[];
+  domains: ProfileItem[];
+  apps: ProfileItem[];
+  /** Presence: follower counts and open job ads. */
+  followers: ProfileItem[];
+  jobs: ProfileItem[];
   /** Other companies the key people run or own (public business roles only). */
   network: Array<{ person: string; company: string; cui?: string; role: string; source: string }>;
 };
@@ -268,8 +277,15 @@ Reply with ONLY this JSON, every item citing the exact result URL it came from:
 "stores":[{"text":"physical shop / work point address or place, if different from the registered seat","source":"url"}],
 "phones":[{"text":"company phone as published","source":"url"}],
 "siteAlerts":[{"text":"sign the company's website is hacked, hijacked, expired or shows unrelated spam (casino, betting, foreign language)","source":"url"}],
+"trademarks":[{"text":"trademark name, office (OSIM/EUIPO/WIPO), number/status","source":"url"}],
+"publicContracts":[{"text":"Romanian public contract (SEAP/SICAP/e-licitatie): buyer, object, value, year","source":"url"}],
+"euFunds":[{"text":"EU or state funding: program, amount, year","source":"url"}],
+"domains":[{"text":"other website/domain the company runs","source":"url"}],
+"apps":[{"text":"mobile app name and store","source":"url"}],
+"followers":[{"text":"network + follower count as shown in the result","source":"url"}],
+"jobs":[{"text":"open job ad: role, city, platform (eJobs, BestJobs, LinkedIn)","source":"url"}],
 "network":[{"person":"key person's name","company":"another Romanian company they administer, found or own","cui":"its CUI if shown","role":"administrator/shareholder/founder","source":"url"}]}
-Search steps: 1) the legal name and the brand on Romanian company directories (termene.ro, listafirme.ro, datasrl.ro, risco.ro, bizinfo.ro) to get administrators, phone and work points; 2) the brand plus the city on Instagram, TikTok, Facebook; 3) the legal name or CUI on emag.ro and other marketplaces; 4) the website domain, to see what it shows now.
+Search steps: 1) the legal name and the brand on Romanian company directories (termene.ro, listafirme.ro, datasrl.ro, risco.ro, bizinfo.ro) to get administrators, phone and work points; 2) the brand plus the city on Instagram, TikTok, Facebook; 3) the legal name or CUI on emag.ro and other marketplaces; 4) the website domain, to see what it shows now; 5) the legal name on OSIM/EUIPO trademark search, SEAP/e-licitatie and EU-funds lists; 6) the brand on eJobs/BestJobs and app stores; follower counts only as shown in search results.
 For "network", search the key people's names for OTHER companies they run; public business roles only, never home addresses or private contacts. Phones: only numbers the company publishes for itself.
 Use empty arrays when unknown. Max 4 items per list (8 for network), each text under 160 characters.`;
   try {
@@ -278,7 +294,7 @@ Use empty arrays when unknown. Max 4 items per list (8 for network), each text u
       runId: env.runId,
       step: env.step,
       idemKey: `${env.runId}|${env.step}|profile-search`,
-      plan: { model, inputTokens: 90_000, maxTokens: 2200, fallback: false },
+      plan: { model, inputTokens: 120_000, maxTokens: 3200, fallback: false },
       floor: 800,
       exec: (maxTokens) =>
         llm.transport.create(
@@ -286,7 +302,7 @@ Use empty arrays when unknown. Max 4 items per list (8 for network), each text u
             model,
             max_tokens: maxTokens,
             messages: [{ role: "user", content: prompt }],
-            tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 12 }],
+            tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 16 }],
           },
           { timeoutMs: Math.max(10_000, env.deadline - env.now() - 2000) },
         ),
@@ -342,6 +358,13 @@ Use empty arrays when unknown. Max 4 items per list (8 for network), each text u
       stores: list("stores"),
       phones: list("phones"),
       siteAlerts: list("siteAlerts"),
+      trademarks: list("trademarks"),
+      publicContracts: list("publicContracts"),
+      euFunds: list("euFunds"),
+      domains: list("domains"),
+      apps: list("apps"),
+      followers: list("followers"),
+      jobs: list("jobs"),
       network: (Array.isArray(raw.network) ? (raw.network as Array<Record<string, unknown>>) : [])
         .slice(0, 8)
         .flatMap((i) => {
@@ -377,6 +400,13 @@ const PROFILE_PARTS: Array<{
   { key: "stores", section: "identity", label: ["Shop", "Magazin"] },
   { key: "phones", section: "identity", label: ["Phone", "Telefon"] },
   { key: "siteAlerts", section: "risk", label: ["Website alert", "Alertă site"] },
+  { key: "trademarks", section: "identity", label: ["Trademark", "Marcă"] },
+  { key: "publicContracts", section: "risk", label: ["Public contract", "Contract public"] },
+  { key: "euFunds", section: "risk", label: ["Funding", "Finanțare"] },
+  { key: "domains", section: "presence", label: ["Domain", "Domeniu"] },
+  { key: "apps", section: "presence", label: ["App", "Aplicație"] },
+  { key: "followers", section: "presence", label: ["Followers", "Urmăritori"] },
+  { key: "jobs", section: "presence", label: ["Job ad", "Anunț de angajare"] },
 ];
 
 export function profileFacts(profile: CompanyProfile | null, today: string): Fact[] {

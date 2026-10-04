@@ -794,6 +794,13 @@ export const KNOWN_PREDICATES = [
   "profile.phones",
   "profile.siteAlerts",
   "people.network",
+  "profile.trademarks",
+  "profile.publicContracts",
+  "profile.euFunds",
+  "profile.domains",
+  "profile.apps",
+  "profile.followers",
+  "profile.jobs",
   // risk (courts, TED)
   "risk.courts.checked",
   "risk.courts.as_plaintiff",

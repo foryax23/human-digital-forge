@@ -51,14 +51,14 @@ const GROUPS: Array<{ id: AtlasGroupId; title: Bilingual; match: (f: Fact) => bo
       f.predicate === "site.tech" ||
       f.predicate === "risk.ted.awards" ||
       f.predicate === "offers.services" ||
-      f.predicate === "profile.marketplaces",
+      ["profile.marketplaces", "profile.trademarks", "profile.publicContracts", "profile.euFunds", "profile.domains", "profile.apps"].includes(f.predicate),
   },
   {
     id: "presence",
     title: { en: "Online presence", ro: "Prezență online" },
     match: (f) =>
       (f.predicate.startsWith("presence.") && f.predicate !== "presence.news.item") ||
-      ["profile.customers", "profile.reviews", "profile.ads"].includes(f.predicate),
+      ["profile.customers", "profile.reviews", "profile.ads", "profile.followers", "profile.jobs"].includes(f.predicate),
   },
   {
     id: "money",
