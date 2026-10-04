@@ -38,7 +38,9 @@ const GROUPS: Array<{ id: AtlasGroupId; title: Bilingual; match: (f: Fact) => bo
     match: (f) =>
       f.predicate.startsWith("site.email") ||
       f.predicate === "offers.hours" ||
-      f.predicate === "identity.seat",
+      f.predicate === "identity.seat" ||
+      f.predicate === "profile.phones" ||
+      f.predicate === "profile.stores",
   },
   {
     id: "assets",
@@ -48,7 +50,8 @@ const GROUPS: Array<{ id: AtlasGroupId; title: Bilingual; match: (f: Fact) => bo
       f.predicate === "identity.website_registry" ||
       f.predicate === "site.tech" ||
       f.predicate === "risk.ted.awards" ||
-      f.predicate === "offers.services",
+      f.predicate === "offers.services" ||
+      f.predicate === "profile.marketplaces",
   },
   {
     id: "presence",
@@ -61,8 +64,9 @@ const GROUPS: Array<{ id: AtlasGroupId; title: Bilingual; match: (f: Fact) => bo
     id: "money",
     title: { en: "Money and risk", ro: "Bani și riscuri" },
     match: (f) =>
-      (f.predicate.startsWith("money.") || f.predicate.startsWith("risk.")) &&
-      f.predicate !== "risk.ted.awards",
+      ((f.predicate.startsWith("money.") || f.predicate.startsWith("risk.")) &&
+        f.predicate !== "risk.ted.awards") ||
+      f.predicate === "profile.siteAlerts",
   },
 ];
 

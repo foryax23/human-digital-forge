@@ -398,6 +398,7 @@ export function profileFacts(profile: CompanyProfile | null, today: string): Fac
           score: 0.7,
           method: "llm",
           gdpr: part.key === "people" ? "G1" : "G0",
+          adverse: part.key === "siteAlerts" ? true : undefined,
           evidence: {
             url: item.source,
             note: bi(
