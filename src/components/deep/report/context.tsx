@@ -16,7 +16,7 @@ import type {
  * storage), and the actions a reader can take. One context instead of props through six levels.
  */
 
-export type ReportTab = "pe-scurt" | "cifre" | "dovezi";
+export type ReportTab = "pe-scurt" | "cifre" | "atlas" | "dovezi";
 
 export type DeepReportCtx = {
   report: DeepReport;

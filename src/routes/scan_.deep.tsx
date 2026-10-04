@@ -46,7 +46,7 @@ const searchSchema = z.object({
       z.string().optional(),
     )
     .catch(undefined),
-  view: z.enum(["pe-scurt", "cifre", "dovezi"]).optional().catch(undefined),
+  view: z.enum(["pe-scurt", "cifre", "atlas", "dovezi"]).optional().catch(undefined),
   demo: z.enum(DEMO_STATES).optional().catch(undefined),
   sector: z.enum(DEMO_SECTORS).optional().catch(undefined),
   verify: text(20),

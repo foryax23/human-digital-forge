@@ -30,6 +30,7 @@ import {
 } from "./Brief";
 import { CallBlock } from "./CallBlock";
 import { useReport, type ReportTab } from "./context";
+import { AtlasTab } from "./Atlas";
 import { EvidenceTab } from "./Evidence";
 import { FiguresTab } from "./Figures";
 import { Feedback, ReportFooter } from "./Footer";
@@ -78,6 +79,7 @@ export function DeepReportView({
       label: t("Figures and comparisons", "Cifre și comparații"),
       short: t("Figures", "Cifre"),
     },
+    { id: "atlas", label: t("Company atlas", "Atlasul firmei"), short: t("Atlas", "Atlas") },
     {
       id: "dovezi",
       label: t("Evidence and sources", "Dovezi și surse"),
@@ -221,8 +223,12 @@ export function DeepReportView({
           <h2 className="type-title mb-6 text-fg">{tabs[1].label}</h2>
           <FiguresTab />
         </TabsContent>
-        <TabsContent value="dovezi" className="mt-4 sm:mt-6">
+        <TabsContent value="atlas" className="mt-4 sm:mt-6">
           <h2 className="type-title mb-6 text-fg">{tabs[2].label}</h2>
+          <AtlasTab />
+        </TabsContent>
+        <TabsContent value="dovezi" className="mt-4 sm:mt-6">
+          <h2 className="type-title mb-6 text-fg">{tabs[3].label}</h2>
           <EvidenceTab />
         </TabsContent>
       </Tabs>
