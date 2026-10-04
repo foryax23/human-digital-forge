@@ -50,7 +50,7 @@ export const REPORT_CONTENTS: Bilingual[] = [
   ),
 ];
 
-/** "Estimarea noastră: circa 900 de lei de analiză într-un raport." */
+/** "Estimarea noastră: circa 500 de lei de analiză într-un raport." */
 export const VALUE_ESTIMATE: Bilingual = deepValueText();
 
 const PLANS_LINE = deepPlansText();

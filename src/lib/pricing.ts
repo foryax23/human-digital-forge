@@ -289,16 +289,16 @@ export function deepPlansText(): PriceText {
 
 /**
  * The owner's value estimate for one Deep Research report (owner decision, 2026-10-04): about
- * 200 USD of analysis, at the BNR reference rate of 2 October 2026 (1 USD = 4,7519 lei, so
- * 950 lei), rounded down to the hundred. Shown only as an estimate ("Estimarea noastră"),
- * never as a price, a discount or a fact. Change it here; every deep research surface reads it.
+ * 500 lei of analysis while the comparison with similar firms is not live (it was about 200 USD,
+ * 900 lei, with that comparison). Shown only as an estimate ("Estimarea noastră"), never as a
+ * price, a discount or a fact. Change it here; every deep research surface reads it.
  */
-export const DEEP_REPORT_VALUE = { usd: 200, usdRon: 4.7519, rateDate: "2026-10-02", lei: 900 };
+export const DEEP_REPORT_VALUE = { lei: 500, decided: "2026-10-04" };
 
-/** "Estimarea noastră: circa 900 de lei de analiză într-un raport." */
+/** "Estimarea noastră: circa 500 de lei de analiză într-un raport." */
 export function deepValueText(): PriceText {
   const lei = DEEP_REPORT_VALUE.lei;
-  // Romanian takes "de" from 20 up ("900 de lei"), as in hoursText.
+  // Romanian takes "de" from 20 up ("500 de lei"), as in hoursText.
   const de = lei % 100 === 0 || lei % 100 >= 20 ? "de " : "";
   return t(
     `Our estimate: about ${groupedNumber(lei, "en")} RON of analysis in one report.`,
