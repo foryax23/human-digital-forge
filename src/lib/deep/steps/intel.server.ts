@@ -264,6 +264,25 @@ export type CompanyProfile = {
   reviews: ProfileItem[];
   ads: ProfileItem[];
   events: ProfileItem[];
+  /** Seller pages on marketplaces (eMAG, OLX, Vinted...). */
+  marketplaces: ProfileItem[];
+  /** Physical shops / work points, distinct from the registered seat. */
+  stores: ProfileItem[];
+  /** Company phone numbers published in directories or on its own pages. */
+  phones: ProfileItem[];
+  /** Signs the company's own website is compromised, hijacked or SEO-spammed. */
+  siteAlerts: ProfileItem[];
+  /** Assets: OSIM/EUIPO trademarks, SEAP/SICAP contracts, EU funds, linked domains, mobile apps. */
+  trademarks: ProfileItem[];
+  publicContracts: ProfileItem[];
+  euFunds: ProfileItem[];
+  domains: ProfileItem[];
+  apps: ProfileItem[];
+  /** Presence: follower counts and open job ads. */
+  followers: ProfileItem[];
+  jobs: ProfileItem[];
+  /** Other companies the key people run or own (public business roles only). */
+  network: Array<{ person: string; company: string; cui?: string; role: string; source: string }>;
 };
 
 function siteDomain(env: StepEnv): string | undefined {
@@ -316,18 +335,18 @@ function profileReturned(url: string, seen: Set<string>): boolean {
 }
 
 /** Web searches the profile call may run, and their price ($10 per 1,000, not in the token price). */
-export const PROFILE_SEARCHES = 3;
+export const PROFILE_SEARCHES = 5;
 export const SEARCH_FEE_USD = 0.01;
 /**
  * Input tokens the profile call may bill: the server's search loop reads the prompt and every
  * result so far on each of its turns (about 1,500 + 15,000 a search, summed over the turns),
- * plus a quarter. With 3 searches: 120,000 (about $0.12 on Haiku 4.5).
+ * plus a quarter. With 5 searches: about 290,000 (about $0.29 on Haiku 4.5).
  */
 export const PROFILE_INPUT_TOKENS = Math.ceil(
   ((PROFILE_SEARCHES + 1) * 1_500 + (15_000 * PROFILE_SEARCHES * (PROFILE_SEARCHES + 1)) / 2) *
     1.25,
 );
-const PROFILE_MAX_TOKENS = 1500;
+const PROFILE_MAX_TOKENS = 2400;
 const ZERO_USAGE = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0 };
 
 /** Searches a response ran: the usage count, or the search calls in its content. */
@@ -340,7 +359,42 @@ export function searchesRun(message: Pick<LlmMessage, "usage" | "content">): num
   return Math.max(Number.isFinite(counted) ? counted : 0, calls);
 }
 
-const LISTS = ["tradeNames", "people", "customers", "reviews", "ads", "events"] as const;
+const LISTS = [
+  "tradeNames",
+  "people",
+  "customers",
+  "reviews",
+  "ads",
+  "events",
+  "marketplaces",
+  "stores",
+  "phones",
+  "siteAlerts",
+  "trademarks",
+  "publicContracts",
+  "euFunds",
+  "domains",
+  "apps",
+  "followers",
+  "jobs",
+] as const;
+type ListKey = Exclude<(typeof LISTS)[number], "people">;
+
+/** One "network" entry: another company a key person runs, citing a returned result. */
+function networkEntry(
+  i: Record<string, unknown>,
+  source: string | null,
+  self?: { name: string; cui: string },
+): CompanyProfile["network"] {
+  const str = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(0, n) : "");
+  const person = str(i.person, 80);
+  const company = str(i.company, 120);
+  const role = str(i.role, 60);
+  const cui = str(i.cui, 14).replace(/^RO\s*/i, "");
+  if (!source || !person || !company || !role) return [];
+  if (self && (company.toLowerCase() === self.name.toLowerCase() || cui === self.cui)) return [];
+  return [{ person, company, role, source, ...(/^\d{2,10}$/.test(cui) ? { cui } : {}) }];
+}
 
 /**
  * The profile from the model's answer: the JSON of its final text (the text blocks after the
@@ -351,6 +405,7 @@ const LISTS = ["tradeNames", "people", "customers", "reviews", "ads", "events"] 
 export function parseProfile(
   content: Array<Record<string, unknown>>,
   links: SocialLinks,
+  self?: { name: string; cui: string },
 ): CompanyProfile | null {
   const seen = searchedUrls(content);
   const lastSearch = content.reduce(
@@ -396,14 +451,21 @@ export function parseProfile(
     if (!profileReturned(u, seen)) continue;
     social.push({ platform: match.platform, url: links.normalize(u), via: "ai_search" });
   }
+  const lists = Object.fromEntries(
+    LISTS.filter((k): k is ListKey => k !== "people").map((k) => [k, list(k)]),
+  ) as Record<ListKey, ProfileItem[]>;
+  const network = (Array.isArray(raw.network) ? (raw.network as unknown[]) : [])
+    .slice(0, 8)
+    .flatMap((entry) => {
+      if (!entry || typeof entry !== "object") return [];
+      const i = entry as Record<string, unknown>;
+      return networkEntry(i, cited(i.source), self);
+    });
   return {
     social,
-    tradeNames: list("tradeNames"),
+    ...lists,
     people: list("people", true) as CompanyProfile["people"],
-    customers: list("customers"),
-    reviews: list("reviews"),
-    ads: list("ads"),
-    events: list("events"),
+    network,
   };
 }
 
@@ -431,14 +493,18 @@ function replayedProfile(result: unknown): CompanyProfile | null {
       ? [{ platform: o.platform, url: o.url.slice(0, 600), via: "ai_search" as const }]
       : [];
   });
+  const lists = Object.fromEntries(
+    LISTS.filter((k): k is ListKey => k !== "people").map((k) => [k, items(r[k])]),
+  ) as Record<ListKey, ProfileItem[]>;
+  const network = (Array.isArray(r.network) ? r.network : []).flatMap((i) => {
+    const o = i as Record<string, unknown> | null;
+    return o && typeof o.source === "string" ? networkEntry(o, o.source.slice(0, 600)) : [];
+  });
   return {
     social,
-    tradeNames: items(r.tradeNames),
+    ...lists,
     people: items(r.people, true) as CompanyProfile["people"],
-    customers: items(r.customers),
-    reviews: items(r.reviews),
-    ads: items(r.ads),
-    events: items(r.events),
+    network,
   };
 }
 
@@ -466,8 +532,22 @@ Reply with ONLY this JSON, every item citing the exact result URL it came from:
 "customers":[{"text":"who buys (B2B/B2C, segment, price level)","source":"url"}],
 "reviews":[{"text":"rating/review standing with numbers if shown","source":"url"}],
 "ads":[{"text":"advertising seen (Meta, Google, campaigns)","source":"url"}],
-"events":[{"text":"notable event with date","source":"url"}]}
-Use empty arrays when unknown. Max 4 items per list, each text under 160 characters.`;
+"events":[{"text":"notable event with date (openings, partnerships, launches)","source":"url"}],
+"marketplaces":[{"text":"platform + seller name (eMAG, OLX, Vinted, Etsy, Amazon...)","source":"seller page url"}],
+"stores":[{"text":"physical shop / work point address or place, if different from the registered seat","source":"url"}],
+"phones":[{"text":"company phone as published","source":"url"}],
+"siteAlerts":[{"text":"sign the company's website is hacked, hijacked, expired or shows unrelated spam (casino, betting, foreign language)","source":"url"}],
+"trademarks":[{"text":"trademark name, office (OSIM/EUIPO/WIPO), number/status","source":"url"}],
+"publicContracts":[{"text":"Romanian public contract (SEAP/SICAP/e-licitatie): buyer, object, value, year","source":"url"}],
+"euFunds":[{"text":"EU or state funding: program, amount, year","source":"url"}],
+"domains":[{"text":"other website/domain the company runs","source":"url"}],
+"apps":[{"text":"mobile app name and store","source":"url"}],
+"followers":[{"text":"network + follower count as shown in the result","source":"url"}],
+"jobs":[{"text":"open job ad: role, city, platform (eJobs, BestJobs, LinkedIn)","source":"url"}],
+"network":[{"person":"key person's name","company":"another Romanian company they administer, found or own","cui":"its CUI if shown","role":"administrator/shareholder/founder","source":"url"}]}
+Search steps: 1) the legal name and the brand on Romanian company directories (termene.ro, listafirme.ro, datasrl.ro, risco.ro, bizinfo.ro) to get administrators, phone and work points; 2) the brand plus the city on Instagram, TikTok, Facebook; 3) the legal name or CUI on emag.ro and other marketplaces; 4) the website domain, to see what it shows now; 5) the legal name on OSIM/EUIPO trademark search, SEAP/e-licitatie and EU-funds lists; 6) the brand on eJobs/BestJobs and app stores; follower counts only as shown in search results.
+For "network", search the key people's names for OTHER companies they run; public business roles only, never home addresses or private contacts. Phones: only numbers the company publishes for itself.
+Use empty arrays when unknown. Max 4 items per list (8 for network), each text under 160 characters.`;
   const idemKey = `${env.runId}|${env.step}|profile-search`;
   // The search fee first: without room for it in the run and the day, no call is sent.
   let fee: ReserveResult;
@@ -520,7 +600,10 @@ Use empty arrays when unknown. Max 4 items per list, each text under 160 charact
         ),
       // A retried step gets the same profile back instead of paying for a second search.
       toReplay: (message) => ({
-        profile: parseProfile(message.content as Array<Record<string, unknown>>, env.social),
+        profile: parseProfile(message.content as Array<Record<string, unknown>>, env.social, {
+          name: env.identity.name,
+          cui: env.cui,
+        }),
       }),
       deadline: env.deadline,
       now: env.now,
@@ -533,7 +616,10 @@ Use empty arrays when unknown. Max 4 items per list, each text under 160 charact
     }
     if (outcome.kind !== "ok") return null;
     searches = searchesRun(outcome.message);
-    return parseProfile(outcome.message.content as Array<Record<string, unknown>>, env.social);
+    return parseProfile(outcome.message.content as Array<Record<string, unknown>>, env.social, {
+      name: env.identity.name,
+      cui: env.cui,
+    });
   } catch (error) {
     settleFee = false;
     env.log({ intel: "claude-profile", error: String((error as Error)?.message ?? error) });
@@ -561,7 +647,7 @@ export function profileGap(today: string): Gap {
 }
 
 const PROFILE_PARTS: Array<{
-  key: Exclude<keyof CompanyProfile, "social">;
+  key: Exclude<keyof CompanyProfile, "social" | "network">;
   section: "identity" | "people" | "presence" | "risk";
   label: [string, string];
 }> = [
@@ -571,6 +657,17 @@ const PROFILE_PARTS: Array<{
   { key: "reviews", section: "presence", label: ["Reviews", "Recenzii"] },
   { key: "ads", section: "presence", label: ["Advertising", "Publicitate"] },
   { key: "events", section: "presence", label: ["Event", "Eveniment"] },
+  { key: "marketplaces", section: "presence", label: ["Marketplace", "Marketplace"] },
+  { key: "stores", section: "identity", label: ["Shop", "Magazin"] },
+  { key: "phones", section: "identity", label: ["Phone", "Telefon"] },
+  { key: "siteAlerts", section: "risk", label: ["Website alert", "Alertă site"] },
+  { key: "trademarks", section: "identity", label: ["Trademark", "Marcă"] },
+  { key: "publicContracts", section: "risk", label: ["Public contract", "Contract public"] },
+  { key: "euFunds", section: "risk", label: ["Funding", "Finanțare"] },
+  { key: "domains", section: "presence", label: ["Domain", "Domeniu"] },
+  { key: "apps", section: "presence", label: ["App", "Aplicație"] },
+  { key: "followers", section: "presence", label: ["Followers", "Urmăritori"] },
+  { key: "jobs", section: "presence", label: ["Job ad", "Anunț de angajare"] },
 ];
 
 export function profileFacts(profile: CompanyProfile | null, today: string): Fact[] {
@@ -592,6 +689,7 @@ export function profileFacts(profile: CompanyProfile | null, today: string): Fac
           score: 0.7,
           method: "llm",
           gdpr: part.key === "people" ? "G1" : "G0",
+          adverse: part.key === "siteAlerts" ? true : undefined,
           evidence: {
             url: item.source,
             note: bi(
@@ -603,6 +701,37 @@ export function profileFacts(profile: CompanyProfile | null, today: string): Fac
       );
     });
   }
+  profile.network.forEach((n, i) => {
+    const line = `${n.person} — ${n.role}, ${n.company}${n.cui ? ` (CUI ${n.cui})` : ""}`;
+    facts.push(
+      fact({
+        id: `people.network.${i}`,
+        section: "people",
+        predicate: "people.network",
+        value: {
+          person: n.person,
+          company: n.company,
+          cui: n.cui ?? null,
+          role: n.role,
+          source: n.source,
+        },
+        display: bi(line, line),
+        source: "web_search",
+        asOf: today,
+        confidence: "probabil",
+        score: 0.65,
+        method: "llm",
+        gdpr: "G1",
+        evidence: {
+          url: n.source,
+          note: bi(
+            "Other company of a key person, found by AI web search; check at the source.",
+            "Altă firmă a unei persoane-cheie, găsită prin căutare web cu AI; verifică la sursă.",
+          ),
+        },
+      }),
+    );
+  });
   return facts;
 }
 

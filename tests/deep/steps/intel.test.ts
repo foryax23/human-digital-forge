@@ -302,7 +302,7 @@ test("every AI item cites a URL the search returned; a profile counts only when 
   assert.deepEqual(unsearched?.tradeNames, []);
 });
 
-test("the profile call: Haiku 4.5 with basic web search, at most 3 searches, tokens and search fee in the ledger", async () => {
+test("the profile call: Haiku 4.5 with basic web search, at most 5 searches, tokens and search fee in the ledger", async () => {
   const store = createMemoryStore({ now: () => NOW });
   const runId = await runIn(store);
   const transport = fakeTransport({ create: () => reply(answer()) });
@@ -313,8 +313,8 @@ test("the profile call: Haiku 4.5 with basic web search, at most 3 searches, tok
   const body = transport.requests[0].body as Record<string, unknown>;
   assert.equal(body.model, "claude-haiku-4-5-20251001");
   assert.equal(config.synthesisModel, "claude-opus-5-5");
-  assert.deepEqual(body.tools, [{ type: "web_search_20250305", name: "web_search", max_uses: 3 }]);
-  assert.equal(PROFILE_SEARCHES, 3);
+  assert.deepEqual(body.tools, [{ type: "web_search_20250305", name: "web_search", max_uses: 5 }]);
+  assert.equal(PROFILE_SEARCHES, 5);
   // Reserved before sending: the search fee apart, the tokens at the worst case of the loop.
   const calls = store.calls(runId);
   assert.equal(calls.length, 2);
@@ -328,7 +328,7 @@ test("the profile call: Haiku 4.5 with basic web search, at most 3 searches, tok
         reservationUsd({
           model: "claude-haiku-4-5-20251001",
           inputTokens: PROFILE_INPUT_TOKENS,
-          maxTokens: 1500,
+          maxTokens: 2400,
           fallback: false,
         }),
     ) < 1e-6,
