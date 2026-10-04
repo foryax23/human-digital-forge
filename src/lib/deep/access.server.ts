@@ -70,6 +70,8 @@ export type AccessLookups = {
    * null without one or before client_plans.sql is applied, "error" when the lookup failed.
    */
   clientPlan?(userId: string): Promise<Pick<ClientPlanRow, "plan"> | null | "error">;
+  /** Deep checks the admin granted (no row: a free account with 1); null when unreadable. */
+  credits?(userId: string): Promise<{ plan: "free" | "premium"; left: number } | null>;
 };
 
 export type AccessDeps = {
@@ -92,12 +94,17 @@ export type DeepAccessResult = DeepAccess & {
   email?: string;
   adminBy?: AdminBy;
   plan?: ResearchAllowance;
+  /** The run spends one of the account's deep checks (startDeepRun takes it atomically). */
+  useCredit?: true;
 };
 
 /** A store that can count the runs started through a plan (the tables store). */
 type PlanCountingStore = DeepStore & {
   premiumRunsSince?(userId: string, sinceIso: string): Promise<number>;
 };
+
+/** Checks a new account starts with. */
+export const FREE_DEEP_CHECKS = 1;
 
 const flag = (v: string | undefined, fallback: boolean) =>
   v === undefined || v.trim() === "" ? fallback : /^(on|true|1|yes)$/i.test(v.trim());
@@ -144,6 +151,23 @@ export function supabaseLookups(db: DeepDb | null = deepDb()): AccessLookups {
           .limit(1);
         if (error || !Array.isArray(data)) return null;
         return data.length > 0;
+      } catch {
+        return null;
+      }
+    },
+    async credits(userId) {
+      if (!db) return null;
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await (db as any)
+          .from("deep_credits")
+          .select("plan, credits")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (error) return null;
+        if (!data) return { plan: "free", left: FREE_DEEP_CHECKS };
+        const row = data as { plan: string; credits: number };
+        return { plan: row.plan === "premium" ? "premium" : "free", left: Number(row.credits) || 0 };
       } catch {
         return null;
       }
@@ -412,9 +436,20 @@ export async function checkDeepAccess(
     ? await testCodeValid(config, args.testCode).catch(() => false)
     : false;
 
+  const credits = lookups.credits ? await lookups.credits(userId).catch(() => null) : null;
+  if (credits) base.credits = credits;
+
   let via: AccessVia | undefined;
+  let useCredit = false;
   if (isAdmin) via = "admin";
-  else {
+  else if (credits && credits.left > 0) {
+    // Deep checks are open to everyone with a confirmed account; each run spends one.
+    const a = await getAccount();
+    if (!a) return deny("ledger_unavailable");
+    if (!a.emailConfirmed) return deny("email_unconfirmed");
+    via = credits.plan === "premium" ? "premium" : "free";
+    useCredit = true;
+  } else {
     switch (config.mode) {
       case "code": {
         if (codeOk) {
@@ -490,5 +525,12 @@ export async function checkDeepAccess(
   if (!store || !stats || !persistent) return deny("ledger_unavailable");
   if (stats.userRuns >= cap) return deny("daily_cap_user");
   if (via !== "admin" && stats.allRuns >= config.dailyRunCap) return deny("daily_cap_global");
-  return { ...base, allowed: true, via, reason: undefined, entryVisible: true };
+  return {
+    ...base,
+    allowed: true,
+    via,
+    reason: undefined,
+    entryVisible: true,
+    ...(useCredit ? { useCredit: true as const } : {}),
+  };
 }

@@ -15,6 +15,13 @@
       "when": 1791064225903,
       "tag": "0001_deep_research_additions",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1791072142954,
+      "tag": "0003_deep_credits",
+      "breakpoints": true
     }
   ]
 }

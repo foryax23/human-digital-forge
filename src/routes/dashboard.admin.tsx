@@ -24,6 +24,7 @@ import {
   getAdminOverview,
   getClientPlanHistory,
   replyToClient,
+  setDeepCredits,
   setResearchPaused,
   updateClientProject,
 } from "@/lib/admin.functions";
@@ -248,25 +249,11 @@ function AdminContent() {
         </TabsContent>
 
         <TabsContent value="users">
-          <Table
-            head={["Joined", "Email", "Name", "Company", "Plan", "Plan status"]}
-            rows={(data.profiles as Record<string, never>[]).map((p) => {
-              const sub = (data.subscribers as Record<string, never>[]).find(
-                (s) => s["user_id"] === p["id"],
-              );
-              // A plan assigned by contract (Plans tab) first, then a Stripe subscription.
-              const contract = data.plans.active.find((r) => r.user_id === p["id"]);
-              return [
-                fmt(p["created_at"]),
-                p["email"] ?? "—",
-                p["full_name"] ?? "—",
-                p["company"] ?? "—",
-                contract ? planName(contract.plan) : (sub?.["tier"] ?? "—"),
-                contract
-                  ? `contract, ${STATE_LABEL[planState(contract, today())]}`
-                  : (sub?.["status"] ?? "—"),
-              ];
-            })}
+          <UsersTable
+            profiles={data.profiles as UserRow[]}
+            subscribers={data.subscribers as { user_id: string; tier: string | null; status: string | null }[]}
+            credits={data.credits}
+            contracts={data.plans.active}
           />
         </TabsContent>
 
@@ -912,6 +899,164 @@ function ProjectCard({
         </Button>
       </div>
     </div>
+  );
+}
+
+type UserRow = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  company: string | null;
+  created_at: string;
+};
+
+function UsersTable({
+  profiles,
+  subscribers,
+  credits,
+  contracts = [],
+}: {
+  profiles: UserRow[];
+  subscribers: { user_id: string; tier: string | null; status: string | null }[];
+  credits: { user_id: string; plan: string; credits: number }[];
+  /** Plans assigned by contract (Plans tab); shown before a Stripe subscription. */
+  contracts?: ClientPlanRow[];
+}) {
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const rows = profiles.filter(
+    (p) => !q || [p.email, p.full_name, p.company].some((v) => v?.toLowerCase().includes(q)),
+  );
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-fg-2">
+        Everyone can run deep research with their checks. A new account gets 1 free check;
+        Premium gives 4. Changing the plan resets the checks to that amount; you can also set
+        any number of checks.
+      </p>
+      <Input
+        placeholder="Search by email, name or company"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className="max-w-sm"
+      />
+      {rows.length === 0 ? (
+        <p className="text-sm text-fg-2">Nothing yet.</p>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-border">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-muted/40 text-muted-foreground">
+              <tr>
+                {["Joined", "Email", "Name", "Paid plan", "Research plan", "Checks left", ""].map(
+                  (h, i) => (
+                    <th key={i} className="px-3 py-2 font-medium">
+                      {h}
+                    </th>
+                  ),
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((p) => {
+                const sub = subscribers.find((s) => s.user_id === p.id);
+                const contract = contracts.find((r) => r.user_id === p.id);
+                const c = credits.find((x) => x.user_id === p.id);
+                return (
+                  <UserCreditsRow
+                    key={p.id}
+                    user={p}
+                    paid={
+                      contract
+                        ? `${planName(contract.plan)} (contract, ${STATE_LABEL[planState(contract, today())]})`
+                        : sub
+                          ? `${sub.tier ?? "—"} (${sub.status ?? "—"})`
+                          : "—"
+                    }
+                    plan={c?.plan === "premium" ? "premium" : "free"}
+                    left={c ? c.credits : 1}
+                  />
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UserCreditsRow({
+  user,
+  paid,
+  plan,
+  left,
+}: {
+  user: UserRow;
+  paid: string;
+  plan: "free" | "premium";
+  left: number;
+}) {
+  const save = useServerFn(setDeepCredits);
+  const qc = useQueryClient();
+  const [checks, setChecks] = useState(String(left));
+  const [busy, setBusy] = useState(false);
+
+  async function apply(input: { plan?: "free" | "premium"; credits?: number }) {
+    setBusy(true);
+    try {
+      const out = await save({ data: { userId: user.id, ...input } });
+      setChecks(String(out.credits));
+      toast.success(`${user.email ?? "User"}: ${out.plan}, ${out.credits} checks`);
+      await qc.invalidateQueries({ queryKey: ["admin-overview"] });
+    } catch {
+      toast.error("Could not save. Nothing was changed; please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const n = Number(checks);
+  const valid = Number.isInteger(n) && n >= 0 && n <= 1000;
+  return (
+    <tr className="border-t border-border">
+      <td className="px-3 py-2 text-fg-2">{fmt(user.created_at)}</td>
+      <td className="max-w-xs truncate px-3 py-2 text-fg-2">{user.email ?? "—"}</td>
+      <td className="max-w-[10rem] truncate px-3 py-2 text-fg-2">{user.full_name ?? "—"}</td>
+      <td className="px-3 py-2 text-fg-2">{paid}</td>
+      <td className="px-3 py-2">
+        <select
+          aria-label={`Research plan for ${user.email ?? user.id}`}
+          className="h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground"
+          value={plan}
+          disabled={busy}
+          onChange={(e) => apply({ plan: e.target.value as "free" | "premium" })}
+        >
+          <option value="free">Free (1 check)</option>
+          <option value="premium">Premium (4 checks)</option>
+        </select>
+      </td>
+      <td className="px-3 py-2">
+        <Input
+          aria-label={`Checks left for ${user.email ?? user.id}`}
+          type="number"
+          min={0}
+          max={1000}
+          value={checks}
+          onChange={(e) => setChecks(e.target.value)}
+          className="h-9 w-20"
+        />
+      </td>
+      <td className="px-3 py-2">
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={busy || !valid || n === left}
+          onClick={() => apply({ credits: n })}
+        >
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save checks"}
+        </Button>
+      </td>
+    </tr>
   );
 }
 
