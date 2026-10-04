@@ -146,6 +146,7 @@ const PREDICATE_LABELS: Record<string, Bilingual> = {
   "profile.customers": bi("Who the customers are", "Cine sunt clienții"),
   "profile.reviews": bi("Review standing", "Recenzii și reputație"),
   "profile.ads": bi("Advertising seen", "Publicitate observată"),
+  "people.network": bi("Other company of a key person", "Altă firmă a unei persoane-cheie"),
   "profile.events": bi("Notable event", "Eveniment notabil"),
   "risk.courts.checked": bi("Court portal checked", "Portalul instanțelor verificat"),
   "risk.courts.as_plaintiff": bi(

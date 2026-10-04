@@ -7,7 +7,7 @@
 - [x] Verify desktop, mobile, reduced motion, language switching, and build status
 ## Company Atlas
 - [x] Stage 1: Atlas tab (grouped facts + history timeline)
-- [ ] Stage 2: people network (other companies of founders/administrators)
+- [x] Stage 2: people network (other companies of founders/administrators)
 - [ ] Stage 3: assets (OSIM/EUIPO trademarks, SEAP, EU funds, linked domains, Maps, apps)
 - [ ] Stage 4: contacts and presence (followers, reviews, Meta ads — needs Meta token, job ads)
 - [ ] Stage 5: longer staged runs, Atlas in PDF

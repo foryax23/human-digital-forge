@@ -28,7 +28,9 @@ const GROUPS: Array<{ id: AtlasGroupId; title: Bilingual; match: (f: Fact) => bo
   {
     id: "people",
     title: { en: "People and ownership", ro: "Oameni și proprietari" },
-    match: (f) => f.predicate.startsWith("people.") || f.predicate === "profile.people",
+    match: (f) =>
+      (f.predicate.startsWith("people.") && f.predicate !== "people.network") ||
+      f.predicate === "profile.people",
   },
   {
     id: "contacts",
@@ -148,4 +150,23 @@ export function atlasTimeline(report: DeepReport): TimelineItem[] {
     .filter((i) => ISO.test(i.date))
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 60);
+}
+
+export type NetworkNode = {
+  person: string;
+  links: Array<{ company: string; cui?: string; role: string; url: string }>;
+};
+
+/** Key people and the other companies they run, grouped by person (people.network facts). */
+export function atlasNetwork(report: DeepReport): NetworkNode[] {
+  const byPerson = new Map<string, NetworkNode>();
+  for (const f of report.facts) {
+    if (f.predicate !== "people.network" || f.ephemeral) continue;
+    const v = f.value as { person: string; company: string; cui: string | null; role: string; source: string };
+    const key = v.person.toLowerCase();
+    const node = byPerson.get(key) ?? { person: v.person, links: [] };
+    node.links.push({ company: v.company, cui: v.cui ?? undefined, role: v.role, url: v.source });
+    byPerson.set(key, node);
+  }
+  return [...byPerson.values()];
 }
