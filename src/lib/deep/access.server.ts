@@ -123,7 +123,8 @@ export function supabaseLookups(db: DeepDb | null = deepDb()): AccessLookups {
     async credits(userId) {
       if (!db) return null;
       try {
-        const { data, error } = await db
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await (db as any)
           .from("deep_credits")
           .select("plan, credits")
           .eq("user_id", userId)

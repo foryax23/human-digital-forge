@@ -263,12 +263,12 @@ export function ticketAdmitted(
   switch (config.mode) {
     case "code":
       // Premium subscribers are admitted in code mode too (A4).
-      return via === "code" || via === "premium";
+      return via === "code";
     case "open":
       return via === "code" || via === "open";
     case "premium":
       // "free": the account's free Premium report (D24), admitted for the run it started.
-      return via === "code" || via === "premium" || via === "free";
+      return via === "code";
     default:
       return false;
   }
