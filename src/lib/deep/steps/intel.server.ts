@@ -210,6 +210,14 @@ export type CompanyProfile = {
   reviews: ProfileItem[];
   ads: ProfileItem[];
   events: ProfileItem[];
+  /** Seller pages on marketplaces (eMAG, OLX, Vinted...). */
+  marketplaces: ProfileItem[];
+  /** Physical shops / work points, distinct from the registered seat. */
+  stores: ProfileItem[];
+  /** Company phone numbers published in directories or on its own pages. */
+  phones: ProfileItem[];
+  /** Signs the company's own website is compromised, hijacked or SEO-spammed. */
+  siteAlerts: ProfileItem[];
   /** Other companies the key people run or own (public business roles only). */
   network: Array<{ person: string; company: string; cui?: string; role: string; source: string }>;
 };
@@ -255,9 +263,14 @@ Reply with ONLY this JSON, every item citing the exact result URL it came from:
 "customers":[{"text":"who buys (B2B/B2C, segment, price level)","source":"url"}],
 "reviews":[{"text":"rating/review standing with numbers if shown","source":"url"}],
 "ads":[{"text":"advertising seen (Meta, Google, campaigns)","source":"url"}],
-"events":[{"text":"notable event with date","source":"url"}],
+"events":[{"text":"notable event with date (openings, partnerships, launches)","source":"url"}],
+"marketplaces":[{"text":"platform + seller name (eMAG, OLX, Vinted, Etsy, Amazon...)","source":"seller page url"}],
+"stores":[{"text":"physical shop / work point address or place, if different from the registered seat","source":"url"}],
+"phones":[{"text":"company phone as published","source":"url"}],
+"siteAlerts":[{"text":"sign the company's website is hacked, hijacked, expired or shows unrelated spam (casino, betting, foreign language)","source":"url"}],
 "network":[{"person":"key person's name","company":"another Romanian company they administer, found or own","cui":"its CUI if shown","role":"administrator/shareholder/founder","source":"url"}]}
-For "network", search the key people's names (e.g. on listafirme.ro, termene.ro, risco.ro) for OTHER companies they run; public business roles only, never home addresses or private contacts.
+Search steps: 1) the legal name and the brand on Romanian company directories (termene.ro, listafirme.ro, datasrl.ro, risco.ro, bizinfo.ro) to get administrators, phone and work points; 2) the brand plus the city on Instagram, TikTok, Facebook; 3) the legal name or CUI on emag.ro and other marketplaces; 4) the website domain, to see what it shows now.
+For "network", search the key people's names for OTHER companies they run; public business roles only, never home addresses or private contacts. Phones: only numbers the company publishes for itself.
 Use empty arrays when unknown. Max 4 items per list (8 for network), each text under 160 characters.`;
   try {
     const outcome = await paidCall({
@@ -273,7 +286,7 @@ Use empty arrays when unknown. Max 4 items per list (8 for network), each text u
             model,
             max_tokens: maxTokens,
             messages: [{ role: "user", content: prompt }],
-            tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 8 }],
+            tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 12 }],
           },
           { timeoutMs: Math.max(10_000, env.deadline - env.now() - 2000) },
         ),
@@ -325,6 +338,10 @@ Use empty arrays when unknown. Max 4 items per list (8 for network), each text u
       reviews: list("reviews"),
       ads: list("ads"),
       events: list("events"),
+      marketplaces: list("marketplaces"),
+      stores: list("stores"),
+      phones: list("phones"),
+      siteAlerts: list("siteAlerts"),
       network: (Array.isArray(raw.network) ? (raw.network as Array<Record<string, unknown>>) : [])
         .slice(0, 8)
         .flatMap((i) => {
@@ -356,6 +373,10 @@ const PROFILE_PARTS: Array<{
   { key: "reviews", section: "presence", label: ["Reviews", "Recenzii"] },
   { key: "ads", section: "presence", label: ["Advertising", "Publicitate"] },
   { key: "events", section: "presence", label: ["Event", "Eveniment"] },
+  { key: "marketplaces", section: "presence", label: ["Marketplace", "Marketplace"] },
+  { key: "stores", section: "identity", label: ["Shop", "Magazin"] },
+  { key: "phones", section: "identity", label: ["Phone", "Telefon"] },
+  { key: "siteAlerts", section: "risk", label: ["Website alert", "Alertă site"] },
 ];
 
 export function profileFacts(profile: CompanyProfile | null, today: string): Fact[] {
@@ -377,6 +398,7 @@ export function profileFacts(profile: CompanyProfile | null, today: string): Fac
           score: 0.7,
           method: "llm",
           gdpr: part.key === "people" ? "G1" : "G0",
+          adverse: part.key === "siteAlerts" ? true : undefined,
           evidence: {
             url: item.source,
             note: bi(
