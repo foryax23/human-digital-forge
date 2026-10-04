@@ -269,6 +269,30 @@ export type Database = {
           },
         ]
       }
+      deep_credits: {
+        Row: {
+          credits: number
+          plan: string
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          credits?: number
+          plan?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          credits?: number
+          plan?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       deep_feedback: {
         Row: {
           created_at: string
@@ -709,6 +733,7 @@ export type Database = {
         Args: { p_key: string; p_run: string; p_user: string }
         Returns: boolean
       }
+      deep_refund_credit: { Args: { _uid: string }; Returns: undefined }
       deep_reserve: {
         Args: {
           p_day_cap: number
@@ -748,6 +773,7 @@ export type Database = {
         }
         Returns: Json
       }
+      deep_use_credit: { Args: { _uid: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
