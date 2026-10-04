@@ -789,6 +789,7 @@ export const KNOWN_PREDICATES = [
   "profile.reviews",
   "profile.ads",
   "profile.events",
+  "people.network",
   // risk (courts, TED)
   "risk.courts.checked",
   "risk.courts.as_plaintiff",

@@ -210,6 +210,8 @@ export type CompanyProfile = {
   reviews: ProfileItem[];
   ads: ProfileItem[];
   events: ProfileItem[];
+  /** Other companies the key people run or own (public business roles only). */
+  network: Array<{ person: string; company: string; cui?: string; role: string; source: string }>;
 };
 
 function siteDomain(env: StepEnv): string | undefined {
@@ -253,15 +255,17 @@ Reply with ONLY this JSON, every item citing the exact result URL it came from:
 "customers":[{"text":"who buys (B2B/B2C, segment, price level)","source":"url"}],
 "reviews":[{"text":"rating/review standing with numbers if shown","source":"url"}],
 "ads":[{"text":"advertising seen (Meta, Google, campaigns)","source":"url"}],
-"events":[{"text":"notable event with date","source":"url"}]}
-Use empty arrays when unknown. Max 4 items per list, each text under 160 characters.`;
+"events":[{"text":"notable event with date","source":"url"}],
+"network":[{"person":"key person's name","company":"another Romanian company they administer, found or own","cui":"its CUI if shown","role":"administrator/shareholder/founder","source":"url"}]}
+For "network", search the key people's names (e.g. on listafirme.ro, termene.ro, risco.ro) for OTHER companies they run; public business roles only, never home addresses or private contacts.
+Use empty arrays when unknown. Max 4 items per list (8 for network), each text under 160 characters.`;
   try {
     const outcome = await paidCall({
       ledger: env.ledger,
       runId: env.runId,
       step: env.step,
       idemKey: `${env.runId}|${env.step}|profile-search`,
-      plan: { model, inputTokens: 65_000, maxTokens: 1500, fallback: false },
+      plan: { model, inputTokens: 90_000, maxTokens: 2200, fallback: false },
       floor: 800,
       exec: (maxTokens) =>
         llm.transport.create(
@@ -269,7 +273,7 @@ Use empty arrays when unknown. Max 4 items per list, each text under 160 charact
             model,
             max_tokens: maxTokens,
             messages: [{ role: "user", content: prompt }],
-            tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 5 }],
+            tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 8 }],
           },
           { timeoutMs: Math.max(10_000, env.deadline - env.now() - 2000) },
         ),
@@ -321,6 +325,19 @@ Use empty arrays when unknown. Max 4 items per list, each text under 160 charact
       reviews: list("reviews"),
       ads: list("ads"),
       events: list("events"),
+      network: (Array.isArray(raw.network) ? (raw.network as Array<Record<string, unknown>>) : [])
+        .slice(0, 8)
+        .flatMap((i) => {
+          const source = cited(i.source);
+          const str = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(0, n) : "");
+          const person = str(i.person, 80);
+          const company = str(i.company, 120);
+          const role = str(i.role, 60);
+          const cui = str(i.cui, 14).replace(/^RO\s*/i, "");
+          if (!source || !person || !company || !role) return [];
+          if (company.toLowerCase() === env.identity.name.toLowerCase() || cui === env.cui) return [];
+          return [{ person, company, role, source, ...(/^\d{2,10}$/.test(cui) ? { cui } : {}) }];
+        }),
     };
   } catch (error) {
     env.log({ intel: "claude-profile", error: String((error as Error)?.message ?? error) });
@@ -329,7 +346,7 @@ Use empty arrays when unknown. Max 4 items per list, each text under 160 charact
 }
 
 const PROFILE_PARTS: Array<{
-  key: Exclude<keyof CompanyProfile, "social">;
+  key: Exclude<keyof CompanyProfile, "social" | "network">;
   section: "identity" | "people" | "presence" | "risk";
   label: [string, string];
 }> = [
@@ -371,6 +388,31 @@ export function profileFacts(profile: CompanyProfile | null, today: string): Fac
       );
     });
   }
+  profile.network.forEach((n, i) => {
+    const line = `${n.person} — ${n.role}, ${n.company}${n.cui ? ` (CUI ${n.cui})` : ""}`;
+    facts.push(
+      fact({
+        id: `people.network.${i}`,
+        section: "people",
+        predicate: "people.network",
+        value: { person: n.person, company: n.company, cui: n.cui ?? null, role: n.role, source: n.source },
+        display: bi(line, line),
+        source: "web_search",
+        asOf: today,
+        confidence: "probabil",
+        score: 0.65,
+        method: "llm",
+        gdpr: "G1",
+        evidence: {
+          url: n.source,
+          note: bi(
+            "Other company of a key person, found by AI web search; check at the source.",
+            "Altă firmă a unei persoane-cheie, găsită prin căutare web cu AI; verifică la sursă.",
+          ),
+        },
+      }),
+    );
+  });
   return facts;
 }
 
