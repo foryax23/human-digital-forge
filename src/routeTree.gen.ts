@@ -26,6 +26,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as VortexpointRouteImport } from './routes/vortexpoint'
 import { Route as WebsitesRouteImport } from './routes/websites'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -127,6 +128,11 @@ const ServicesRoute = ServicesRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VortexpointRoute = VortexpointRouteImport.update({
+  id: '/vortexpoint',
+  path: '/vortexpoint',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WebsitesRoute = WebsitesRouteImport.update({
@@ -236,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/scan': typeof ScanRoute
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
+  '/vortexpoint': typeof VortexpointRoute
   '/websites': typeof WebsitesRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -271,6 +278,7 @@ export interface FileRoutesByTo {
   '/scan': typeof ScanRoute
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
+  '/vortexpoint': typeof VortexpointRoute
   '/websites': typeof WebsitesRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -308,6 +316,7 @@ export interface FileRoutesById {
   '/scan': typeof ScanRoute
   '/services': typeof ServicesRoute
   '/terms': typeof TermsRoute
+  '/vortexpoint': typeof VortexpointRoute
   '/websites': typeof WebsitesRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -346,6 +355,7 @@ export interface FileRouteTypes {
     | '/scan'
     | '/services'
     | '/terms'
+    | '/vortexpoint'
     | '/websites'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -381,6 +391,7 @@ export interface FileRouteTypes {
     | '/scan'
     | '/services'
     | '/terms'
+    | '/vortexpoint'
     | '/websites'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -417,6 +428,7 @@ export interface FileRouteTypes {
     | '/scan'
     | '/services'
     | '/terms'
+    | '/vortexpoint'
     | '/websites'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -454,6 +466,7 @@ export interface RootRouteChildren {
   ScanRoute: typeof ScanRoute
   ServicesRoute: typeof ServicesRoute
   TermsRoute: typeof TermsRoute
+  VortexpointRoute: typeof VortexpointRoute
   WebsitesRoute: typeof WebsitesRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -582,6 +595,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vortexpoint': {
+      id: '/vortexpoint'
+      path: '/vortexpoint'
+      fullPath: '/vortexpoint'
+      preLoaderRoute: typeof VortexpointRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/websites': {
@@ -754,6 +774,7 @@ const rootRouteChildren: RootRouteChildren = {
   ScanRoute: ScanRoute,
   ServicesRoute: ServicesRoute,
   TermsRoute: TermsRoute,
+  VortexpointRoute: VortexpointRoute,
   WebsitesRoute: WebsitesRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:

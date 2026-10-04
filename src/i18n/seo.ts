@@ -112,6 +112,16 @@ export const PAGE_SEO = {
       ro: "Site-uri, platforme și aplicații web live, făcute de Vortex Hub: Momentum One, Bridge Gateway, ORBISGRID, Harvard of Sales, MetaFit și FaneaProperties.",
     },
   },
+  "/vortexpoint": {
+    title: {
+      en: "VortexPoint for Mac: your notch, alive | Vortex Hub",
+      ro: "VortexPoint pentru Mac: notch-ul tău, viu | Vortex Hub",
+    },
+    description: {
+      en: "VortexPoint is a free app for your Mac's notch: music controls, a file shelf, Mac Health and an AI agent (Beta) that uses your own Claude key. macOS 26, Apple Silicon.",
+      ro: "VortexPoint e o aplicație gratuită pentru notch-ul Mac-ului: muzica, un raft pentru fișiere, Mac Health și un agent AI (Beta) care folosește cheia ta Claude. macOS 26, Apple Silicon.",
+    },
+  },
   "/scan": {
     title: { en: "Vortex Scan | Vortex Hub", ro: "Vortex Scan | Vortex Hub" },
     description: {

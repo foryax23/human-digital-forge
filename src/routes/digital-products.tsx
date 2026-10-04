@@ -257,6 +257,16 @@ function DigitalProductsPage() {
         <div className="container-vx">
           <SectionHeader headingId="products-list" title={t("What we build", "Ce construim")} />
           <ItemList items={items} />
+          <p className="type-body-sm mt-4 text-pretty text-fg-2">
+            {t("We also make our own products, such as ", "Facem și produse proprii, cum e ")}
+            <Link to="/vortexpoint" className={TEXT_LINK}>
+              VortexPoint
+            </Link>
+            {t(
+              ", a free app for the notch on your Mac.",
+              ", o aplicație gratuită pentru notch-ul Mac-ului.",
+            )}
+          </p>
 
           <SectionHeader
             className="mt-16 md:mt-20"
