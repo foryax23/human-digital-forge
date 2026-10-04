@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
+import { ClientPlanCard } from "@/components/dashboard/ClientPlanCard";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 import { TIMELINE_STEPS, useDashboardData, type ProjectRow } from "@/hooks/use-dashboard-data";
@@ -156,6 +157,8 @@ function DashboardOverview() {
           </Link>
         </Button>
       </div>
+
+      <ClientPlanCard className="mt-8" />
 
       {loading && (
         <div className="mt-16 flex justify-center">

@@ -18,7 +18,18 @@ CREATE POLICY "No client access to contact enquiries"
 
 -- 3. Realtime authorization: require authentication to use Broadcast/Presence
 -- channels. Prevents anonymous clients from subscribing to realtime topics.
-ALTER TABLE realtime.messages ENABLE ROW LEVEL SECURITY;
+-- realtime.messages belongs to supabase_realtime_admin, so on a fresh Supabase project a plain
+-- ALTER TABLE fails for the migration role ("must be owner of table messages") even though RLS
+-- is already on there. Supabase's guidance: check pg_class instead of altering. The end state is
+-- the same as the original line (RLS on); on the database that already applied this file nothing
+-- changes, and the CLI does not re-run an applied version anyway. The policies below are allowed
+-- for postgres through supautils.
+DO $$
+BEGIN
+  IF NOT (SELECT relrowsecurity FROM pg_class WHERE oid = 'realtime.messages'::regclass) THEN
+    ALTER TABLE realtime.messages ENABLE ROW LEVEL SECURITY;
+  END IF;
+END $$;
 
 DROP POLICY IF EXISTS "Authenticated users can receive realtime" ON realtime.messages;
 CREATE POLICY "Authenticated users can receive realtime"

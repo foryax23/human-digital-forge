@@ -145,6 +145,26 @@ Prioritar, Potențial ridicat, "Bun" on automation potential, €/€€/€€�
 | consultation (CTA)        | discuție                                                                                                                                                                                                  |
 | currency                  | "lei" everywhere in Romanian (sentences, figures, charts, tables); "RON" in English                                                                                                                       |
 
+## Prices in the scan
+
+Every price the scan, its PDF and deep research quote comes from the public list
+(`src/lib/pricing.ts`) through `PRICE_BOOK` (`economics.ts`), so a visitor never reads a price the
+pricing section contradicts. `scripts/scan/check-display.ts` fails when one falls outside.
+
+- A simple automation 1.500–2.500 lei, a medium one 2.500–3.500 lei (public: 1.500–3.500 lei).
+- The AI assistant, an automation with an AI step and a high-complexity automation: 3.000–6.000
+  lei, the public assistant price, with the line "Are un pas cu AI, deci estimăm implementarea la
+  prețul unui asistent AI" (or "Leagă mai multe sisteme, …").
+- A new presentation site 4.500–7.500 lei ("de la 4.500 lei"); its line in the plan adds "(pentru
+  un site mai mare facem oferta după discuție)".
+- Website fixes, the Google profile and measurement: hours at the consultancy rate, 300 lei pe oră
+  (1–3, 5–10, 2–4 and 3–6 hours); a project-size fix costs what a new site costs.
+- Deep research "Cu Vortex Hub: de la X lei": the low end of the scan's price for the same work.
+
+Words: a figure from the plan is "Estimarea din plan" or "≈ 7.000 lei", never a bare promise;
+"de la" only for a fixed-price project; "preț fix, stabilit înainte să începem". Prices are final
+(Vortex Hub is not a VAT payer); no VAT line until the accountant confirms the wording.
+
 ## Grammar reminders
 
 - Numbers from 20 up take "de" unless the last two digits are 01–19: 20 de ore, 101 ore, 120 de
@@ -160,25 +180,25 @@ The deep report reads the same word list as its verifier and templates
 "Cifre" and "Dovezi" tabs may use a technical term with an explanation on tap; the top layer
 ("Pe scurt", the PDF's first pages, the summary text) uses the words on the right.
 
-| Avoid                                     | Write                                                                            |
-| ----------------------------------------- | -------------------------------------------------------------------------------- |
-| Vânzări                                   | Cifra de afaceri                                                                 |
-| marjă; "din 100 de lei încasați"          | "din fiecare 100 de lei facturați, îți rămân X"                                  |
-| mediana, P25–P75, jumătatea din mijloc    | "o firmă obișnuită din activitatea ta", "majoritatea: între X și Y"              |
-| peste 41% din clinici                     | "mai bine decât 41 din 100" (20 firms or more) or "a 3-a din 9" (fewer than 20)  |
-| reclamant / pârât; "2 dosare"             | "ai deschis 2 procese" / "ai fost dat în judecată"                               |
-| raportul de lichiditate                   | (not shown in v1)                                                                |
-| neprezentări                              | "clienți care nu vin la programare"                                              |
-| PageSpeed, GA4, SEO, API, CAEN, CUI (top) | "testul de viteză Google", "statistici despre vizitatori", "apari în căutări"    |
-| Calcul Vortex                             | "Estimarea noastră (vezi ipotezele)"                                             |
-| Firma e sănătoasă                         | "Nu apar semnale de risc în registrele publice verificate"                       |
-| Angajați 2025                             | "Salariați, medie 2025 (din bilanț)"                                             |
-| date valabile la <azi>                    | "Verificat azi, <data> · bilanț 2025"                                            |
-| Nu ai programare online                   | "Nu am găsit programare online pe cele N pagini citite"                          |
-| Cu noi                                    | "Cu Vortex Hub"                                                                  |
-| Premium · deschis pentru test             | "Gratuit în perioada de test" (open, code) / "Inclus în Growth și Pro" (premium) |
-| Nu facem dosare despre oameni             | "Nu facem profiluri despre persoane"                                             |
-| partener (for a business contact)         | colaborator, client, furnizor                                                    |
+| Avoid                                     | Write                                                                           |
+| ----------------------------------------- | ------------------------------------------------------------------------------- |
+| Vânzări                                   | Cifra de afaceri                                                                |
+| marjă; "din 100 de lei încasați"          | "din fiecare 100 de lei facturați, îți rămân X"                                 |
+| mediana, P25–P75, jumătatea din mijloc    | "o firmă obișnuită din activitatea ta", "majoritatea: între X și Y"             |
+| peste 41% din clinici                     | "mai bine decât 41 din 100" (20 firms or more) or "a 3-a din 9" (fewer than 20) |
+| reclamant / pârât; "2 dosare"             | "ai deschis 2 procese" / "ai fost dat în judecată"                              |
+| raportul de lichiditate                   | (not shown in v1)                                                               |
+| neprezentări                              | "clienți care nu vin la programare"                                             |
+| PageSpeed, GA4, SEO, API, CAEN, CUI (top) | "testul de viteză Google", "statistici despre vizitatori", "apari în căutări"   |
+| Calcul Vortex                             | "Estimarea noastră (vezi ipotezele)"                                            |
+| Firma e sănătoasă                         | "Nu apar semnale de risc în registrele publice verificate"                      |
+| Angajați 2025                             | "Salariați, medie 2025 (din bilanț)"                                            |
+| date valabile la <azi>                    | "Verificat azi, <data> · bilanț 2025"                                           |
+| Nu ai programare online                   | "Nu am găsit programare online pe cele N pagini citite"                         |
+| Cu noi                                    | "Cu Vortex Hub"                                                                 |
+| Premium · deschis pentru test             | "Gratuit în perioada de test" (open, code) / "Inclusă în abonamente" (premium)  |
+| Nu facem dosare despre oameni             | "Nu facem profiluri despre persoane"                                            |
+| partener (for a business contact)         | colaborator, client, furnizor                                                   |
 
 Banned everywhere in the deep top layer: "fără clienți pierduți", "garantat", "singura
 problemă", "Esențial", "Impact mare", "Recomandat", "Partener", "sănătos" (for a ratio).

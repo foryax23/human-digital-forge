@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+/**
+ * Stripe webhook. The signature is verified first (as before); the processing itself lives
+ * in src/lib/stripe-webhook.server.ts. A failed database write now answers 500, so Stripe
+ * retries the event instead of losing it, and an event already processed is acknowledged
+ * without writing again (ledger table public.stripe_events, optional).
+ */
 export const Route = createFileRoute("/api/public/stripe-webhook")({
   server: {
     handlers: {
@@ -7,6 +13,7 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
         const secretKey = process.env.STRIPE_SECRET_KEY;
         const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
         if (!secretKey || !webhookSecret) {
+          console.error("[stripe-webhook] STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET is not set");
           return new Response("Stripe not configured", { status: 500 });
         }
 
@@ -34,90 +41,80 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
           return new Response("Invalid signature", { status: 401 });
         }
 
-        const { supabaseAdmin } = await import(
-          "@/integrations/supabase/client.server"
-        );
+        const json = (status: number, payload: Record<string, unknown>) =>
+          new Response(JSON.stringify(payload), {
+            status,
+            headers: { "Content-Type": "application/json" },
+          });
 
-        interface SubscriberRow {
-          email: string;
-          stripe_customer_id?: string | null;
-          stripe_subscription_id?: string | null;
-          tier?: string | null;
-          user_id?: string | null;
-          status?: string;
-          current_period_end?: string | null;
-        }
-
-        async function upsert(fields: SubscriberRow) {
-          const { error } = await supabaseAdmin
-            .from("subscribers")
-            .upsert(fields, { onConflict: "email" });
-          if (error) console.error("[stripe-webhook] upsert failed", error);
-        }
-
+        let supabaseAdmin: (typeof import("@/integrations/supabase/client.server"))["supabaseAdmin"];
+        let webhook: typeof import("@/lib/stripe-webhook.server");
         try {
-          switch (event.type) {
-            case "checkout.session.completed": {
-              const session = event.data.object as import("stripe").Stripe.Checkout.Session;
-              const email =
-                session.customer_details?.email ?? session.customer_email ?? null;
-              if (email) {
-                await upsert({
-                  email,
-                  stripe_customer_id:
-                    typeof session.customer === "string" ? session.customer : null,
-                  stripe_subscription_id:
-                    typeof session.subscription === "string"
-                      ? session.subscription
-                      : null,
-                  tier: session.metadata?.plan ?? null,
-                  user_id: session.metadata?.user_id ?? null,
-                  status: "active",
-                });
-              }
-              break;
-            }
-            case "customer.subscription.updated":
-            case "customer.subscription.deleted": {
-              const sub = event.data.object as import("stripe").Stripe.Subscription;
-              const customerId =
-                typeof sub.customer === "string" ? sub.customer : sub.customer.id;
-              const customer = await stripe.customers.retrieve(customerId);
-              const email =
-                !("deleted" in customer) && customer.email ? customer.email : null;
-              if (email) {
-                const status =
-                  event.type === "customer.subscription.deleted"
-                    ? "canceled"
-                    : sub.status;
-                await upsert({
-                  email,
-                  stripe_customer_id: customerId,
-                  stripe_subscription_id: sub.id,
-                  tier: sub.metadata?.plan ?? null,
-                  user_id: sub.metadata?.user_id ?? null,
-                  status,
-                  current_period_end: (() => {
-                    const periodEnd = (sub as unknown as { current_period_end?: number })
-                      .current_period_end;
-                    return periodEnd ? new Date(periodEnd * 1000).toISOString() : null;
-                  })(),
-                });
-              }
-              break;
-            }
-            default:
-              break;
-          }
+          ({ supabaseAdmin } = await import("@/integrations/supabase/client.server"));
+          webhook = await import("@/lib/stripe-webhook.server");
         } catch (err) {
-          console.error("[stripe-webhook] handler error", err);
-          return new Response("Handler error", { status: 500 });
+          console.error(
+            `[stripe-webhook] ${event.id}: server setup failed, Stripe will retry`,
+            err,
+          );
+          return json(500, { error: "Server not ready, retry later" });
         }
 
-        return new Response(JSON.stringify({ received: true }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
+        // The ledger table is not in the generated Supabase types until drizzle/pending/stripe_events.sql is applied
+        // and the types are regenerated, so it is reached through an untyped view.
+        const untyped = supabaseAdmin as unknown as import("@supabase/supabase-js").SupabaseClient;
+        const events = () => untyped.from("stripe_events");
+
+        const result = await webhook.processStripeEvent(event, {
+          async upsertSubscriber(fields) {
+            const { error } = await supabaseAdmin
+              .from("subscribers")
+              .upsert(fields, { onConflict: "email" });
+            if (error) throw error;
+          },
+          async customerEmail(customerId) {
+            const customer = await stripe.customers.retrieve(customerId);
+            if ("deleted" in customer && customer.deleted) return null;
+            return customer.email ?? null;
+          },
+          ledger: {
+            async check(eventId, objectId, createdIso) {
+              const seen = await events().select("id").eq("id", eventId).limit(1);
+              if (seen.error) {
+                if (webhook.isMissingLedger(seen.error)) return "missing";
+                throw seen.error;
+              }
+              if ((seen.data ?? []).length > 0) return { seen: true, newer: false };
+              if (!objectId) return { seen: false, newer: false };
+              // Only a newer event that actually wrote the row counts (not a skipped one).
+              const newer = await events()
+                .select("id")
+                .eq("object_id", objectId)
+                .eq("outcome", "written")
+                .gt("stripe_created", createdIso)
+                .limit(1);
+              if (newer.error) {
+                if (webhook.isMissingLedger(newer.error)) return "missing";
+                throw newer.error;
+              }
+              return { seen: false, newer: (newer.data ?? []).length > 0 };
+            },
+            async record(entry) {
+              const { error } = await events().upsert(entry, {
+                onConflict: "id",
+                ignoreDuplicates: true,
+              });
+              if (error) {
+                if (webhook.isMissingLedger(error)) return "missing";
+                throw error;
+              }
+              return "ok";
+            },
+          },
+          log: console,
         });
+
+        return json(result.status, result.body);
       },
     },
   },

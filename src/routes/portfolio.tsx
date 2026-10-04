@@ -7,20 +7,11 @@ import { CtaBand } from "@/components/shared/CtaBand";
 import { ProjectPreview } from "@/components/landing/ProjectPreview";
 import { PROJECTS, projectTitle } from "@/components/landing/projects";
 import { WorkCard } from "@/components/landing/WorkSection";
-import { useI18n } from "@/i18n";
-
-const title = "Portfolio | Vortex Hub";
-const description =
-  "Live websites, platforms and web apps designed and built by Vortex Hub, including Momentum One, Bridge Gateway, ORBISGRID, Harvard of Sales, MetaFit and FaneaProperties.";
+import { pageMeta, useI18n } from "@/i18n";
 
 export const Route = createFileRoute("/portfolio")({
-  head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/portfolio"),
     links: [{ rel: "canonical", href: "/portfolio" }],
     scripts: [
       {

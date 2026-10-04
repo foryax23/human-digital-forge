@@ -5,20 +5,11 @@ import { PricingSection } from "@/components/home/PricingSection";
 import { SessionRows } from "@/components/home/ConsultationSection";
 import { PageHero } from "@/components/shared/PageHero";
 import { SectionHeader } from "@/components/system";
-import { useI18n } from "@/i18n";
-
-const title = "Consultancy | Vortex Hub";
-const description =
-  "Book a one-to-one consultation for digital ideas, website strategy or AI automation assessment.";
+import { pageMeta, useI18n } from "@/i18n";
 
 export const Route = createFileRoute("/consultancy")({
-  head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/consultancy"),
     links: [{ rel: "canonical", href: "/consultancy" }],
   }),
   component: ConsultancyPage,

@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
 import { Check, ChevronLeft, Copy, Download } from "lucide-react";
 
 import { useI18n } from "@/i18n";
@@ -9,8 +9,9 @@ import {
   type DisplayPlan,
   type Horizon,
 } from "@/lib/scan/blueprint/display";
+import type { DisplayOffer } from "@/lib/scan/blueprint/offer";
 import { approxLei, hoursPerMonth, monthsQty } from "@/lib/scan/blueprint/format";
-import type { Blueprint, VortexOffer } from "@/lib/scan/types";
+import type { Blueprint } from "@/lib/scan/types";
 import {
   Button,
   ButtonLink,
@@ -21,6 +22,7 @@ import {
   PanelBody,
   PanelFooter,
   PanelHeader,
+  RECOMMENDED_RULE,
   SegmentedControl,
   Stat,
   StatStrip,
@@ -41,7 +43,7 @@ import { Figures, Statement } from "../report/plan-text";
 /**
  * Screen 04, the plan: "Pe scurt", the month-by-month calendar with hours and
  * cost, the impact chart with its KPI strip, what changes for the business,
- * the matching subscription and "Cum am calculat". Every figure comes from
+ * the offer (first project, then the plan) and "Cum am calculat". Every figure comes from
  * displayPlan(), so the screen, the table and the PDF print the same numbers.
  */
 export function ResultsStep({ blueprint, onBack }: { blueprint: Blueprint; onBack: () => void }) {
@@ -95,7 +97,7 @@ export function ResultsStep({ blueprint, onBack }: { blueprint: Blueprint; onBac
         </div>
 
         <BarActions onDownload={() => setLeadOpen(true)} />
-        <OfferRow offer={blueprint.offer} feePayback={plan.text.feePayback} className="mt-8" />
+        <OfferRow offer={plan.offer} className="mt-8" />
         <KeepRow onDownload={() => setLeadOpen(true)} />
 
         <div id="cum-am-calculat" className="mt-6 scroll-mt-32">
@@ -488,74 +490,143 @@ function WhatChanges({ plan }: { plan: DisplayPlan }) {
 
 /* --------------------------------------------------------------- offer */
 
-function OfferRow({
-  offer,
-  feePayback,
-  className,
-}: {
-  offer: VortexOffer;
-  /** The payback month with this plan's fee added (display.ts), stated under the price. */
-  feePayback: DisplayPlan["text"]["feePayback"];
-  className?: string;
-}) {
+/**
+ * The offer (display.ts → offer.ts): a first project at a fixed price, then the plan after
+ * launch on its own line with its fee, hours and payback, or the project alone and why.
+ * The same words as the PDF's offer page.
+ */
+function OfferRow({ offer, className }: { offer: DisplayOffer; className?: string }) {
   const { t, lang } = useI18n();
   const titleId = useId();
-  const price = pick(offer.priceNote, lang);
-  const amount = /(\d[\d.,]*\s?(?:lei|RON))/.exec(price);
+  const { project, plan } = offer;
 
   return (
-    <section
-      aria-labelledby={titleId}
-      className={cn("grid gap-6 border-y border-line-1 py-6 lg:grid-cols-12", className)}
-    >
-      <div className="min-w-0 lg:col-span-7">
-        <p className="text-[0.8125rem] leading-[1.35] text-fg-3">
-          {t("The subscription that fits this plan", "Abonamentul potrivit pentru acest plan")}
-        </p>
-        <h3 id={titleId} className="type-h3 mt-1 text-fg">
-          {pick(offer.title, lang)}
-        </h3>
-        <p className="mt-2 max-w-[60ch] text-[0.9375rem] leading-[1.5] text-fg-2">
-          {pick(offer.why, lang)}
-        </p>
-        {offer.includes.length ? (
-          <ul className="mt-3 space-y-1">
-            {offer.includes.map((item) => (
-              <li key={item.en} className="flex gap-2.5 text-sm leading-[1.45] text-fg-2">
-                <span aria-hidden className="mt-[0.7em] h-px w-1.5 shrink-0 bg-fg-3" />
-                <span className="min-w-0">{pick(item, lang)}</span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
-      <div className="flex min-w-0 flex-col gap-4 lg:col-span-5 lg:pt-6">
-        <p className="text-[0.9375rem] leading-[1.5] text-fg-2">
-          {amount ? (
-            <>
-              {price.slice(0, amount.index)}
-              <span className="type-pnum font-semibold text-fg">{amount[1]}</span>
-              {price.slice(amount.index + amount[1].length)}
-            </>
-          ) : (
-            price
-          )}
-          {feePayback ? (
-            <span className="mt-1 block text-[0.8125rem] leading-[1.45] text-fg-3">
-              {pick(feePayback, lang)}
-            </span>
+    <section aria-labelledby={titleId} className={cn("border-y border-line-1 py-6", className)}>
+      <div className="grid gap-6 lg:grid-cols-12">
+        <div className="min-w-0 lg:col-span-7">
+          <p className="text-[0.8125rem] leading-[1.35] text-fg-3">
+            {t("The offer for this plan", "Oferta pentru acest plan")}
+          </p>
+          <h3 id={titleId} className="type-h3 mt-1 text-fg">
+            {pick(offer.title, lang)}
+          </h3>
+          <p className="mt-2 max-w-[60ch] text-[0.9375rem] leading-[1.5] text-pretty text-fg-2">
+            {pick(offer.why, lang)}
+          </p>
+          {offer.laterPayback ? (
+            <p className="mt-2 max-w-[60ch] text-sm leading-[1.45] text-pretty text-fg">
+              {pick(offer.laterPayback, lang)}
+            </p>
           ) : null}
-        </p>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-          <ButtonLink to="/consultancy" size="lg">
-            {t("Book a call", "Programează o discuție")}
-          </ButtonLink>
+        </div>
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap lg:col-span-5 lg:justify-end lg:pt-6">
+          {/* A named plan is sold by contract: the request opens with that plan chosen (the
+              PDF's QR leads to the same page). The project alone starts with a call. */}
+          {plan ? (
+            <ButtonLink to="/contact" search={{ plan: plan.id }} size="lg">
+              {t(`Request the ${plan.name} contract`, `Cere contractul pentru ${plan.name}`)}
+            </ButtonLink>
+          ) : (
+            <ButtonLink to="/consultancy" size="lg">
+              {t("Book a call", "Programează o discuție")}
+            </ButtonLink>
+          )}
           <ButtonLink to="/" hash="pricing" variant="secondary" size="lg">
-            {t("See the subscriptions", "Vezi abonamentele")}
+            {t("See the prices", "Vezi prețurile")}
           </ButtonLink>
         </div>
       </div>
+
+      <div className="mt-6 grid gap-6 md:grid-cols-2 md:gap-8">
+        <OfferStep n={1} label={t("First project", "Primul proiect")} start>
+          <h4 className="type-h4 text-fg">{pick(project.title, lang)}</h4>
+          <p className="type-pnum mt-2 text-[1.25rem] font-semibold leading-none text-fg">
+            {pick(project.price, lang)}
+          </p>
+          <p className="mt-2 text-sm leading-[1.45] text-pretty text-fg-2">
+            {pick(project.note, lang)}
+          </p>
+          {project.payback ? (
+            <p className="mt-2 text-sm leading-[1.45] text-pretty text-fg">
+              {pick(project.payback, lang)}
+            </p>
+          ) : null}
+        </OfferStep>
+
+        {plan ? (
+          <OfferStep n={2} label={t("After launch", "După lansare")}>
+            <h4 className="type-h4 text-fg">
+              {t(`The ${plan.name} plan`, `Abonamentul ${plan.name}`)}
+              <span className="ml-2 text-sm font-normal text-fg-3">{pick(plan.role, lang)}</span>
+            </h4>
+            <p className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <span className="type-pnum text-[1.25rem] font-semibold leading-none text-fg">
+                {pick(plan.price, lang)}
+              </span>
+              <span className="text-sm text-fg-2">{pick(plan.hours, lang)}</span>
+            </p>
+            <ul className="mt-3 space-y-1">
+              {plan.includes.map((item) => (
+                <li key={item.en} className="flex gap-2.5 text-sm leading-[1.45] text-fg-2">
+                  <span aria-hidden className="mt-[0.7em] h-px w-1.5 shrink-0 bg-fg-3" />
+                  <span className="min-w-0">{pick(item, lang)}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-sm leading-[1.45] text-pretty text-fg-2">
+              {pick(plan.fee, lang)}
+            </p>
+            {plan.payback ? (
+              <p className="mt-2 text-sm leading-[1.45] text-pretty text-fg">
+                {pick(plan.payback, lang)}
+              </p>
+            ) : null}
+            {plan.note ? (
+              <p className="mt-2 text-[0.8125rem] leading-[1.45] text-pretty text-fg-3">
+                {pick(plan.note, lang)}
+              </p>
+            ) : null}
+          </OfferStep>
+        ) : (
+          <OfferStep n={2} label={t("Monthly plan", "Abonament")}>
+            <h4 className="type-h4 text-fg">{t("Not for now", "Nu deocamdată")}</h4>
+            {offer.noPlan ? (
+              <p className="mt-2 text-sm leading-[1.45] text-pretty text-fg-2">
+                {pick(offer.noPlan, lang)}
+              </p>
+            ) : null}
+          </OfferStep>
+        )}
+      </div>
     </section>
+  );
+}
+
+/** One numbered step of the offer; the first carries the 2 px "start here" rule. */
+function OfferStep({
+  n,
+  label,
+  start,
+  children,
+}: {
+  n: number;
+  label: string;
+  start?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "min-w-0",
+        start ? `${RECOMMENDED_RULE} pt-[15px]` : "border-t border-line-2 pt-4",
+      )}
+    >
+      <p className="mb-2 flex gap-2.5 text-[0.8125rem] leading-[1.35] text-fg-3">
+        <span className="type-pnum">{n}</span>
+        {label}
+      </p>
+      {children}
+    </div>
   );
 }
 

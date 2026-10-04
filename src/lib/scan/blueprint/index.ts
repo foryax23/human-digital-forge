@@ -216,10 +216,9 @@ export function assembleBlueprint(input: BlueprintInput, overrides: BlueprintOve
     projection,
     offer: buildOffer({
       opportunities,
-      strategies,
-      totals,
+      projection,
+      roadmap,
       newSite: !hasWorkingWebsite(audit, hasWebsite),
-      stages: roadmap.length,
     }),
     assumptions: {
       hourlyCostRon: hourly.hourlyCostRon,

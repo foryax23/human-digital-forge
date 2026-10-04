@@ -106,6 +106,12 @@ export type DeepRunListItem = {
 
 export type TablesStore = DeepStore & {
   freeRunsUsed(userId: string): Promise<number>;
+  /**
+   * Runs this account started through a plan ("premium") since `sinceIso`, for the plan's
+   * report quota (src/lib/deep/access.server.ts): running, succeeded and partial runs count;
+   * failed and canceled ones produced no report and do not.
+   */
+  premiumRunsSince(userId: string, sinceIso: string): Promise<number>;
   breakerOpen(): Promise<boolean>;
   listRuns(userId: string, limit?: number): Promise<DeepRunListItem[]>;
 };
@@ -551,6 +557,19 @@ export function createTablesStore(db: DeepDb, opts: { now?: () => number } = {})
         .neq("status", "canceled");
       if (error) throw fail("free_runs", error);
       return count ?? 0;
+    },
+
+    async premiumRunsSince(userId, sinceIso) {
+      const { count, error } = await runs()
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("via", "premium")
+        .gte("created_at", sinceIso)
+        .in("status", ["running", "succeeded", "partial"]);
+      if (error) throw fail("premium_runs", error);
+      // A HEAD answer without a count (a missing table looks like success) is not "none used".
+      if (typeof count !== "number") throw fail("premium_runs", { message: "no count" });
+      return count;
     },
 
     async breakerOpen() {

@@ -5,20 +5,11 @@ import { PageHero } from "@/components/shared/PageHero";
 import { CtaBand } from "@/components/shared/CtaBand";
 import { ItemList } from "@/components/shared/ItemList";
 import { ButtonLink, SectionHeader } from "@/components/system";
-import { useI18n } from "@/i18n";
-
-const title = "AI Automation and Consultancy | Vortex Hub";
-const description =
-  "Practical AI automation for real tasks: enquiries, documents, follow-ups and internal organisation.";
+import { pageMeta, useI18n } from "@/i18n";
 
 export const Route = createFileRoute("/ai-automation")({
-  head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/ai-automation"),
     links: [{ rel: "canonical", href: "/ai-automation" }],
   }),
   component: AiAutomationPage,

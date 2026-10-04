@@ -120,7 +120,10 @@ export function readDeepConfig(
     adminUserIds: list(source.DEEP_RESEARCH_ADMIN_USER_IDS).map((s) => s.toLowerCase()),
     adminEmails: list(source.DEEP_RESEARCH_ADMIN_EMAILS).map((s) => s.toLowerCase()),
     testCodeHashes: list(source.DEEP_RESEARCH_TEST_CODES).map((s) => s.toLowerCase()),
-    premiumTiers: list(source.DEEP_RESEARCH_PREMIUM_TIERS || "growth,pro").map((s) =>
+    // The plan IDs that include deep research (client plans and subscription tiers). Every plan
+    // includes reports since the 2026-10-04 plans (src/lib/client-plans.ts has the quotas); a
+    // value set before ("growth,pro") still works and leaves Starter out.
+    premiumTiers: list(source.DEEP_RESEARCH_PREMIUM_TIERS || "starter,growth,pro").map((s) =>
       s.toLowerCase(),
     ),
     // No free runs unless set: plans are assigned by an admin after a contract (owner, 2026-10-04).
@@ -172,7 +175,7 @@ export async function provisionalAccess(
   args: {
     userId: string | null;
     testCode?: string;
-    /** An active Growth/Pro (DEEP_RESEARCH_PREMIUM_TIERS) subscription. */
+    /** A plan listed in DEEP_RESEARCH_PREMIUM_TIERS with a report left (access.server.ts decides). */
     premium?: boolean;
     persistence: StoreKind | "memory" | "unavailable";
     todayUsd?: number;

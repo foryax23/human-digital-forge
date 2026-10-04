@@ -329,9 +329,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 530,
       },
       setupCostRon: {
-        low: 1200,
+        low: 1500,
         high: 2500,
-        mid: 1850,
+        mid: 2000,
       },
       monthlyToolCostRon: {
         low: 130,
@@ -339,7 +339,7 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 260,
       },
       paybackMonths: {
-        low: 2,
+        low: 2.5,
         high: 36,
       },
       tools: ["WhatsApp Business API", "SMS gateway", "Calendar sync"],
@@ -394,9 +394,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 480,
       },
       setupCostRon: {
-        low: 3000,
-        high: 6000,
-        mid: 4500,
+        low: 2500,
+        high: 3500,
+        mid: 3000,
       },
       monthlyToolCostRon: {
         low: 100,
@@ -404,7 +404,7 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 180,
       },
       paybackMonths: {
-        low: 4.8,
+        low: 4,
         high: 36,
       },
       tools: ["Booking calendar", "Google Business Profile", "Website integration"],
@@ -455,9 +455,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 220,
       },
       setupCostRon: {
-        low: 1200,
+        low: 1500,
         high: 2500,
-        mid: 1850,
+        mid: 2000,
       },
       monthlyToolCostRon: {
         low: 60,
@@ -465,7 +465,7 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 120,
       },
       paybackMonths: {
-        low: 5,
+        low: 6.3,
         high: 36,
       },
       tools: ["Patient / client database", "WhatsApp / SMS", "Booking link"],
@@ -577,9 +577,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 250,
       },
       setupCostRon: {
-        low: 1200,
+        low: 1500,
         high: 2500,
-        mid: 1850,
+        mid: 2000,
       },
       monthlyToolCostRon: {
         low: 60,
@@ -587,7 +587,7 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 130,
       },
       paybackMonths: {
-        low: 4.4,
+        low: 5.6,
         high: 36,
       },
       tools: ["WhatsApp / SMS", "Google Business Profile"],
@@ -725,17 +725,17 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
       mid: 20640,
     },
     setupCostRon: {
-      low: 9600,
-      high: 19500,
-      mid: 14550,
+      low: 10000,
+      high: 17000,
+      mid: 13500,
     },
     paybackMonths: {
-      low: 4.8,
+      low: 5,
       high: 36,
     },
     breakEven: {
-      month: 22,
-      higherVolume: 16,
+      month: 21,
+      higherVolume: 15,
       lowerVolume: null,
     },
   },
@@ -795,12 +795,11 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
       investmentLevel: 2,
       investmentRon: {
         low: 3900,
-        high: 9000,
-        mid: 6450,
+        high: 8200,
+        mid: 6050,
       },
       opportunityIds: ["review-requests"],
-      recommended: true,
-      startReason: "acquire-gaps",
+      recommended: false,
     },
     {
       id: "automate",
@@ -848,12 +847,13 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
       },
       investmentLevel: 2,
       investmentRon: {
-        low: 5400,
-        high: 11000,
-        mid: 8200,
+        low: 5500,
+        high: 8500,
+        mid: 7000,
       },
       opportunityIds: ["appointment-reminders", "online-booking", "recall-reminders"],
-      recommended: false,
+      recommended: true,
+      startReason: "automate-payback",
     },
     {
       id: "assist",
@@ -947,9 +947,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
       ],
       opportunityIds: [],
       websiteCostRon: {
-        low: 2700,
-        high: 6500,
-        mid: 4600,
+        low: 2400,
+        high: 5700,
+        mid: 4050,
       },
     },
     {
@@ -1054,9 +1054,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 0,
       },
       cumulativeCostRon: {
-        low: 5400,
-        high: 11000,
-        mid: 8200,
+        low: 5500,
+        high: 8500,
+        mid: 7000,
       },
     },
     {
@@ -1067,9 +1067,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 620,
       },
       cumulativeCostRon: {
-        low: 8690,
-        high: 17840,
-        mid: 13260,
+        low: 8790,
+        high: 15340,
+        mid: 12060,
       },
     },
     {
@@ -1080,9 +1080,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 1970,
       },
       cumulativeCostRon: {
-        low: 10300,
-        high: 21540,
-        mid: 15910,
+        low: 10700,
+        high: 19040,
+        mid: 14860,
       },
     },
     {
@@ -1093,9 +1093,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 3560,
       },
       cumulativeCostRon: {
-        low: 10770,
-        high: 22940,
-        mid: 16840,
+        low: 11170,
+        high: 20440,
+        mid: 15790,
       },
     },
     {
@@ -1106,9 +1106,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 5280,
       },
       cumulativeCostRon: {
-        low: 11240,
-        high: 24340,
-        mid: 17770,
+        low: 11640,
+        high: 21840,
+        mid: 16720,
       },
     },
     {
@@ -1119,9 +1119,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 7000,
       },
       cumulativeCostRon: {
-        low: 11710,
-        high: 25740,
-        mid: 18700,
+        low: 12110,
+        high: 23240,
+        mid: 17650,
       },
     },
     {
@@ -1132,9 +1132,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 8720,
       },
       cumulativeCostRon: {
-        low: 12180,
-        high: 27140,
-        mid: 19630,
+        low: 12580,
+        high: 24640,
+        mid: 18580,
       },
     },
     {
@@ -1145,9 +1145,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 10440,
       },
       cumulativeCostRon: {
-        low: 12650,
-        high: 28540,
-        mid: 20560,
+        low: 13050,
+        high: 26040,
+        mid: 19510,
       },
     },
     {
@@ -1158,9 +1158,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 12160,
       },
       cumulativeCostRon: {
-        low: 13120,
-        high: 29940,
-        mid: 21490,
+        low: 13520,
+        high: 27440,
+        mid: 20440,
       },
     },
     {
@@ -1171,9 +1171,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 13880,
       },
       cumulativeCostRon: {
-        low: 13590,
-        high: 31340,
-        mid: 22420,
+        low: 13990,
+        high: 28840,
+        mid: 21370,
       },
     },
     {
@@ -1184,9 +1184,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 15600,
       },
       cumulativeCostRon: {
-        low: 14060,
-        high: 32740,
-        mid: 23350,
+        low: 14460,
+        high: 30240,
+        mid: 22300,
       },
     },
     {
@@ -1197,9 +1197,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 17320,
       },
       cumulativeCostRon: {
-        low: 14530,
-        high: 34140,
-        mid: 24280,
+        low: 14930,
+        high: 31640,
+        mid: 23230,
       },
     },
     {
@@ -1210,9 +1210,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 19040,
       },
       cumulativeCostRon: {
-        low: 15000,
-        high: 35540,
-        mid: 25210,
+        low: 15400,
+        high: 33040,
+        mid: 24160,
       },
     },
     {
@@ -1223,9 +1223,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 20760,
       },
       cumulativeCostRon: {
-        low: 15470,
-        high: 36940,
-        mid: 26140,
+        low: 15870,
+        high: 34440,
+        mid: 25090,
       },
     },
     {
@@ -1236,9 +1236,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 22480,
       },
       cumulativeCostRon: {
-        low: 15940,
-        high: 38340,
-        mid: 27070,
+        low: 16340,
+        high: 35840,
+        mid: 26020,
       },
     },
     {
@@ -1249,9 +1249,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 24200,
       },
       cumulativeCostRon: {
-        low: 16410,
-        high: 39740,
-        mid: 28000,
+        low: 16810,
+        high: 37240,
+        mid: 26950,
       },
     },
     {
@@ -1262,9 +1262,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 25920,
       },
       cumulativeCostRon: {
-        low: 16880,
-        high: 41140,
-        mid: 28930,
+        low: 17280,
+        high: 38640,
+        mid: 27880,
       },
     },
     {
@@ -1275,9 +1275,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 27640,
       },
       cumulativeCostRon: {
-        low: 17350,
-        high: 42540,
-        mid: 29860,
+        low: 17750,
+        high: 40040,
+        mid: 28810,
       },
     },
     {
@@ -1288,9 +1288,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 29360,
       },
       cumulativeCostRon: {
-        low: 17820,
-        high: 43940,
-        mid: 30790,
+        low: 18220,
+        high: 41440,
+        mid: 29740,
       },
     },
     {
@@ -1301,9 +1301,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 31080,
       },
       cumulativeCostRon: {
-        low: 18290,
-        high: 45340,
-        mid: 31720,
+        low: 18690,
+        high: 42840,
+        mid: 30670,
       },
     },
     {
@@ -1314,9 +1314,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 32800,
       },
       cumulativeCostRon: {
-        low: 18760,
-        high: 46740,
-        mid: 32650,
+        low: 19160,
+        high: 44240,
+        mid: 31600,
       },
     },
     {
@@ -1327,9 +1327,9 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 34520,
       },
       cumulativeCostRon: {
-        low: 19230,
-        high: 48140,
-        mid: 33580,
+        low: 19630,
+        high: 45640,
+        mid: 32530,
       },
     },
     {
@@ -1340,39 +1340,26 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         mid: 36240,
       },
       cumulativeCostRon: {
-        low: 19700,
-        high: 49540,
-        mid: 34510,
+        low: 20100,
+        high: 47040,
+        mid: 33460,
       },
     },
   ],
   offer: {
-    planId: "growth",
+    planId: "project",
     title: {
-      en: "Growth",
-      ro: "Growth",
+      en: "The project alone, no plan",
+      ro: "Doar proiectul, fără abonament",
     },
     why: {
-      en: "The plan has 4 stages; Growth covers the guided setup and ongoing support.",
-      ro: "Planul are 4 etape; Growth acoperă implementarea ghidată și suportul continuu.",
+      en: "We don't suggest a plan yet: with Starter (290 RON a month) the automations would no longer pay back within the first 24 months. If you still want us to keep the website healthy, you can take it for the site alone; otherwise add it after launch, once we see the real numbers.",
+      ro: "Nu propunem încă un abonament: cu Starter (290 lei pe lună) automatizările nu s-ar mai recupera în primele 24 de luni. Dacă vrei totuși să ținem site-ul în formă, îl poți alege doar pentru site; altfel îl adaugi după lansare, când vedem cifrele reale.",
     },
-    includes: [
-      {
-        en: "2 hours of live consultation on Zoom",
-        ro: "2 ore de consultanță live pe Zoom",
-      },
-      {
-        en: "Guided setup of the 4 stages of the plan",
-        ro: "Configurare ghidată pentru cele 4 etape din plan",
-      },
-      {
-        en: "Priority scheduling and email support",
-        ro: "Programări cu prioritate și suport pe e-mail",
-      },
-    ],
+    includes: [],
     priceNote: {
-      en: "250 RON a month, plus the setup (fixed price after a call)",
-      ro: "250 lei pe lună, plus implementarea (preț fix după discuție)",
+      en: "A fixed price for the project, agreed before we start",
+      ro: "Preț fix pentru proiect, stabilit înainte să începem",
     },
   },
   assumptions: {
@@ -1400,8 +1387,8 @@ export const SAMPLE_BLUEPRINT: Blueprint = {
         ro: "Volumele sunt tipice pentru o afacere de tipul „Clinică stomatologică” de această mărime, nu sunt măsurate; fiecare automatizare își arată propriile volume.",
       },
       {
-        en: "Costs are a one-off setup plus monthly tools from Vortex Hub's price book (RON, excluding VAT); the Vortex Hub plan fee is separate.",
-        ro: "Costurile includ implementarea, plătită o singură dată, și instrumentele lunare, conform listei de prețuri Vortex Hub (lei, fără TVA); abonamentul Vortex Hub se plătește separat.",
+        en: "Costs are a one-off setup plus monthly tools from Vortex Hub's price book (RON); the Vortex Hub plan fee is separate.",
+        ro: "Costurile includ implementarea, plătită o singură dată, și instrumentele lunare, conform listei de prețuri Vortex Hub (în lei); abonamentul Vortex Hub se plătește separat.",
       },
       {
         en: "Projection: setup is paid when its phase of the plan starts; the hours won back start the month after, at half the first month and in full after that.",

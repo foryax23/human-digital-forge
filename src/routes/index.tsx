@@ -12,20 +12,11 @@ import { ProcessSection } from "@/components/landing/ProcessSection";
 import { ConsultationSection } from "@/components/home/ConsultationSection";
 import { PricingSection } from "@/components/home/PricingSection";
 import { ContactFooter } from "@/components/landing/ContactFooter";
-
-const title = "Vortex Hub | Digital Products, Websites and AI Consultancy";
-const description =
-  "Vortex Hub provides digital design, websites, AI automation and practical consultancy for individuals and businesses.";
+import { SITE_SEO, languageFromMatches, pageMeta } from "@/i18n";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-      { property: "og:type", content: "website" },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/"),
     links: [
       { rel: "canonical", href: "/" },
       { rel: "preload", as: "image", href: "/media/swirl-loop/poster.jpg" },
@@ -39,7 +30,7 @@ export const Route = createFileRoute("/")({
           "@context": "https://schema.org",
           "@type": "Organization",
           name: "Vortex Hub",
-          description,
+          description: SITE_SEO.description[languageFromMatches(matches)],
           email: "hello@vortexhub.ro",
         }),
       },

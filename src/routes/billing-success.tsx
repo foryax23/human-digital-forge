@@ -2,18 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { ButtonLink, Status } from "@/components/system";
-import { useI18n } from "@/i18n";
-
-const title = "Subscription confirmed | Vortex Hub";
-const description = "Your Vortex Hub subscription is now active.";
+import { pageMeta, useI18n } from "@/i18n";
 
 export const Route = createFileRoute("/billing-success")({
-  head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { name: "robots", content: "noindex" },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/billing-success"),
   }),
   component: BillingSuccessPage,
 });

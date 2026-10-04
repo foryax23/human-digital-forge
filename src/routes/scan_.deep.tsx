@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { DeepPage, type DeepSearch } from "@/components/deep/DeepPage";
 import { DEMO_SECTORS, DEMO_STATES } from "@/components/deep/fixtures/demo-keys";
+import { pageMeta } from "@/i18n";
 
 /*
  * /scan/deep, "Cercetare aprofundată" (plan A10). Not indexed (noindex, and Disallow in
@@ -55,16 +56,8 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/scan_/deep")({
   validateSearch: (search: Record<string, unknown>): DeepSearch =>
     searchSchema.parse(search) as DeepSearch,
-  head: () => ({
-    meta: [
-      { title: "Cercetare aprofundată | Vortex Hub" },
-      {
-        name: "description",
-        content:
-          "Vortex Scan deep research: official figures, similar firms, the website as a customer sees it and three actions in lei.",
-      },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/scan/deep"),
   }),
   component: DeepRoute,
 });

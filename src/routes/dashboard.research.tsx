@@ -8,7 +8,7 @@ import { fetchAccess, fetchRunList, type RunList } from "@/components/deep/trans
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useI18n } from "@/i18n";
+import { pageMeta, useI18n } from "@/i18n";
 import type { DeepAccess, RunStatus } from "@/lib/deep/contracts";
 
 /*
@@ -20,12 +20,8 @@ import type { DeepAccess, RunStatus } from "@/lib/deep/contracts";
  */
 
 export const Route = createFileRoute("/dashboard/research")({
-  head: () => ({
-    meta: [
-      { title: "Deep research | Vortex Hub" },
-      { name: "description", content: "Your deep company research reports." },
-      { name: "robots", content: "noindex" },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/dashboard/research"),
   }),
   component: ResearchPage,
 });

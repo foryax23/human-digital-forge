@@ -1,39 +1,34 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
 
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { CtaBand } from "@/components/shared/CtaBand";
-import { ItemList } from "@/components/shared/ItemList";
-import { ButtonLink, SectionHeader } from "@/components/system";
-import { useI18n } from "@/i18n";
-
-const title = "Websites and Digital Solutions | Vortex Hub";
-const description =
-  "Landing pages, business websites, portfolios and client portals built around your purpose.";
+import { ButtonLink, FOCUS_RING, SectionHeader } from "@/components/system";
+import { pageMeta, useI18n } from "@/i18n";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/websites")({
-  head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/websites"),
     links: [{ rel: "canonical", href: "/websites" }],
   }),
   component: WebsitesPage,
 });
 
+const ROW =
+  "grid grid-cols-[2rem_minmax(0,1fr)] items-baseline gap-x-3 border-b border-line-1 py-4";
+const NUMBER = "type-pnum text-[0.8125rem] text-fg-3";
+
 function WebsitesPage() {
   const { t } = useI18n();
 
   const categories = [
-    { title: t("Landing pages", "Pagini de destinație") },
-    { title: t("Small business websites", "Site-uri pentru afaceri mici") },
-    { title: t("Personal portfolio websites", "Site-uri de portofoliu personal") },
-    { title: t("Service websites", "Site-uri de servicii") },
-    { title: t("Website redesign", "Refacerea unui site existent") },
-    { title: t("Client portal concepts", "Portaluri simple pentru clienți") },
+    t("Landing pages", "Pagini de destinație"),
+    t("Small business websites", "Site-uri pentru afaceri mici"),
+    t("Personal portfolio websites", "Site-uri de portofoliu personal"),
+    t("Service websites", "Site-uri de servicii"),
+    t("Website redesign", "Refacerea unui site existent"),
   ];
 
   const process = [
@@ -65,7 +60,40 @@ function WebsitesPage() {
       <section aria-label={t("What we build", "Ce construim")} className="section-y">
         <div className="container-vx">
           <SectionHeader headingId="websites-build" title={t("What we build", "Ce construim")} />
-          <ItemList items={categories} />
+          {/* ItemList's rows (src/components/shared/ItemList.tsx), plus a sixth that points to
+              Produse digitale, where client portals and web apps live now; six rows keep the
+              grid full at two and three columns. */}
+          <ol className="grid border-t border-rule sm:grid-cols-2 sm:gap-x-8 lg:grid-cols-3">
+            {categories.map((title, index) => (
+              <li key={title} className={ROW}>
+                <span aria-hidden className={NUMBER}>
+                  {index + 1}
+                </span>
+                <h3 className="type-h4 min-w-0 text-pretty text-fg">{title}</h3>
+              </li>
+            ))}
+            <li className={ROW}>
+              <span aria-hidden className={NUMBER}>
+                {categories.length + 1}
+              </span>
+              <div className="min-w-0">
+                <h3 className="type-h4 text-pretty text-fg">
+                  {t("Client portals and web apps", "Portaluri și aplicații web")}
+                </h3>
+                {/* py-1 keeps a 24 px tap target without moving the line. */}
+                <Link
+                  to="/digital-products"
+                  className={cn(
+                    "type-body-sm -mb-1 inline-flex items-center gap-1.5 rounded-sm py-1 text-fg-2 underline decoration-fg/30 decoration-1 underline-offset-4 transition-colors hover:text-fg hover:decoration-fg",
+                    FOCUS_RING,
+                  )}
+                >
+                  {t("Find them under Digital products", "Le găsești la Produse digitale")}
+                  <ArrowRight aria-hidden className="size-3.5 shrink-0" />
+                </Link>
+              </div>
+            </li>
+          </ol>
 
           <SectionHeader
             className="mt-16 md:mt-20"

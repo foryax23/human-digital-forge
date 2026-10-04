@@ -10,6 +10,7 @@ import type {
   SimulationInputs,
 } from "@/lib/scan/types";
 import { officeHourValue } from "@/lib/deep/report/hourly";
+import { CONSULTANCY_HOUR_LEI, fixedProject } from "@/lib/pricing";
 
 import {
   addEstimates,
@@ -18,6 +19,7 @@ import {
   mapEstimate,
   midOf,
   midpoint,
+  NBSP,
   roCount,
   roNeedsDe,
   roundCount,
@@ -33,48 +35,121 @@ import { DIVISION_GROSS_RON, HOURS_PER_MONTH, WAGE_SOURCE } from "./wages";
 
 /* ------------------------------------------------------------ price book */
 
+const SITE = fixedProject("site").priceLei;
+const AUTOMATION = fixedProject("automation").priceLei;
+const ASSISTANT = fixedProject("assistant").priceLei;
+const AUTOMATION_HIGH = AUTOMATION.high ?? AUTOMATION.low;
+const AUTOMATION_SPLIT = (AUTOMATION.low + AUTOMATION_HIGH) / 2;
+
 /**
- * OWNER-EDITABLE PRICE BOOK (RON, VAT excluded).
+ * The top of the new-site estimate: a bigger presentation site (more than the 6 pages in
+ * "de la 4.500 lei", or a second language, +1.000 lei in the analysis §4.3). Anything
+ * bigger is quoted after the brief, and the site's line in the plan says so. Market anchors:
+ * Revelia's middle tier and Brig's mid-market top are both 7.500 lei.
+ */
+export const BIGGER_SITE_LEI = 7500;
+
+/** Staff work at the public consultancy rate (300 lei an hour, src/lib/pricing.ts). */
+const atHourlyRate = (low: number, high: number): Range => ({
+  low: low * CONSULTANCY_HOUR_LEI,
+  high: high * CONSULTANCY_HOUR_LEI,
+});
+
+/**
+ * THE SCAN'S PRICE BOOK (lei, final: Vortex Hub is not a VAT payer).
  *
- * Conservative Romanian market estimates for a small studio or freelancer
- * delivering the work (setup = one-off build; tools = monthly subscriptions
- * and usage). Vortex should replace these with its real prices: every setup
- * cost, investment range, payback and projection in the blueprint comes from
- * this table, so changing a number here changes them all consistently.
+ * Read from the public price list (src/lib/pricing.ts, owner decision 2026-10-04) so the
+ * scan, its PDF and deep research never quote a price the pricing section contradicts:
+ * - an automation is "1.500–3.500 lei": the lower half for a simple one, the upper half
+ *   for a medium one;
+ * - a high-complexity automation, or one built around an AI step, is priced like the AI
+ *   assistant, "3.000–6.000 lei" (`setupPriceFor`);
+ * - a new site starts at "de la 4.500 lei", up to BIGGER_SITE_LEI for a bigger one;
+ * - website fixes, the Google profile and measurement are staff hours at the consultancy
+ *   rate (300 lei an hour); a project-size fix costs what a new presentation site costs.
+ * Tools are third-party subscriptions and usage (not Vortex Hub's prices), by complexity.
+ * Every setup cost, investment, payback and projection comes from this table, and
+ * scripts/scan/check-display.ts checks every fixture against the public ranges.
  */
 export const PRICE_BOOK = {
   /** One-off setup of an automation, by complexity. */
   automationSetup: {
-    low: { low: 1200, high: 2500 },
-    medium: { low: 3000, high: 6000 },
-    high: { low: 7000, high: 14000 },
+    low: { low: AUTOMATION.low, high: AUTOMATION_SPLIT },
+    medium: { low: AUTOMATION_SPLIT, high: AUTOMATION_HIGH },
+    high: { low: ASSISTANT.low, high: ASSISTANT.high ?? ASSISTANT.low },
   },
+  /** The AI assistant, and an automation built around an AI step. */
+  aiSetup: { low: ASSISTANT.low, high: ASSISTANT.high ?? ASSISTANT.low },
   /** Monthly tool subscriptions for an automation, by complexity. */
   automationTools: {
     low: { low: 50, high: 150 },
     medium: { low: 100, high: 250 },
     high: { low: 250, high: 600 },
   },
-  /** Fixing one website finding, by effort. */
+  /** Fixing one website finding, by effort: 1–3 hours, 5–10 hours, or a site's worth. */
   websiteFix: {
-    quick: { low: 400, high: 1000 },
-    medium: { low: 1500, high: 3500 },
-    project: { low: 5000, high: 12000 },
+    quick: atHourlyRate(1, 3),
+    medium: atHourlyRate(5, 10),
+    project: { low: SITE.low, high: BIGGER_SITE_LEI },
   },
-  /** A new fast, mobile-first website with contact/booking (no website today). */
-  newWebsite: { low: 6000, high: 15000 },
-  /** Claiming and completing the Google Business Profile. */
-  googleProfile: { low: 500, high: 1500 },
-  /** Analytics, conversion tracking and cookie consent. */
-  measurement: { low: 800, high: 2000 },
+  /** A new presentation website with contact or booking (no working website today). */
+  newWebsite: { low: SITE.low, high: BIGGER_SITE_LEI },
+  /** Claiming and completing the Google Business Profile: 2–4 hours. */
+  googleProfile: atHourlyRate(2, 4),
+  /** Visitor statistics, enquiry tracking and cookie consent: 3–6 hours. */
+  measurement: atHourlyRate(3, 6),
 } satisfies {
   automationSetup: Record<OpportunityTemplate["complexity"], Range>;
+  aiSetup: Range;
   automationTools: Record<OpportunityTemplate["complexity"], Range>;
   websiteFix: Record<"quick" | "medium" | "project", Range>;
   newWebsite: Range;
   googleProfile: Range;
   measurement: Range;
 };
+
+type PricedTemplate = Pick<OpportunityTemplate, "complexity" | "strategy" | "tools" | "setupRon">;
+
+/**
+ * Built around an AI step we set up and test (the assistant, reading orders, drafting
+ * replies or summaries). A simple automation that only switches on a ready-made AI feature
+ * (AI drafts in Buffer, an AI notes app) stays an ordinary automation.
+ */
+export function builtAroundAi(template: Omit<PricedTemplate, "setupRon">): boolean {
+  if (template.strategy === "assist") return true;
+  return template.complexity !== "low" && template.tools.some((tool) => /\bAI\b/.test(tool));
+}
+
+/** The setup price of an automation: the public automation price, or the assistant's. */
+export function setupPriceFor(template: PricedTemplate): Range {
+  if (template.setupRon) return template.setupRon;
+  if (builtAroundAi(template)) return PRICE_BOOK.aiSetup;
+  return PRICE_BOOK.automationSetup[template.complexity];
+}
+
+/** "3.000–6.000 lei" / "3,000–6,000 RON". */
+function leiRange(range: Range): Bilingual {
+  const text = (lang: "en" | "ro") =>
+    `${formatNumber(range.low, lang)}–${formatNumber(range.high, lang)}${NBSP}${lang === "ro" ? "lei" : "RON"}`;
+  return bi(text("en"), text("ro"));
+}
+
+/** Why an automation's setup sits in the assistant's range (none for the assistant itself). */
+function setupNote(template: PricedTemplate): Bilingual | null {
+  if (template.setupRon || template.strategy === "assist") return null;
+  const ai = builtAroundAi(template);
+  if (!ai && template.complexity !== "high") return null;
+  const price = leiRange(PRICE_BOOK.aiSetup);
+  return ai
+    ? bi(
+        `It has an AI step, so we estimate the setup at the price of an AI assistant: ${price.en}`,
+        `Are un pas cu AI, deci estimăm implementarea la prețul unui asistent AI: ${price.ro}`,
+      )
+    : bi(
+        `It connects several systems, so we estimate the setup as a bigger project: ${price.en}, the price of an AI assistant`,
+        `Leagă mai multe sisteme, deci estimăm implementarea ca pentru un proiect mai mare: ${price.ro}, cât un asistent AI`,
+      );
+}
 
 /**
  * Caps the deprecated corner-paired `paybackMonths` ranges. Never displayed:
@@ -318,7 +393,7 @@ export function computeOpportunities(
     const hours = mapEstimate(raw[i], (h) => roundHours(h * cappedBy));
     const savings = mapEstimate(raw[i], (h) => roundRon(h * cappedBy * ctx.inputs.hourlyCostRon));
     // Setup at the central price-book quote; tools at the middle of base + usage.
-    const setup = centred(template.setupRon ?? PRICE_BOOK.automationSetup[template.complexity]);
+    const setup = centred(setupPriceFor(template));
     const baseTools = template.monthlyToolsRon ?? PRICE_BOOK.automationTools[template.complexity];
     const usage = template.usageCostRon ?? { low: 0, high: 0 };
     const tools = {
@@ -360,6 +435,8 @@ export function computeOpportunities(
       );
     }
     if (template.note) assumptions.push(template.note);
+    const priced = setupNote(template);
+    if (priced) assumptions.push(priced);
 
     return {
       id: template.id,

@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 import { Image, Link, Text, View } from "@react-pdf/renderer";
 
 import { tableRows, type DisplayStrategy } from "@/lib/scan/blueprint/display";
@@ -602,12 +604,74 @@ export function PlanPage({ ctx }: { ctx: PdfContext }) {
 
 /* ------------------------------------------------------------------ offer */
 
+/** One numbered step of the offer; the first carries the 2 px "start here" rule. */
+function OfferStep({
+  n,
+  label,
+  first,
+  children,
+}: {
+  n: number;
+  label: string;
+  first?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <View
+      wrap={false}
+      style={{
+        marginTop: first ? 0 : 12,
+        borderTopWidth: first ? 2 : 0.6,
+        borderTopColor: first ? BRAND.violetLine : NIGHT_INK.hairline,
+        paddingTop: first ? 7 : 8.4,
+      }}
+    >
+      <Text style={{ ...text.small, color: NIGHT_INK.muted, marginBottom: 3 }}>
+        {`${n}  ${label}`}
+      </Text>
+      {children}
+    </View>
+  );
+}
+
+const OFFER_LINE: Style = {
+  fontFamily: FONT.body,
+  fontSize: 8.2,
+  lineHeight: 1.42,
+  color: NIGHT_INK.body,
+  marginTop: 3,
+};
+
+/** A price on one baseline with its sub-line ("290 lei pe lună  1 oră de lucru pe lună inclusă"). */
+function OfferPrice({ value, sub }: { value: string; sub?: string }) {
+  return (
+    <Text style={{ fontFamily: FONT.body, fontSize: 8.2, color: NIGHT_INK.body, marginTop: 3 }}>
+      <Text
+        style={{ fontFamily: FONT.display, fontWeight: 700, fontSize: 12, color: NIGHT_INK.strong }}
+      >
+        {value}
+      </Text>
+      {sub ? `   ${sub}` : ""}
+    </Text>
+  );
+}
+
 export function OfferPage({ ctx }: { ctx: PdfContext }) {
-  const { blueprint, plan, lang, t } = ctx;
-  const { offer } = blueprint;
+  const { plan, lang, t } = ctx;
+  const { offer } = plan;
+  // A named plan is sold by contract: the QR opens the contract request with that plan chosen
+  // (as the web offer's button does); the project alone keeps the plain contact page. The
+  // caption stays on one line: the plan is in the link under it and in step 2 beside it.
+  const cta = offer.plan
+    ? {
+        url: `${CONTACT.consultUrl}?plan=${offer.plan.id}`,
+        label: t("Scan to request the contract", "Scanează și cere contractul"),
+      }
+    : {
+        url: CONTACT.consultUrl,
+        label: t("Scan to book a call", "Scanează și programează o discuție"),
+      };
   const start = plan.phases.find((p) => p.start) ?? plan.phases[0];
-  const price = pick(offer.priceNote, lang);
-  const amount = /(\d[\d.,]*\s?(?:lei|RON))/.exec(price);
   const steps = [
     {
       title: t("Book a call", "Programează o discuție"),
@@ -695,7 +759,7 @@ export function OfferPage({ ctx }: { ctx: PdfContext }) {
       <View style={{ flexGrow: 1 }}>
         <View>
           <Label color={NIGHT_INK.muted}>
-            {t("The subscription that fits this plan", "Abonamentul potrivit pentru acest plan")}
+            {t("The offer for this plan", "Oferta pentru acest plan")}
           </Label>
           <SectionTitle
             title={pick(offer.title, lang)}
@@ -703,82 +767,96 @@ export function OfferPage({ ctx }: { ctx: PdfContext }) {
             width={300}
             dark
           />
+          {offer.laterPayback ? (
+            <Text
+              style={{
+                ...OFFER_LINE,
+                fontSize: 8.6,
+                color: NIGHT_INK.strong,
+                maxWidth: 300,
+                marginTop: -10,
+                marginBottom: 14,
+              }}
+            >
+              {pick(offer.laterPayback, lang)}
+            </Text>
+          ) : null}
 
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <View style={{ width: 300 }}>
-              <Label color={NIGHT_INK.muted}>{t("What's included", "Ce include")}</Label>
-              <View style={{ marginTop: 5 }}>
-                {offer.includes.map((item) => (
-                  <View key={item.en} style={{ flexDirection: "row", marginBottom: 4 }}>
-                    <View
-                      style={{
-                        width: 4.5,
-                        height: 0.6,
-                        backgroundColor: NIGHT_INK.muted,
-                        marginTop: 6,
-                        marginRight: 6,
-                      }}
-                    />
-                    <Text
-                      style={{
-                        fontFamily: FONT.body,
-                        fontSize: 8.6,
-                        lineHeight: 1.4,
-                        color: NIGHT_INK.strong,
-                        flex: 1,
-                      }}
-                    >
-                      {pick(item, lang)}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-              <View
-                style={{
-                  marginTop: 10,
-                  paddingTop: 10,
-                  borderTopWidth: 0.6,
-                  borderTopColor: NIGHT_INK.hairline,
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: FONT.body,
-                    fontSize: 9.6,
-                    lineHeight: 1.45,
-                    color: NIGHT_INK.body,
-                  }}
-                >
-                  {amount ? (
-                    <>
-                      {price.slice(0, amount.index)}
-                      <Text
-                        style={{
-                          fontFamily: FONT.display,
-                          fontWeight: 700,
-                          color: NIGHT_INK.strong,
-                        }}
-                      >
-                        {amount[1]}
-                      </Text>
-                      {price.slice(amount.index + amount[1].length)}
-                    </>
-                  ) : (
-                    price
-                  )}
+              <OfferStep n={1} label={t("First project", "Primul proiect")} first>
+                <Text style={{ ...text.h3, color: NIGHT_INK.strong }}>
+                  {pick(offer.project.title, lang)}
                 </Text>
-                {plan.text.feePayback ? (
-                  <Text style={{ ...text.small, color: NIGHT_INK.body, marginTop: 4 }}>
-                    {pick(plan.text.feePayback, lang)}
+                <OfferPrice value={pick(offer.project.price, lang)} />
+                <Text style={OFFER_LINE}>{pick(offer.project.note, lang)}</Text>
+                {offer.project.payback ? (
+                  <Text style={{ ...OFFER_LINE, color: NIGHT_INK.strong }}>
+                    {pick(offer.project.payback, lang)}
                   </Text>
                 ) : null}
-                <Text style={{ ...text.small, color: NIGHT_INK.muted, marginTop: 4 }}>
-                  {t(
-                    "The setup below is this plan's estimate; the final quote follows the call.",
-                    "Implementarea de mai jos e estimarea acestui plan; oferta finală vine după discuție.",
-                  )}
-                </Text>
-              </View>
+              </OfferStep>
+
+              {offer.plan ? (
+                <OfferStep n={2} label={t("After launch", "După lansare")}>
+                  <Text style={{ ...text.h3, color: NIGHT_INK.strong }}>
+                    {t(`The ${offer.plan.name} plan`, `Abonamentul ${offer.plan.name}`)}
+                    <Text
+                      style={{ fontFamily: FONT.body, fontWeight: 400, color: NIGHT_INK.muted }}
+                    >
+                      {`  ${pick(offer.plan.role, lang)}`}
+                    </Text>
+                  </Text>
+                  <OfferPrice
+                    value={pick(offer.plan.price, lang)}
+                    sub={pick(offer.plan.hours, lang)}
+                  />
+                  <View style={{ marginTop: 4 }}>
+                    {offer.plan.includes.map((item) => (
+                      <View key={item.en} style={{ flexDirection: "row", marginBottom: 2 }}>
+                        <View
+                          style={{
+                            width: 4.5,
+                            height: 0.6,
+                            backgroundColor: NIGHT_INK.muted,
+                            marginTop: 5.6,
+                            marginRight: 6,
+                          }}
+                        />
+                        <Text
+                          style={{
+                            fontFamily: FONT.body,
+                            fontSize: 8.2,
+                            lineHeight: 1.4,
+                            color: NIGHT_INK.body,
+                            flex: 1,
+                          }}
+                        >
+                          {pick(item, lang)}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                  <Text style={OFFER_LINE}>{pick(offer.plan.fee, lang)}</Text>
+                  {offer.plan.payback ? (
+                    <Text style={{ ...OFFER_LINE, color: NIGHT_INK.strong }}>
+                      {pick(offer.plan.payback, lang)}
+                    </Text>
+                  ) : null}
+                  {offer.plan.note ? (
+                    <Text style={{ ...text.small, color: NIGHT_INK.muted, marginTop: 3 }}>
+                      {pick(offer.plan.note, lang)}
+                    </Text>
+                  ) : null}
+                </OfferStep>
+              ) : (
+                <OfferStep n={2} label={t("Monthly plan", "Abonament")}>
+                  <Text style={{ ...text.h3, color: NIGHT_INK.strong }}>
+                    {t("Not for now", "Nu deocamdată")}
+                  </Text>
+                  {offer.noPlan ? <Text style={OFFER_LINE}>{pick(offer.noPlan, lang)}</Text> : null}
+                </OfferStep>
+              )}
             </View>
 
             <View style={{ width: 176 }}>
@@ -793,7 +871,7 @@ export function OfferPage({ ctx }: { ctx: PdfContext }) {
                   alignItems: "center",
                 }}
               >
-                <QrCode value={CONTACT.consultUrl} size={112} color={BRAND.night} />
+                <QrCode value={cta.url} size={112} color={BRAND.night} />
                 <Text
                   style={{
                     fontFamily: FONT.display,
@@ -804,9 +882,9 @@ export function OfferPage({ ctx }: { ctx: PdfContext }) {
                     textAlign: "center",
                   }}
                 >
-                  {t("Scan to book a call", "Scanează și programează o discuție")}
+                  {cta.label}
                 </Text>
-                <Link src={CONTACT.consultUrl} style={{ textDecoration: "none" }}>
+                <Link src={cta.url} style={{ textDecoration: "none" }}>
                   <Text
                     style={{
                       fontFamily: FONT.body,
@@ -816,7 +894,7 @@ export function OfferPage({ ctx }: { ctx: PdfContext }) {
                       marginTop: 2,
                     }}
                   >
-                    {CONTACT.consultUrl.replace(/^https:\/\//, "")}
+                    {cta.url.replace(/^https:\/\//, "")}
                   </Text>
                 </Link>
               </View>

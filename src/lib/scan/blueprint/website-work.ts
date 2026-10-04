@@ -82,6 +82,19 @@ export function newSiteItem(type: BusinessTypeDef, unreachable = false): Bilingu
       );
 }
 
+/**
+ * The new site as a line of the site phase: priced from "de la 4.500 lei" up to a bigger
+ * presentation site (PRICE_BOOK.newWebsite), so the line says anything bigger is quoted
+ * after the brief. The strategy card keeps the short line (`newSiteItem`).
+ */
+function newSiteWorkItem(type: BusinessTypeDef): Bilingual {
+  const site = newSiteItem(type);
+  return bi(
+    `${site.en} (a bigger website is quoted after we talk)`,
+    `${site.ro} (pentru un site mai mare facem oferta după discuție)`,
+  );
+}
+
 /** A finding as a line of the site phase, under its title "Remedieri pe site". */
 function fixItem(finding: AuditFinding): Bilingual {
   return bi(ucFirst(finding.title.en), ucFirst(finding.title.ro));
@@ -113,7 +126,7 @@ export function websiteWork(args: {
     add(
       "first",
       unreachable ? "rebuild" : "new-site",
-      newSiteItem(args.type, unreachable),
+      unreachable ? newSiteItem(args.type, true) : newSiteWorkItem(args.type),
       PRICE_BOOK.newWebsite,
     );
   }
@@ -165,7 +178,7 @@ export function websiteWork(args: {
         "Easier to find on Google and Maps nearby: the Google profile, reviews and a page for each service",
         "Mai ușor de găsit în Google și pe hartă, în zona ta: profilul Google, recenziile și câte o pagină pentru fiecare serviciu",
       ),
-      // Priced like a medium website fix: service pages and markup.
+      // Priced like a medium website fix (5–10 hours): service pages and markup.
       PRICE_BOOK.websiteFix.medium,
     );
   }

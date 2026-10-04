@@ -149,10 +149,9 @@ export function simulateBlueprint(blueprint: Blueprint, inputs: SimulationInputs
     projection,
     offer: buildOffer({
       opportunities,
-      strategies,
-      totals,
+      projection,
+      roadmap: blueprint.roadmap,
       newSite: !hasWorkingWebsite(blueprint.audit, hasWebsite),
-      stages: blueprint.roadmap.length,
     }),
     assumptions: {
       ...blueprint.assumptions,

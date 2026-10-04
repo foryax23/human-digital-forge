@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CreditCard, Loader2 } from "lucide-react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
+import { ClientPlanCard } from "@/components/dashboard/ClientPlanCard";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -112,6 +113,8 @@ function BillingPage() {
           "Facturi și detalii de plată pentru proiectele tale.",
         )}
       </p>
+
+      <ClientPlanCard showNone className="mt-8" />
 
       {loading && (
         <div className="mt-16 flex justify-center">

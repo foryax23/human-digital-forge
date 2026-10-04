@@ -8,18 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { useI18n } from "@/i18n";
-
-const title = "Reset password | Vortex Hub";
-const description = "Set a new password for your Vortex Hub account.";
+import { pageMeta, useI18n } from "@/i18n";
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { name: "robots", content: "noindex" },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/reset-password"),
   }),
   component: ResetPasswordPage,
 });

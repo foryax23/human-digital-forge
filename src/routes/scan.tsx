@@ -16,7 +16,7 @@ import { ResultsStep } from "@/components/scan/steps/ResultsStep";
 import { StrategyStep } from "@/components/scan/steps/StrategyStep";
 import { scanKey, toScanTarget, useVortexScan } from "@/components/scan/useVortexScan";
 import { Button, ButtonLink, StepHeader } from "@/components/system";
-import { useI18n } from "@/i18n";
+import { pageMeta, useI18n } from "@/i18n";
 import { simulateBlueprint } from "@/lib/scan/blueprint/simulate";
 import type { ScanTarget, SimulationInputs } from "@/lib/scan/types";
 
@@ -57,17 +57,8 @@ type ScanSearch = z.infer<typeof searchSchema>;
 
 export const Route = createFileRoute("/scan")({
   validateSearch: (search: Record<string, unknown>): ScanSearch => searchSchema.parse(search),
-  head: () => ({
-    meta: [
-      { title: "Vortex Scan | Vortex Hub" },
-      {
-        name: "description",
-        content:
-          "Vortex Scan analyses a business's public digital footprint and turns it into a personalised automation and growth plan.",
-      },
-      // Results are personal to the visitor.
-      { name: "robots", content: "noindex" },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/scan"),
   }),
   component: ScanPage,
 });

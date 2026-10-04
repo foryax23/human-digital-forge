@@ -21,10 +21,11 @@ const COLUMNS: { en: string; ro: string; links: FooterLink[] }[] = [
     en: "Services",
     ro: "Servicii",
     links: [
+      // The services in the order of the service rows (ServicesSection.tsx).
       { en: "Websites", ro: "Site-uri web", to: "/websites" },
+      { en: "Digital products", ro: "Produse digitale", to: "/digital-products" },
       { en: "AI automation", ro: "Automatizare AI", to: "/ai-automation" },
       { en: "Consultancy", ro: "Consultanță", to: "/consultancy" },
-      { en: "Graphic materials", ro: "Materiale grafice", to: "/digital-products" },
       { en: "All services", ro: "Toate serviciile", to: "/services" },
     ],
   },

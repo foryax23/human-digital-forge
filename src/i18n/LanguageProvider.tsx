@@ -1,3 +1,4 @@
+import { useRouter } from "@tanstack/react-router";
 import {
   createContext,
   useCallback,
@@ -8,9 +9,16 @@ import {
   type ReactNode,
 } from "react";
 
-export type Language = "en" | "ro";
+import {
+  LANGUAGE_COOKIE,
+  languageCookieString,
+  languageFromCookieHeader,
+  parseLanguage,
+  rememberChosenLanguage,
+  type Language,
+} from "./lang";
 
-const STORAGE_KEY = "vortex-language";
+export type { Language } from "./lang";
 
 type I18nContextValue = {
   lang: Language;
@@ -21,53 +29,67 @@ type I18nContextValue = {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-function detectInitialLanguage(): Language {
-  if (typeof window === "undefined") return "en";
+function saveChoice(lang: Language) {
   try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "en" || stored === "ro") return stored;
+    document.cookie = languageCookieString(lang, window.location.protocol === "https:");
+  } catch {
+    /* cookies blocked: the tab still remembers the choice (rememberChosenLanguage) */
+  }
+  try {
+    window.localStorage.setItem(LANGUAGE_COOKIE, lang);
   } catch {
     /* ignore */
   }
-  const nav = window.navigator?.language?.toLowerCase() ?? "";
-  return nav.startsWith("ro") ? "ro" : "en";
 }
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  // Always start as "en" so SSR and the first client render match.
-  const [lang, setLangState] = useState<Language>("en");
+/**
+ * The active language. The app passes `initialLang` from the root loader (the visitor's
+ * cookie, else Romanian), which is what the server rendered, so the first client render
+ * matches the server markup. Without the prop (isolated renders such as the deep UI tests)
+ * it starts in English, the language those renders assert.
+ */
+export function LanguageProvider({
+  children,
+  initialLang,
+}: {
+  children: ReactNode;
+  initialLang?: Language;
+}) {
+  const router = useRouter({ warn: false });
+  const [lang, setLangState] = useState<Language>(initialLang ?? "en");
 
-  // After mount, sync to the stored/detected preference.
+  const setLang = useCallback(
+    (next: Language) => {
+      setLangState(next);
+      rememberChosenLanguage(next);
+      saveChoice(next);
+      // The root loader reads the choice again, so <title>, meta and <html lang> follow.
+      void router?.invalidate({ filter: (match) => match.routeId === "__root__" });
+    },
+    [router],
+  );
+
+  // A choice saved before the cookie existed (localStorage only) moves to the cookie once.
   useEffect(() => {
-    const detected = detectInitialLanguage();
-    if (detected !== "en") setLangState(detected);
-  }, []);
-
-  // Keep <html lang> and storage in sync with the active language.
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.documentElement.lang = lang;
-    }
-  }, [lang]);
-
-  const setLang = useCallback((next: Language) => {
-    setLangState(next);
     try {
-      window.localStorage.setItem(STORAGE_KEY, next);
+      if (languageFromCookieHeader(document.cookie)) return;
+      const stored = parseLanguage(window.localStorage.getItem(LANGUAGE_COOKIE));
+      if (stored && stored !== lang) setLang(stored);
     } catch {
       /* ignore */
     }
+    // Runs once after hydration; later changes go through setLang.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const t = useCallback(
-    (en: string, ro: string) => (lang === "ro" ? ro : en),
-    [lang],
-  );
+  // Keep <html lang> in sync between root loader runs.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
-  const value = useMemo<I18nContextValue>(
-    () => ({ lang, setLang, t }),
-    [lang, setLang, t],
-  );
+  const t = useCallback((en: string, ro: string) => (lang === "ro" ? ro : en), [lang]);
+
+  const value = useMemo<I18nContextValue>(() => ({ lang, setLang, t }), [lang, setLang, t]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

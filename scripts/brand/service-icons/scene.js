@@ -25,7 +25,7 @@ const PALETTE = {
 
 /**
  * The family's shared form, in model units (every model is built about 2.4 units wide):
- * each plate (browser pane, sheet, speech form, card, calendar) is one depth with one corner
+ * each plate (browser pane, app window, phone, speech form, card, calendar) is one depth with one corner
  * radius and one bevel, and every model turns the same way, its front 18° off the camera.
  */
 const FAMILY = { depth: 0.1, radius: 0.16, bevel: 0.034 };
@@ -426,56 +426,70 @@ function websites() {
   return g;
 }
 
-/** Materiale grafice: a document, a presentation page and a poster, fanned like cards. */
-function graphicMaterials() {
+/**
+ * Produse digitale: software built to order. An app window (a dashboard: a sidebar of
+ * sections, two figures and a chart) and, in front, the same app on a phone, its progress
+ * ring the one bright detail. The two screens keep it apart from the browser panes of
+ * Site-uri web: no window bar, no pointer.
+ */
+function digitalProducts() {
   const g = new THREE.Group();
-  const W = 1.0;
-  const H = 1.4;
   const z = FAMILY.depth / 2;
-  const fan = (sheet, angle, x, depth) => {
-    const pivot = new THREE.Group();
-    sheet.position.y = 0.6 + H / 2;
-    pivot.add(sheet);
-    pivot.position.set(x, 0, depth);
-    pivot.rotation.z = angle;
-    return pivot;
-  };
-  // document: graphite sheet with lines of text
-  const doc = new THREE.Group();
-  doc.add(mesh(plate(W, H), mat.graphite()));
-  [0.68, 0.68, 0.68, 0.5, 0.68, 0.4].forEach((w, i) => {
-    const line = mesh(slab(w, 0.06, 0.02), mat.satin({ roughness: 0.3 }));
-    line.position.set(-0.34 + w / 2, 0.47 - i * 0.155, z + 0.006);
-    doc.add(line);
-  });
-  // presentation page: satin sheet with a title and three bars
-  const deck = new THREE.Group();
-  deck.add(mesh(plate(W, H), mat.satin({ roughness: 0.28 })));
-  const title = mesh(slab(0.48, 0.075, 0.022), mat.graphite({ roughness: 0.4 }));
-  title.position.set(-0.2, 0.52, z + 0.008);
-  deck.add(title);
-  const sub = mesh(slab(0.32, 0.055, 0.02), mat.graphite({ roughness: 0.42 }));
-  sub.position.set(-0.28, 0.39, z + 0.006);
-  deck.add(sub);
-  [0.22, 0.36, 0.5].forEach((h, i) => {
-    const bar = mesh(slab(0.062, h, 0.028), mat.graphite({ roughness: 0.36 }));
-    bar.position.set(-0.4 + i * 0.095, -0.56 + h / 2, z + 0.01);
-    deck.add(bar);
-  });
-  // poster: glass with a disc, a block and one bright line
-  const poster = new THREE.Group();
-  poster.add(mesh(plate(W, H), mat.glass()));
-  const disc = mesh(new THREE.CylinderGeometry(0.27, 0.27, 0.04, 96), mat.satin());
-  disc.rotation.x = Math.PI / 2;
-  disc.position.set(0.07, 0.22, z + 0.014);
-  poster.add(disc);
-  const block = mesh(slab(0.66, 0.085, 0.024), mat.satin({ roughness: 0.3 }));
-  block.position.set(-0.06, -0.33, z + 0.008);
-  const accent = mesh(slab(0.36, 0.055, 0.022), mat.accent(), { cast: false });
-  accent.position.set(-0.21, -0.47, z + 0.008);
-  poster.add(block, accent);
 
-  g.add(fan(doc, 0.34, -0.13, -0.34), fan(deck, 0.1, 0, -0.17), fan(poster, -0.16, 0.13, 0));
+  // app window: satin, a graphite sidebar of sections, two figures and a bar chart
+  const app = new THREE.Group();
+  const AW = 2.0;
+  const AH = 1.34;
+  app.add(mesh(plate(AW, AH), mat.satin({ roughness: 0.28 })));
+  [0.3, 0.24, 0.27, 0.2].forEach((w, i) => {
+    const item = mesh(slab(w, 0.065, 0.022), mat.graphite({ roughness: 0.4 }));
+    item.position.set(-AW / 2 + 0.14 + w / 2, AH / 2 - 0.2 - i * 0.16, z + 0.007);
+    app.add(item);
+  });
+  const divider = mesh(slab(0.012, AH - 0.24, 0.012), mat.graphite({ roughness: 0.4 }));
+  divider.position.set(-AW / 2 + 0.56, 0, z + 0.004);
+  app.add(divider);
+  for (const [i, w] of [0.34, 0.34].entries()) {
+    const figure = mesh(slab(w, 0.24, 0.026, 0.011), mat.graphite({ roughness: 0.34 }));
+    figure.position.set(-0.36 + w / 2 + i * (w + 0.07), AH / 2 - 0.26, z + 0.009);
+    app.add(figure);
+  }
+  [0.3, 0.46, 0.38, 0.6, 0.7].forEach((h, i) => {
+    const bar = mesh(slab(0.1, h, 0.028), mat.graphite({ roughness: 0.36 }));
+    bar.position.set(-0.3 + i * 0.17, -AH / 2 + 0.14 + h / 2, z + 0.01);
+    app.add(bar);
+  });
+  app.position.set(-0.32, 0.98, -0.36);
+
+  // phone: glass, a speaker slot, the progress ring and two lines
+  const phone = new THREE.Group();
+  const PW = 0.8;
+  const PH = 1.46;
+  phone.add(mesh(plate(PW, PH), mat.glass()));
+  const slot = mesh(slab(0.2, 0.045, 0.02), mat.satin({ roughness: 0.3 }));
+  slot.position.set(0, PH / 2 - 0.12, z + 0.006);
+  phone.add(slot);
+  const ringY = 0.22;
+  const track = mesh(
+    new THREE.TorusGeometry(0.2, 0.024, 16, 96),
+    mat.graphite({ roughness: 0.34 }),
+  );
+  track.position.set(0, ringY, z + 0.01);
+  const ARC = Math.PI * 2 * 0.68;
+  const arc = mesh(new THREE.TorusGeometry(0.2, 0.036, 16, 96, ARC), mat.accent(), {
+    cast: false,
+  });
+  arc.rotation.z = Math.PI / 2 - ARC; // from the top, clockwise
+  arc.position.set(0, ringY, z + 0.02);
+  phone.add(track, arc);
+  const p1 = mesh(slab(0.52, 0.075, 0.024), mat.satin({ roughness: 0.3 }));
+  p1.position.set(0, -0.3, z + 0.009);
+  const p2 = mesh(slab(0.34, 0.075, 0.024), mat.satin({ roughness: 0.3 }));
+  p2.position.set(-0.09, -0.45, z + 0.009);
+  phone.add(p1, p2);
+  phone.position.set(0.78, 0.73, 0.12);
+
+  g.add(app, phone);
   return g;
 }
 
@@ -584,7 +598,7 @@ function consultancy() {
 
 const MODELS = {
   websites,
-  "digital-products": graphicMaterials,
+  "digital-products": digitalProducts,
   "ai-automation": aiAutomation,
   consultancy,
 };

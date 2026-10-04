@@ -363,7 +363,10 @@ export type VortexOffer = {
   title: Bilingual;
   why: Bilingual;
   includes: Bilingual[];
-  /** Human wording of the price, e.g. "De la 1.000 lei pe lună, plus implementarea (preț fix după discuție)". */
+  /**
+   * The price in words, built by offer.ts from src/lib/pricing.ts: "790 lei pe lună, separat de
+   * proiect" for a plan, "Preț fix pentru proiect, stabilit înainte să începem" for the project alone.
+   */
   priceNote: Bilingual;
 };
 

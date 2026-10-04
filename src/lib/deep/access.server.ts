@@ -1,5 +1,15 @@
 import process from "node:process";
 
+import {
+  CLIENT_PLANS,
+  isClientPlanId,
+  researchPeriod,
+  type ClientPlanRow,
+  type PlanSource,
+  type ResearchAllowance,
+} from "@/lib/client-plans";
+import { currentClientPlan, type PlanDb } from "@/lib/client-plans.server";
+
 import type { AccessReason, AccessVia, AdminBy, DeepAccess, DeepStore } from "./contracts";
 import { readDeepConfig, testCodeValid, type DeepConfig } from "./env.server";
 import { deepDb, type DeepDb } from "./persist-db.server";
@@ -30,12 +40,20 @@ import { storeForNewRun } from "./persist.server";
  * as a confirmed e-mail. Any lookup error means "not admin" (fail closed). How an
  * admin was admitted (adminBy) goes into the run ticket, so the step checks keep
  * e-mail admins only while admin e-mails are set. An unknown mode is treated as admin. Every variable is
- * read inside the call (Workers bind env per request). Premium is a
- * subscribers row with status active or trialing and a tier in
- * DEEP_RESEARCH_PREMIUM_TIERS, matched by user ID, then by verified e-mail;
- * current_period_end is not used. Test codes are SHA-256 hashes compared in
- * constant time. The daily caps and the ledger come from the store, so a
- * refusal shows on the gate before the form.
+ * read inside the call (Workers bind env per request). Test codes are SHA-256 hashes compared
+ * in constant time. The daily caps and the ledger come from the store, so a refusal shows on
+ * the gate before the form.
+ *
+ * Premium is a plan whose ID DEEP_RESEARCH_PREMIUM_TIERS lists (default starter, growth, pro):
+ * the client plan an admin assigned after a contract (public.client_plans, drizzle/pending/
+ * client_plans.sql; until it is applied there are no client plans and nothing else changes), or a
+ * subscribers row with status active or trialing, matched by user ID, then by verified e-mail
+ * (current_period_end is not used). Each plan includes a number of reports per calendar period
+ * in Romanian time (src/lib/client-plans.ts: Starter 1 a quarter, Growth 2 a month, Pro 5 a
+ * month), counted from the account's premium runs (failed and canceled runs do not count); a
+ * listed tier with no quota there admits within the daily caps only, as before. Admins keep
+ * their own caps and never use a plan's reports. A plan lookup or count that fails refuses
+ * ("ledger_unavailable"), never admits.
  */
 
 export type AccountInfo = { email?: string; emailConfirmed: boolean; google: boolean };
@@ -47,6 +65,11 @@ export type AccessLookups = {
   adminRole?(userId: string): Promise<boolean | null>;
   /** Tiers of the account's active or trialing subscriptions: by user ID, then by verified e-mail. */
   premiumTiers(userId: string, verifiedEmail?: string): Promise<string[]>;
+  /**
+   * The client plan in force today (public.client_plans, assigned by an admin after a contract):
+   * null without one or before client_plans.sql is applied, "error" when the lookup failed.
+   */
+  clientPlan?(userId: string): Promise<Pick<ClientPlanRow, "plan"> | null | "error">;
 };
 
 export type AccessDeps = {
@@ -56,10 +79,25 @@ export type AccessDeps = {
   lookups?: AccessLookups;
   /** Environment for the extra switches (tests). */
   env?: Record<string, string | undefined>;
+  /** The clock for the plan periods (tests). */
+  now?: () => number;
 };
 
-/** Server-side extras, never sent to the browser: the account e-mail and how an admin was admitted. */
-export type DeepAccessResult = DeepAccess & { email?: string; adminBy?: AdminBy };
+/**
+ * Server-side extras: the account e-mail and how an admin was admitted (never sent to the
+ * browser), and `plan`, the deep research of the plan that admitted or refused the account
+ * (its quota and the reports used this period; getDeepAccess passes it on, additive).
+ */
+export type DeepAccessResult = DeepAccess & {
+  email?: string;
+  adminBy?: AdminBy;
+  plan?: ResearchAllowance;
+};
+
+/** A store that can count the runs started through a plan (the tables store). */
+type PlanCountingStore = DeepStore & {
+  premiumRunsSince?(userId: string, sinceIso: string): Promise<number>;
+};
 
 const flag = (v: string | undefined, fallback: boolean) =>
   v === undefined || v.trim() === "" ? fallback : /^(on|true|1|yes)$/i.test(v.trim());
@@ -134,6 +172,13 @@ export function supabaseLookups(db: DeepDb | null = deepDb()): AccessLookups {
       } catch {
         return [];
       }
+    },
+    async clientPlan(userId) {
+      if (!db) return "error";
+      // The hand-written deep schema has no client_plans (it may not exist): read it untyped.
+      const plan = await currentClientPlan(db as unknown as PlanDb, userId);
+      // No table yet (client_plans.sql not applied): plans are simply unavailable.
+      return plan === "missing" ? null : plan;
     },
   };
 }
@@ -214,6 +259,75 @@ export async function configForUser(
   return admin ? { ...config, adminUserIds: [...config.adminUserIds, id] } : config;
 }
 
+/**
+ * A plan's deep research this period: its quota (src/lib/client-plans.ts) and the reports
+ * started since the period began, from the store (null when it cannot count). A plan ID with
+ * no quota there has no per-plan limit (reports null).
+ */
+export async function researchAllowance(
+  userId: string,
+  plan: string,
+  source: PlanSource,
+  deps: { store: DeepStore | null; now?: number },
+): Promise<ResearchAllowance> {
+  const spec = isClientPlanId(plan) ? CLIENT_PLANS[plan].research : null;
+  if (!spec) return { plan, source, reports: null, period: null, used: null, renewsAt: null };
+  const { start, end } = researchPeriod(spec.period, deps.now ?? Date.now());
+  const store = deps.store as PlanCountingStore | null;
+  const used = store?.premiumRunsSince
+    ? await store.premiumRunsSince(userId, new Date(start).toISOString()).catch(() => null)
+    : null;
+  return {
+    plan,
+    source,
+    reports: spec.reports,
+    period: spec.period,
+    used,
+    renewsAt: new Date(end).toISOString(),
+  };
+}
+
+/**
+ * Deep research through a plan (premium mode, and code mode without a code): the account's
+ * client plan, then its subscription tiers, each only when DEEP_RESEARCH_PREMIUM_TIERS lists
+ * it. The first plan with a report left this period admits; a listed tier with no quota admits
+ * within the daily caps. `allowance` is the plan that decided (the first one, when every quota
+ * is used); `error` means a lookup or the count failed, so nothing is admitted.
+ */
+export async function planResearchAccess(
+  userId: string,
+  verifiedEmail: string | undefined,
+  deps: { config: DeepConfig; lookups: AccessLookups; store: DeepStore | null; now?: number },
+): Promise<{ admit: boolean; allowance?: ResearchAllowance; error?: boolean }> {
+  const contract = deps.lookups.clientPlan
+    ? await deps.lookups.clientPlan(userId).catch(() => "error" as const)
+    : null;
+  const tiers = await deps.lookups.premiumTiers(userId, verifiedEmail).catch(() => [] as string[]);
+  const candidates: Array<{ plan: string; source: PlanSource }> = [];
+  const add = (raw: string, source: PlanSource) => {
+    const plan = raw.trim().toLowerCase();
+    if (!plan || !deps.config.premiumTiers.includes(plan)) return;
+    if (!candidates.some((c) => c.plan === plan)) candidates.push({ plan, source });
+  };
+  if (contract && contract !== "error") add(contract.plan, "contract");
+  for (const tier of tiers) add(tier, "subscription");
+  if (!candidates.length)
+    return contract === "error" ? { admit: false, error: true } : { admit: false };
+
+  let first: ResearchAllowance | undefined;
+  for (const c of candidates) {
+    const allowance = await researchAllowance(userId, c.plan, c.source, {
+      store: deps.store,
+      now: deps.now,
+    });
+    if (allowance.reports === null) return { admit: true, allowance };
+    if (allowance.used === null) return { admit: false, allowance, error: true };
+    first ??= allowance;
+    if (allowance.used < allowance.reports) return { admit: true, allowance };
+  }
+  return { admit: false, allowance: first };
+}
+
 /** Plan D2: `checkDeepAccess({ userId, testCode })`, with injectable dependencies for tests. */
 export async function checkDeepAccess(
   args: { userId: string | null; testCode?: string },
@@ -221,6 +335,7 @@ export async function checkDeepAccess(
 ): Promise<DeepAccessResult> {
   const config = deps.config ?? readDeepConfig();
   const env = deps.env ?? process.env;
+  const now = deps.now ?? (() => Date.now());
   const openRequiresGoogle = flag(env.DEEP_OPEN_REQUIRES_GOOGLE, true);
   const userId = args.userId?.trim() || null;
 
@@ -306,12 +421,16 @@ export async function checkDeepAccess(
           via = "code";
           break;
         }
-        // Premium subscribers are admitted in code mode too (A4).
+        // Plans are admitted in code mode too (A4), within their reports.
         const a = await getAccount();
-        const tiers = await lookups
-          .premiumTiers(userId, a?.emailConfirmed ? a.email : undefined)
-          .catch(() => [] as string[]);
-        if (!tiers.some((t) => config.premiumTiers.includes(t))) return deny("code_required");
+        const plan = await planResearchAccess(userId, a?.emailConfirmed ? a.email : undefined, {
+          config,
+          lookups,
+          store,
+          now: now(),
+        });
+        if (plan.allowance) base.plan = plan.allowance;
+        if (!plan.admit) return deny("code_required");
         via = "premium";
         break;
       }
@@ -333,13 +452,19 @@ export async function checkDeepAccess(
           break;
         }
         const a = await getAccount();
-        const tiers = await lookups
-          .premiumTiers(userId, a?.emailConfirmed ? a.email : undefined)
-          .catch(() => [] as string[]);
-        if (tiers.some((t) => config.premiumTiers.includes(t))) {
+        const plan = await planResearchAccess(userId, a?.emailConfirmed ? a.email : undefined, {
+          config,
+          lookups,
+          store,
+          now: now(),
+        });
+        if (plan.allowance) base.plan = plan.allowance;
+        if (plan.admit) {
           via = "premium";
           break;
         }
+        // The plan or its reports could not be read: "try again", never "buy a plan".
+        if (plan.error) return deny("ledger_unavailable");
         if (config.freeRunsPerUser > 0) {
           // A free run needs the confirmed identity open mode asks for: otherwise throwaway
           // accounts could use up the all-accounts cap and the day budget.
@@ -353,6 +478,7 @@ export async function checkDeepAccess(
             break;
           }
         }
+        // No plan, or this period's reports are used (base.plan says which, and when they renew).
         return deny("premium_required");
       }
       default:

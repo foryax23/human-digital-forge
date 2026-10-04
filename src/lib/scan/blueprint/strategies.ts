@@ -332,10 +332,11 @@ export function buildStrategies(args: BuildArgs): StrategyOption[] {
   /* assist */
   const assistOpps = group(opportunities, "assist");
   const share = playbook.params.routineShare;
-  // Without an assistant opportunity (B2B, few questions) the card still shows its price.
+  // Without an assistant opportunity (B2B, few questions) the card still shows its price:
+  // the public AI assistant price (src/lib/pricing.ts, via the price book).
   const assistSetup = assistOpps.length
     ? addEstimates(assistOpps.map((o) => o.setupCostRon))
-    : centred(PRICE_BOOK.automationSetup.medium);
+    : centred(PRICE_BOOK.aiSetup);
   const assist: StrategyOption = {
     id: "assist",
     title: playbook.titles.assist,

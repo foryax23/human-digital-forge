@@ -6,20 +6,11 @@ import { ServiceRows } from "@/components/landing/ServicesSection";
 import { TechGroups } from "@/components/landing/TechStack";
 import { PageHero } from "@/components/shared/PageHero";
 import { CtaBand } from "@/components/shared/CtaBand";
-import { useI18n } from "@/i18n";
-
-const title = "Services | Vortex Hub";
-const description =
-  "Digital products, websites, AI automation and consultancy for individuals and businesses.";
+import { pageMeta, useI18n } from "@/i18n";
 
 export const Route = createFileRoute("/services")({
-  head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/services"),
     links: [{ rel: "canonical", href: "/services" }],
   }),
   component: ServicesPage,
@@ -33,8 +24,8 @@ function ServicesPage() {
       <PageHero
         kicker={t("Services", "Servicii")}
         title={t(
-          "Clear digital services, from a single design to a complete workflow.",
-          "Servicii digitale clare, de la un singur design până la un flux de lucru complet.",
+          "Clear digital services, from a first website to a complete app.",
+          "Servicii digitale clare, de la primul site până la o aplicație completă.",
         )}
         description={t(
           "Four areas. Each starts with what you actually need; timeline and price are agreed before we start.",

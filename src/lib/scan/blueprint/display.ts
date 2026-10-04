@@ -49,7 +49,7 @@ import {
   ucFirst,
 } from "./format";
 import { bi, type StrategyKey } from "./model";
-import { offerFeeRon } from "./offer";
+import { decideOffer, displayOffer, type DisplayOffer } from "./offer";
 import { getPlaybook, getTemplate } from "./playbooks";
 import { PHASE_OF_STRATEGY, PHASE_ORDER, phaseMonths } from "./roadmap";
 import { growthGaps, startChoice, strategyChange, strategyOf, typicalPayback } from "./strategies";
@@ -165,6 +165,11 @@ export type DisplayPlan = {
   automations: DisplayAutomation[];
   /** "Pe scurt": start, hours, payback (line 3 carries note ¹). */
   summary: [Bilingual, Bilingual, Bilingual];
+  /**
+   * The offer with today's prices (offer.ts): the first project, then the plan after
+   * launch with its fee and payback on their own lines, or the project alone.
+   */
+  offer: DisplayOffer;
   /** "Cum am calculat", fixed order ¹ ² ³ ⁴, then the disclaimer once. */
   notes: {
     payback: Bilingual;
@@ -194,12 +199,6 @@ export type DisplayPlan = {
     chartLead: Bilingual;
     /** The hours as a share of one full-time job: "cam o treime dintr-o normă întreagă". */
     fte: Bilingual;
-    /**
-     * Under the offer: the payback month with the recommended plan's monthly fee added
-     * to the cost ("Cu abonamentul Pro inclus, investiția se recuperează în luna 17.").
-     * Null when the offer quotes no fee (a project, or a fee agreed on the call).
-     */
-    feePayback: Bilingual | null;
     /** The strategy step's closing line: where we start, and the website work before it. */
     startNote: Bilingual | null;
   };
@@ -401,6 +400,28 @@ export function displayPlan(blueprint: Blueprint): DisplayPlan {
   );
 
   const hasAutomations = opportunities.length > 0;
+  const offerStage =
+    phases.find((p) => p.start && p.setupLei > 0) ?? phases.find((p) => p.setupLei > 0);
+  const offer = displayOffer({
+    decision: decideOffer({
+      opportunities,
+      projection: blueprint.projection,
+      roadmap: blueprint.roadmap,
+      newSite: !working,
+      siteWork: (totals.siteLei ?? 0) > 0,
+    }),
+    stage: offerStage
+      ? {
+          key: offerStage.key,
+          title: offerStage.title,
+          setupLei: offerStage.setupLei,
+          newSite: offerStage.siteMilestone,
+          automations: offerStage.opportunityIds.length > 0,
+        }
+      : null,
+    hasAutomations,
+    automationsSetupLei: totals.automationsSetupLei,
+  });
   return {
     phases,
     totals,
@@ -414,6 +435,7 @@ export function displayPlan(blueprint: Blueprint): DisplayPlan {
       hoursLine(hoursTotal, topProcess(opportunities), type),
       paybackLine(breakEven.month, hasAutomations),
     ],
+    offer,
     notes: {
       payback: paybackNote(breakEven, hasAutomations),
       scope: scopeNote(work, totals.siteLei, type),
@@ -441,7 +463,6 @@ export function displayPlan(blueprint: Blueprint): DisplayPlan {
         "Valoarea orelor câștigate față de cost, cumulat.",
       ),
       fte: fteText(hoursTotal),
-      feePayback: feePaybackText(blueprint, hasAutomations),
       startNote: startNoteText(
         blueprint.strategies.find((s) => s.id === pick),
         siteFirst ? phases[0] : undefined,
@@ -849,43 +870,6 @@ function exclusions(plan: DisplayPlan): Bilingual {
   const newSite = plan.phases.some((p) => p.siteMilestone);
   const site = newSite ? bi("the website", "site") : bi("website work", "lucrările la site");
   return bi(`${site.en} and ${fee.en} excluded`, `fără ${site.ro} și fără ${fee.ro}`);
-}
-
-/**
- * The payback month with the offer's monthly fee added to the chart's cost from month 1
- * (the subscription starts with the work). One payback definition stays on the chart;
- * this line states the other figure an owner will ask about.
- */
-function feePaybackText(blueprint: Blueprint, hasAutomations: boolean): Bilingual | null {
-  const fee = offerFeeRon(blueprint.offer);
-  if (fee === null || !hasAutomations) return null;
-  const points = blueprint.projection
-    .filter((p) => p.month >= 1 && p.month <= PROJECTION_MONTHS)
-    .sort((a, b) => a.month - b.month)
-    .map((p) => ({
-      ...p,
-      cumulativeCostRon: {
-        ...p.cumulativeCostRon,
-        low: p.cumulativeCostRon.low + fee * p.month,
-        high: p.cumulativeCostRon.high + fee * p.month,
-        ...(p.cumulativeCostRon.mid !== undefined
-          ? { mid: p.cumulativeCostRon.mid + fee * p.month }
-          : {}),
-      },
-    }));
-  const month = breakEvenMonth(points);
-  const name = blueprint.offer.title;
-  if (month === null) {
-    return bi(
-      `With the ${name.en} plan fee included, the investment doesn't pay back within the first 24 months.`,
-      `Cu abonamentul ${name.ro} inclus, investiția nu se recuperează în primele 24 de luni.`,
-    );
-  }
-  const m = monthLabel(month);
-  return bi(
-    `With the ${name.en} plan fee included, the investment pays back in ${m.en}.`,
-    `Cu abonamentul ${name.ro} inclus, investiția se recuperează în ${m.ro}.`,
-  );
 }
 
 /** The strategy step's closing line (after the cards and the simulation). */

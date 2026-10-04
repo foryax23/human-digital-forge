@@ -18,10 +18,7 @@ import { GoogleButton, AuthDivider } from "@/components/auth/GoogleButton";
 import { browserStorage, readPending } from "@/components/deep/journal";
 import { DEEP_PATH, safeNext } from "@/components/deep/safe-next";
 import { supabase } from "@/integrations/supabase/client";
-import { useI18n } from "@/i18n";
-
-const title = "Create account | Vortex Hub";
-const description = "Create a Vortex Hub client account to submit projects and track progress.";
+import { pageMeta, useI18n } from "@/i18n";
 
 export const Route = createFileRoute("/register")({
   // `next` names a path on this site only ("/…", never "//", "@" or "\\").
@@ -31,13 +28,8 @@ export const Route = createFileRoute("/register")({
     if (next) result.next = next;
     return result;
   },
-  head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/register"),
     links: [{ rel: "canonical", href: "/register" }],
   }),
   component: RegisterPage,

@@ -1,3 +1,40 @@
+-- 0000_admin_roles_and_deep_ledger: Lovable's schema for admin roles and the deep research
+-- ledger. ALREADY APPLIED in production (Lovable Cloud). Its statements below are unchanged,
+-- byte for byte; the only addition is the all-or-nothing guard around them, so running the
+-- file again is safe:
+--   - every object present (type app_role and the 8 tables) -> it does nothing (NOTICE);
+--   - none present (a fresh database)                        -> it creates everything, exactly
+--                                                               as the original file did;
+--   - some present                                           -> it stops with an error and
+--                                                               changes nothing.
+-- Why all-or-nothing and not "create ... if not exists" per statement: 0001 later REPLACES
+-- claim_admin_role and has_role with stricter versions. A per-statement idempotent re-run of
+-- this file would put the older, weaker functions back (create or replace). The guard skips
+-- them together with everything else. See drizzle/README.md.
+--
+-- Drizzle tracks applied migrations by the journal's "when" timestamp, not by this file's
+-- content, so this edit does not make drizzle-kit run the file again on a database that has it.
+do $migration_0000$
+declare
+  _m0_present integer;
+begin
+  select (to_regtype('public.app_role') is not null)::int
+       + (to_regclass('public.user_roles') is not null)::int
+       + (to_regclass('public.deep_runs') is not null)::int
+       + (to_regclass('public.deep_calls') is not null)::int
+       + (to_regclass('public.deep_slots') is not null)::int
+       + (to_regclass('public.deep_claims') is not null)::int
+       + (to_regclass('public.deep_breaker') is not null)::int
+       + (to_regclass('public.deep_feedback') is not null)::int
+       + (to_regclass('public.deep_call_requests') is not null)::int
+    into _m0_present;
+  if _m0_present = 9 then
+    raise notice '0000_admin_roles_and_deep_ledger is already applied: nothing to do';
+    return;
+  elsif _m0_present > 0 then
+    raise exception '0000_admin_roles_and_deep_ledger: % of its 9 objects (type app_role and 8 tables) already exist. The schema is partial; repair it by hand instead of re-running this file.', _m0_present;
+  end if;
+
 -- Roles
 create type public.app_role as enum ('admin', 'moderator', 'user');
 
@@ -251,3 +288,5 @@ grant execute on function public.deep_settle(uuid, numeric, jsonb, jsonb) to ser
 grant execute on function public.deep_finish(uuid, text, jsonb, text, text, jsonb, text) to service_role;
 grant execute on function public.deep_claim_step(uuid, uuid, text, int, int, boolean) to service_role;
 grant execute on function public.deep_settle_step(uuid, uuid, int, jsonb) to service_role;
+end
+$migration_0000$;

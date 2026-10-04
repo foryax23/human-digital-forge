@@ -3,19 +3,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { CompanyDetails } from "@/components/shared/CompanyDetails";
-import { useI18n } from "@/i18n";
+import { pageMeta, useI18n } from "@/i18n";
 import { DEEP_TERMS, DEEP_TERMS_VERSION } from "@/lib/scan/legal/lead-notice";
 
-const title = "Terms and Conditions | Vortex Hub";
-const description = "The terms that govern the use of Vortex Hub services and website.";
-
 export const Route = createFileRoute("/terms")({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
+      ...pageMeta(matches, "/terms"),
       { property: "og:url", content: "https://vortexhub.dev/terms" },
     ],
     links: [{ rel: "canonical", href: "https://vortexhub.dev/terms" }],

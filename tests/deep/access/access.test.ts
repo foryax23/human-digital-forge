@@ -54,15 +54,18 @@ function lookups(
 type Store = DeepStore & {
   freeRunsUsed?: (u: string) => Promise<number>;
   breakerOpen?: () => Promise<boolean>;
+  premiumRunsSince?: (u: string, since: string) => Promise<number>;
 };
 
 function store(
-  opts: { free?: number; breaker?: boolean; kind?: "stopgap" | "tables" } = {},
+  opts: { free?: number; premium?: number; breaker?: boolean; kind?: "stopgap" | "tables" } = {},
 ): Store {
   const s = createMemoryStore() as Store;
   return Object.assign(s, {
     kind: opts.kind ?? "stopgap",
     freeRunsUsed: async () => opts.free ?? 0,
+    // Reports already started through a plan this period (plans.test.ts covers the quotas).
+    premiumRunsSince: async () => opts.premium ?? 0,
     breakerOpen: async () => opts.breaker ?? false,
   });
 }
@@ -205,8 +208,27 @@ test("Premium: tiers from DEEP_RESEARCH_PREMIUM_TIERS; free reports only when se
     );
   assert.equal((await run(["growth"], 5)).via, "premium");
   assert.equal((await run(["pro"], 5)).via, "premium");
-  assert.equal((await run(["starter"], 0)).via, "free");
-  assert.equal((await run(["starter"], 1)).reason, "premium_required");
+  // Every plan includes reports by default (starter, growth, pro) ...
+  assert.equal((await run(["starter"], 1)).via, "premium");
+  assert.deepEqual(readDeepConfig({}).premiumTiers, ["starter", "growth", "pro"]);
+  // ... and a list set before the 2026-10 plans still works: Starter is then not Premium.
+  const growthPro = config("premium", {
+    DEEP_FREE_RUNS_PER_USER: "1",
+    DEEP_RESEARCH_PREMIUM_TIERS: "growth,pro",
+  });
+  const old = (tiers: string[], free: number) =>
+    checkDeepAccess(
+      { userId: USER },
+      {
+        config: growthPro,
+        store: store({ free }),
+        lookups: lookups({}, { [USER]: tiers }),
+        env: {},
+      },
+    );
+  assert.equal((await old(["starter"], 0)).via, "free");
+  assert.equal((await old(["starter"], 1)).reason, "premium_required");
+  assert.equal((await old(["growth"], 1)).via, "premium");
   assert.equal((await run([], 0)).via, "free");
   const none = await checkDeepAccess(
     { userId: USER },

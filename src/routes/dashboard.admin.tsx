@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,26 +8,64 @@ import { toast } from "sonner";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  assignClientPlan,
+  endClientPlan,
+  findClientAccounts,
   getAdminOverview,
+  getClientPlanHistory,
   replyToClient,
   setResearchPaused,
   updateClientProject,
 } from "@/lib/admin.functions";
+import {
+  CLIENT_PLAN_IDS,
+  CLIENT_PLANS,
+  hoursPerMonthLabel,
+  isClientPlanId,
+  planState,
+  reportsLabel,
+  romanianDate,
+  type AccountMatch,
+  type ClientPlanId,
+  type ClientPlanRow,
+  type PlanState,
+  type ResearchAllowance,
+} from "@/lib/client-plans";
+import { pageMeta } from "@/i18n";
+import { monthlyText, PLAN_CATALOG, planLine } from "@/lib/pricing";
 
 export const Route = createFileRoute("/dashboard/admin")({
-  head: () => ({
-    meta: [
-      { title: "Admin panel | Vortex Hub" },
-      { name: "description", content: "Vortex Hub administration." },
-      { name: "robots", content: "noindex" },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/dashboard/admin"),
   }),
   component: AdminPage,
 });
 
-const fmt = (d?: string | null) => (d ? new Date(d).toLocaleString() : "—");
+/** A moment as the panel shows it ("1 Oct 2026, 11:00"), in Romanian time whatever the browser. */
+const MOMENT = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: "Europe/Bucharest",
+});
+const fmt = (d?: string | null) => (d ? MOMENT.format(new Date(d)) : "—");
+/** A contact request's service; "plan-growth" (from "Cere contractul") as the plan's line. */
+const serviceText = (s?: string | null) => {
+  const plan = s?.match(/^plan-(starter|growth|pro)$/)?.[1];
+  return plan && isClientPlanId(plan) ? `Contract: ${planLine(plan).en}` : (s ?? "—");
+};
 const usd = (n: number) => `$${Number(n).toFixed(2)}`;
 
 function AdminPage() {
@@ -73,10 +111,11 @@ function AdminContent() {
     <div className="space-y-6">
       <h1 className="type-title text-fg">Admin panel</h1>
       <Tabs defaultValue="research">
-        <TabsList className="flex-wrap">
+        <TabsList>
           <TabsTrigger value="research">Research</TabsTrigger>
           <TabsTrigger value="leads">Leads</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="plans">Plans</TabsTrigger>
           <TabsTrigger value="projects">Projects & messages</TabsTrigger>
         </TabsList>
 
@@ -189,7 +228,7 @@ function AdminContent() {
               fmt(e["created_at"]),
               e["full_name"],
               e["email"],
-              e["service"] ?? "—",
+              serviceText(e["service"]),
               e["budget"] ?? "—",
               e["description"],
             ])}
@@ -215,16 +254,24 @@ function AdminContent() {
               const sub = (data.subscribers as Record<string, never>[]).find(
                 (s) => s["user_id"] === p["id"],
               );
+              // A plan assigned by contract (Plans tab) first, then a Stripe subscription.
+              const contract = data.plans.active.find((r) => r.user_id === p["id"]);
               return [
                 fmt(p["created_at"]),
                 p["email"] ?? "—",
                 p["full_name"] ?? "—",
                 p["company"] ?? "—",
-                sub?.["tier"] ?? "Free",
-                sub?.["status"] ?? "—",
+                contract ? planName(contract.plan) : (sub?.["tier"] ?? "—"),
+                contract
+                  ? `contract, ${STATE_LABEL[planState(contract, today())]}`
+                  : (sub?.["status"] ?? "—"),
               ];
             })}
           />
+        </TabsContent>
+
+        <TabsContent value="plans" className="space-y-6">
+          <PlansTab plans={data.plans} deep={deep} emailOf={emailOf} />
         </TabsContent>
 
         <TabsContent value="projects" className="space-y-4">
@@ -242,6 +289,467 @@ function AdminContent() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ plans */
+
+const today = () => romanianDate(Date.now());
+const planName = (id: string) => (isClientPlanId(id) ? CLIENT_PLANS[id].label : id);
+const STATE_LABEL: Record<PlanState, string> = {
+  current: "active",
+  scheduled: "starts later",
+  expired: "past its end date",
+  ended: "ended",
+};
+/** A calendar day as the panel shows it ("4 Oct 2026"). */
+const fmtDay = (d?: string | null) =>
+  d
+    ? new Date(`${d}T00:00:00Z`).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC",
+      })
+    : "—";
+
+/** What a server error from the plan functions means for the admin. */
+function planError(error: unknown): string {
+  const m = String((error as Error)?.message ?? "");
+  if (m.includes("account_not_found")) return "This account no longer exists.";
+  if (m.includes("plans_unavailable"))
+    return "Client plans are not set up yet: have Lovable apply drizzle/pending/client_plans.sql first.";
+  if (m.includes("plan_dates")) return "The last day is before the first day.";
+  if (m.includes("plan_not_active")) return "This plan is no longer active. Reload the panel.";
+  if (m.includes("Forbidden")) return "Only the administrator can change plans.";
+  return "Nothing was saved. Please try again.";
+}
+
+type PlansData = {
+  status: "ready" | "missing" | "error";
+  active: ClientPlanRow[];
+};
+type DeepSettings = { mode: string; premiumTiers?: string[] } | null;
+
+function PlansTab({
+  plans,
+  deep,
+  emailOf,
+}: {
+  plans: PlansData;
+  deep: DeepSettings;
+  emailOf: (id: string) => string;
+}) {
+  if (plans.status === "missing")
+    return (
+      <div className="max-w-2xl space-y-2 rounded-xl border border-dashed border-border bg-card p-4 text-sm">
+        <p className="font-medium text-fg">Client plans are not set up yet</p>
+        <p className="text-fg-2">
+          In the Lovable chat, ask:{" "}
+          <span className="text-fg">
+            &ldquo;Apply drizzle/pending/client_plans.sql exactly as written.&rdquo;
+          </span>{" "}
+          The checks to run afterwards are at the top of that file. Until then clients see no plan,
+          and deep research admits admins and Stripe subscriptions as before.
+        </p>
+      </div>
+    );
+  if (plans.status === "error")
+    return <p className="text-destructive">Could not read the client plans. Reload the panel.</p>;
+  const researchLive = deep?.mode === "premium" || deep?.mode === "code";
+  const tiers = deep?.premiumTiers ?? [];
+  return (
+    <>
+      <div className="grid gap-4 rounded-xl border border-border bg-card p-4 text-sm sm:grid-cols-3">
+        {CLIENT_PLAN_IDS.map((id) => {
+          const spec = CLIENT_PLANS[id];
+          return (
+            <Fact key={id} label={spec.label}>
+              {`${monthlyText(PLAN_CATALOG[id].priceLei).en} · ${hoursPerMonthLabel(spec.hoursPerMonth, "en")}`}
+              <span className="block text-xs text-muted-foreground">
+                Deep research:{" "}
+                {tiers.includes(id)
+                  ? reportsLabel(spec.research.reports, spec.research.period, "en")
+                  : "not included (DEEP_RESEARCH_PREMIUM_TIERS)"}
+              </span>
+            </Fact>
+          );
+        })}
+        <p className="text-xs text-muted-foreground sm:col-span-3">
+          {researchLive
+            ? `Reports count now (mode ${deep?.mode}): runs started through a plan this period, failed and canceled ones excepted. Admins keep their own caps.`
+            : `Reports start counting when DEEP_RESEARCH_MODE=premium (now ${deep?.mode ?? "unknown"}); until then clients see only the plan and its hours.`}
+        </p>
+      </div>
+      <AssignPlan emailOf={emailOf} researchLive={researchLive} />
+      <div className="space-y-2">
+        <h2 className="font-medium text-fg">Active plans</h2>
+        <Table
+          head={["Client", "Plan", "State", "First day", "Last day", "Contract", "Assigned by"]}
+          rows={plans.active.map((r) => [
+            emailOf(r.user_id),
+            planName(r.plan),
+            STATE_LABEL[planState(r, today())],
+            fmtDay(r.starts_on),
+            r.ends_on ? fmtDay(r.ends_on) : "no end date",
+            r.contract_ref ?? "—",
+            r.assigned_by ? emailOf(r.assigned_by) : "—",
+          ])}
+        />
+      </div>
+    </>
+  );
+}
+
+function AssignPlan({
+  emailOf,
+  researchLive,
+}: {
+  emailOf: (id: string) => string;
+  researchLive: boolean;
+}) {
+  const find = useServerFn(findClientAccounts);
+  const [query, setQuery] = useState("");
+  const [lastQuery, setLastQuery] = useState("");
+  const [results, setResults] = useState<AccountMatch[] | null>(null);
+  const [searching, setSearching] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  async function run(q: string) {
+    setSearching(true);
+    try {
+      const { accounts } = await find({ data: { query: q } });
+      setResults(accounts);
+      setLastQuery(q);
+      if (accounts.length === 1) setSelectedId(accounts[0].id);
+    } catch {
+      toast.error("The search did not work. Please try again.");
+    } finally {
+      setSearching(false);
+    }
+  }
+  async function search(e: FormEvent) {
+    e.preventDefault();
+    if (query.trim().length < 3) {
+      toast.error("Type at least 3 characters of the e-mail.");
+      return;
+    }
+    setSelectedId(null);
+    await run(query.trim());
+  }
+  const selected = results?.find((a) => a.id === selectedId) ?? null;
+
+  return (
+    <section className="space-y-4 rounded-xl border border-border bg-card p-4">
+      <div>
+        <h2 className="font-medium text-fg">Assign a plan</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          After the contract is signed: find the client&apos;s account by e-mail, then set the plan.
+          The client needs an account first (they sign up on the site).
+        </p>
+      </div>
+      <form onSubmit={search} className="flex max-w-xl gap-2">
+        <Input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Client e-mail, e.g. ana@firma.ro"
+          aria-label="Client e-mail"
+          autoComplete="off"
+        />
+        <Button type="submit" disabled={searching}>
+          {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Find"}
+        </Button>
+      </form>
+      {results && results.length === 0 && (
+        <p className="text-sm text-fg-2">No account matches “{lastQuery}”.</p>
+      )}
+      {results && results.length > 0 && (
+        <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border">
+          {results.map((a) => (
+            <li key={a.id}>
+              <button
+                type="button"
+                onClick={() => setSelectedId(a.id)}
+                aria-pressed={a.id === selectedId}
+                className={`flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-1 px-3 py-2 text-left text-sm hover:bg-muted/40 ${a.id === selectedId ? "bg-muted/60" : ""}`}
+              >
+                <span className="min-w-0">
+                  <span className="text-fg">{a.email ?? a.id}</span>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {[a.fullName, a.company].filter(Boolean).join(" · ")}
+                  </span>
+                </span>
+                <span className="text-xs text-fg-2">
+                  {a.plan ? `${planName(a.plan.plan)}, ${STATE_LABEL[a.plan.state]}` : "No plan"}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {selected && (
+        <ClientPlanEditor
+          key={selected.id}
+          account={selected}
+          emailOf={emailOf}
+          researchLive={researchLive}
+          onChanged={() => run(lastQuery)}
+        />
+      )}
+    </section>
+  );
+}
+
+function ClientPlanEditor({
+  account,
+  emailOf,
+  researchLive,
+  onChanged,
+}: {
+  account: AccountMatch;
+  emailOf: (id: string) => string;
+  researchLive: boolean;
+  onChanged: () => void;
+}) {
+  const fetchHistory = useServerFn(getClientPlanHistory);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["admin-plan-history", account.id],
+    queryFn: () => fetchHistory({ data: { userId: account.id } }),
+  });
+  if (isLoading) return <Loader2 className="h-5 w-5 animate-spin" />;
+  if (error || !data || data.status !== "ready")
+    return <p className="text-sm text-destructive">Could not read this client&apos;s plans.</p>;
+  const active = data.rows.find((r) => r.status === "active") ?? null;
+  return (
+    <div className="space-y-4 border-t border-border pt-4">
+      <div>
+        <p className="font-medium text-fg">{account.email ?? account.id}</p>
+        <p className="text-xs text-muted-foreground">
+          {active
+            ? `${planName(active.plan)}, ${STATE_LABEL[planState(active, today())]} since ${fmtDay(active.starts_on)}`
+            : "No active plan"}
+          {researchLive && data.research ? ` · ${researchLine(data.research)}` : ""}
+        </p>
+      </div>
+      <PlanForm
+        key={active?.id ?? "new"}
+        userId={account.id}
+        active={active}
+        onChanged={onChanged}
+      />
+      {data.rows.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-fg">History</h3>
+          <Table
+            head={["Plan", "First day", "Last day", "Contract", "Status", "Assigned", "Ended"]}
+            rows={data.rows.map((r) => [
+              planName(r.plan),
+              fmtDay(r.starts_on),
+              r.ends_on ? fmtDay(r.ends_on) : "no end date",
+              r.contract_ref ?? "—",
+              STATE_LABEL[planState(r, today())],
+              `${fmt(r.created_at)}${r.assigned_by ? ` by ${emailOf(r.assigned_by)}` : ""}`,
+              r.ended_at
+                ? `${fmt(r.ended_at)}${r.ended_by ? ` by ${emailOf(r.ended_by)}` : ""}`
+                : "—",
+            ])}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** "Deep research: 1 of 2 reports used this month, renews 1 Nov". */
+function researchLine(r: ResearchAllowance): string {
+  if (r.reports === null) return "Deep research: daily caps only";
+  const period = r.period === "quarter" ? "this quarter" : "this month";
+  const renews = r.renewsAt
+    ? `, renews ${new Date(r.renewsAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "Europe/Bucharest" })}`
+    : "";
+  return r.used === null
+    ? `Deep research: ${r.reports} ${period} (usage unavailable)`
+    : `Deep research: ${r.used} of ${r.reports} reports used ${period}${renews}`;
+}
+
+function PlanForm({
+  userId,
+  active,
+  onChanged,
+}: {
+  userId: string;
+  active: ClientPlanRow | null;
+  onChanged: () => void;
+}) {
+  const assign = useServerFn(assignClientPlan);
+  const end = useServerFn(endClientPlan);
+  const qc = useQueryClient();
+  const [plan, setPlan] = useState<ClientPlanId>(
+    active && isClientPlanId(active.plan) ? active.plan : "growth",
+  );
+  const [startsOn, setStartsOn] = useState(active?.starts_on ?? today());
+  const [endsOn, setEndsOn] = useState(active?.ends_on ?? "");
+  const [contractRef, setContractRef] = useState(active?.contract_ref ?? "");
+  const [busy, setBusy] = useState(false);
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  const changing = Boolean(active && active.plan !== plan);
+  const datesWrong = Boolean(endsOn && endsOn < startsOn);
+
+  function refresh() {
+    void qc.invalidateQueries({ queryKey: ["admin-plan-history", userId] });
+    void qc.invalidateQueries({ queryKey: ["admin-overview"] });
+    onChanged();
+  }
+
+  async function save(e: FormEvent) {
+    e.preventDefault();
+    if (datesWrong) return;
+    setBusy(true);
+    try {
+      const { action } = await assign({
+        data: {
+          userId,
+          plan,
+          startsOn,
+          endsOn: endsOn || null,
+          contractRef: contractRef.trim() || null,
+        },
+      });
+      toast.success(
+        action === "created"
+          ? `${planName(plan)} assigned`
+          : action === "changed"
+            ? `Plan changed to ${planName(plan)}; the previous one is kept in the history`
+            : "Plan updated",
+      );
+      refresh();
+    } catch (err) {
+      toast.error(planError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function endNow() {
+    if (!active) return;
+    if (!confirmEnd) {
+      setConfirmEnd(true);
+      return;
+    }
+    setBusy(true);
+    try {
+      await end({ data: { planId: active.id } });
+      toast.success("Plan ended today; it stays in the history");
+      refresh();
+    } catch (err) {
+      toast.error(planError(err));
+    } finally {
+      setBusy(false);
+      setConfirmEnd(false);
+    }
+  }
+
+  return (
+    <form onSubmit={save} className="space-y-3">
+      <div className="grid max-w-4xl gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(15rem,1.3fr)_1fr_1fr_1fr]">
+        <div className="space-y-1.5">
+          <Label htmlFor={`plan-${userId}`}>Plan</Label>
+          <Select
+            value={plan}
+            onValueChange={(v) => {
+              if (!isClientPlanId(v)) return;
+              setPlan(v);
+              // A new plan starts today unless the admin picks a day; back to the same plan,
+              // its own first day.
+              if (active && v === active.plan) setStartsOn(active.starts_on);
+              else if (active && startsOn === active.starts_on) setStartsOn(today());
+            }}
+          >
+            <SelectTrigger id={`plan-${userId}`}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CLIENT_PLAN_IDS.map((id) => (
+                <SelectItem key={id} value={id}>
+                  {CLIENT_PLANS[id].label} ·{" "}
+                  {hoursPerMonthLabel(CLIENT_PLANS[id].hoursPerMonth, "en")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor={`starts-${userId}`}>First day</Label>
+          <Input
+            id={`starts-${userId}`}
+            type="date"
+            required
+            value={startsOn}
+            onChange={(e) => setStartsOn(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor={`ends-${userId}`}>Last day (optional)</Label>
+          <Input
+            id={`ends-${userId}`}
+            type="date"
+            value={endsOn}
+            min={startsOn}
+            aria-invalid={datesWrong || undefined}
+            onChange={(e) => setEndsOn(e.target.value)}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor={`contract-${userId}`}>Contract reference</Label>
+          <Input
+            id={`contract-${userId}`}
+            value={contractRef}
+            maxLength={120}
+            placeholder="e.g. VH-2026-014"
+            onChange={(e) => setContractRef(e.target.value)}
+          />
+        </div>
+      </div>
+      {datesWrong && (
+        <p className="text-xs text-destructive">The last day is before the first day.</p>
+      )}
+      {changing && (
+        <p className="text-xs text-muted-foreground">
+          Changing the plan ends the current {planName(active!.plan)} record today and starts a new
+          one; the history keeps both.
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="submit" size="sm" disabled={busy || datesWrong}>
+          {busy ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : !active ? (
+            "Assign plan"
+          ) : changing ? (
+            `Change to ${planName(plan)}`
+          ) : (
+            "Save changes"
+          )}
+        </Button>
+        {active && (
+          <Button
+            type="button"
+            size="sm"
+            variant={confirmEnd ? "destructive" : "outline"}
+            disabled={busy}
+            onClick={endNow}
+          >
+            {confirmEnd ? "Confirm: end the plan today" : "End plan"}
+          </Button>
+        )}
+        {confirmEnd && (
+          <Button type="button" size="sm" variant="ghost" onClick={() => setConfirmEnd(false)}>
+            Keep it
+          </Button>
+        )}
+      </div>
+    </form>
   );
 }
 

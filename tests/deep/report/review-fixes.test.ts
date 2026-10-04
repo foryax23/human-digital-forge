@@ -12,8 +12,9 @@ import {
   rivalEdge,
 } from "../../../src/lib/deep/report/index";
 import { REASON_MAX } from "../../../src/lib/deep/report/lights";
-import { vortexTotal } from "../../../src/lib/deep/report/prices";
+import { ACTION_PRICES, SCAN_FROM, vortexTotal } from "../../../src/lib/deep/report/prices";
 import { prettyName } from "../../../src/lib/deep/steps/start.server";
+import { PRICE_BOOK } from "../../../src/lib/scan/blueprint/economics";
 
 import {
   band,
@@ -260,6 +261,27 @@ test("one system is priced once; the Vortex Hub total counts it once", () => {
   assert.deepEqual(total.shared, [["clients.online_booking", "clients.reminders"]]);
   assert.equal(total.setupLei, 2000);
   assert.equal(total.monthlyLei, 50);
+
+  // With today's prices the booking costs more than its reminders: the shared system is
+  // priced at the booking, and listed with it first, whichever action ranks higher.
+  const at = (id: string) => ({ id, cost: { vortex: ACTION_PRICES[id].vortex! } });
+  const booking = ACTION_PRICES["clients.online_booking"].vortex!.setupLei;
+  assert.ok(booking > ACTION_PRICES["clients.reminders"].vortex!.setupLei);
+  const ranked = vortexTotal([at("clients.reminders"), at("clients.online_booking")])!;
+  assert.deepEqual(ranked.shared, [["clients.online_booking", "clients.reminders"]]);
+  assert.equal(ranked.setupLei, booking);
+});
+
+test("the Vortex Hub prices start where the quick scan's prices start", () => {
+  // Deep research repeats the scan's floors (it imports nothing from the app); they agree.
+  assert.deepEqual(SCAN_FROM, {
+    quickFix: PRICE_BOOK.websiteFix.quick.low,
+    mediumFix: PRICE_BOOK.websiteFix.medium.low,
+    measurement: PRICE_BOOK.measurement.low,
+    simpleAutomation: PRICE_BOOK.automationSetup.low.low,
+    mediumAutomation: PRICE_BOOK.automationSetup.medium.low,
+    newWebsite: PRICE_BOOK.newWebsite.low,
+  });
 });
 
 test("registry names read as people write them", () => {

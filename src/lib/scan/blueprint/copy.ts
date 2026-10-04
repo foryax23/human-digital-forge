@@ -448,8 +448,8 @@ export function baseNotes(type: BusinessTypeDef): Bilingual[] {
       `Volumele sunt tipice pentru o afacere de tipul „${type.label.ro}” de această mărime, nu sunt măsurate; fiecare automatizare își arată propriile volume.`,
     ),
     bi(
-      "Costs are a one-off setup plus monthly tools from Vortex Hub's price book (RON, excluding VAT); the Vortex Hub plan fee is separate.",
-      "Costurile includ implementarea, plătită o singură dată, și instrumentele lunare, conform listei de prețuri Vortex Hub (lei, fără TVA); abonamentul Vortex Hub se plătește separat.",
+      "Costs are a one-off setup plus monthly tools from Vortex Hub's price book (RON); the Vortex Hub plan fee is separate.",
+      "Costurile includ implementarea, plătită o singură dată, și instrumentele lunare, conform listei de prețuri Vortex Hub (în lei); abonamentul Vortex Hub se plătește separat.",
     ),
     bi(
       "Projection: setup is paid when its phase of the plan starts; the hours won back start the month after, at half the first month and in full after that.",

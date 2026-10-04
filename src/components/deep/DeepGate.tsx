@@ -1,4 +1,6 @@
 import { useId, useState, type FormEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
@@ -6,12 +8,14 @@ import { Button, ButtonLink, Panel, PanelBody } from "@/components/system";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
+import { getMyPlan, myPlanQueryKey } from "@/lib/client-plan.functions";
+import { CLIENT_PLANS, formatPlanDay, formatRenewalDay } from "@/lib/client-plans";
 import type { AccessReason } from "@/lib/deep/contracts";
-import { PLAN_PRICING } from "@/lib/plans";
+import { monthlyText, PLAN_CATALOG, PLAN_ORDER, reportsText } from "@/lib/pricing";
 import { useI18n } from "@/i18n";
 
 import { SIGNATORY } from "./contact";
-import { REASON_COPY } from "./copy";
+import { planReportsUsedCopy, planStartsLaterCopy, REASON_COPY, type GateCopy } from "./copy";
 import { DEEP_PATH } from "./safe-next";
 
 /*
@@ -41,7 +45,8 @@ export function DeepGate({
   onRetry?: () => void;
 }) {
   const { t, lang } = useI18n();
-  const copy = REASON_COPY[reason];
+  const planCopy = usePlanGateCopy(reason);
+  const copy = planCopy ?? REASON_COPY[reason];
   const titleId = useId();
   const showSample = [
     "login_required",
@@ -93,14 +98,27 @@ export function DeepGate({
         <CodeForm onCode={onCode} busy={codeBusy} error={codeError} />
       ) : null}
 
-      {reason === "premium_required" || reason === "free_run_used" ? (
+      {planCopy ? (
         <div className="mt-5">
-          <p className="mb-3 text-fg">
-            {t(
-              `Growth from ${PLAN_PRICING.growth.ron / 100} lei a month; cancel any time.`,
-              `Growth de la ${PLAN_PRICING.growth.ron / 100} lei pe lună; renunți oricând.`,
-            )}
-          </p>
+          <ButtonLink to="/dashboard/billing" variant="secondary" size="lg" className="h-11">
+            {t("See your plan", "Vezi abonamentul tău")}
+          </ButtonLink>
+        </div>
+      ) : null}
+
+      {!planCopy && (reason === "premium_required" || reason === "free_run_used") ? (
+        <div className="mt-5">
+          {/* The reports each plan includes (src/lib/pricing.ts), as the pricing section lists them. */}
+          <ul className="mb-4 space-y-1">
+            {PLAN_ORDER.map((id) => (
+              <li key={id} className="flex flex-wrap gap-x-2 text-fg">
+                <span className="font-medium">{PLAN_CATALOG[id].name}</span>
+                <span className="text-fg-2">
+                  {`${monthlyText(PLAN_CATALOG[id].priceLei)[lang]}: ${reportsText(id)[lang]}`}
+                </span>
+              </li>
+            ))}
+          </ul>
           <ButtonLink to="/" hash="pricing" size="lg" className="h-11">
             {t("See the plans", "Vezi abonamentele")}
           </ButtonLink>
@@ -151,6 +169,55 @@ export function DeepGate({
       </div>
     </section>
   );
+}
+
+/**
+ * premium_required for a signed-in account with a plan assigned by contract: its reports for
+ * this period are used, or it starts later. Null otherwise (and until the plan is read), so the
+ * gate shows the plans as before. Only the browser asks (getMyPlan); the server render and the
+ * first client render are the same.
+ */
+function usePlanGateCopy(reason: AccessReason): GateCopy | null {
+  const { user } = useAuth();
+  const fetchPlan = useServerFn(getMyPlan);
+  const { data } = useQuery({
+    queryKey: myPlanQueryKey(user?.id),
+    queryFn: () => fetchPlan(),
+    enabled: Boolean(user) && reason === "premium_required",
+    staleTime: 60_000,
+  });
+  if (reason !== "premium_required" || data?.status !== "active") return null;
+  const { plan, research } = data;
+  const name = CLIENT_PLANS[plan.id].label;
+  if (plan.state === "scheduled")
+    return plan.researchIncluded
+      ? planStartsLaterCopy({
+          plan: name,
+          startsOn: {
+            en: formatPlanDay(plan.startsOn, "en"),
+            ro: formatPlanDay(plan.startsOn, "ro"),
+          },
+        })
+      : null;
+  if (
+    !research ||
+    research.reports === null ||
+    research.period === null ||
+    research.used === null ||
+    research.used < research.reports
+  )
+    return null;
+  return planReportsUsedCopy({
+    plan: name,
+    reports: research.reports,
+    period: research.period,
+    renews: research.renewsAt
+      ? {
+          en: formatRenewalDay(research.renewsAt, "en"),
+          ro: formatRenewalDay(research.renewsAt, "ro"),
+        }
+      : null,
+  });
 }
 
 function AccountId({ userId }: { userId: string }) {

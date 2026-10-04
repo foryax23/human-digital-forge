@@ -55,20 +55,20 @@ export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3
       to: "/websites",
       title: t("Websites", "Site-uri web"),
       description: t(
-        "Business sites, landing pages and portfolios, new or redesigned, plus simple client portals.",
-        "Site-uri de prezentare, pagini de destinație și portofolii, noi sau refăcute, plus portaluri simple pentru clienți.",
+        "Business sites, landing pages and portfolios, new or redesigned.",
+        "Site-uri de prezentare, pagini de destinație și portofolii, noi sau refăcute.",
       ),
       deliverables: t("Design, build, launch", "Design, dezvoltare, lansare"),
     },
     {
       slug: "digital-products",
       to: "/digital-products",
-      title: t("Graphic materials", "Materiale grafice"),
+      title: t("Digital products", "Produse digitale"),
       description: t(
-        "Visual materials made for a clear purpose, ready to print or send.",
-        "Materiale vizuale create cu un scop clar, gata de tipărit sau de trimis.",
+        "Custom web apps: client portals, internal tools, dashboards or the first version of a new product.",
+        "Aplicații web la comandă: portaluri pentru clienți, instrumente interne, tablouri de bord sau prima versiune a unui produs nou.",
       ),
-      deliverables: t("Posters, presentations, documents", "Postere, prezentări, documente"),
+      deliverables: t("Plan, prototype, launched app", "Plan, prototip, aplicație lansată"),
     },
     {
       slug: "ai-automation",

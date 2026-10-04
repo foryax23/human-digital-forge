@@ -4,19 +4,13 @@ import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { CompanyDetails } from "@/components/shared/CompanyDetails";
 import { Button } from "@/components/system";
-import { useI18n } from "@/i18n";
+import { pageMeta, useI18n } from "@/i18n";
 import { openCookieSettings } from "@/components/cookies/cookie-consent";
 
-const title = "Cookie Policy | Vortex Hub";
-const description = "How Vortex Hub uses cookies and how you can manage your preferences.";
-
 export const Route = createFileRoute("/cookies")({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
+      ...pageMeta(matches, "/cookies"),
       { property: "og:url", content: "https://vortexhub.dev/cookies" },
     ],
     links: [{ rel: "canonical", href: "https://vortexhub.dev/cookies" }],

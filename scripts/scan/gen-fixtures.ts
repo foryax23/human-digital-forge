@@ -9,6 +9,10 @@
  *   a dental clinic with no website and no Google profile.
  *
  *   npx tsx scripts/scan/gen-fixtures.ts && npx prettier --write src/lib/scan/fixtures
+ *
+ * Run it after any change to the engine, the hour value or the price book
+ * (economics.ts, read from src/lib/pricing.ts): scripts/scan/check-display.ts
+ * fails on a fixture built with an older hour value or older prices.
  */
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { CompanyDetails } from "@/components/shared/CompanyDetails";
-import { useI18n } from "@/i18n";
+import { pageMeta, useI18n } from "@/i18n";
 import {
   DEEP_FEEDBACK_RETENTION_MONTHS,
   DEEP_RETENTION_DAYS,
@@ -12,17 +12,10 @@ import {
 } from "@/lib/scan/legal/lead-notice";
 import { SCAN_USER_AGENT } from "@/lib/scan/legal/bot";
 
-const title = "Privacy Policy | Vortex Hub";
-const description =
-  "How Vortex Hub collects, uses and protects personal data, what Vortex Scan reads about a company, and your rights under GDPR.";
-
 export const Route = createFileRoute("/privacy")({
-  head: () => ({
+  head: ({ matches }) => ({
     meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
+      ...pageMeta(matches, "/privacy"),
       { property: "og:url", content: "https://vortexhub.dev/privacy" },
     ],
     links: [{ rel: "canonical", href: "https://vortexhub.dev/privacy" }],

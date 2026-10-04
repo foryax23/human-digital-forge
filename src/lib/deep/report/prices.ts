@@ -1,16 +1,34 @@
 /*
- * ACTION PRICES: TO BE APPROVED BY THE OWNER (plan A8, D7).
+ * ACTION PRICES (owner decision 2026-10-04: the public price list wins).
  *
  * "Cu Vortex Hub: de la X lei, plus Y lei pe lună" and "Poți face singur:
  * gratuit, N ore" on every action read this table, so the screen, the PDF and
- * the summary text always show the same price. The Vortex Hub figures start
- * from the low end of the quick scan's price book (PRICE_BOOK in
- * src/lib/scan/blueprint/economics.ts) so the two reports agree; Mihai Dandea
- * replaces them with his real prices before the test round. Prices in lei,
- * VAT excluded.
+ * the summary text always show the same price. Each Vortex Hub "de la" is the
+ * low end of the quick scan's price for the same work (PRICE_BOOK in
+ * src/lib/scan/blueprint/economics.ts, itself read from the public list in
+ * src/lib/pricing.ts). Deep research imports nothing from the app (plan A5), so
+ * the figures are repeated here and checked: scripts/scan/check-display.ts and
+ * tests/deep/report/review-fixes.test.ts fail when they drift from the scan.
+ * Prices in lei, final (no VAT line until the accountant confirms the wording).
  */
 
 import type { Bilingual } from "../contracts";
+
+/** The scan's floors (the PRICE_BOOK lows) for the work deep research prices. */
+export const SCAN_FROM = {
+  /** A quick website fix: 1 hour at 300 lei. */
+  quickFix: 300,
+  /** A medium website fix (the speed findings): 5 hours at 300 lei. */
+  mediumFix: 1500,
+  /** Visitor statistics after cookie consent: 3 hours at 300 lei. */
+  measurement: 900,
+  /** A simple automation: the public "1.500–3.500 lei" floor. */
+  simpleAutomation: 1500,
+  /** A medium automation (online booking): the upper half of the public range. */
+  mediumAutomation: 2500,
+  /** A new presentation website: "de la 4.500 lei". */
+  newWebsite: 4500,
+} as const;
 
 const bi = (en: string, ro: string): Bilingual => ({ en, ro });
 
@@ -42,7 +60,7 @@ export const ACTION_PRICES: Record<string, ActionPrice> = {
         "reînnoiești domeniul la firma de la care l-ai cumpărat (cam 60–100 lei pe an, 30 de minute) sau ceri firmei de găzduire să reînnoiască certificatul",
       ),
     },
-    vortex: { setupLei: 400, monthlyLei: 0 },
+    vortex: { setupLei: SCAN_FROM.quickFix, monthlyLei: 0 },
   },
   /** Cookie consent before visitor statistics. */
   "site.cookie_consent": {
@@ -54,17 +72,18 @@ export const ACTION_PRICES: Record<string, ActionPrice> = {
         "pui un banner de acord gratuit din platforma site-ului și pornești statisticile doar după acord (cam 2 ore)",
       ),
     },
-    vortex: { setupLei: 800, monthlyLei: 0 },
+    vortex: { setupLei: SCAN_FROM.measurement, monthlyLei: 0 },
   },
   /** Online booking or reservation. */
   "clients.online_booking": {
     diy: { lei: 0, hours: 3 },
-    vortex: { setupLei: 1200, monthlyLei: 50 },
+    vortex: { setupLei: SCAN_FROM.mediumAutomation, monthlyLei: 50 },
   },
   /** A quote request form. */
   "clients.quote_request": {
     diy: { lei: 0, hours: 2 },
-    vortex: { setupLei: 1200, monthlyLei: 50 },
+    // A form on the site that files each request: a simple automation.
+    vortex: { setupLei: SCAN_FROM.simpleAutomation, monthlyLei: 50 },
   },
   /** Automatic reminders before appointments. */
   "clients.reminders": {
@@ -76,7 +95,7 @@ export const ACTION_PRICES: Record<string, ActionPrice> = {
         "trimiți tu reamintirea prin SMS sau WhatsApp cu o zi înainte (cam 10 minute pe zi)",
       ),
     },
-    vortex: { setupLei: 1200, monthlyLei: 50 },
+    vortex: { setupLei: SCAN_FROM.simpleAutomation, monthlyLei: 50 },
   },
   /** Close the margin gap (prices, costs, what you sell more of), with the accountant. */
   "money.margin_gap": {
@@ -101,7 +120,7 @@ export const ACTION_PRICES: Record<string, ActionPrice> = {
         "comprimi imaginile mari și scoți de pe prima pagină ce nu folosești (cam 3 ore)",
       ),
     },
-    vortex: { setupLei: 1500, monthlyLei: 0 },
+    vortex: { setupLei: SCAN_FROM.mediumFix, monthlyLei: 0 },
   },
   /** Claim or complete the Google Business Profile. */
   "presence.google_profile": { diy: { lei: 0, hours: 1 } },
@@ -117,13 +136,14 @@ export const ACTION_PRICES: Record<string, ActionPrice> = {
         "un site simplu dintr-un constructor online (cam 50–100 lei pe lună, 1–2 zile de lucru)",
       ),
     },
-    vortex: { setupLei: 6000, monthlyLei: 50 },
+    vortex: { setupLei: SCAN_FROM.newWebsite, monthlyLei: 50 },
   },
 };
 
 /**
  * "Cost total dacă lucrezi cu Vortex Hub": one-off and monthly, each shared system counted
- * once, over the actions shown. Undefined when none of them is priced by Vortex Hub.
+ * once, at its dearest part (booking with its reminders costs what the booking costs), over
+ * the actions shown; `shared` lists that part first. Undefined when none is priced by Vortex Hub.
  */
 export function vortexTotal(
   actions: Array<{ id: string; cost: { vortex?: { setupLei: number; monthlyLei: number } } }>,
@@ -137,11 +157,15 @@ export function vortexTotal(
   for (const a of priced) {
     if (seen.has(a.id)) continue;
     const group = SAME_SYSTEM.find((g) => g.includes(a.id));
-    const members = group ? priced.filter((x) => group.includes(x.id)).map((x) => x.id) : [a.id];
+    // The dearest part first: the screen prices the shared system by its first member.
+    const parts = (group ? priced.filter((x) => group.includes(x.id)) : [a])
+      .map((x, i) => ({ id: x.id, vortex: x.cost.vortex!, i }))
+      .sort((x, y) => y.vortex.setupLei - x.vortex.setupLei || x.i - y.i);
+    const members = parts.map((x) => x.id);
     members.forEach((id) => seen.add(id));
     if (members.length > 1) shared.push(members);
-    setupLei += a.cost.vortex!.setupLei;
-    monthlyLei += a.cost.vortex!.monthlyLei;
+    setupLei += parts[0].vortex.setupLei;
+    monthlyLei += Math.max(...parts.map((x) => x.vortex.monthlyLei));
   }
   return { setupLei, monthlyLei, shared };
 }

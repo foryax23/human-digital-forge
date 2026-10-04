@@ -107,17 +107,20 @@ export const REASON_COPY: Record<AccessReason, GateCopy> = {
     ),
   },
   premium_required: {
-    title: bi("Included in the Growth and Pro plans", "Inclusă în abonamentele Growth și Pro"),
+    title: bi(
+      "Included in the Starter, Growth and Pro plans",
+      "Inclusă în abonamentele Starter, Growth și Pro",
+    ),
     body: bi(
-      "Your account's free report is used. Growth and Pro include deep research: official registers and filed accounts, your website read as a new customer would, and three actions for the next 30 days.",
-      "Ai folosit raportul gratuit al contului. Growth și Pro includ cercetarea aprofundată: registrele oficiale și bilanțurile, site-ul citit ca de un client nou și trei acțiuni pentru următoarele 30 de zile.",
+      "Each report covers the official registers and filed accounts, your website read as a new customer would, and three actions for the next 30 days. The plans are signed by contract.",
+      "Fiecare raport cuprinde registrele oficiale și bilanțurile, site-ul citit ca de un client nou și trei acțiuni pentru următoarele 30 de zile. Abonamentele se încheie prin contract.",
     ),
   },
   free_run_used: {
     title: bi("Your free report is used", "Ai folosit raportul gratuit"),
     body: bi(
-      "Every account gets one full report for free. More reports come with the Growth and Pro plans.",
-      "Fiecare cont primește un raport complet gratuit. Următoarele vin cu abonamentele Growth și Pro.",
+      "Every account gets one full report for free. More reports come with the Starter, Growth and Pro plans.",
+      "Fiecare cont primește un raport complet gratuit. Următoarele vin cu abonamentele Starter, Growth și Pro.",
     ),
   },
   daily_cap_user: {
@@ -249,3 +252,54 @@ export const RELATIONSHIPS = [
   { value: "concurent", label: bi("I'm a competitor", "Sunt concurent") },
   { value: "altceva", label: bi("Something else", "Altceva") },
 ] as const;
+
+/*
+ * premium_required for an account that has a plan (assigned by an admin after the contract,
+ * src/lib/client-plans.ts): the plan's reports for this period are used, or the plan starts on
+ * a later day. The gate shows these instead of the plans' list.
+ */
+
+/** "Ai folosit rapoartele din luna aceasta": the plan's reports for this period are used. */
+export function planReportsUsedCopy(args: {
+  plan: string;
+  reports: number;
+  period: "month" | "quarter";
+  /** The day the next period starts ("1 noiembrie" / "1 November"), or null when unknown. */
+  renews: Bilingual | null;
+}): GateCopy {
+  const { plan, reports, period, renews } = args;
+  const one = reports === 1;
+  const enPeriod = period === "month" ? "month" : "quarter";
+  const roPeriod = period === "month" ? "luna aceasta" : "acest trimestru";
+  const roIncluded = `${one ? "1 raport" : `${reports} rapoarte`} pe ${period === "month" ? "lună" : "trimestru"}`;
+  return {
+    title: bi(
+      one ? `This ${enPeriod}'s report is used` : `This ${enPeriod}'s reports are used`,
+      one ? `Ai folosit raportul din ${roPeriod}` : `Ai folosit rapoartele din ${roPeriod}`,
+    ),
+    body: bi(
+      `Your ${plan} plan includes ${reports} ${one ? "report" : "reports"} a ${enPeriod}.` +
+        (renews ? ` The next ${one ? "one is" : "ones are"} available from ${renews.en}.` : ""),
+      `Abonamentul ${plan} include ${roIncluded}.` +
+        (renews
+          ? one
+            ? ` Următorul e disponibil din ${renews.ro}.`
+            : ` Următoarele sunt disponibile din ${renews.ro}.`
+          : ""),
+    ),
+  };
+}
+
+/** "Abonamentul Growth începe pe 1 nov. 2026": an assigned plan whose first day is later. */
+export function planStartsLaterCopy(args: { plan: string; startsOn: Bilingual }): GateCopy {
+  return {
+    title: bi(
+      `Your ${args.plan} plan starts on ${args.startsOn.en}`,
+      `Abonamentul ${args.plan} începe pe ${args.startsOn.ro}`,
+    ),
+    body: bi(
+      "Deep research comes with the plan from its first day.",
+      "Cercetarea aprofundată vine cu abonamentul din prima lui zi.",
+    ),
+  };
+}

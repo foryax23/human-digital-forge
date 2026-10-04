@@ -10,10 +10,7 @@ import { Label } from "@/components/ui/label";
 import { GoogleButton, AuthDivider } from "@/components/auth/GoogleButton";
 import { safeNext } from "@/components/deep/safe-next";
 import { supabase } from "@/integrations/supabase/client";
-import { useI18n } from "@/i18n";
-
-const title = "Login | Vortex Hub";
-const description = "Access your Vortex Hub projects, messages and completed deliveries.";
+import { pageMeta, useI18n } from "@/i18n";
 
 export const Route = createFileRoute("/login")({
   // `next` and `redirect` name a path on this site only ("/…", never "//", "@" or "\\").
@@ -25,13 +22,8 @@ export const Route = createFileRoute("/login")({
     if (next) result.next = next;
     return result;
   },
-  head: () => ({
-    meta: [
-      { title },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-    ],
+  head: ({ matches }) => ({
+    meta: pageMeta(matches, "/login"),
     links: [{ rel: "canonical", href: "/login" }],
   }),
   component: LoginPage,

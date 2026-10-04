@@ -106,11 +106,11 @@ function NewRequestPage() {
               <SelectValue placeholder={t("Select one", "Selectează una")} />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="website">{t("Website", "Site web")}</SelectItem>
               <SelectItem value="digital-product">
-                {t("Digital Product", "Produs digital")}
+                {t("Digital products", "Produse digitale")}
               </SelectItem>
-              <SelectItem value="website">{t("Website", "Website")}</SelectItem>
-              <SelectItem value="ai-automation">{t("AI Automation", "Automatizare AI")}</SelectItem>
+              <SelectItem value="ai-automation">{t("AI automation", "Automatizare AI")}</SelectItem>
               <SelectItem value="consultancy">{t("Consultancy", "Consultanță")}</SelectItem>
               <SelectItem value="not-sure">{t("Not sure yet", "Nu știu încă")}</SelectItem>
             </SelectContent>

@@ -20,10 +20,12 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { LOGO_NAV } from "@/components/landing/media";
+import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 type NavItem = {
-  label: string;
+  /** English, then Romanian (the client workspace follows the site language). */
+  label: [en: string, ro: string];
   icon: typeof LayoutGrid;
   to:
     | "/dashboard"
@@ -39,36 +41,42 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  { label: "Overview", icon: LayoutGrid, to: "/dashboard" },
-  { label: "New Request", icon: FilePlus2, to: "/dashboard/new-request" },
-  { label: "My Projects", icon: FolderKanban, to: "/dashboard/projects" },
-  { label: "Messages", icon: MessagesSquare, to: "/dashboard/messages" },
-  { label: "Files", icon: Files, to: "/dashboard/files" },
-  { label: "Consultations", icon: CalendarCheck, to: "/dashboard/consultations" },
-  { label: "Billing", icon: CreditCard, to: "/dashboard/billing" },
-  { label: "Settings", icon: Settings, to: "/dashboard/settings" },
+  { label: ["Overview", "Pe scurt"], icon: LayoutGrid, to: "/dashboard" },
+  { label: ["New request", "Cerere nouă"], icon: FilePlus2, to: "/dashboard/new-request" },
+  { label: ["My projects", "Proiectele mele"], icon: FolderKanban, to: "/dashboard/projects" },
+  { label: ["Messages", "Mesaje"], icon: MessagesSquare, to: "/dashboard/messages" },
+  { label: ["Files", "Fișiere"], icon: Files, to: "/dashboard/files" },
+  { label: ["Consultations", "Discuții"], icon: CalendarCheck, to: "/dashboard/consultations" },
+  { label: ["Billing", "Facturare"], icon: CreditCard, to: "/dashboard/billing" },
+  { label: ["Settings", "Setări"], icon: Settings, to: "/dashboard/settings" },
 ];
 
 function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: () => void }) {
   const { pathname } = useLocation();
   const { isAdmin } = useAuth();
+  const { t } = useI18n();
   // Deep research is admin-only for now (plans assigned by an admin come later); the page
   // itself runs the same server access check as /scan/deep.
   const items: NavItem[] = isAdmin
     ? [
         ...navItems,
-        { label: "Deep research", icon: Telescope, to: "/dashboard/research" },
-        { label: "Admin panel", icon: ShieldCheck, to: "/dashboard/admin" },
+        {
+          label: ["Deep research", "Cercetare aprofundată"],
+          icon: Telescope,
+          to: "/dashboard/research",
+        },
+        // The admin panel's own screens stay in English.
+        { label: ["Admin panel", "Administrare"], icon: ShieldCheck, to: "/dashboard/admin" },
       ]
     : navItems;
 
   return (
-    <nav className="flex flex-1 flex-col gap-1" aria-label="Dashboard">
+    <nav className="flex flex-1 flex-col gap-1" aria-label={t("Dashboard", "Contul meu")}>
       {items.map((item) => {
         const active = pathname === item.to;
         return (
           <Link
-            key={item.label}
+            key={item.to}
             to={item.to}
             onClick={onNavigate}
             className={cn(
@@ -79,7 +87,7 @@ function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: 
             )}
           >
             <item.icon className="h-4 w-4" />
-            {item.label}
+            {t(...item.label)}
           </Link>
         );
       })}
@@ -92,7 +100,7 @@ function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: 
         className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-sidebar-foreground hover:bg-sidebar-accent/60"
       >
         <LogOut className="h-4 w-4" />
-        Log out
+        {t("Log out", "Ieșire")}
       </button>
     </nav>
   );
@@ -121,6 +129,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const { profile, user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Client";
   const initials = displayName
@@ -150,23 +159,37 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="lg:hidden" aria-label="Open menu">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="lg:hidden"
+                  aria-label={t("Open menu", "Deschide meniul")}
+                >
                   <Menu />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 bg-sidebar p-4">
-                <SheetTitle className="sr-only">Dashboard navigation</SheetTitle>
+                <SheetTitle className="sr-only">
+                  {t("Dashboard navigation", "Navigare în cont")}
+                </SheetTitle>
                 <div className="flex h-full flex-col gap-6">
                   <SidebarBrand />
                   <NavList onNavigate={() => setOpen(false)} onLogout={handleLogout} />
                 </div>
               </SheetContent>
             </Sheet>
-            <p className="hidden text-sm text-muted-foreground sm:block">Client workspace</p>
+            <p className="hidden text-sm text-muted-foreground sm:block">
+              {t("Client workspace", "Spațiul tău de lucru")}
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="icon" aria-label="Notifications" className="relative">
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label={t("Notifications", "Notificări")}
+              className="relative"
+            >
               <Bell />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
             </Button>
