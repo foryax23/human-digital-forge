@@ -151,6 +151,13 @@ const PREDICATE_LABELS: Record<string, Bilingual> = {
   "profile.marketplaces": bi("Marketplace seller page", "Pagină de vânzător pe marketplace"),
   "profile.stores": bi("Physical shop / work point", "Magazin fizic / punct de lucru"),
   "profile.phones": bi("Company phone (public)", "Telefonul firmei (public)"),
+  "profile.trademarks": bi("Trademark (public register)", "Marcă înregistrată (registru public)"),
+  "profile.publicContracts": bi("Public contract (SEAP/SICAP)", "Contract public (SEAP/SICAP)"),
+  "profile.euFunds": bi("EU / state funding", "Finanțare UE / de stat"),
+  "profile.domains": bi("Other website / domain", "Alt site / domeniu"),
+  "profile.apps": bi("Mobile app", "Aplicație mobilă"),
+  "profile.followers": bi("Followers (as shown)", "Urmăritori (cum apar)"),
+  "profile.jobs": bi("Open job ad", "Anunț de angajare activ"),
   "profile.siteAlerts": bi("Website security alert", "Alertă de securitate a site-ului"),
   "risk.courts.checked": bi("Court portal checked", "Portalul instanțelor verificat"),
   "risk.courts.as_plaintiff": bi(
