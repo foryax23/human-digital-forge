@@ -75,6 +75,7 @@ export const getAdminOverview = createServerFn({ method: "POST" })
       callRequests,
       feedback,
       settings,
+      credits,
     ] = await Promise.all([
       db
         .from("deep_runs")
@@ -126,6 +127,7 @@ export const getAdminOverview = createServerFn({ method: "POST" })
         .order("created_at", { ascending: false })
         .limit(50),
       deepSettings(),
+      db.from("deep_credits").select("user_id, plan, credits, updated_at"),
     ]);
     const runRows = (runs.data ?? []) as {
       spent_usd: number;
@@ -154,6 +156,7 @@ export const getAdminOverview = createServerFn({ method: "POST" })
       leads: leads.data ?? [],
       profiles: profiles.data ?? [],
       subscribers: subs.data ?? [],
+      credits: (credits.data ?? []) as { user_id: string; plan: string; credits: number }[],
       projects: projects.data ?? [],
       messages: messages.data ?? [],
     };
@@ -229,4 +232,43 @@ export const replyToClient = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+/** Checks a plan gives when an admin sets it. */
+export const PLAN_CHECKS = { free: 1, premium: 4 } as const;
+
+/**
+ * Sets an account's deep-research plan and/or its checks left. Choosing a plan resets the
+ * checks to that plan's amount (free 1, premium 4); "credits" sets an exact number.
+ */
+export const setDeepCredits = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        plan: z.enum(["free", "premium"]).optional(),
+        credits: z.number().int().min(0).max(1000).optional(),
+      })
+      .refine((v) => v.plan !== undefined || v.credits !== undefined)
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const db = await adminDb(context);
+    const { data: existing } = await db
+      .from("deep_credits")
+      .select("plan, credits")
+      .eq("user_id", data.userId)
+      .maybeSingle();
+    const plan = data.plan ?? (existing?.plan as "free" | "premium" | undefined) ?? "free";
+    const credits = data.credits ?? (data.plan ? PLAN_CHECKS[data.plan] : (existing?.credits ?? 1));
+    const { error } = await db.from("deep_credits").upsert({
+      user_id: data.userId,
+      plan,
+      credits,
+      updated_at: new Date().toISOString(),
+      updated_by: context.userId,
+    });
+    if (error) throw new Error("Could not save the plan");
+    return { ok: true, plan, credits };
   });

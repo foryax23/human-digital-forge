@@ -59,6 +59,8 @@ export type DeepAccess = {
   budgetUsd: number;
   /** DEEP_ENTRY_PUBLIC or allowed. */
   entryVisible: boolean;
+  /** The account's deep-check plan and checks left (admin-managed; a new account is free with 1). */
+  credits?: { plan: "free" | "premium"; left: number };
   admin?: {
     todayUsd: number;
     dayCapUsd: number;

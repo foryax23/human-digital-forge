@@ -258,15 +258,17 @@ export function ticketAdmitted(
   // check makes no I/O, and emptying DEEP_RESEARCH_ADMIN_EMAILS revokes it at the next step.
   if (via === "admin") return isAdmin || (adminBy === "email" && config.adminEmails.length > 0);
   if (isAdmin) return true;
+  // Admin-granted deep checks: the check was spent at start, so the run continues in any mode.
+  if (via === "premium" || via === "free") return true;
   switch (config.mode) {
     case "code":
       // Premium subscribers are admitted in code mode too (A4).
-      return via === "code" || via === "premium";
+      return via === "code";
     case "open":
       return via === "code" || via === "open";
     case "premium":
       // "free": the account's free Premium report (D24), admitted for the run it started.
-      return via === "code" || via === "premium" || via === "free";
+      return via === "code";
     default:
       return false;
   }

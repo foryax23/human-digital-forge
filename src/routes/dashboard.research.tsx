@@ -163,6 +163,9 @@ function StartCard({ access }: { access: DeepAccess }) {
         </Link>
       </p>
       <p className="mt-4 text-xs text-muted-foreground">
+        {access.credits && !access.admin
+          ? `${t("Deep checks left:", "Verificări rămase:")} ${access.credits.left} (${access.credits.plan === "premium" ? "Premium" : t("Free", "Gratuit")}) · `
+          : null}
         {t("Runs left today:", "Rulări rămase azi:")} {access.runsLeftToday}
         {access.admin ? ` · ${t("admin", "admin")}` : ""}
         {` · ${access.ai ? t("text drafted with AI", "text redactat cu AI") : t("rule-based, no AI", "pe reguli, fără AI")}`}

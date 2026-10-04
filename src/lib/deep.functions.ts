@@ -383,7 +383,9 @@ export const startDeepRun = createServerFn({ method: "POST" })
     if (!access.allowed || !access.via) return { ok: false, reason: access.reason ?? "admin_only" };
     // Lazy retention, at most once an hour per isolate (A6).
     await store.purgeIfDue().catch(() => undefined);
-    return engineStart(engineDeps(config, secret), {
+    const credit = access.useCredit ? await spendDeepCheck(context.userId) : null;
+    if (credit && !credit.ok) return { ok: false, reason: "premium_required" };
+    const out = await engineStart(engineDeps(config, secret), {
       uid: context.userId,
       via: access.via,
       adminBy: access.adminBy,
@@ -394,7 +396,22 @@ export const startDeepRun = createServerFn({ method: "POST" })
       consent: deepConsentRecord(data.consent.lang ?? data.lang, data.consent.marketing),
       userCap: access.via === "admin" ? config.adminDailyCap : config.userDailyCap,
     });
+    // A run that did not start gives its check back.
+    if (credit?.ok && !out.ok) await credit.refund();
+    return out;
   });
+
+/** Spends one deep check atomically (service role); refund() returns it. */
+async function spendDeepCheck(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin.rpc("deep_use_credit", { _uid: userId });
+  return {
+    ok: !error && data === true,
+    refund: async () => {
+      await supabaseAdmin.rpc("deep_refund_credit", { _uid: userId });
+    },
+  };
+}
 
 export const deepStep = createServerFn({ method: "POST" })
   .middleware([bodyLimit, requireSupabaseAuth])
