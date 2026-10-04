@@ -25,7 +25,7 @@ export function NoteRef({
       <a
         href={`#${idPrefix}-${n}`}
         aria-label={t(`Note ${n}`, `Nota ${n}`)}
-        className="type-pnum rounded-sm px-px text-fg-3 no-underline transition-colors hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-line/55"
+        className="type-pnum rounded-sm px-px text-fg-3 no-underline transition-colors hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-line"
       >
         {n}
       </a>

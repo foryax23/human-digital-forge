@@ -26,8 +26,8 @@ export function ProcessSection() {
     {
       title: t("Work begins", "Începem lucrul"),
       description: t(
-        "Follow the progress and leave feedback from your client area.",
-        "Vezi cum avansează proiectul și ne lași păreri din contul tău de client.",
+        "Follow the progress and files in your client area; send us feedback by e-mail.",
+        "Vezi în contul tău stadiul proiectului și fișierele; părerile ni le trimiți pe e-mail.",
       ),
     },
     {

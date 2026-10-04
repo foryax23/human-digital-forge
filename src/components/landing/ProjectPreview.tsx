@@ -381,7 +381,7 @@ function PreviewStage({ project, title }: { project: Project; title: string }) {
               )
                 takeOver();
             }}
-            className="absolute inset-0 overflow-y-auto overscroll-contain bg-background outline-none [scrollbar-color:rgb(255_255_255/0.2)_transparent] [scrollbar-width:thin] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-line/55"
+            className="absolute inset-0 overflow-y-auto overscroll-contain bg-background [scrollbar-color:rgb(255_255_255/0.2)_transparent] [scrollbar-width:thin] focus-visible:outline-2 focus-visible:outline-solid focus-visible:-outline-offset-2 focus-visible:outline-brand-line"
             style={heroBackdrop}
           >
             <img

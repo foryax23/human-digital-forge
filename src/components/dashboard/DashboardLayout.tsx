@@ -10,7 +10,6 @@ import {
   CreditCard,
   Settings,
   LogOut,
-  Bell,
   Menu,
   ShieldCheck,
   Telescope,
@@ -20,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { LOGO_NAV } from "@/components/landing/media";
+import { FOCUS_RING } from "@/components/system/tone";
+import { MAIN_ID } from "@/components/system/skip-link";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +47,11 @@ const navItems: NavItem[] = [
   { label: ["My projects", "Proiectele mele"], icon: FolderKanban, to: "/dashboard/projects" },
   { label: ["Messages", "Mesaje"], icon: MessagesSquare, to: "/dashboard/messages" },
   { label: ["Files", "Fișiere"], icon: Files, to: "/dashboard/files" },
-  { label: ["Consultations", "Discuții"], icon: CalendarCheck, to: "/dashboard/consultations" },
+  {
+    label: ["Consultations", "Consultații"],
+    icon: CalendarCheck,
+    to: "/dashboard/consultations",
+  },
   { label: ["Billing", "Facturare"], icon: CreditCard, to: "/dashboard/billing" },
   { label: ["Settings", "Setări"], icon: Settings, to: "/dashboard/settings" },
 ];
@@ -78,15 +83,18 @@ function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: 
           <Link
             key={item.to}
             to={item.to}
+            // Exact, so "Pe scurt" (/dashboard) is not also the current page on every subpage.
+            activeOptions={{ exact: true }}
             onClick={onNavigate}
             className={cn(
               "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+              FOCUS_RING,
               active
                 ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
                 : "text-sidebar-foreground hover:bg-sidebar-accent/60",
             )}
           >
-            <item.icon className="h-4 w-4" />
+            <item.icon aria-hidden className="h-4 w-4" />
             {t(...item.label)}
           </Link>
         );
@@ -97,9 +105,12 @@ function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: 
           onNavigate?.();
           onLogout();
         }}
-        className="mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-sidebar-foreground hover:bg-sidebar-accent/60"
+        className={cn(
+          "mt-2 flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-sidebar-foreground hover:bg-sidebar-accent/60",
+          FOCUS_RING,
+        )}
       >
-        <LogOut className="h-4 w-4" />
+        <LogOut aria-hidden className="h-4 w-4" />
         {t("Log out", "Ieșire")}
       </button>
     </nav>
@@ -108,8 +119,9 @@ function NavList({ onNavigate, onLogout }: { onNavigate?: () => void; onLogout: 
 
 /** The nav's wordmark file on the dark sidebar; no tile, no glow. */
 function SidebarBrand() {
+  const { t } = useI18n();
   return (
-    <Link to="/" className="flex items-center rounded-md px-2 py-1">
+    <Link to="/" className={cn("flex items-center self-start rounded-md px-2 py-1", FOCUS_RING)}>
       <picture className="contents">
         <source type="image/webp" srcSet={LOGO_NAV.webp} />
         <img
@@ -121,6 +133,7 @@ function SidebarBrand() {
           className="block h-8 w-auto"
         />
       </picture>
+      <span className="sr-only">{t(", home page", ", pagina principală")}</span>
     </Link>
   );
 }
@@ -148,7 +161,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-6 bg-sidebar p-4 lg:flex">
+      {/* The sidebar is a dark surface on the light theme: `cinematic` gives it the night
+          tokens, so the focus ring is the night violet (the light one is 3.3:1 on it). */}
+      <aside
+        aria-label={t("Account menu", "Meniul contului")}
+        className="cinematic sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-6 bg-sidebar p-4 lg:flex"
+      >
         <SidebarBrand />
         <NavList onLogout={handleLogout} />
       </aside>
@@ -162,13 +180,19 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="lg:hidden"
+                  // 44 px: the main control on a phone.
+                  className="size-11 lg:hidden"
                   aria-label={t("Open menu", "Deschide meniul")}
                 >
-                  <Menu />
+                  <Menu aria-hidden />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-72 bg-sidebar p-4">
+              <SheetContent
+                side="left"
+                closeLabel={t("Close menu", "Închide meniul")}
+                aria-describedby={undefined}
+                className="cinematic w-72 bg-sidebar p-4"
+              >
                 <SheetTitle className="sr-only">
                   {t("Dashboard navigation", "Navigare în cont")}
                 </SheetTitle>
@@ -183,18 +207,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </p>
           </div>
 
+          {/* No notification bell: nothing sends workspace notifications yet. */}
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label={t("Notifications", "Notificări")}
-              className="relative"
-            >
-              <Bell />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
-            </Button>
+            <span className="hidden max-w-[16rem] truncate text-sm text-fg-2 md:block">
+              {user?.email}
+            </span>
             <span
-              className="grid h-9 w-9 place-items-center rounded-full bg-primary/15 text-sm font-semibold text-primary"
+              aria-hidden
+              className="grid h-9 w-9 place-items-center rounded-full bg-fill-3 text-sm font-semibold text-fg"
               title={displayName}
             >
               {initials || "VH"}
@@ -202,7 +222,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+        <main id={MAIN_ID} tabIndex={-1} className="flex-1 p-4 sm:p-6 lg:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );

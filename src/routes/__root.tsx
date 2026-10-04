@@ -10,6 +10,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { preconnect } from "react-dom";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -26,6 +27,7 @@ import {
 import { getRequestLanguage } from "@/i18n/request-language";
 import { Toaster } from "@/components/ui/sonner";
 import { CookieConsent } from "@/components/cookies/CookieConsent";
+import { MAIN_ID, SkipLink } from "@/components/system/skip-link";
 
 /** The language the root loader chose, readable outside LanguageProvider (error and 404 views). */
 function useRootLanguage() {
@@ -35,7 +37,11 @@ function useRootLanguage() {
 function NotFoundComponent() {
   const lang = useRootLanguage();
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <main
+      id={MAIN_ID}
+      tabIndex={-1}
+      className="flex min-h-screen items-center justify-center bg-background px-4"
+    >
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">
@@ -57,7 +63,7 @@ function NotFoundComponent() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -70,7 +76,11 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <main
+      id={MAIN_ID}
+      tabIndex={-1}
+      className="flex min-h-screen items-center justify-center bg-background px-4"
+    >
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           {pick(lang, "This page didn't load", "Pagina nu s-a încărcat")}
@@ -100,7 +110,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
           </a>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -133,13 +143,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon.png" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      // The preconnects for these fonts are emitted by RootShell (first in <head>). Only the
+      // weights in use: DM Sans 400–700 (nothing sets 300), JetBrains Mono 400–600 (the ASCII
+      // atlas draws 400/500/600), Space Grotesk 400–700. swap: text shows in the fallback font
+      // until the files arrive.
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap",
       },
-
       {
         rel: "stylesheet",
         href: appCss,
@@ -154,6 +165,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   const lang = useRootLanguage();
+  // React puts these right after charset/viewport, ahead of every stylesheet and preload, so
+  // the font file host (gstatic, CORS) is connected before the Google CSS names the files.
+  preconnect("https://fonts.googleapis.com");
+  preconnect("https://fonts.gstatic.com", { crossOrigin: "anonymous" });
   return (
     <html lang={LOCALE[lang].html}>
       <head>
@@ -175,9 +190,12 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider initialLang={lang}>
         <AuthProvider>
+          {/* The first Tab stop, then the cookie choice (fixed at the bottom, but first in
+              the Tab order while it is open), then the page. */}
+          <SkipLink />
+          <CookieConsent />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
-          <CookieConsent />
           <Toaster />
         </AuthProvider>
       </LanguageProvider>

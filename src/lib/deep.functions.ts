@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { notifyIntake } from "@/lib/notify/index.server";
 import { normalizeVerificationCode, storedReportGenuine } from "@/lib/deep/attest.server";
 import {
   DEEP_LIMITS,
@@ -668,6 +669,7 @@ export const requestDeepCall = createServerFn({ method: "POST" })
           email,
           cui: guard.run.cui ?? "",
         });
+        void notifyIntake({ kind: "deep_call", ...data, email, cui: guard.run.cui ?? "" });
         return { ok: true };
       } catch (error) {
         // Three "Sună-mă" requests a day per account (persist-db.server.ts).

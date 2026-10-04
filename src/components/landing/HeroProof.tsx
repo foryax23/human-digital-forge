@@ -24,7 +24,7 @@ export function HeroProof({ className }: { className?: string }) {
         <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-echo" /* dot */ />
         {t(`${count} live projects launched`, `${count} proiecte lansate`)}
       </span>
-      <span className="type-label flex items-center gap-1.5 pl-3.5 text-white/45 transition-colors group-hover/proof:text-white/80">
+      <span className="type-label flex items-center gap-1.5 pl-3.5 text-white/60 transition-colors group-hover/proof:text-white/85">
         {t("See the projects", "Vezi proiectele")}
         <span
           aria-hidden

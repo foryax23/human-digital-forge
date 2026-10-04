@@ -187,7 +187,7 @@ export function HeroPillars({
                   onBlur={() => release(index)}
                   className={cn(
                     styles.pillar,
-                    "group/pillar relative flex w-full flex-col items-center gap-2 rounded-lg px-1 pb-4 pt-2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-hero-lilac/50 sm:w-28 sm:gap-2.5 sm:px-2 2xl:w-32",
+                    "group/pillar relative flex w-full flex-col items-center gap-2 rounded-lg px-1 pb-4 pt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-lilac/75 sm:w-28 sm:gap-2.5 sm:px-2 2xl:w-32",
                   )}
                 >
                   <PillarIcon

@@ -2,10 +2,11 @@ import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } fr
 import { Download } from "lucide-react";
 
 import { useI18n } from "@/i18n";
-import { saveScanLead } from "@/lib/scan.functions";
+import { saveScanLead, type ScanLeadResult } from "@/lib/scan.functions";
 import { LEAD_NOTICE, LEAD_NOTICE_VERSION, LEAD_PRIVACY_URL } from "@/lib/scan/legal/lead-notice";
 import type { Blueprint, Lang } from "@/lib/scan/types";
 import { PDF_GENERATING_VIDEO } from "@/components/landing/media";
+import { TurnstileField, type TurnstileHandle } from "@/components/forms/TurnstileField";
 import { defaultPdfLang } from "@/components/scan/pdf/language";
 import { Button, CheckboxField, Field, keepHyphens, SegmentedControl } from "@/components/system";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -14,6 +15,9 @@ import { Input } from "@/components/ui/input";
 import { useScanMotion } from "./report/motion";
 
 type Phase = "form" | "saving" | "generating" | "done" | "error";
+
+/** Why the details were not kept (the PDF is delivered either way). */
+type LeadIssue = Exclude<ScanLeadResult, { ok: true }>["reason"];
 
 /** The brand animation stays on screen at least this long, so it reads as a moment, not a flash. */
 const MIN_GENERATING_MS = 1200;
@@ -73,8 +77,10 @@ function useSheet() {
  * optional marketing choice, then the PDF is designed in the browser, in the
  * language the visitor picks (Romanian by default for Romanian sites), and
  * downloaded. Marketing consent is never a condition of the download. If
- * saving the lead fails (e.g. local dev without the service key) the download
- * still happens, with a quiet note.
+ * saving the lead fails (e.g. local dev without the service key, too many
+ * requests, a failed anti-spam check) the download still happens, with a quiet
+ * note that says why. When Turnstile is on and Cloudflare asks for a click, the
+ * form waits for it.
  */
 export function LeadGateDialog({
   blueprint,
@@ -91,8 +97,12 @@ export function LeadGateDialog({
   const notice = LEAD_NOTICE[lang];
   const formId = useId();
   const [phase, setPhase] = useState<Phase>("form");
-  const [leadSaved, setLeadSaved] = useState(true);
+  const [leadIssue, setLeadIssue] = useState<LeadIssue | null>(null);
+  const leadSaved = leadIssue === null;
   const [error, setError] = useState<string | null>(null);
+  const [checkError, setCheckError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  const turnstile = useRef<TurnstileHandle>(null);
   const [marketing, setMarketing] = useState(false);
   // The visitor's own pick; until they make one, the PDF follows the site's language.
   const [picked, setPicked] = useState<Lang | null>(null);
@@ -112,6 +122,7 @@ export function LeadGateDialog({
   useEffect(() => {
     setPhase("form");
     setError(null);
+    setCheckError(null);
     setPicked(null);
   }, [blueprint.id]);
 
@@ -152,13 +163,30 @@ export function LeadGateDialog({
     }
     const marketingConsent = marketing;
     setError(null);
+    setCheckError(null);
+
+    // Turnstile, when it is on. The form stays up while it answers (the box lives in it).
+    // Only a click it is waiting for stops the download; a check that cannot load lets it
+    // go on, and the server then keeps no details.
+    setChecking(true);
+    const check = (await turnstile.current?.check()) ?? { needed: false as const };
+    setChecking(false);
+    if (check.needed && check.token === null && check.problem === "interaction") {
+      setCheckError(
+        t(
+          "Tick the check box above, then download again.",
+          "Bifează caseta de verificare de mai sus, apoi descarcă din nou.",
+        ),
+      );
+      return;
+    }
     setPhase("saving");
 
     const cui = blueprint.company?.cui;
     const website = blueprint.audit?.finalUrl ?? blueprint.company?.website ?? blueprint.target.url;
-    let saved = true;
+    let issue: LeadIssue | null = null;
     try {
-      await saveScanLead({
+      const result = await saveScanLead({
         data: {
           email,
           fullName: fullName ? fullName.slice(0, 120) : undefined,
@@ -175,13 +203,18 @@ export function LeadGateDialog({
             website: website ? website.slice(0, 2048) : undefined,
             cui: cui && /^\d{2,10}$/.test(cui) ? cui : undefined,
           },
+          turnstileToken: check.needed && check.token ? check.token : undefined,
         },
       });
+      if (!result.ok) {
+        console.warn(`[scan] lead not saved (${result.reason}); continuing with the download`);
+        issue = result.reason;
+      }
     } catch (err) {
       console.warn("[scan] lead not saved; continuing with the download", err);
-      saved = false;
+      issue = "unavailable";
     }
-    setLeadSaved(saved);
+    setLeadIssue(issue);
     await generate(pdfLang);
   };
 
@@ -204,12 +237,22 @@ export function LeadGateDialog({
     );
     body = (
       <div className="flex flex-col items-start gap-3">
-        {!leadSaved ? (
+        {leadIssue ? (
           <p className="text-[0.8125rem] leading-[1.45] text-fg-3">
-            {t(
-              "We couldn't save your details just now, so we won't follow up. The PDF is yours either way.",
-              "Nu am putut salva datele acum, așa că nu te vom contacta. PDF-ul rămâne al tău.",
-            )}
+            {leadIssue === "rate_limited"
+              ? t(
+                  "Too many requests in the last few minutes, so this time we didn't save your details and won't follow up. The PDF is yours either way.",
+                  "Prea multe cereri în ultimele minute, așa că de data aceasta nu am salvat datele și nu te vom contacta. PDF-ul rămâne al tău.",
+                )
+              : leadIssue === "verification"
+                ? t(
+                    "The anti-spam check didn't go through, so we didn't save your details and won't follow up. The PDF is yours either way.",
+                    "Verificarea anti-spam nu a trecut, așa că nu am salvat datele și nu te vom contacta. PDF-ul rămâne al tău.",
+                  )
+                : t(
+                    "We couldn't save your details just now, so we won't follow up. The PDF is yours either way.",
+                    "Nu am putut salva datele acum, așa că nu te vom contacta. PDF-ul rămâne al tău.",
+                  )}
           </p>
         ) : null}
         <Button
@@ -351,6 +394,13 @@ export function LeadGateDialog({
           onCheckedChange={(value) => setMarketing(value === true)}
           label={keepHyphens(notice.marketing)}
         />
+        {/* Nothing here unless Turnstile is on (TURNSTILE_SITE_KEY); usually invisible even then. */}
+        <TurnstileField ref={turnstile} action="lead" />
+        {checkError ? (
+          <p role="alert" className="text-[0.8125rem] leading-[1.45] text-bad">
+            {checkError}
+          </p>
+        ) : null}
       </form>
     );
     footer = (
@@ -361,8 +411,8 @@ export function LeadGateDialog({
         <Button
           type="submit"
           form={formId}
-          loading={busy}
-          disabled={busy}
+          loading={busy || checking}
+          disabled={busy || checking}
           aria-describedby={busy ? undefined : `${formId}-notice`}
           icon={<Download aria-hidden />}
           className="w-full sm:w-auto"

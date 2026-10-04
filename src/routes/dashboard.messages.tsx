@@ -1,218 +1,178 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Loader2, MessagesSquare, Send } from "lucide-react";
-import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth/AuthProvider";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { SIGNATORY } from "@/components/deep/contact";
+import { LoadError, Loading, PageHeader } from "@/components/dashboard/PageHeader";
+import { formatShort } from "@/components/dashboard/format";
+import { Panel, PanelBody, PanelDivider, PanelHeader, buttonClass } from "@/components/system";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
+import { COMPANY } from "@/lib/scan/legal/company";
 import type { MessageRow } from "@/hooks/use-dashboard-data";
+
+/*
+ * Messages: the chat is retired. A client's message never reached the team (the admin panel
+ * lists messages only under a project, and nothing alerted anyone), so clients write by
+ * e-mail. Replies the team already sent from the admin panel stay readable here.
+ */
 
 export const Route = createFileRoute("/dashboard/messages")({
   component: MessagesPage,
 });
 
-function formatWhen(value: string) {
-  return new Date(value).toLocaleString(undefined, {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function mailtoHref(email: string | null | undefined, lang: "ro" | "en") {
+  const subject =
+    lang === "ro" ? "Mesaj din contul Vortex Hub" : "Message from my Vortex Hub account";
+  const body = email
+    ? lang === "ro"
+      ? `\n\n\nContul meu: ${email}`
+      : `\n\n\nMy account: ${email}`
+    : "";
+  return `mailto:${COMPANY.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function EmailPanel() {
+  const { t, lang } = useI18n();
+  const { user } = useAuth();
+  const phone = SIGNATORY.phone;
+  const whatsapp = SIGNATORY.whatsapp;
+  return (
+    <Panel as="section" aria-labelledby="messages-email">
+      <PanelHeader
+        titleAs="h2"
+        titleId="messages-email"
+        title={t("Write to us by e-mail", "Scrie-ne pe e-mail")}
+        sub={t("We reply within one working day.", "Îți răspundem într-o zi lucrătoare.")}
+      />
+      <PanelBody className="grid gap-4">
+        <p className="type-body-sm max-w-[60ch] text-fg-2">
+          {t(
+            "For a question about a project, a change or an invoice, send us an e-mail from the address of this account, so we know who is writing.",
+            "Pentru o întrebare despre un proiect, o modificare sau o factură, trimite-ne un e-mail de pe adresa acestui cont, ca să știm cine ne scrie.",
+          )}
+        </p>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <a href={mailtoHref(user?.email, lang)} className={buttonClass("primary", "md")}>
+            {t("Write an e-mail", "Scrie un e-mail")}
+          </a>
+          <a
+            href={`mailto:${COMPANY.email}`}
+            className="type-body-sm text-fg-2 underline decoration-fg/30 underline-offset-4 hover:decoration-fg"
+          >
+            {COMPANY.email}
+          </a>
+        </div>
+        {phone || whatsapp ? (
+          <p className="type-body-sm text-fg-3">
+            {whatsapp ? (
+              <a
+                href={`https://wa.me/${whatsapp}`}
+                className="text-fg-2 underline decoration-fg/30 underline-offset-4 hover:decoration-fg"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                WhatsApp
+              </a>
+            ) : null}
+            {phone && whatsapp ? " · " : null}
+            {phone ? (
+              <a
+                href={`tel:${phone.replace(/[^\d+]/g, "")}`}
+                className="text-fg-2 underline decoration-fg/30 underline-offset-4 hover:decoration-fg"
+              >
+                {phone}
+              </a>
+            ) : null}
+          </p>
+        ) : null}
+      </PanelBody>
+    </Panel>
+  );
 }
 
 function MessagesPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { user } = useAuth();
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
-  const [sending, setSending] = useState(false);
-  const endRef = useRef<HTMLDivElement>(null);
-
-  async function loadMessages() {
-    setLoading(true);
-    const { data, error: err } = await supabase
-      .from("messages")
-      .select("id, body, sender, read, created_at")
-      .order("created_at", { ascending: true });
-    if (err) {
-      console.error("[messages] load failed", err);
-      setError(
-        t(
-          "We couldn't load your messages. Please refresh to try again.",
-          "Nu am putut încărca mesajele tale. Te rugăm să reîmprospătezi pagina.",
-        ),
-      );
-    } else {
-      setError(null);
-      setMessages((data as MessageRow[]) ?? []);
-    }
-    setLoading(false);
-  }
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    void loadMessages();
-
-    const channel = supabase
-      .channel(`messages:${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          const incoming = payload.new as MessageRow;
-          setMessages((prev) =>
-            prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming],
-          );
-        },
-      )
-      .subscribe();
-
+    let live = true;
+    void (async () => {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("id, body, sender, read, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (!live) return;
+      if (error) console.error("[messages] load failed", error);
+      setFailed(Boolean(error));
+      setMessages((data as MessageRow[] | null) ?? []);
+      setLoading(false);
+    })();
     return () => {
-      void supabase.removeChannel(channel);
+      live = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  async function handleSend(event: React.FormEvent) {
-    event.preventDefault();
-    const body = draft.trim();
-    if (!body || !user) return;
-
-    setSending(true);
-    try {
-      const { data, error: err } = await supabase
-        .from("messages")
-        .insert({ user_id: user.id, body, sender: "client", read: true })
-        .select("id, body, sender, read, created_at")
-        .single();
-      if (err) throw err;
-      setMessages((prev) => [...prev, data as MessageRow]);
-      setDraft("");
-    } catch (err) {
-      console.error("[messages] send failed", err);
-      toast.error(
-        t(
-          "Your message didn't send. Please try again.",
-          "Mesajul nu a fost trimis. Te rugăm să încerci din nou.",
-        ),
-      );
-    } finally {
-      setSending(false);
-    }
-  }
-
   return (
-    <div className="mx-auto flex max-w-3xl flex-col">
-      <h1 className="text-3xl">{t("Messages", "Mesaje")}</h1>
-      <p className="mt-1 text-muted-foreground">
-        {t("Talk directly with your Vortex Hub team.", "Discută direct cu echipa ta Vortex Hub.")}
-      </p>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader
+        title={t("Messages", "Mesaje")}
+        lead={t(
+          "Write to us by e-mail. Replies the team posts on your projects also show here.",
+          "Ne scrii pe e-mail. Răspunsurile echipei la proiectele tale apar și aici.",
+        )}
+      />
 
-      {loading && (
-        <div className="mt-16 flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      )}
+      <EmailPanel />
 
-      {!loading && error && (
-        <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
-          {error}
-        </div>
-      )}
+      {loading ? <Loading label={t("Loading messages", "Se încarcă mesajele")} /> : null}
 
-      {!loading && !error && (
-        <>
-          {messages.length === 0 ? (
-            <div className="mt-8 rounded-xl border border-dashed border-border bg-card p-10 text-center">
-              <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-teal/15 text-teal">
-                <MessagesSquare className="h-6 w-6" />
-              </span>
-              <h2 className="mt-4 text-2xl">{t("Start the conversation", "Începe conversația")}</h2>
-              <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-                {t(
-                  "Send your first message below and your team will reply here.",
-                  "Trimite primul tău mesaj mai jos și echipa ta va răspunde aici.",
-                )}
-              </p>
-            </div>
-          ) : (
-            <ul className="mt-8 space-y-3">
-              {messages.map((message) => {
-                const mine = message.sender === "client";
-                return (
-                  <li
-                    key={message.id}
-                    className={cn("flex", mine ? "justify-end" : "justify-start")}
-                  >
-                    <div
-                      className={cn(
-                        "max-w-[80%] rounded-xl border p-4",
-                        mine ? "border-primary/30 bg-primary/10" : "border-border bg-card",
-                      )}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-medium">
-                          {mine ? t("You", "Tu") : "Vortex Hub"}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatWhen(message.created_at)}
-                        </span>
-                      </div>
-                      <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
-                        {message.body}
-                      </p>
-                    </div>
-                  </li>
-                );
-              })}
-              <div ref={endRef} />
-            </ul>
+      {!loading && failed ? (
+        <LoadError>
+          {t(
+            "We couldn't load earlier messages. Refresh the page to try again.",
+            "Nu am putut încărca mesajele anterioare. Reîncarcă pagina ca să încerci din nou.",
           )}
+        </LoadError>
+      ) : null}
 
-          <form onSubmit={handleSend} className="mt-6 rounded-xl border border-border bg-card p-4">
-            <Textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder={t("Write a message to your team…", "Scrie un mesaj echipei tale…")}
-              rows={3}
-              className="resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                  void handleSend(e);
-                }
-              }}
-            />
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
-                {t("⌘/Ctrl + Enter to send", "⌘/Ctrl + Enter pentru a trimite")}
-              </span>
-              <Button type="submit" disabled={sending || !draft.trim()}>
-                {sending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-                {t("Send", "Trimite")}
-              </Button>
-            </div>
-          </form>
-        </>
-      )}
+      {!loading && !failed && messages.length > 0 ? (
+        <Panel as="section" aria-labelledby="messages-history">
+          <PanelHeader
+            titleAs="h2"
+            titleId="messages-history"
+            title={t("Earlier messages", "Mesaje anterioare")}
+            sub={t("Newest first.", "Cele mai noi primele.")}
+          />
+          <ul>
+            {messages.map((message) => {
+              const mine = message.sender === "client";
+              return (
+                <li key={message.id}>
+                  <PanelDivider />
+                  <div className="px-4 py-3 sm:px-5">
+                    <p className="type-label flex flex-wrap items-baseline gap-x-2 text-fg">
+                      {mine ? t("You", "Tu") : "Vortex Hub"}
+                      <span className="type-micro font-normal text-fg-3">
+                        {formatShort(message.created_at, lang)}
+                      </span>
+                    </p>
+                    <p className="type-body-sm mt-1 whitespace-pre-wrap break-words text-fg-2">
+                      {message.body}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </Panel>
+      ) : null}
     </div>
   );
 }

@@ -391,6 +391,15 @@ const FAILURE_NOTE = L(
   "Pasul nu s-a putut finaliza, așa că mergem mai departe fără el",
 );
 
+/** A step the server refused for too many requests (RateLimitedError in src/lib/abuse). */
+const RATE_LIMITED_NOTE = L(
+  "Too many requests. Please try again in a few minutes.",
+  "Prea multe cereri, încearcă din nou peste câteva minute.",
+);
+
+const isRateLimited = (error: unknown) =>
+  String((error as { message?: unknown } | null)?.message ?? "").startsWith("rate_limited");
+
 /** A readable name for the site when there is no company record. */
 function siteName(audit: WebsiteAudit | null | undefined) {
   const title = audit?.meta.title?.split(/\s[|–—·-]\s/)[0]?.trim();
@@ -492,11 +501,12 @@ function createRunner(io: IO, overrides: Overrides) {
           ),
         );
       } else {
-        console.warn(`[scan] step "${id}" failed`, error);
+        const limited = isRateLimited(error);
+        if (!limited) console.warn(`[scan] step "${id}" failed`, error);
         io.set((state) =>
           addNote(
             id,
-            FAILURE_NOTE,
+            limited ? RATE_LIMITED_NOTE : FAILURE_NOTE,
           )(
             patchStep(id, {
               status: "failed",

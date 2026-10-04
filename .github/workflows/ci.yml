@@ -1,0 +1,89 @@
+# Checks every push and pull request to main: types, lint, the test suites and the
+# production build. It only reads the code: no secrets, no deploy (Lovable publishes the site).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push to the same branch or pull request replaces the run in progress.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Types, lint, tests, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # The Vite build and tsx run on Node; Bun installs from bun.lock (the lockfile Lovable uses).
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Cache Bun packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - name: Install
+        id: install
+        run: bun install --frozen-lockfile
+
+      # Each check below runs even when an earlier one failed, so one run reports them all.
+      - name: Typecheck
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bunx tsc --noEmit
+
+      # Formatting is reported by its own step below: Lovable pushes unformatted code, and
+      # that alone should not turn the run red. Every other lint rule still blocks.
+      - name: Lint
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bunx eslint . --rule '{"prettier/prettier":"off"}'
+
+      - name: Formatting (Prettier, reported only)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        continue-on-error: true
+        run: bunx prettier --check src
+
+      - name: Deep Research tests
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bun run test:deep
+
+      - name: Intake tests (alerts, rate limits, caps)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bunx tsx --test tests/intake/*.test.ts
+
+      - name: Portal tests (client workspace)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bunx tsx --test tests/portal/*.test.ts
+
+      - name: Production build
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: bun run build
+
+      # Reported, not blocking: a new advisory upstream should not stop unrelated work.
+      - name: Dependency audit (high and critical)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        continue-on-error: true
+        run: bun audit --audit-level=high

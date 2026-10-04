@@ -95,8 +95,8 @@ function PrivacyPage() {
         kicker={t("Legal", "Legal")}
         title={t("Privacy Policy", "Politica de confidențialitate")}
         description={t(
-          "How we process personal data on vortexhub.dev, including in Vortex Scan and its deep research, under the EU General Data Protection Regulation (GDPR) and Romanian law, and what rights you have. Last updated: 3 October 2026 (deep research added).",
-          "Cum prelucrăm datele cu caracter personal pe vortexhub.dev, inclusiv în Vortex Scan și în cercetarea aprofundată, conform Regulamentului general privind protecția datelor (GDPR) și legislației române, și ce drepturi ai. Ultima actualizare: 3 octombrie 2026 (am adăugat cercetarea aprofundată).",
+          "How we process personal data on vortexhub.dev, including in Vortex Scan and its Deep Research reports, under the EU General Data Protection Regulation (GDPR) and Romanian law, and what rights you have. Last updated: 4 October 2026 (alert and anti-spam providers added).",
+          "Cum prelucrăm datele cu caracter personal pe vortexhub.dev, inclusiv în Vortex Scan și în cercetarea aprofundată (Deep Research), conform Regulamentului general privind protecția datelor (GDPR) și legislației române, și ce drepturi ai. Ultima actualizare: 4 octombrie 2026 (am adăugat furnizorii pentru alerte și anti-spam).",
         )}
       />
       <section className="container-vx section-y">
@@ -302,7 +302,10 @@ function PrivacyPage() {
 
             <Subsection
               id="vortex-scan-deep"
-              heading={t("Deep research (Cercetare aprofundată)", "Cercetare aprofundată")}
+              heading={t(
+                "Deep Research (Cercetare aprofundată)",
+                "Cercetare aprofundată (Deep Research)",
+              )}
             >
               <p>
                 {t(
@@ -563,6 +566,16 @@ function PrivacyPage() {
               {t(
                 "For deep research, also: Supabase stores the run records, feedback and call requests; Anthropic (United States) drafts the report text from company facts and public website text, under the EU-US Data Privacy Framework or standard contractual clauses; Google Places, only when we turn on the display of a Google rating, receives the company name and town.",
                 "Pentru cercetarea aprofundată, în plus: Supabase stochează evidența cercetărilor, părerile și cererile de discuție; Anthropic (Statele Unite) redactează textul raportului din fapte despre firmă și text public de pe site, în baza Cadrului UE-SUA privind protecția datelor sau a clauzelor contractuale standard; Google Places, doar când activăm afișarea notei Google, primește numele firmei și localitatea.",
+              )}
+            </p>
+            {/* OWNER STEP 0: this paragraph must be live before TELEGRAM_*, RESEND_API_KEY or
+                TURNSTILE_* are set in Lovable -> Cloud -> Secrets. Owner and lawyer confirm the
+                transfer bases (Telegram has no EU adequacy decision and signs no processing
+                agreement for bots). Remove a provider here only if its secrets stay unset. */}
+            <p>
+              {t(
+                "For requests sent through the site's forms (contact, report, call or consultation), once we switch these services on: Telegram tells our team about a new request in a private team chat (the name, e-mail, phone, company, tax ID, website and up to 1,500 characters of your message); Telegram operates outside the European Economic Area, so we send it only what we need to answer you, on the basis of Article 49(1)(b) GDPR. Resend (United States) delivers the same alert to our inbox and sends you a short confirmation at the address you typed, under standard contractual clauses. Cloudflare Turnstile (United States) checks that a form is not sent by a robot, using your IP address and technical data about your browser, under the EU-US Data Privacy Framework or standard contractual clauses.",
+                "Pentru cererile trimise prin formularele site-ului (contact, raport, apel sau consultație), după ce pornim aceste servicii: Telegram anunță echipa despre o cerere nouă, într-un grup privat al echipei (numele, e-mailul, telefonul, firma, CUI-ul, site-ul și cel mult 1.500 de caractere din mesajul tău); Telegram funcționează în afara Spațiului Economic European, așa că îi trimitem doar ce ne trebuie ca să-ți răspundem, în baza art. 49 alin. (1) lit. (b) GDPR. Resend (Statele Unite) trimite aceeași alertă pe e-mailul echipei și îți trimite o scurtă confirmare la adresa pe care ai scris-o, în baza clauzelor contractuale standard. Cloudflare Turnstile (Statele Unite) verifică dacă formularul nu e trimis de un robot, folosind adresa ta IP și date tehnice despre browser, în baza Cadrului UE-SUA privind protecția datelor sau a clauzelor contractuale standard.",
               )}
             </p>
             {/* OWNER DECISION PENDING (plan D22): Lovable's built-in visitor statistics. Remove this

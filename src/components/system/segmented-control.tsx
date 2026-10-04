@@ -72,7 +72,7 @@ export function SegmentedControl<T extends string>({
             onClick={() => onChange(option.value)}
             className={cn(
               "inline-flex h-[26px] min-w-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-md px-2.5 font-sans text-[0.8125rem] font-medium leading-none",
-              "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-line/55",
+              "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-line",
               active
                 ? "bg-fill-3 text-fg shadow-[0_1px_0_rgb(0_0_0/0.3)]"
                 : "text-fg-3 hover:text-fg-2",

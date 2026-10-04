@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { assertScanAllowed, dailyCapAllows, guardForm } from "@/lib/abuse/index.server";
+import { notifyIntake } from "@/lib/notify/index.server";
 import { lookupAnaf } from "@/lib/scan/anaf.server";
 import { auditWebsite } from "@/lib/scan/audit/index.server";
 import { runPageSpeed } from "@/lib/scan/audit/pagespeed.server";
@@ -15,6 +17,10 @@ import type { Blueprint, CompanyProfile, OnlinePresence, WebsiteAudit } from "@/
  * Vortex Scan server functions. The browser runs a scan as a series of short
  * calls (identify → discover → audit ‖ pagespeed → blueprint), so each one
  * stays well inside the Worker's limits and the UI can animate every step.
+ *
+ * Every call counts against a per-address limit (src/lib/abuse/limits.server.ts); over it,
+ * a step throws "rate_limited: …" (PageSpeed returns null instead). Brave Search and
+ * PageSpeed also have daily caps shared by all visitors.
  */
 
 const cuiSchema = z.string().regex(/^\d{2,10}$/);
@@ -26,7 +32,10 @@ const urlSchema = z
 /** Official company details from ANAF for a CUI (null when ANAF has none). */
 export const lookupCompany = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ cui: cuiSchema }).parse(input))
-  .handler(async ({ data }): Promise<CompanyProfile | null> => lookupAnaf(data.cui));
+  .handler(async ({ data }): Promise<CompanyProfile | null> => {
+    await assertScanAllowed("scan.company");
+    return lookupAnaf(data.cui);
+  });
 
 /** Finds and verifies the company's website when the visitor didn't give one. */
 export const findCompanyWebsite = createServerFn({ method: "POST" })
@@ -42,7 +51,10 @@ export const findCompanyWebsite = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => discoverWebsite(data));
+  .handler(async ({ data }) => {
+    await assertScanAllowed("scan.discover");
+    return discoverWebsite(data, { searchAllowed: () => dailyCapAllows("brave") });
+  });
 
 /** Crawls a few pages of the site and runs the deterministic checks. */
 export const scanWebsite = createServerFn({ method: "POST" })
@@ -51,12 +63,23 @@ export const scanWebsite = createServerFn({ method: "POST" })
       .object({ url: urlSchema, cui: cuiSchema.optional(), name: z.string().max(200).optional() })
       .parse(input),
   )
-  .handler(async ({ data }): Promise<WebsiteAudit> => auditWebsite(data));
+  .handler(async ({ data }): Promise<WebsiteAudit> => {
+    await assertScanAllowed("scan.website");
+    return auditWebsite(data);
+  });
 
 /** Lighthouse scores and Core Web Vitals via the PageSpeed Insights API. */
 export const scanPageSpeed = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ url: urlSchema }).parse(input))
-  .handler(async ({ data }) => runPageSpeed(data.url, "mobile"));
+  .handler(async ({ data }) => {
+    // Over the limit, the scan goes on without Lighthouse, as when PageSpeed is down.
+    const allowed = await assertScanAllowed("scan.pagespeed").then(
+      () => true,
+      () => false,
+    );
+    if (!allowed) return null;
+    return runPageSpeed(data.url, "mobile", { allowed: () => dailyCapAllows("pagespeed") });
+  });
 
 /**
  * Online presence: the company's own site plus the social profiles it links
@@ -73,7 +96,10 @@ export const scanPresence = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }): Promise<OnlinePresence> => detectPresence(data));
+  .handler(async ({ data }): Promise<OnlinePresence> => {
+    await assertScanAllowed("scan.presence");
+    return detectPresence(data);
+  });
 
 /**
  * Builds the blueprint from the playbooks — deterministic and free. Claude
@@ -112,7 +138,10 @@ export const createBlueprint = createServerFn({ method: "POST" })
       .refine((value) => JSON.stringify(value).length < 400_000, "Scan data too large")
       .parse(input),
   )
-  .handler(async ({ data }): Promise<Blueprint> => buildRulesBlueprint(data));
+  .handler(async ({ data }): Promise<Blueprint> => {
+    await assertScanAllowed("scan.blueprint");
+    return buildRulesBlueprint(data);
+  });
 
 const leadSchema = z.object({
   email: z.string().email().max(200),
@@ -137,7 +166,19 @@ const leadSchema = z.object({
     website: z.string().max(2048).optional(),
     cui: cuiSchema.optional(),
   }),
+  /** Cloudflare Turnstile's token, when the widget is on (TURNSTILE_SITE_KEY). */
+  turnstileToken: z.string().max(2048).optional(),
 });
+
+/**
+ * The lead gate's answer. Refusals are answers, not errors: the dialog still delivers the
+ * PDF and says why the details were not kept.
+ */
+export type ScanLeadResult =
+  | { ok: true }
+  | { ok: false; reason: "rate_limited"; retryAfterSec: number }
+  | { ok: false; reason: "verification"; detail: "missing" | "expired" | "invalid" }
+  | { ok: false; reason: "unavailable" };
 
 /**
  * Stores the visitor who downloads the blueprint, with a record of the notice
@@ -148,25 +189,44 @@ const leadSchema = z.object({
  */
 export const saveScanLead = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => leadSchema.parse(input))
-  .handler(async ({ data }) => {
-    const { error } = await supabaseAdmin.from("audit_leads").insert({
-      email: data.email,
-      full_name: data.fullName ?? null,
-      company: data.company ?? null,
-      language: data.lang,
-      score: Math.round(data.summary.digitalMaturity),
-      recommended_tier: data.summary.recommendedPlan,
-      recommendation: `Vortex Scan blueprint ${data.blueprintId}`,
-      answers: {
-        source: "vortex-scan",
-        ...data.summary,
-        marketingConsent: data.marketingConsent,
-        consentRecord: leadConsentRecord(data.lang, data.marketingConsent),
-      },
-    });
-    if (error) {
-      console.error("[scan] lead insert failed", error);
-      throw new Error("Could not save your details. Please try again.");
+  .handler(async ({ data }): Promise<ScanLeadResult> => {
+    const refused = await guardForm("lead", data.turnstileToken);
+    if (refused) return refused;
+    try {
+      const { error } = await supabaseAdmin.from("audit_leads").insert({
+        email: data.email,
+        full_name: data.fullName ?? null,
+        company: data.company ?? null,
+        language: data.lang,
+        score: Math.round(data.summary.digitalMaturity),
+        recommended_tier: data.summary.recommendedPlan,
+        recommendation: `Vortex Scan blueprint ${data.blueprintId}`,
+        answers: {
+          source: "vortex-scan",
+          ...data.summary,
+          marketingConsent: data.marketingConsent,
+          consentRecord: leadConsentRecord(data.lang, data.marketingConsent),
+        },
+      });
+      if (error) {
+        console.error("[scan] lead insert failed", error.code ?? "", error.message ?? "");
+        return { ok: false, reason: "unavailable" };
+      }
+    } catch (error) {
+      console.error("[scan] lead insert failed", (error as Error)?.message ?? "");
+      return { ok: false, reason: "unavailable" };
     }
+    await notifyIntake({
+      kind: "scan_lead",
+      email: data.email,
+      name: data.fullName,
+      company: data.company,
+      cui: data.summary.cui,
+      website: data.summary.website,
+      recommendedPlan: data.summary.recommendedPlan,
+      digitalMaturity: data.summary.digitalMaturity,
+      marketingConsent: data.marketingConsent,
+      lang: data.lang,
+    });
     return { ok: true };
   });

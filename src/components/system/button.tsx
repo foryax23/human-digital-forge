@@ -21,18 +21,22 @@ const BASE = cn(
   FOCUS_RING,
 );
 
-// lg 40 / md 36 / sm 28; icons 16 / 16 / 14.
+// lg 40 / md 36 / sm 28; icons 16 / 16 / 14. On phones lg is 44 (the page's main actions
+// and their pairs), and so is a primary md (PRIMARY_PHONE below): touch targets of 44 px.
 const SIZES: Record<ButtonSize, string> = {
   sm: "h-7 rounded-md px-2.5 text-[0.8125rem] [&_svg]:size-3.5",
   md: "h-9 rounded-lg px-3.5 text-sm [&_svg]:size-4",
-  lg: "h-10 rounded-lg px-4 text-sm [&_svg]:size-4",
+  lg: "h-10 rounded-lg px-4 text-sm max-sm:h-11 [&_svg]:size-4",
 };
 
-// A text link keeps the type size but has no box.
+/** The one primary action per screen is a 44 px target on phones at md size too. */
+const PRIMARY_PHONE = "max-sm:h-11";
+
+// A text link keeps the type size but has no box; it is still a 24 px target (WCAG 2.5.8).
 const LINK_SIZES: Record<ButtonSize, string> = {
-  sm: "rounded-sm text-[0.8125rem] [&_svg]:size-3.5",
-  md: "rounded-sm text-sm [&_svg]:size-4",
-  lg: "rounded-sm text-sm [&_svg]:size-4",
+  sm: "min-h-6 rounded-sm text-[0.8125rem] [&_svg]:size-3.5",
+  md: "min-h-6 rounded-sm text-sm [&_svg]:size-4",
+  lg: "min-h-6 rounded-sm text-sm [&_svg]:size-4",
 };
 
 const VARIANTS: Record<ButtonVariant, string> = {
@@ -52,6 +56,7 @@ export function buttonClass(
   return cn(
     BASE,
     variant === "link" ? LINK_SIZES[size] : SIZES[size],
+    variant === "primary" && size === "md" ? PRIMARY_PHONE : null,
     VARIANTS[variant],
     className,
   );

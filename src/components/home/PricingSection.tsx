@@ -12,6 +12,7 @@ import {
   groupedNumber,
   includedHoursText,
   leiText,
+  NBSP,
   PLAN_CATALOG,
   PLAN_ORDER,
   termText,
@@ -168,7 +169,7 @@ function PlanColumn({
   const pick = (text: PriceText) => text[lang];
   const features = [...entry.features, deepReportsText(entry.id), termText(entry.id)].map(pick);
   const price =
-    lang === "ro" ? `${groupedNumber(entry.priceLei, "ro")} lei` : leiText(entry.priceLei).en;
+    lang === "ro" ? `${groupedNumber(entry.priceLei, "ro")}${NBSP}lei` : leiText(entry.priceLei).en;
 
   return (
     <div className={cn("min-w-0 border-line-1 lg:px-6", className)}>
@@ -200,6 +201,8 @@ function PlanColumn({
             to="/contact"
             search={{ plan: entry.id }}
             variant={recommended ? "primary" : "secondary"}
+            // All three plans keep one button height on phones (the primary one is 44 px).
+            className="max-sm:h-11"
           >
             {t("Request the contract", "Cere contractul")}
             <span className="sr-only">: {entry.name}</span>
@@ -210,7 +213,7 @@ function PlanColumn({
             aria-controls={listId}
             onClick={() => setOpen((value) => !value)}
             // 44 px tap target on phones; the negative margin keeps the row at 28 px.
-            className="-my-2 inline-flex min-h-11 items-center gap-1 rounded-md text-[0.8125rem] font-medium text-fg-2 outline-none hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-line/55 lg:hidden"
+            className="-my-2 inline-flex min-h-11 items-center gap-1 rounded-md text-[0.8125rem] font-medium text-fg-2 hover:text-fg focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-brand-line lg:hidden"
           >
             {t("What's included", "Ce include")}
             <ChevronDown
@@ -241,7 +244,7 @@ function PlanColumn({
   );
 }
 
-/** "Proiecte cu preț fix": the one-off prices next to the plans, on one ruled row. */
+/** "Proiecte și consultanță": the one-off prices next to the plans, on one ruled row. */
 function FixedProjects() {
   const { t, lang } = useI18n();
   const headingId = useId();
@@ -250,7 +253,7 @@ function FixedProjects() {
     <div className="mt-12 md:mt-16" role="group" aria-labelledby={headingId}>
       <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:justify-between md:gap-8">
         <h3 id={headingId} className="type-h3 text-fg">
-          {t("Fixed-price projects", "Proiecte cu preț fix")}
+          {t("Projects and consultancy", "Proiecte și consultanță")}
         </h3>
         <p className="type-body-sm text-fg-2">
           {t(
@@ -294,25 +297,23 @@ function FixedProjects() {
 function ProjectPrice({ project }: { project: FixedProject }) {
   const { t, lang } = useI18n();
   const { low, high, perHour } = project.priceLei;
-  const amount = (value: string) => (
-    <span className="type-pnum text-[1.25rem] font-semibold leading-none text-fg">{value}</span>
-  );
+  const amount = (value: string) => <span className="type-price text-fg">{value}</span>;
   const unit = lang === "ro" ? "lei" : "RON";
   const n = (value: number) => groupedNumber(value, lang);
 
   return (
     <p className="mt-2 flex flex-wrap items-baseline gap-x-1.5">
       {high ? (
-        amount(`${n(low)}–${n(high)} ${unit}`)
+        amount(`${n(low)}–${n(high)}${NBSP}${unit}`)
       ) : perHour ? (
         <>
-          {amount(`${n(low)} ${unit}`)}
-          <span className="text-sm text-fg-3">{t("an hour", "pe oră")}</span>
+          {amount(`${n(low)}${NBSP}${unit}`)}
+          <span className="type-body-sm text-fg-3">{t("an hour", "pe oră")}</span>
         </>
       ) : (
         <>
-          <span className="text-sm text-fg-3">{t("from", "de la")}</span>
-          {amount(`${n(low)} ${unit}`)}
+          <span className="type-body-sm text-fg-3">{t("from", "de la")}</span>
+          {amount(`${n(low)}${NBSP}${unit}`)}
         </>
       )}
     </p>

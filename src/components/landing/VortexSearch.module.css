@@ -25,6 +25,13 @@
   background: rgb(196 190 255 / 0.5);
 }
 
+/* Keyboard focus (and any focus on the field): the hairline doubles and brightens, from
+   about 2:1 at rest to 5:1 on the night surface, so the field reads as the focused control. */
+.focused .line {
+  height: 2px;
+  background: rgb(196 190 255 / 0.75);
+}
+
 /* The cyan segment on the hairline's left end. Its length comes from the
    component (--segment: at rest, or where the typed text ends); its head is a
    touch brighter, so the sweep reads as moving left to right. */

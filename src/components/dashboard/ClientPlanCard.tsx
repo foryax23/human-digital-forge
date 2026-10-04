@@ -113,7 +113,7 @@ function PlanPanel({ data, className }: { data: ActivePlan; className?: string }
               plan.endsOn
                 ? t(
                     `Until ${formatDay(plan.endsOn, lang)}`,
-                    `Până pe ${formatDay(plan.endsOn, lang)}`,
+                    `Până la ${formatDay(plan.endsOn, lang)}`,
                   )
                 : t("No end date", "Fără dată de încheiere")
             }

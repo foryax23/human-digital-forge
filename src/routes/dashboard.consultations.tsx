@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth/AuthProvider";
-import { Button } from "@/components/ui/button";
+import { consultationRequest } from "@/components/dashboard/account-requests";
+import { useTeamRequest } from "@/components/dashboard/team-request";
+import { TurnstileField } from "@/components/forms/TurnstileField";
+import { EmptyPanel, LoadError, Loading, PageHeader } from "@/components/dashboard/PageHeader";
+import { consultationStatus, formatDateTime } from "@/components/dashboard/format";
+import { Button, Field, Panel, PanelDivider, Status } from "@/components/system";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -20,6 +23,13 @@ import {
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
+/*
+ * Consultations. A request goes to the team through the contact pipeline (the admin panel's
+ * enquiries, where the team already looks; before this nothing showed a consultation row to
+ * anyone) and is kept as a "requested" row so the client sees it here. The team confirms the
+ * time; status and time are the team's to change (drizzle/pending/client_rls_hardening.sql).
+ */
+
 export const Route = createFileRoute("/dashboard/consultations")({
   component: ConsultationsPage,
 });
@@ -30,50 +40,34 @@ interface ConsultationItem {
   scheduled_at: string | null;
   status: string;
   notes: string | null;
-}
-
-function formatWhen(value: string | null, t: (en: string, ro: string) => string) {
-  if (!value) return t("To be scheduled", "Urmează a fi programat");
-  return new Date(value).toLocaleString(undefined, {
-    weekday: "short",
-    day: "numeric",
-    month: "long",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  created_at: string;
 }
 
 function ConsultationsPage() {
-  const { t } = useI18n();
-  const { user } = useAuth();
+  const { t, lang } = useI18n();
+  const { user, profile } = useAuth();
+  const { submit, turnstile } = useTeamRequest();
   const [items, setItems] = useState<ConsultationItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [preferred, setPreferred] = useState("");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   async function loadItems() {
-    setLoading(true);
-    const { data, error: err } = await supabase
+    if (!user) return;
+    const { data, error } = await supabase
       .from("consultations")
-      .select("id, title, scheduled_at, status, notes")
-      .order("scheduled_at", { ascending: true });
-    if (err) {
-      console.error("[consultations] load failed", err);
-      setError(
-        t(
-          "We couldn't load your consultations. Please refresh to try again.",
-          "Nu am putut încărca consultațiile tale. Te rugăm să reîmprospătezi pagina.",
-        ),
-      );
-    } else {
-      setError(null);
-      setItems((data as ConsultationItem[]) ?? []);
-    }
+      .select("id, title, scheduled_at, status, notes, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (error) console.error("[consultations] load failed", error);
+    setFailed(Boolean(error));
+    setItems((data as ConsultationItem[] | null) ?? []);
     setLoading(false);
   }
 
@@ -86,93 +80,115 @@ function ConsultationsPage() {
   async function handleBook(event: React.FormEvent) {
     event.preventDefault();
     if (!user || !title.trim()) return;
+    const when = preferred ? new Date(preferred) : null;
+    const whenOk = when && !Number.isNaN(when.getTime()) ? when : null;
+    const payload = consultationRequest(
+      {
+        id: user.id,
+        email: user.email,
+        fullName: profile?.full_name,
+        company: profile?.company,
+        clientType: profile?.client_type,
+      },
+      {
+        title: title.trim().slice(0, 200),
+        preferred: whenOk ? formatDateTime(whenOk.toISOString(), "ro") : null,
+        notes: notes.trim().slice(0, 2000) || null,
+      },
+    );
+    if (!payload) return;
+    setFormError(null);
     setSubmitting(true);
-    try {
-      const { error: err } = await supabase.from("consultations").insert({
-        user_id: user.id,
-        title: title.trim(),
-        scheduled_at: preferred ? new Date(preferred).toISOString() : null,
-        notes: notes.trim() || null,
-        status: "requested",
-      });
-      if (err) throw err;
-      toast.success(
-        t(
-          "Consultation requested. We'll confirm a time soon.",
-          "Consultație solicitată. Vom confirma un interval în curând.",
-        ),
-      );
-      setOpen(false);
-      setTitle("");
-      setPreferred("");
-      setNotes("");
-      await loadItems();
-    } catch (err) {
-      console.error("[consultations] booking failed", err);
-      toast.error(
-        t(
-          "We couldn't book that session. Please try again.",
-          "Nu am putut rezerva sesiunea. Te rugăm să încerci din nou.",
-        ),
-      );
-    } finally {
+    // The team's inbox first (the admin panel's enquiries, and the team alert once it is on):
+    // without it the request would reach nobody.
+    const sent = await submit(payload);
+    if (!sent.ok) {
+      setFormError(sent.message);
       setSubmitting(false);
+      return;
     }
+    // The client's own record; the team already has the request if this fails.
+    const { error } = await supabase.from("consultations").insert({
+      user_id: user.id,
+      title: title.trim().slice(0, 200),
+      scheduled_at: whenOk ? whenOk.toISOString() : null,
+      notes: notes.trim().slice(0, 2000) || null,
+      status: "requested",
+    });
+    if (error) console.error("[consultations] record failed", error);
+    toast.success(
+      t(
+        "Request sent. We will write to you to confirm the time.",
+        "Cererea a fost trimisă. Îți scriem ca să confirmăm ora.",
+      ),
+    );
+    setSubmitting(false);
+    setOpen(false);
+    setTitle("");
+    setPreferred("");
+    setNotes("");
+    await loadItems();
   }
 
   const bookButton = (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>{t("Book a session", "Rezervă o sesiune")}</Button>
+        <Button size="md">{t("Request a consultation", "Cere o consultație")}</Button>
       </DialogTrigger>
       <DialogContent>
         <form onSubmit={handleBook}>
           <DialogHeader>
-            <DialogTitle>{t("Book a consultation", "Rezervă o consultație")}</DialogTitle>
+            <DialogTitle>{t("Request a consultation", "Cere o consultație")}</DialogTitle>
             <DialogDescription>
               {t(
-                "Tell us what you'd like to talk through and a time that suits you. We'll confirm the details.",
-                "Spune-ne despre ce vrei să discuți și un interval care ți se potrivește. Vom confirma detaliile.",
+                "Tell us the topic and a time that suits you. We confirm the time by e-mail.",
+                "Spune-ne subiectul și o oră care ți se potrivește. Confirmăm ora pe e-mail.",
               )}
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="c-title">{t("What's it about?", "Despre ce este?")}</Label>
+          <div className="mt-4 grid gap-4">
+            <Field label={t("Topic", "Subiect")}>
               <Input
-                id="c-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder={t("e.g. AI automation strategy", "ex. Strategie de automatizare AI")}
+                placeholder={t("e.g. Booking automation", "ex. Automatizarea programărilor")}
+                maxLength={200}
                 required
+                className="h-10"
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="c-time">{t("Preferred date & time", "Dată și oră preferate")}</Label>
+            </Field>
+            <Field label={t("Preferred date and time", "Data și ora preferate")} optional>
               <Input
-                id="c-time"
                 type="datetime-local"
                 value={preferred}
                 onChange={(e) => setPreferred(e.target.value)}
+                className="h-10"
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="c-notes">
-                {t("Anything to share beforehand?", "Ai ceva de împărtășit în prealabil?")}
-              </Label>
+            </Field>
+            <Field label={t("Anything we should know", "Ce ar trebui să știm")} optional>
               <Textarea
-                id="c-notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder={t("Goals, questions, context…", "Obiective, întrebări, context…")}
+                placeholder={t("Goals, questions, context", "Obiective, întrebări, context")}
                 rows={3}
+                maxLength={2000}
               />
-            </div>
+            </Field>
+            <TurnstileField ref={turnstile} action="contact" />
+            {formError ? (
+              <p role="alert" className="type-body-sm text-bad">
+                {formError}
+              </p>
+            ) : null}
           </div>
           <DialogFooter className="mt-6">
-            <Button type="submit" disabled={submitting || !title.trim()}>
-              {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              {t("Request session", "Solicită sesiunea")}
+            <Button
+              type="submit"
+              size="lg"
+              loading={submitting}
+              disabled={submitting || !title.trim()}
+            >
+              {t("Send the request", "Trimite cererea")}
             </Button>
           </DialogFooter>
         </form>
@@ -181,75 +197,69 @@ function ConsultationsPage() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl">{t("Consultations", "Consultații")}</h1>
-          <p className="mt-1 text-muted-foreground">
-            {t(
-              "Your booked one-to-one sessions with the Vortex Hub team.",
-              "Sesiunile tale rezervate individual cu echipa Vortex Hub.",
-            )}
-          </p>
-        </div>
-        {bookButton}
-      </div>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader
+        title={t("Consultations", "Consultații")}
+        lead={t(
+          "One-to-one calls with the Vortex Hub team. You ask, we confirm the time.",
+          "Discuții unu la unu cu echipa Vortex Hub. Tu ceri, noi confirmăm ora.",
+        )}
+        actions={bookButton}
+      />
 
-      {loading && (
-        <div className="mt-16 flex justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
-      )}
+      {loading ? <Loading label={t("Loading consultations", "Se încarcă consultațiile")} /> : null}
 
-      {!loading && error && (
-        <div className="mt-8 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
-          {error}
-        </div>
-      )}
+      {!loading && failed ? (
+        <LoadError>
+          {t(
+            "We couldn't load your consultations. Refresh the page to try again.",
+            "Nu am putut încărca consultațiile. Reîncarcă pagina ca să încerci din nou.",
+          )}
+        </LoadError>
+      ) : null}
 
-      {!loading && !error && items.length === 0 && (
-        <div className="mt-8 rounded-xl border border-dashed border-border bg-card p-10 text-center">
-          <span className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-teal/15 text-teal">
-            <CalendarCheck className="h-6 w-6" />
-          </span>
-          <h2 className="mt-4 text-2xl">
-            {t("No consultations booked", "Nicio consultație rezervată")}
-          </h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-            {t(
-              "Book a session to talk through your goals and map out the best next steps.",
-              "Rezervă o sesiune pentru a-ți discuta obiectivele și a stabili cei mai buni pași următori.",
-            )}
-          </p>
-          <div className="mt-6 flex justify-center">{bookButton}</div>
-        </div>
-      )}
+      {!loading && !failed && items.length === 0 ? (
+        <EmptyPanel title={t("No consultations yet", "Nicio consultație încă")}>
+          {t(
+            "Ask for a call about your goals, a project or an idea. The first call is free.",
+            "Cere o discuție despre obiective, un proiect sau o idee. Prima discuție este gratuită.",
+          )}
+        </EmptyPanel>
+      ) : null}
 
-      {!loading && !error && items.length > 0 && (
-        <ul className="mt-8 space-y-3">
-          {items.map((item) => (
-            <li key={item.id} className="rounded-xl border border-border bg-card p-5">
-              <div className="flex items-start gap-4">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-teal/15 text-teal">
-                  <CalendarCheck className="h-5 w-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h2 className="text-lg">{item.title}</h2>
-                    <span className="rounded-sm border border-line-3 px-1.5 py-0.5 text-xs font-medium capitalize text-fg-2">
-                      {item.status}
-                    </span>
+      {!loading && !failed && items.length > 0 ? (
+        <Panel as="section" aria-label={t("Your consultations", "Consultațiile tale")}>
+          <ul>
+            {items.map((item, index) => {
+              const status = consultationStatus(item.status, lang);
+              const requested = item.status === "requested";
+              return (
+                <li key={item.id}>
+                  {index > 0 ? <PanelDivider /> : null}
+                  <div className="grid gap-1 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-4 sm:px-5">
+                    <div className="min-w-0">
+                      <h2 className="type-h4 text-fg">{item.title}</h2>
+                      <p className="type-body-sm mt-0.5 text-fg-2">
+                        {item.scheduled_at
+                          ? `${requested ? t("Proposed: ", "Propusă: ") : ""}${formatDateTime(item.scheduled_at, lang)}`
+                          : t("Time to be agreed", "Ora rămâne de stabilit")}
+                      </p>
+                      {item.notes ? (
+                        <p className="type-micro mt-1 whitespace-pre-wrap text-fg-3">
+                          {item.notes}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="sm:pt-0.5">
+                      <Status tone={status.tone}>{status.label}</Status>
+                    </div>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {formatWhen(item.scheduled_at, t)}
-                  </p>
-                  {item.notes && <p className="mt-2 text-sm text-muted-foreground">{item.notes}</p>}
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+                </li>
+              );
+            })}
+          </ul>
+        </Panel>
+      ) : null}
     </div>
   );
 }

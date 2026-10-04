@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
  * "@/components/system" Button / ButtonLink; this keeps the dashboard and legal pages in step.
  */
 const buttonVariants = cva(
-  "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap font-sans font-medium leading-none transition-[background-color,border-color,color,text-decoration-color] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-line/55 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-[0.42] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap font-sans font-medium leading-none transition-[background-color,border-color,color,text-decoration-color] duration-150 focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-brand-line disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-[0.42] [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -28,12 +28,17 @@ const buttonVariants = cva(
       size: {
         default: "h-9 rounded-lg px-3.5 text-sm",
         sm: "h-7 rounded-md px-2.5 text-[0.8125rem] [&_svg]:size-3.5",
-        lg: "h-10 rounded-lg px-4 text-sm",
+        // 44 px on phones: the page's main actions and their pairs.
+        lg: "h-10 rounded-lg px-4 text-sm max-sm:h-11",
         icon: "size-9 rounded-lg",
       },
     },
     // A text link keeps the type size but has no box.
-    compoundVariants: [{ variant: "link", class: "h-auto rounded-sm px-0" }],
+    compoundVariants: [
+      { variant: "link", class: "h-auto min-h-6 rounded-sm px-0 max-sm:h-auto" },
+      // The primary action is a 44 px target on phones (WCAG 2.5.5 / Apple's 44 pt).
+      { variant: "default", size: "default", class: "max-sm:h-11" },
+    ],
     defaultVariants: {
       variant: "default",
       size: "default",

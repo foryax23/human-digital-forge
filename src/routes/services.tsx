@@ -7,11 +7,12 @@ import { TechGroups } from "@/components/landing/TechStack";
 import { PageHero } from "@/components/shared/PageHero";
 import { CtaBand } from "@/components/shared/CtaBand";
 import { pageMeta, useI18n } from "@/i18n";
+import { canonicalLink } from "@/i18n/seo";
 
 export const Route = createFileRoute("/services")({
   head: ({ matches }) => ({
     meta: pageMeta(matches, "/services"),
-    links: [{ rel: "canonical", href: "/services" }],
+    links: [canonicalLink("/services")],
   }),
   component: ServicesPage,
 });

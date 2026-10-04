@@ -28,13 +28,19 @@ type PsiResponse = {
 const score = (value: number | null | undefined) =>
   typeof value === "number" ? Math.round(value * 100) : 0;
 
+/**
+ * `opts.allowed` is the quick scan's daily cap (src/lib/abuse): asked only when a call would
+ * be made; a refusal (or a failing check) returns null like any other missing result.
+ */
 export async function runPageSpeed(
   url: string,
   strategy: "mobile" | "desktop" = "mobile",
+  opts: { allowed?: () => Promise<boolean> } = {},
 ): Promise<(PageSpeedResult & { screenshot?: string }) | null> {
   if (urlBlockReason(url)) return null;
   const origin = normalizeInputUrl(url)?.origin;
   if (!origin || (await fetchRobots(origin)).optsOut) return null;
+  if (opts.allowed && !(await opts.allowed().catch(() => false))) return null;
 
   const params = new URLSearchParams({ url, strategy });
   for (const category of ["performance", "accessibility", "best-practices", "seo"]) {

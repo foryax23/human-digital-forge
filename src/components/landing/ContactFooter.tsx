@@ -50,7 +50,11 @@ const COLUMNS: { en: string; ro: string; links: FooterLink[] }[] = [
   },
 ];
 
-const linkClass = cn("rounded-sm text-sm text-fg-2 transition-colors hover:text-fg", FOCUS_RING);
+// 24 px tall (WCAG 2.5.8) with a 4 px gap: the same 28 px rhythm as the 20 px text lines.
+const linkClass = cn(
+  "inline-flex min-h-6 items-center rounded-sm text-left text-sm text-fg-2 transition-colors hover:text-fg",
+  FOCUS_RING,
+);
 
 /**
  * The vortex band (VortexBand): a strip at the top of the footer, above the closing line, and
@@ -174,6 +178,9 @@ export function ContactFooter({
   band?: boolean;
 }) {
   const { t, lang } = useI18n();
+  // The column titles follow the page's outline: under "Hai să vorbim…" (h2) on the
+  // homepage, and straight under the page's h1 elsewhere.
+  const ColumnHeading = compact ? "h2" : "h3";
 
   return (
     <footer
@@ -226,10 +233,13 @@ export function ContactFooter({
           <BrandSignoff className="col-span-2 -mt-2 sm:col-span-3 lg:col-span-1" />
           {COLUMNS.map((column) => (
             <nav key={column.en} aria-labelledby={`footer-${column.en.toLowerCase()}`}>
-              <h3 id={`footer-${column.en.toLowerCase()}`} className="type-label text-fg-3">
+              <ColumnHeading
+                id={`footer-${column.en.toLowerCase()}`}
+                className="type-label text-fg-3"
+              >
                 {lang === "ro" ? column.ro : column.en}
-              </h3>
-              <ul className="mt-3 flex flex-col items-start gap-2">
+              </ColumnHeading>
+              <ul className="mt-2.5 flex flex-col items-start gap-1">
                 {column.links.map((link) => (
                   <li key={link.en}>
                     <Link to={link.to} className={linkClass}>

@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/components/auth/AuthProvider";
-import { Button } from "@/components/ui/button";
+import {
+  DataExportPanel,
+  DeletionPanel,
+  PasswordPanel,
+} from "@/components/dashboard/AccountPanels";
+import { PageHeader } from "@/components/dashboard/PageHeader";
+import { Button, Field, Panel, PanelBody, PanelHeader } from "@/components/system";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useI18n } from "@/i18n";
 import {
   Select,
   SelectContent,
@@ -15,13 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/dashboard/settings")({
   component: SettingsPage,
 });
 
-function SettingsPage() {
+function ProfilePanel() {
   const { t } = useI18n();
   const { user, profile, refreshProfile } = useAuth();
   const [fullName, setFullName] = useState("");
@@ -39,90 +43,104 @@ function SettingsPage() {
     event.preventDefault();
     if (!user) return;
     setSaving(true);
+    // The e-mail is never sent: it belongs to the sign-in account, not to the profile form.
     const { error } = await supabase
       .from("profiles")
       .update({
-        full_name: fullName.trim() || null,
-        company: company.trim() || null,
+        full_name: fullName.trim().slice(0, 120) || null,
+        company: company.trim().slice(0, 160) || null,
         client_type: clientType || null,
       })
       .eq("id", user.id);
     setSaving(false);
-
     if (error) {
       console.error("[settings] update failed", error);
       toast.error(
         t(
-          "Could not save your changes. Please try again.",
-          "Nu am putut salva modificările. Te rugăm să încerci din nou.",
+          "Your changes were not saved. Please try again.",
+          "Modificările nu au fost salvate. Încearcă din nou.",
         ),
       );
       return;
     }
     await refreshProfile();
-    toast.success(t("Your profile has been updated.", "Profilul tău a fost actualizat."));
+    toast.success(t("Profile saved.", "Profilul a fost salvat."));
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="text-3xl">{t("Settings", "Setări")}</h1>
-      <p className="mt-1 text-muted-foreground">
-        {t(
-          "Manage your profile details and how we address you.",
-          "Gestionează detaliile profilului tău și modul în care te adresăm.",
-        )}
-      </p>
-
-      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="email">{t("Email", "E-mail")}</Label>
-          <Input id="email" value={user?.email ?? ""} disabled />
-          <p className="text-xs text-muted-foreground">
-            {t(
-              "Your email is linked to your account and can't be changed here.",
-              "Adresa ta de email este legată de contul tău și nu poate fi modificată aici.",
+    <Panel as="section" aria-labelledby="settings-profile">
+      <PanelHeader
+        titleAs="h2"
+        titleId="settings-profile"
+        title={t("Profile", "Profil")}
+        sub={t("How we address you and your company.", "Cum ne adresăm ție și firmei tale.")}
+      />
+      <PanelBody>
+        <form onSubmit={handleSubmit} className="grid max-w-md gap-4">
+          <Field
+            label={t("E-mail", "E-mail")}
+            hint={t(
+              "The address you sign in with. To change it, write to us.",
+              "Adresa cu care te conectezi. Ca să o schimbi, scrie\u2011ne.",
             )}
-          </p>
-        </div>
+          >
+            <Input value={user?.email ?? ""} disabled readOnly />
+          </Field>
+          <Field label={t("Full name", "Nume complet")}>
+            <Input
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              autoComplete="name"
+              maxLength={120}
+            />
+          </Field>
+          <Field label={t("Company", "Firmă")} optional>
+            <Input
+              value={company}
+              onChange={(e) => setCompany(e.target.value)}
+              autoComplete="organization"
+              maxLength={160}
+            />
+          </Field>
+          <Field id="settings-client-type" label={t("You are", "Ești")} optional>
+            <Select value={clientType} onValueChange={setClientType}>
+              <SelectTrigger id="settings-client-type">
+                <SelectValue placeholder={t("Choose one", "Alege")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="individual">
+                  {t("A private person", "Persoană fizică")}
+                </SelectItem>
+                <SelectItem value="business">{t("A business", "Firmă")}</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+          <div>
+            <Button type="submit" size="md" loading={saving} disabled={saving}>
+              {t("Save", "Salvează")}
+            </Button>
+          </div>
+        </form>
+      </PanelBody>
+    </Panel>
+  );
+}
 
-        <div className="space-y-2">
-          <Label htmlFor="fullName">{t("Full name", "Nume complet")}</Label>
-          <Input
-            id="fullName"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder={t("Your name", "Numele tău")}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="company">{t("Company (optional)", "Companie (opțional)")}</Label>
-          <Input
-            id="company"
-            value={company}
-            onChange={(e) => setCompany(e.target.value)}
-            placeholder={t("Your company", "Compania ta")}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="clientType">{t("I'm working as", "Lucrez ca")}</Label>
-          <Select value={clientType} onValueChange={setClientType}>
-            <SelectTrigger id="clientType">
-              <SelectValue placeholder={t("Select one", "Selectează una")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="individual">{t("An individual", "Persoană fizică")}</SelectItem>
-              <SelectItem value="business">{t("A business", "Companie")}</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Button type="submit" size="lg" disabled={saving}>
-          {saving && <Loader2 className="animate-spin" />}
-          {t("Save changes", "Salvează modificările")}
-        </Button>
-      </form>
+function SettingsPage() {
+  const { t } = useI18n();
+  return (
+    <div className="mx-auto max-w-3xl space-y-6">
+      <PageHeader
+        title={t("Settings", "Setări")}
+        lead={t(
+          "Your profile, password and the data we keep about your account.",
+          "Profilul, parola și datele pe care le păstrăm despre contul tău.",
+        )}
+      />
+      <ProfilePanel />
+      <PasswordPanel />
+      <DataExportPanel />
+      <DeletionPanel />
     </div>
   );
 }

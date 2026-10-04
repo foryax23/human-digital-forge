@@ -7,7 +7,7 @@ import { useMotionPause } from "@/components/landing/motion-pause";
 import { prefersReducedMotion } from "@/components/landing/motion-prefs";
 import type { ScanStage } from "@/components/scan/scan-state";
 import { ScanStepper } from "@/components/scan/ScanStepper";
-import { Button, IconButton, Spinner } from "@/components/system";
+import { Button, IconButton, MAIN_ID, Spinner } from "@/components/system";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -110,6 +110,8 @@ export function ScanShell({
     <MotionConfig reducedMotion="user">
       <ActionsSlot.Provider value={slot}>
         <main
+          id={MAIN_ID}
+          tabIndex={-1}
           // Nav height + 16 px; the classes hold the first paint until the nav is measured.
           className="container-vx relative z-10 pb-20 pt-[5.5rem] md:pt-[6.25rem]"
           style={navHeight ? { paddingTop: navHeight + 16 } : undefined}

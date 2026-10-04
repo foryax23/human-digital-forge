@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 // The round thumb is the one circle here.
 const THUMB =
-  "block size-3.5 rounded-full border border-black/40 bg-white transition-[outline-color] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-line/55"; /* dot */
+  "block size-3.5 rounded-full border border-black/40 bg-white transition-[outline-color] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-line"; /* dot */
 
 /**
  * Single-thumb slider: label and readout on one row, a 2 px track with the

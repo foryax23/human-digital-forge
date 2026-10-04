@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 
 import { ButtonLink, SectionHeader } from "@/components/system";
 import { useI18n } from "@/i18n";
+import { CONSULTANCY_HOUR_LEI, fixedProject, leiText, projectPriceText } from "@/lib/pricing";
 import { TechGroups } from "./TechStack";
 
 type Service = {
@@ -13,7 +14,11 @@ type Service = {
   description: string;
   /** What the client gets, as one comma line. */
   deliverables: string;
+  /** The price line, from src/lib/pricing.ts (no time frames until the owner confirms them). */
+  price: string;
 };
+
+const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
 /**
  * One rendered icon per service (scripts/brand/render-service-icons.mjs; the owner's choice,
@@ -46,8 +51,10 @@ function ServiceIcon({ slug }: { slug: Service["slug"] }) {
  * icon sits beside the title and the description runs the full width under both.
  */
 export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3" }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const Heading = headingLevel;
+  const automationPrice = projectPriceText(fixedProject("automation"))[lang];
+  const hourPrice = leiText(CONSULTANCY_HOUR_LEI)[lang];
 
   const services: Service[] = [
     {
@@ -59,6 +66,7 @@ export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3
         "Site-uri de prezentare, pagini de destinație și portofolii, noi sau refăcute.",
       ),
       deliverables: t("Design, build, launch", "Design, dezvoltare, lansare"),
+      price: capitalize(projectPriceText(fixedProject("site"))[lang]),
     },
     {
       slug: "digital-products",
@@ -69,6 +77,7 @@ export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3
         "Aplicații web la comandă: portaluri pentru clienți, instrumente interne, tablouri de bord sau prima versiune a unui produs nou.",
       ),
       deliverables: t("Plan, prototype, launched app", "Plan, prototip, aplicație lansată"),
+      price: t("Fixed price after the first call", "Preț fix după prima discuție"),
     },
     {
       slug: "ai-automation",
@@ -82,6 +91,7 @@ export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3
         "Assessment, setup, team training",
         "Analiză, implementare, instruirea echipei",
       ),
+      price: t(`An automation: ${automationPrice}`, `O automatizare: ${automationPrice}`),
     },
     {
       slug: "consultancy",
@@ -94,6 +104,10 @@ export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3
       deliverables: t(
         "Ideas, website strategy, automation",
         "Idei, strategia site-ului, automatizare",
+      ),
+      price: t(
+        `First call free, then ${hourPrice} an hour`,
+        `Prima discuție gratuită, apoi ${hourPrice} pe oră`,
       ),
     },
   ];
@@ -112,7 +126,7 @@ export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3
               to={service.to}
               aria-labelledby={titleId}
               aria-describedby={descriptionId}
-              className="group grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-4 py-4 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-line/55 md:grid-cols-[4rem_minmax(0,1fr)_auto] md:items-baseline md:gap-x-6 md:py-5 lg:grid-cols-[4.5rem_minmax(0,1fr)_17.5rem_auto] lg:gap-x-8 xl:grid-cols-[5rem_minmax(0,1fr)_23.75rem_3rem]"
+              className="group grid grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-x-4 py-4 focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-brand-line md:grid-cols-[4rem_minmax(0,1fr)_auto] md:items-baseline md:gap-x-6 md:py-5 lg:grid-cols-[4.5rem_minmax(0,1fr)_17.5rem_auto] lg:gap-x-8 xl:grid-cols-[5rem_minmax(0,1fr)_23.75rem_3rem]"
             >
               <ServiceIcon slug={service.slug} />
               <div className="contents md:block md:min-w-0">
@@ -128,12 +142,18 @@ export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3
                 >
                   {service.description}
                 </p>
-                <p className="col-span-full mt-2 text-[0.8125rem] leading-[1.35] text-fg-3 lg:hidden">
-                  {service.deliverables}
+                <p className="type-body-sm col-span-full mt-2 text-fg lg:hidden">
+                  {service.price}
+                  <span className="type-label block font-normal text-fg-3">
+                    {service.deliverables}
+                  </span>
                 </p>
               </div>
-              <p className="hidden text-[0.8125rem] leading-[1.35] text-fg-3 lg:block">
-                {service.deliverables}
+              <p className="type-body-sm hidden text-fg lg:block">
+                {service.price}
+                <span className="type-label mt-0.5 block font-normal text-fg-3">
+                  {service.deliverables}
+                </span>
               </p>
               <span
                 aria-hidden

@@ -19,6 +19,8 @@ applied it and saved the same SQL again as `0002_deep_research_additions.sql` (r
 | `migrations/0001_deep_research_additions.sql`     | applied (2026-10-04)      | stricter `claim_admin_role` and `has_role`, two foreign keys, two optional engine functions        |
 | `pending/client_plans.sql`                        | pending (owner)           | `client_plans`: the plan an admin assigns to a client account after the contract                   |
 | `pending/stripe_events.sql`                       | pending (owner), optional | `stripe_events`, the Stripe webhook's ledger (duplicate and out-of-order guard)                    |
+| `pending/rate_limits.sql`                         | pending (owner), optional | `intake_rate_limits` + `intake_rate_hit()`: shared rate-limit counters and daily caps              |
+| `pending/client_rls_hardening.sql`                | pending (owner)           | restrictive client RLS, 5 guard triggers, `project_files.uploaded_by`                              |
 
 ## Rules
 

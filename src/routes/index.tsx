@@ -12,28 +12,22 @@ import { ProcessSection } from "@/components/landing/ProcessSection";
 import { ConsultationSection } from "@/components/home/ConsultationSection";
 import { PricingSection } from "@/components/home/PricingSection";
 import { ContactFooter } from "@/components/landing/ContactFooter";
-import { SITE_SEO, languageFromMatches, pageMeta } from "@/i18n";
+import { MAIN_ID } from "@/components/system/skip-link";
+import { languageFromMatches, pageMeta } from "@/i18n";
+import { canonicalLink, jsonLdScript, organizationJsonLd } from "@/i18n/seo";
 
 export const Route = createFileRoute("/")({
   head: ({ matches }) => ({
     meta: pageMeta(matches, "/"),
     links: [
-      { rel: "canonical", href: "/" },
+      canonicalLink("/"),
       { rel: "preload", as: "image", href: "/media/swirl-loop/poster.jpg" },
     ],
     scripts: [
       // Decides before first paint whether the intro loader plays (see intro.tsx).
       { children: INTRO_HEAD_SCRIPT },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "Vortex Hub",
-          description: SITE_SEO.description[languageFromMatches(matches)],
-          email: "hello@vortexhub.ro",
-        }),
-      },
+      // The company, its service in Timișoara and the website (src/i18n/seo.ts).
+      jsonLdScript(organizationJsonLd(languageFromMatches(matches))),
     ],
   }),
   component: Index,
@@ -45,7 +39,7 @@ function Index() {
       <MotionPauseProvider>
         <IntroProvider renderLoader={(props) => <LoadingScreen key="intro-loader" {...props} />}>
           <LandingNav />
-          <main>
+          <main id={MAIN_ID} tabIndex={-1}>
             <HeroSection />
             <TechBand />
             <ServicesSection />

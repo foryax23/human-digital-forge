@@ -285,9 +285,17 @@ async function verifyCandidate(
 const DIRECTORIES =
   /(^|\.)(listafirme|termene|risco|firme\.info|totalfirme|romanian-companies|infocui|confidas|kompass|facebook|instagram|linkedin|youtube|tiktok|twitter|x\.com|google|wikipedia|olx|emag|booking|tripadvisor|paginiaurii|cylex|firmepenet|lista-firme|eurolista|glassdoor|ejobs|bestjobs|anaf|onrc|mfinante|topfirme|companii|edenred|doctoridue|zilesinopti|restograf|ghidul|okazii|publi24|storia|imobiliare|yelp|foursquare|wanderlog|waze)\./i;
 
-async function braveSearch(input: DiscoverInput): Promise<string[]> {
+/**
+ * `allowed` is the quick scan's daily cap (src/lib/abuse): asked only when a call would be
+ * made, and a refusal (or a failing check) skips the search, so the budget stays closed.
+ */
+async function braveSearch(
+  input: DiscoverInput,
+  allowed?: () => Promise<boolean>,
+): Promise<string[]> {
   const key = process.env.BRAVE_SEARCH_API_KEY;
   if (!key) return [];
+  if (allowed && !(await allowed().catch(() => false))) return [];
   const query = [input.name.replace(/\bS\.?\s?R\.?\s?L\.?\b/gi, ""), input.city]
     .filter(Boolean)
     .join(" ");
@@ -329,7 +337,10 @@ const toDiscovery = (match: Verification): WebsiteDiscovery => ({
 
 const ACCEPT = 0.45;
 
-export async function discoverWebsite(input: DiscoverInput): Promise<WebsiteDiscovery | null> {
+export async function discoverWebsite(
+  input: DiscoverInput,
+  opts: { searchAllowed?: () => Promise<boolean> } = {},
+): Promise<WebsiteDiscovery | null> {
   let fallback: WebsiteDiscovery | null = null;
   const robots = createRobotsCache();
   // DNS for the name guesses runs while the listed site is checked; it never touches the sites.
@@ -397,7 +408,7 @@ export async function discoverWebsite(input: DiscoverInput): Promise<WebsiteDisc
   if (fallback && fallback.confidence >= ACCEPT) return fallback;
 
   // 3. Web search as a last resort.
-  const searched = await braveSearch(input);
+  const searched = await braveSearch(input, opts.searchAllowed);
   if (searched.length) {
     const top = pick(
       await Promise.all(

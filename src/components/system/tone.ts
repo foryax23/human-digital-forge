@@ -4,9 +4,14 @@
  * component boundary.
  */
 
-/** Keyboard focus: a 2 px violet ring with a 2 px gap, on every control. */
+/**
+ * Keyboard focus: a 2 px violet ring with a 2 px gap, on every control. Full strength
+ * (5.9:1 on the night surface, 4.9:1 on the light one; WCAG asks 3:1). outline-solid
+ * keeps the ring when the element also carries `outline-none`, which in Tailwind 4 resets
+ * the outline style the width utility reads.
+ */
 export const FOCUS_RING =
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-line/55";
+  "focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-brand-line";
 
 /** Status tones. Green, amber and red appear only as these 6 px squares. */
 export type Tone = "ok" | "warn" | "bad" | "neutral" | "unverified" | "brand";

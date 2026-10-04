@@ -19,6 +19,7 @@ export { Panel, PanelBody, PanelDivider, PanelFooter, PanelHeader } from "./pane
 export { Muted, SectionHeader, StepHeader } from "./section-header";
 export { keepHyphens } from "./text";
 export { SegmentedControl, type SegmentOption } from "./segmented-control";
+export { MAIN_ID, SkipLink } from "./skip-link";
 export { Spinner } from "./spinner";
 export { Stat, StatStrip } from "./stat";
 export {

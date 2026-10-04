@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { toast } from "sonner";
 
-import { submitContactEnquiry } from "@/lib/contact.functions";
+import { submitContactEnquiry, type ContactResult } from "@/lib/contact.functions";
+import { TurnstileField, type TurnstileHandle } from "@/components/forms/TurnstileField";
 import { Button, Field } from "@/components/system";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,8 +35,20 @@ function planPrefill(id: PlanId, lang: Language): string {
 
 const isPlanId = (value: string): value is PlanId => (PLAN_ORDER as string[]).includes(value);
 
+/** The service select's values, also accepted as /contact?service=… (see contact.tsx). */
+export const CONTACT_SERVICES = [
+  "website",
+  "ai-automation",
+  "digital-product",
+  "consultancy",
+  "not-sure",
+] as const;
+
+export type ContactService = (typeof CONTACT_SERVICES)[number];
+
 /**
- * `prefill` seeds the description, e.g. a Vortex Scan request from the homepage search.
+ * `prefill` seeds the description, e.g. a Vortex Scan request from the homepage search or
+ * a consultation session. `service` preselects the service field (a "Programează" link).
  * `plan` comes from "Cere contractul" (/contact?plan=…): the service field becomes the
  * chosen plan (sent as `plan-growth` etc., which the admin panel lists as the service), the
  * project fields (client type, budget, timeline) step aside and the text asks for the
@@ -46,12 +58,20 @@ const isPlanId = (value: string): value is PlanId => (PLAN_ORDER as string[]).in
  */
 export function ContactForm({
   prefill,
+  service,
   plan,
   onPlanChange,
-}: { prefill?: string; plan?: PlanId; onPlanChange?: (plan: PlanId) => void } = {}) {
+}: {
+  prefill?: string;
+  service?: ContactService;
+  plan?: PlanId;
+  onPlanChange?: (plan: PlanId) => void;
+} = {}) {
   const { t, lang } = useI18n();
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const turnstile = useRef<TurnstileHandle>(null);
   const [chosen, setChosen] = useState(plan);
   const [description, setDescription] = useState(
     () => prefill ?? (plan ? planPrefill(plan, lang) : ""),
@@ -76,12 +96,51 @@ export function ContactForm({
     });
   }
 
+  const notDelivered = t(
+    "Your message did not go through. Please try again, or write to hello@vortexhub.ro.",
+    "Mesajul nu a ajuns. Încearcă din nou sau scrie-ne la hello@vortexhub.ro.",
+  );
+
+  /** What the visitor reads when the server turned the request away. */
+  function refusalText(result: Exclude<ContactResult, { ok: true }>): string {
+    if (result.reason === "rate_limited") {
+      return t(
+        "Too many requests. Please try again in a few minutes.",
+        "Prea multe cereri, încearcă din nou peste câteva minute.",
+      );
+    }
+    if (result.reason === "verification") {
+      return t(
+        "We couldn't confirm the anti-spam check. Please send the request again.",
+        "Nu am putut confirma verificarea anti-spam. Trimite cererea din nou.",
+      );
+    }
+    return notDelivered;
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    setFormError(null);
     setSubmitting(true);
     try {
-      await submitContactEnquiry({
+      // Turnstile, when it is on: a token, or a reason to stop here.
+      const check = (await turnstile.current?.check()) ?? { needed: false as const };
+      if (check.needed && check.token === null) {
+        setFormError(
+          check.problem === "interaction"
+            ? t(
+                "Tick the check box above, then send again.",
+                "Bifează caseta de verificare de mai sus, apoi trimite din nou.",
+              )
+            : t(
+                "The anti-spam check did not load. Reload the page, or write to us at hello@vortexhub.ro.",
+                "Verificarea anti-spam nu s-a încărcat. Reîncarcă pagina sau scrie-ne la hello@vortexhub.ro.",
+              ),
+        );
+        return;
+      }
+      const result = await submitContactEnquiry({
         data: {
           fullName: String(form.get("fullName") || "").trim(),
           email: String(form.get("email") || "").trim(),
@@ -90,17 +149,20 @@ export function ContactForm({
           description: String(form.get("description") || "").trim(),
           budget: String(form.get("budget") || "").trim() || null,
           timeline: String(form.get("timeline") || "").trim() || null,
+          lang,
+          turnstileToken: check.needed ? (check.token ?? undefined) : undefined,
         },
       });
-      setSubmitted(true);
+      if (result.ok) {
+        setSubmitted(true);
+        return;
+      }
+      turnstile.current?.reset();
+      setFormError(refusalText(result));
     } catch (error) {
       console.error("[contact] submit failed", error);
-      toast.error(
-        t(
-          "Your message did not go through. Please try again, or write to hello@vortexhub.ro.",
-          "Mesajul nu a ajuns. Încearcă din nou sau scrie-ne la hello@vortexhub.ro.",
-        ),
-      );
+      turnstile.current?.reset();
+      setFormError(notDelivered);
     } finally {
       setSubmitting(false);
     }
@@ -110,7 +172,9 @@ export function ContactForm({
     const name = chosen ? PLAN_CATALOG[chosen].name : "";
     return (
       <div role="status" className="border-t border-rule pt-6">
-        <h2 className="type-h3 text-fg">{t("Thank you, we have it.", "Mulțumim, am primit-o.")}</h2>
+        <h2 className="type-h3 text-fg">
+          {t("Thank you, we have your request.", "Mulțumim, am primit cererea.")}
+        </h2>
         <p className="type-body mt-2 max-w-[60ch] text-fg-2">
           {chosen
             ? t(
@@ -118,8 +182,8 @@ export function ContactForm({
                 `Îți trimitem pe e-mail contractul pentru ${name}, spre citire, și stabilim împreună prima sesiune.`,
               )
             : t(
-                "We read every request and reply with a practical next step, usually within two working days.",
-                "Citim fiecare cerere și răspundem cu un pas practic următor, de obicei în două zile lucrătoare.",
+                "We read every request and reply with a practical next step within one working day.",
+                "Citim fiecare cerere și răspundem cu un pas practic următor într-o zi lucrătoare.",
               )}
         </p>
         <Button variant="secondary" className="mt-6" onClick={() => setSubmitted(false)}>
@@ -186,7 +250,7 @@ export function ContactForm({
           </Field>
         ) : (
           <Field id="service" label={t("Service", "Serviciul")} optional>
-            <Select name="service">
+            <Select name="service" defaultValue={service}>
               <SelectTrigger id="service">
                 <SelectValue placeholder={t("Choose one", "Alege")} />
               </SelectTrigger>
@@ -224,7 +288,7 @@ export function ContactForm({
             <Input
               id="budget"
               name="budget"
-              placeholder={t("e.g. 2,500 to 7,500 RON", "de exemplu 2.500–7.500 lei")}
+              placeholder={t("e.g. 4,500 to 7,500 RON", "de exemplu 4.500–7.500 lei")}
             />
           </Field>
           <Field label={t("Preferred timeline", "Termen dorit")} optional>
@@ -250,8 +314,21 @@ export function ContactForm({
         </Link>
       </p>
 
-      <div>
-        <Button type="submit" size="lg" loading={submitting}>
+      {/* Nothing here unless Turnstile is on (TURNSTILE_SITE_KEY); usually invisible even then. */}
+      <TurnstileField ref={turnstile} action="contact" className="max-w-[400px]" />
+
+      <div className="flex flex-col items-start gap-3">
+        {formError ? (
+          <p id="contact-form-error" role="alert" className="type-body-sm max-w-[60ch] text-bad">
+            {formError}
+          </p>
+        ) : null}
+        <Button
+          type="submit"
+          size="lg"
+          loading={submitting}
+          aria-describedby={formError ? "contact-form-error" : undefined}
+        >
           {submitting ? t("Sending…", "Se trimite…") : t("Send the request", "Trimite cererea")}
         </Button>
       </div>

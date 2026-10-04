@@ -133,6 +133,11 @@ export const PROJECTS: Project[] = [
     slug: "bridge-gateway-vortex",
     name: "Bridge Gateway Consulting",
     variant: { en: "Corporate site", ro: "Site corporativ" },
+    // Checked 2026-10-04: the two Bridge Gateway entries are not swapped (the 2026-10-02
+    // capture of this URL is the London advisory site; bridgegatewayconsulting.com is the
+    // student platform). "gateaway" is the live subdomain's own spelling:
+    // bridgegateway.vortexhub.dev does not answer yet. Switch both lines once the owner adds
+    // it in Lovable (the corporate site's project, Settings, Domains).
     url: "https://bridgegateaway.vortexhub.dev",
     domain: "bridgegateaway.vortexhub.dev",
     category: { en: "Corporate advisory website", ro: "Site corporativ de consultanță" },

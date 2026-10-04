@@ -615,9 +615,11 @@ export function VortexSearch({
                 aria-hidden
                 className="type-body pointer-events-none absolute inset-0 flex items-center truncate text-white/70"
               >
-                <span className="sm:hidden">{t("Business or website", "Afacere sau website")}</span>
+                <span className="sm:hidden">
+                  {t("Company, CUI or website", "Firmă, CUI sau site")}
+                </span>
                 <span className="hidden sm:inline">
-                  {t("Business name or website", "Numele afacerii sau website-ul")}
+                  {t("Company name, CUI or website", "Numele firmei, CUI sau site")}
                 </span>
               </span>
             )}
@@ -673,7 +675,7 @@ export function VortexSearch({
           <button
             type="submit"
             aria-busy={submitting || undefined}
-            className="type-button group/go -mr-1.5 flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-1.5 text-[#d4cbfd] transition-colors duration-200 hover:text-white focus-visible:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-hero-lilac/60"
+            className="type-button group/go -mr-1.5 flex h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-1.5 text-[#d4cbfd] transition-colors duration-200 hover:text-white focus-visible:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-lilac/75"
           >
             {submitting ? (
               <>
@@ -790,8 +792,8 @@ export function VortexSearch({
           <p id={microId} className="type-body-sm text-[#c9c4ee]/85">
             {micro ??
               t(
-                "Search a business. See what comes next.",
-                "Caută o afacere. Descoperă ce urmează.",
+                "Type your company's name and see, for free, what you can improve.",
+                "Scrie numele firmei și vezi gratuit ce poți îmbunătăți.",
               )}
           </p>
           <div
@@ -805,7 +807,7 @@ export function VortexSearch({
                 <button
                   type="button"
                   onClick={() => fill(t(...pick))}
-                  className="type-body-sm group/pick flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-3 text-[#ddd6fe]/90 transition-colors duration-200 hover:text-white focus-visible:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-hero-lilac/60 sm:px-5"
+                  className="type-body-sm group/pick flex min-h-11 items-center gap-2 whitespace-nowrap rounded-md px-3 text-[#ddd6fe]/90 transition-colors duration-200 hover:text-white focus-visible:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-lilac/75 sm:px-5"
                 >
                   <ArrowUpRight
                     aria-hidden

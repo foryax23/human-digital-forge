@@ -36,7 +36,7 @@ export function WorkCard({
         aria-haspopup="dialog"
         aria-labelledby={titleId}
         aria-describedby={metaId}
-        className="group flex h-full w-full cursor-pointer flex-col rounded-xl text-left outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-line/55"
+        className="group flex h-full w-full cursor-pointer flex-col rounded-xl text-left focus-visible:outline-2 focus-visible:outline-solid focus-visible:outline-offset-4 focus-visible:outline-brand-line"
       >
         <span
           className={cn(

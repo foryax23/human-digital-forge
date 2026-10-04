@@ -188,7 +188,7 @@
   font-weight: 500;
   font-size: 0.75rem;
   line-height: 1.3;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 /* Codes only: CUI, domains, kbd. Never uppercase, never tracked. */
@@ -222,6 +222,16 @@
   line-height: 1.1;
   letter-spacing: -0.015em;
   font-variant-numeric: tabular-nums lining-nums;
+}
+/* Prices set large in running rows ("de la 4.500 lei"): the pricing section and the
+   service pages' facts. Proportional figures, like type-pnum. */
+@utility type-price {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  line-height: 1;
+  letter-spacing: 0;
+  font-variant-numeric: proportional-nums lining-nums;
 }
 @utility type-button {
   font-family: var(--font-body);
@@ -517,10 +527,22 @@
   }
 }
 
+/* Keyboard focus on every element that has no focus style of its own: the system ring
+   (FOCUS_RING in src/components/system/tone.ts). Layered, so a control's own focus
+   utilities still win. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--vx-brand-line);
+    outline-offset: 2px;
+  }
+}
+
 /* Sections receive focus from the in-page nav (scrollToSection); the jump
-   itself is the feedback, so no ring around the whole section. */
+   itself is the feedback, so no ring around the whole section. The same for <main>,
+   where the skip link lands. */
 .cinematic section[tabindex="-1"]:focus,
-.cinematic footer[tabindex="-1"]:focus {
+.cinematic footer[tabindex="-1"]:focus,
+main[tabindex="-1"]:focus {
   outline: none;
 }
 

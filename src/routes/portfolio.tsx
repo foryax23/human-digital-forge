@@ -8,32 +8,30 @@ import { ProjectPreview } from "@/components/landing/ProjectPreview";
 import { PROJECTS, projectTitle } from "@/components/landing/projects";
 import { WorkCard } from "@/components/landing/WorkSection";
 import { pageMeta, useI18n } from "@/i18n";
+import { absoluteUrl, canonicalLink, jsonLdScript } from "@/i18n/seo";
 
 export const Route = createFileRoute("/portfolio")({
   head: ({ matches }) => ({
     meta: pageMeta(matches, "/portfolio"),
-    links: [{ rel: "canonical", href: "/portfolio" }],
+    links: [canonicalLink("/portfolio")],
     scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "ItemList",
-          name: "Vortex Hub portfolio",
-          itemListElement: PROJECTS.map((project, i) => ({
-            "@type": "ListItem",
-            position: i + 1,
-            item: {
-              "@type": "CreativeWork",
-              name: projectTitle(project, "en"),
-              url: project.url,
-              description: project.tagline.en,
-              genre: project.category.en,
-              creator: { "@type": "Organization", name: "Vortex Hub" },
-            },
-          })),
-        }),
-      },
+      jsonLdScript({
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        name: "Vortex Hub portfolio",
+        itemListElement: PROJECTS.map((project, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          item: {
+            "@type": "CreativeWork",
+            name: projectTitle(project, "en"),
+            url: project.url,
+            description: project.tagline.en,
+            genre: project.category.en,
+            creator: { "@type": "Organization", name: "Vortex Hub", url: absoluteUrl("/") },
+          },
+        })),
+      }),
     ],
   }),
   component: PortfolioPage,

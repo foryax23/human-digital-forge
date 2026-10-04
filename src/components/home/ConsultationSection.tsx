@@ -3,6 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { ButtonLink, SectionHeader, buttonClass } from "@/components/system";
 import { useI18n } from "@/i18n";
 
+import { CONSULTATION_SESSIONS } from "./consultation-sessions";
+
 /**
  * The three session types as hairline rows (who it is for, a link to book). Shared by
  * the homepage and /consultancy.
@@ -11,40 +13,25 @@ export function SessionRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3
   const { t } = useI18n();
   const Heading = headingLevel;
 
-  // Business first: the assessment most visitors come for, then the website, then ideas.
-  const sessions = [
-    {
-      title: t("AI automation assessment", "Evaluarea automatizărilor cu AI"),
-      audience: t(
-        "For businesses that want to know which tasks can be automated and what they would gain.",
-        "Pentru firmele care vor să afle ce sarcini se pot automatiza și ce ar câștiga.",
-      ),
-    },
-    {
-      title: t("Website strategy consultation", "Consultanță pentru strategia site-ului"),
-      audience: t(
-        "For businesses that want a new or redesigned website: pages, features and the visitor's path to an enquiry.",
-        "Pentru firmele care vor un site nou sau refăcut: paginile, funcțiile și drumul vizitatorului până la o cerere.",
-      ),
-    },
-    {
-      title: t("Digital idea consultation", "Consultanță pentru idei digitale"),
-      audience: t(
-        "For people planning a digital product, a personal website or a creative project.",
-        "Pentru cine pregătește un produs digital, un site personal sau un proiect creativ.",
-      ),
-    },
-  ];
+  const sessions = CONSULTATION_SESSIONS.map((session) => ({
+    id: session.id,
+    title: t(session.title.en, session.title.ro),
+    audience: t(session.audience.en, session.audience.ro),
+  }));
 
   return (
     <ul role="list" className="border-t border-rule">
       {sessions.map((session) => (
         <li
-          key={session.title}
+          key={session.id}
           className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-6 border-b border-line-1 py-4"
         >
           <Heading className="type-h4 text-fg">{session.title}</Heading>
-          <Link to="/contact" className={buttonClass("link", "sm", "sm:row-span-2")}>
+          <Link
+            to="/contact"
+            search={{ service: "consultancy", session: session.id }}
+            className={buttonClass("link", "sm", "sm:row-span-2")}
+          >
             {t("Book", "Programează")}
             <span className="sr-only">: {session.title}</span>
           </Link>
@@ -82,7 +69,9 @@ export function ConsultationSection() {
           )}
           actions={
             <>
-              <ButtonLink to="/contact">{t("Book a call", "Programează o discuție")}</ButtonLink>
+              <ButtonLink to="/contact" search={{ service: "consultancy" }}>
+                {t("Book a call", "Programează o discuție")}
+              </ButtonLink>
               <span className="type-body-sm text-fg-3 sm:pl-2">
                 {t("The first call is free.", "Prima discuție e gratuită.")}
               </span>

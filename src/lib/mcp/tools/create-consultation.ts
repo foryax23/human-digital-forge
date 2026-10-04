@@ -1,5 +1,7 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
+import { limitByKey } from "@/lib/abuse/index.server";
+import { notifyIntake } from "@/lib/notify/index.server";
 import { supabaseForUser } from "../supabase";
 
 export default defineTool({
@@ -9,7 +11,11 @@ export default defineTool({
   inputSchema: {
     title: z.string().trim().min(1).max(200).describe("Short topic or title for the consultation."),
     notes: z.string().trim().max(2000).optional().describe("Additional details or questions."),
-    scheduled_at: z.string().datetime().optional().describe("Preferred ISO 8601 date/time (e.g. 2026-08-10T14:00:00Z)."),
+    scheduled_at: z
+      .string()
+      .datetime()
+      .optional()
+      .describe("Preferred ISO 8601 date/time (e.g. 2026-08-10T14:00:00Z)."),
   },
   annotations: { readOnlyHint: false, idempotentHint: false, openWorldHint: false },
   handler: async ({ title, notes, scheduled_at }, ctx) => {
@@ -33,6 +39,12 @@ export default defineTool({
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
-    return { content: [{ type: "text", text: `Consultation booked: ${JSON.stringify(data, null, 2)}` }] };
+    // The team's alert (Telegram / e-mail when set up), at most ten an hour per account.
+    if ((await limitByKey("consultation", userId)).ok) {
+      void notifyIntake({ kind: "consultation", title, notes, preferredAt: scheduled_at });
+    }
+    return {
+      content: [{ type: "text", text: `Consultation booked: ${JSON.stringify(data, null, 2)}` }],
+    };
   },
 });

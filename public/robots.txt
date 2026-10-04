@@ -1,3 +1,4 @@
+# Public pages are listed in the sitemap. Private areas stay out of search.
 User-agent: *
 Allow: /
 Disallow: /dashboard
@@ -8,5 +9,8 @@ Disallow: /billing-success
 Disallow: /api/
 Disallow: /mcp
 Disallow: /scan/deep
+# The /scan start page is indexed; a scan's own screens (/scan?cui=…, ?url=, ?q=, ?demo=) are
+# personal and start live checks, so crawlers stay off them (they also carry noindex).
+Disallow: /scan?
 
 Sitemap: https://vortexhub.dev/sitemap.xml

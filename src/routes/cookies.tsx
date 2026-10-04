@@ -95,8 +95,8 @@ function CookiesPage() {
               </li>
               <li>
                 {t(
-                  "for deep research (Cercetare aprofundată): a journal of the research in progress and the finished report, per account, so a closed tab can continue; deleted when you sign out or press “Șterge din acest browser”;",
-                  "pentru cercetarea aprofundată: un jurnal al cercetării în curs și raportul terminat, pe cont, ca o filă închisă să poată continua; se șterg când te deconectezi sau apeși „Șterge din acest browser”;",
+                  "for Deep Research (Cercetare aprofundată): a journal of the research in progress and the finished report, per account, so a closed tab can continue; deleted when you sign out or press “Șterge din acest browser”;",
+                  "pentru cercetarea aprofundată (Deep Research): un jurnal al cercetării în curs și raportul terminat, pe cont, ca o filă închisă să poată continua; se șterg când te deconectezi sau apeși „Șterge din acest browser”;",
                 )}
               </li>
               <li>

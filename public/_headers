@@ -1,0 +1,9 @@
+# Browser cache for static files (Cloudflare `_headers` format). The build appends nitro's own
+# rule for /assets/* (hashed file names: a year, immutable). Pages keep the host's no-cache.
+# Media and the company index keep their names when they are rebuilt, so they get a week and a
+# day, then refresh in the background, instead of `immutable`. A changed media file that must
+# show at once needs a new file name.
+/media/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
+/scan-index/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

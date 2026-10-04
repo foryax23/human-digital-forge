@@ -63,8 +63,8 @@ function TermsPage() {
           <Section heading={t("2. Definitions", "2. Definiții")}>
             <p>
               {t(
-                "'Services' means the digital products, websites, AI automation and consultancy offered by Vortex Hub. 'Client' means any individual or business that requests or purchases the Services. 'Deliverables' means the work produced under an agreed proposal.",
-                "„Servicii” înseamnă produsele digitale, site-urile web, automatizările AI și consultanța oferite de Vortex Hub. „Client” înseamnă orice persoană fizică sau juridică ce solicită sau achiziționează Serviciile. „Livrabile” înseamnă lucrările produse conform unei propuneri agreate.",
+                "'Services' means the websites, digital products, AI automation and consultancy offered by Vortex Hub. 'Client' means any individual or business that requests or purchases the Services. 'Deliverables' means the work produced under an agreed proposal.",
+                "„Servicii” înseamnă site-urile web, produsele digitale, automatizările AI și consultanța oferite de Vortex Hub. „Client” înseamnă orice persoană fizică sau juridică ce solicită sau achiziționează Serviciile. „Livrabile” înseamnă lucrările produse conform unei propuneri agreate.",
               )}
             </p>
           </Section>
@@ -137,8 +137,8 @@ function TermsPage() {
           <Section id="rapoarte-vortex-scan" heading={`10. ${reportTerms.title}`}>
             <p>
               {t(
-                "These terms apply to the reports of Vortex Scan, including deep research (Cercetare aprofundată). You accept them in the form before a deep research starts.",
-                "Acești termeni se aplică rapoartelor Vortex Scan, inclusiv cercetării aprofundate. Îi accepți în formularul de dinainte de pornirea unei cercetări aprofundate.",
+                "These terms apply to the reports of Vortex Scan, including Deep Research (Cercetare aprofundată). You accept them in the form before a deep research starts.",
+                "Acești termeni se aplică rapoartelor Vortex Scan, inclusiv cercetării aprofundate (Deep Research). Îi accepți în formularul de dinainte de pornirea unei cercetări aprofundate.",
               )}
             </p>
             <ol className="list-decimal space-y-1.5 pl-5 marker:text-fg-3">

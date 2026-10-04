@@ -172,8 +172,8 @@ export function HeroSection() {
             </span>
             <span className="block">
               {t(
-                "A new perspective on your business.",
-                "Un nou punct de vedere asupra afacerii tale.",
+                "We build websites and automations for businesses in Romania.",
+                "Facem site-uri și automatizări pentru firme din România.",
               )}
             </span>
           </p>
@@ -217,7 +217,7 @@ export function HeroSection() {
         <button
           type="button"
           onClick={() => scrollToSection("services")}
-          className="type-label group/scroll hidden flex-col items-center gap-2.5 rounded-md px-3 py-1 text-white/45 transition-colors hover:text-white/85 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-hero-lilac/60 md:flex"
+          className="type-label group/scroll hidden flex-col items-center gap-2.5 rounded-md px-3 py-1 text-white/60 transition-colors hover:text-white/85 focus-visible:text-white/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hero-lilac/75 md:flex"
         >
           {t("Scroll to explore", "Derulează")}
           <span aria-hidden className="relative h-8 w-px overflow-hidden bg-white/15">

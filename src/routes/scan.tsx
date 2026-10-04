@@ -15,8 +15,9 @@ import { OverviewStep } from "@/components/scan/steps/OverviewStep";
 import { ResultsStep } from "@/components/scan/steps/ResultsStep";
 import { StrategyStep } from "@/components/scan/steps/StrategyStep";
 import { scanKey, toScanTarget, useVortexScan } from "@/components/scan/useVortexScan";
-import { Button, ButtonLink, StepHeader } from "@/components/system";
+import { Button, ButtonLink, FOCUS_RING, StepHeader } from "@/components/system";
 import { pageMeta, useI18n } from "@/i18n";
+import { canonicalLink } from "@/i18n/seo";
 import { simulateBlueprint } from "@/lib/scan/blueprint/simulate";
 import type { ScanTarget, SimulationInputs } from "@/lib/scan/types";
 
@@ -57,9 +58,17 @@ type ScanSearch = z.infer<typeof searchSchema>;
 
 export const Route = createFileRoute("/scan")({
   validateSearch: (search: Record<string, unknown>): ScanSearch => searchSchema.parse(search),
-  head: ({ matches }) => ({
-    meta: pageMeta(matches, "/scan"),
-  }),
+  head: ({ matches, match }) => {
+    // The start page is indexed (sitemap); a scan's own screens are personal to the visitor.
+    const { cui, url, q, demo } = match.search;
+    const personal = Boolean(cui || url || q || demo);
+    return {
+      meta: personal
+        ? [...pageMeta(matches, "/scan"), { name: "robots", content: "noindex" }]
+        : pageMeta(matches, "/scan"),
+      links: personal ? [] : [canonicalLink("/scan")],
+    };
+  },
   component: ScanPage,
 });
 
@@ -324,6 +333,8 @@ function ScanFlow({
   );
 }
 
+const CREDIT_LINK = `rounded-sm underline decoration-fg/30 underline-offset-4 transition-colors hover:text-fg hover:decoration-fg ${FOCUS_RING}`;
+
 /**
  * Stage 1 on /scan: the hero's company search for starting a scan, then what the scan
  * gives in three lines and a link to a finished example, so the screen is useful before
@@ -342,8 +353,8 @@ function FindStage({ hasScan, onBack }: { hasScan: boolean; onBack?: () => void 
     {
       title: t("Three directions and a 6-month plan", "Trei direcții și planul pe 6 luni"),
       body: t(
-        "Each with its cost, the hours it frees and the month it pays back.",
-        "Fiecare cu costul, orele câștigate și luna în care se recuperează.",
+        "Each with its cost, the hours it frees and, as an estimate, whether and when it pays back.",
+        "Fiecare cu costul, orele câștigate și, estimat, dacă și când se recuperează.",
       ),
     },
     {
@@ -361,8 +372,8 @@ function FindStage({ hasScan, onBack }: { hasScan: boolean; onBack?: () => void 
         id="scan-find-title"
         title={t("Analyse a business", "Analizează o afacere")}
         lead={t(
-          "Type the company name, its fiscal code (CUI) or the website address.",
-          "Scrie numele firmei, CUI-ul sau adresa site-ului.",
+          "Type the company name, its fiscal code (CUI) or the website address. It is free; for the PDF we only ask for your e-mail address.",
+          "Scrie numele firmei, CUI-ul sau adresa site-ului. E gratuit; pentru PDF îți cerem doar adresa de e-mail.",
         )}
       />
       {/* The lead above says what the field takes; the search menu names its sources. */}
@@ -386,6 +397,32 @@ function FindStage({ hasScan, onBack }: { hasScan: boolean; onBack?: () => void 
           </Button>
         ) : null}
       </div>
+      {/* CC BY 4.0 attribution for the company index (public/scan-index/v1/meta.json):
+          source, licence and that we changed it (filtered and indexed). fg-2 on the backdrop. */}
+      <p className="mt-10 text-[0.8125rem] leading-[1.45] text-fg-2">
+        {t("ONRC data from ", "Date ONRC de pe ")}
+        <a
+          href="https://data.gov.ro/organization/onrc"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={CREDIT_LINK}
+        >
+          data.gov.ro
+        </a>
+        {t(", licensed ", ", licență ")}
+        <a
+          href={t(
+            "https://creativecommons.org/licenses/by/4.0/deed.en",
+            "https://creativecommons.org/licenses/by/4.0/deed.ro",
+          )}
+          target="_blank"
+          rel="noopener noreferrer license"
+          className={CREDIT_LINK}
+        >
+          CC BY 4.0
+        </a>
+        {t(", processed by Vortex Hub.", ", prelucrate de Vortex Hub.")}
+      </p>
     </section>
   );
 }

@@ -223,6 +223,9 @@ export function fixedProject(id: FixedProject["id"]): FixedProject {
   return FIXED_PROJECTS.find((p) => p.id === id) ?? FIXED_PROJECTS[0];
 }
 
+/** A no-break space: keeps an amount and its unit on one line ("1.990 lei"). */
+export const NBSP = "\u00a0";
+
 /** "1.990" in Romanian, "1,990" in English: grouped by hand so server and browser agree. */
 export function groupedNumber(value: number, lang: "en" | "ro"): string {
   return String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, lang === "ro" ? "." : ",");
@@ -230,7 +233,7 @@ export function groupedNumber(value: number, lang: "en" | "ro"): string {
 
 /** "1.990 lei" / "1,990 RON". */
 export function leiText(value: number): PriceText {
-  return t(`${groupedNumber(value, "en")} RON`, `${groupedNumber(value, "ro")} lei`);
+  return t(`${groupedNumber(value, "en")}${NBSP}RON`, `${groupedNumber(value, "ro")}${NBSP}lei`);
 }
 
 /** "790 lei pe lună" / "790 RON a month". */
@@ -323,8 +326,8 @@ export function projectPriceText(project: FixedProject): PriceText {
   }
   if (high) {
     return t(
-      `${groupedNumber(low, "en")}–${groupedNumber(high, "en")} RON`,
-      `${groupedNumber(low, "ro")}–${groupedNumber(high, "ro")} lei`,
+      `${groupedNumber(low, "en")}–${groupedNumber(high, "en")}${NBSP}RON`,
+      `${groupedNumber(low, "ro")}–${groupedNumber(high, "ro")}${NBSP}lei`,
     );
   }
   const amount = leiText(low);
