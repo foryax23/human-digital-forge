@@ -10,14 +10,9 @@ import { ReticleMark } from "./hero/icons";
 import { HeroCosmos, VORTEX_CENTRE } from "./HeroCosmos";
 import { HeroProof } from "./HeroProof";
 import { HeroTelemetry } from "./HeroTelemetry";
-import { useIntroDone } from "./intro";
-import { HERO_REVEAL_ATTR } from "./intro-script";
 import { MotionPauseToggle, useMotionPause } from "./motion-pause";
 import { scrollToSection } from "./smooth-scroll";
 import { VortexSearch, type SearchFieldState } from "./VortexSearch";
-
-/** Spread on every element the head script keeps hidden until the entrance runs. */
-const reveal = { [HERO_REVEAL_ATTR]: "" };
 
 /** The submit transition before /scan opens: visual only, no progress is implied. */
 const SCAN_TRANSITION_MS = 800;
@@ -27,8 +22,7 @@ const SCAN_TRANSITION_MS = 800;
  * the vortex: eyebrow, a two-line title, a two-line pitch, the company /
  * website search with two example searches under it, and the four pillars
  * (analyse, automate, growth, strategy) that lead to the sections explaining
- * them. A line of real launched work runs along the bottom. The entrance
- * waits for the intro loader.
+ * them. A line of real launched work runs along the bottom.
  *
  * The vortex follows the search: idle → focus → typing (each keystroke pulses
  * it) → scanning, a short visual transition on submit before /scan opens
@@ -37,7 +31,6 @@ const SCAN_TRANSITION_MS = 800;
  */
 export function HeroSection() {
   const { t } = useI18n();
-  const introDone = useIntroDone();
   const { paused } = useMotionPause();
   const sectionRef = useRef<HTMLElement>(null);
   const [fieldState, setFieldState] = useState<SearchFieldState>("idle");
@@ -50,12 +43,11 @@ export function HeroSection() {
 
   useGsap(
     () => {
-      if (!introDone) return;
       if (prefersReducedMotion()) {
         gsap.set(".name-reveal, .blur-in", { opacity: 1, y: 0, filter: "none" });
         return;
       }
-      // fromTo with explicit end values: the head script holds these at opacity 0 in CSS.
+      // fromTo with explicit end values: elements start hidden only inside this tween.
       gsap
         .timeline({ defaults: { ease: "power3.out" } })
         .fromTo(".name-reveal", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.2 }, 0.1)
@@ -74,7 +66,6 @@ export function HeroSection() {
         );
     },
     sectionRef,
-    [introDone],
   );
 
   useEffect(
@@ -137,7 +128,6 @@ export function HeroSection() {
       <div className="pointer-events-none relative z-20 mx-auto flex w-full max-w-[1320px] flex-1 flex-col items-center justify-center px-6 pb-6 pt-24 md:px-10 lg:pb-[clamp(0.25rem,1.5vh,1.25rem)] lg:pt-[clamp(5.5rem,11vh,7rem)]">
         <div className="pointer-events-auto flex w-full max-w-[48rem] flex-col items-center text-center 2xl:max-w-[52rem]">
           <p
-            {...reveal}
             className="type-caps blur-in relative isolate mb-4 flex max-w-full items-center justify-center gap-2.5 text-[#c9c4ee]/90 lg:mb-[clamp(0.875rem,2.2vh,1.25rem)]"
           >
             {/* A dark plate keeps the small type legible where the vortex's bright arm crosses it. */}
@@ -150,7 +140,6 @@ export function HeroSection() {
           </p>
 
           <h1
-            {...reveal}
             id="hero-title"
             className="type-display name-reveal mb-5 text-balance text-white [text-shadow:0_2px_30px_rgb(0_2_15/0.6)] lg:mb-[clamp(1rem,2.6vh,1.5rem)]"
           >
@@ -164,7 +153,6 @@ export function HeroSection() {
           </h1>
 
           <p
-            {...reveal}
             className="type-lead blur-in mb-9 text-balance text-white/80 lg:mb-[clamp(1.75rem,5.2vh,3rem)]"
           >
             <span className="block">
@@ -180,7 +168,6 @@ export function HeroSection() {
 
           {/* z-10: the suggestions open over the examples, the pillars and the bottom bar. */}
           <div
-            {...reveal}
             className="blur-in relative z-10 w-full max-w-[42.5rem] 2xl:max-w-[50rem]"
           >
             <VortexSearch
@@ -192,7 +179,7 @@ export function HeroSection() {
             />
           </div>
 
-          <div {...reveal} className="blur-in mt-[clamp(1.5rem,4.6vh,3.25rem)] w-full">
+          <div className="blur-in mt-[clamp(1.5rem,4.6vh,3.25rem)] w-full">
             {/* Steps aside while the suggestions cover it, and back while a scan starts. */}
             <HeroPillars
               hold={searchActive || scanning || suggestionsOpen}
@@ -209,7 +196,6 @@ export function HeroSection() {
 
       {/* Bottom bar: real proof · scroll cue · the pause switch. */}
       <div
-        {...reveal}
         className="blur-in pointer-events-none relative z-10 mx-auto grid w-full max-w-[1320px] grid-cols-[1fr_auto] items-center gap-4 px-6 pb-6 md:grid-cols-[1fr_auto_1fr] md:px-10 lg:px-12 lg:pb-7 [&>*]:pointer-events-auto"
       >
         <HeroProof className="justify-self-start" />
