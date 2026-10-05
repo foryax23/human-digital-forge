@@ -179,7 +179,7 @@ export function HeroSection() {
             />
           </div>
 
-          <div {...reveal} className="blur-in mt-[clamp(1.5rem,4.6vh,3.25rem)] w-full">
+          <div className="blur-in mt-[clamp(1.5rem,4.6vh,3.25rem)] w-full">
             {/* Steps aside while the suggestions cover it, and back while a scan starts. */}
             <HeroPillars
               hold={searchActive || scanning || suggestionsOpen}
