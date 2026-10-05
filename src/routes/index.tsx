@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
     meta: pageMeta(matches, "/"),
     links: [
       canonicalLink("/"),
-      { rel: "preload", as: "image", href: "/media/swirl-loop/poster.jpg" },
+      { rel: "preload", as: "image", href: "/media/swirl-loop/poster.webp", imageSrcSet: "/media/swirl-loop/poster-720.webp 720w, /media/swirl-loop/poster.webp 1280w", imageSizes: "100vw", fetchPriority: "high" } as never,
     ],
     scripts: [
       // The company, its service in Timișoara and the website (src/i18n/seo.ts).
