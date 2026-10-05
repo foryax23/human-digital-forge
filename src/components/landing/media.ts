@@ -86,18 +86,6 @@ export const APP_ICONS = {
   app512: "/media/brand/app-icon-512.png",
 } as const;
 
-/**
- * First-visit intro: swirl, particles, then the wordmark, which holds.
- * Poster is the final (hold) frame, which is also the reduced-motion still.
- */
-export const INTRO_VIDEO = {
-  mp4_1080: "/media/brand/intro/assemble-1080.mp4",
-  mp4_720: "/media/brand/intro/assemble-720.mp4",
-  webm: "/media/brand/intro/assemble.webm",
-  poster: "/media/brand/intro/assemble-poster.jpg",
-  durationSec: 6,
-} as const;
-
 /** Ribbon variant of the assemble animation, shown while the PDF is generated. */
 export const PDF_GENERATING_VIDEO = {
   mp4: "/media/brand/intro/assemble-alt-720.mp4",
@@ -213,7 +201,6 @@ export const BRAND_MEDIA = {
   LOGO_LAVENDER,
   SWIRL_ICON,
   APP_ICONS,
-  INTRO_VIDEO,
   PDF_GENERATING_VIDEO,
   SIGNOFF_VIDEO,
   SCAN_FILM,
