@@ -11,6 +11,8 @@ import { HeroCosmos, VORTEX_CENTRE } from "./HeroCosmos";
 import { HeroProof } from "./HeroProof";
 import { HeroTelemetry } from "./HeroTelemetry";
 import { MotionPauseToggle, useMotionPause } from "./motion-pause";
+import { scrollToSection } from "./smooth-scroll";
+import { VortexSearch, type SearchFieldState } from "./VortexSearch";
 
 /** The submit transition before /scan opens: visual only, no progress is implied. */
 const SCAN_TRANSITION_MS = 800;

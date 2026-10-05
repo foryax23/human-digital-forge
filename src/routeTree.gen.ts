@@ -9,127 +9,47 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AiAutomationRouteImport } from './routes/ai-automation'
-import { Route as BillingSuccessRouteImport } from './routes/billing-success'
-import { Route as ConsultancyRouteImport } from './routes/consultancy'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as CookiesRouteImport } from './routes/cookies'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as DigitalProductsRouteImport } from './routes/digital-products'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as McpRouteImport } from './routes/mcp'
-import { Route as PortfolioRouteImport } from './routes/portfolio'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as ScanRouteImport } from './routes/scan'
-import { Route as ServicesRouteImport } from './routes/services'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as VortexpointRouteImport } from './routes/vortexpoint'
 import { Route as WebsitesRouteImport } from './routes/websites'
-import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as VortexpointRouteImport } from './routes/vortexpoint'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as ServicesRouteImport } from './routes/services'
+import { Route as ScanRouteImport } from './routes/scan'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as DigitalProductsRouteImport } from './routes/digital-products'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ConsultancyRouteImport } from './routes/consultancy'
+import { Route as BillingSuccessRouteImport } from './routes/billing-success'
+import { Route as AiAutomationRouteImport } from './routes/ai-automation'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
-import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
-import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
-import { Route as DashboardConsultationsRouteImport } from './routes/dashboard.consultations'
-import { Route as DashboardFilesRouteImport } from './routes/dashboard.files'
-import { Route as DashboardMessagesRouteImport } from './routes/dashboard.messages'
-import { Route as DashboardNewRequestRouteImport } from './routes/dashboard.new-request'
-import { Route as DashboardProjectsRouteImport } from './routes/dashboard.projects'
-import { Route as DashboardResearchRouteImport } from './routes/dashboard.research'
-import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
-import { Route as ScanDeepRouteImport } from './routes/scan_.deep'
-import { Route as VortexpointPrivacyRouteImport } from './routes/vortexpoint_.privacy'
 import { Route as VortexpointTermsRouteImport } from './routes/vortexpoint_.terms'
-import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as VortexpointPrivacyRouteImport } from './routes/vortexpoint_.privacy'
+import { Route as ScanDeepRouteImport } from './routes/scan_.deep'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
+import { Route as DashboardResearchRouteImport } from './routes/dashboard.research'
+import { Route as DashboardProjectsRouteImport } from './routes/dashboard.projects'
+import { Route as DashboardNewRequestRouteImport } from './routes/dashboard.new-request'
+import { Route as DashboardMessagesRouteImport } from './routes/dashboard.messages'
+import { Route as DashboardFilesRouteImport } from './routes/dashboard.files'
+import { Route as DashboardConsultationsRouteImport } from './routes/dashboard.consultations'
+import { Route as DashboardBillingRouteImport } from './routes/dashboard.billing'
+import { Route as DashboardAdminRouteImport } from './routes/dashboard.admin'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AiAutomationRoute = AiAutomationRouteImport.update({
-  id: '/ai-automation',
-  path: '/ai-automation',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BillingSuccessRoute = BillingSuccessRouteImport.update({
-  id: '/billing-success',
-  path: '/billing-success',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConsultancyRoute = ConsultancyRouteImport.update({
-  id: '/consultancy',
-  path: '/consultancy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CookiesRoute = CookiesRouteImport.update({
-  id: '/cookies',
-  path: '/cookies',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DigitalProductsRoute = DigitalProductsRouteImport.update({
-  id: '/digital-products',
-  path: '/digital-products',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PortfolioRoute = PortfolioRouteImport.update({
-  id: '/portfolio',
-  path: '/portfolio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ScanRoute = ScanRouteImport.update({
-  id: '/scan',
-  path: '/scan',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ServicesRoute = ServicesRouteImport.update({
-  id: '/services',
-  path: '/services',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const WebsitesRoute = WebsitesRouteImport.update({
+  id: '/websites',
+  path: '/websites',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VortexpointRoute = VortexpointRouteImport.update({
@@ -137,76 +57,99 @@ const VortexpointRoute = VortexpointRouteImport.update({
   path: '/vortexpoint',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WebsitesRoute = WebsitesRouteImport.update({
-  id: '/websites',
-  path: '/websites',
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91DotmcpChar93ListToolsRoute =
-  Char91DotmcpChar93ListToolsRouteImport.update({
-    id: '/.mcp/list-tools',
-    path: '/.mcp/list-tools',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScanRoute = ScanRouteImport.update({
+  id: '/scan',
+  path: '/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortfolioRoute = PortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DigitalProductsRoute = DigitalProductsRouteImport.update({
+  id: '/digital-products',
+  path: '/digital-products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsultancyRoute = ConsultancyRouteImport.update({
+  id: '/consultancy',
+  path: '/consultancy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillingSuccessRoute = BillingSuccessRouteImport.update({
+  id: '/billing-success',
+  path: '/billing-success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiAutomationRoute = AiAutomationRouteImport.update({
+  id: '/ai-automation',
+  path: '/ai-automation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardAdminRoute = DashboardAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardBillingRoute = DashboardBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardConsultationsRoute = DashboardConsultationsRouteImport.update({
-  id: '/consultations',
-  path: '/consultations',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardFilesRoute = DashboardFilesRouteImport.update({
-  id: '/files',
-  path: '/files',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardMessagesRoute = DashboardMessagesRouteImport.update({
-  id: '/messages',
-  path: '/messages',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardNewRequestRoute = DashboardNewRequestRouteImport.update({
-  id: '/new-request',
-  path: '/new-request',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardProjectsRoute = DashboardProjectsRouteImport.update({
-  id: '/projects',
-  path: '/projects',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardResearchRoute = DashboardResearchRouteImport.update({
-  id: '/research',
-  path: '/research',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const ScanDeepRoute = ScanDeepRouteImport.update({
-  id: '/scan_/deep',
-  path: '/scan/deep',
+const VortexpointTermsRoute = VortexpointTermsRouteImport.update({
+  id: '/vortexpoint_/terms',
+  path: '/vortexpoint/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VortexpointPrivacyRoute = VortexpointPrivacyRouteImport.update({
@@ -214,14 +157,71 @@ const VortexpointPrivacyRoute = VortexpointPrivacyRouteImport.update({
   path: '/vortexpoint/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VortexpointTermsRoute = VortexpointTermsRouteImport.update({
-  id: '/vortexpoint_/terms',
-  path: '/vortexpoint/terms',
+const ScanDeepRoute = ScanDeepRouteImport.update({
+  id: '/scan_/deep',
+  path: '/scan/deep',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
-  id: '/.lovable/oauth/consent',
-  path: '/.lovable/oauth/consent',
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardResearchRoute = DashboardResearchRouteImport.update({
+  id: '/research',
+  path: '/research',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardProjectsRoute = DashboardProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardNewRequestRoute = DashboardNewRequestRouteImport.update({
+  id: '/new-request',
+  path: '/new-request',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardMessagesRoute = DashboardMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardFilesRoute = DashboardFilesRouteImport.update({
+  id: '/files',
+  path: '/files',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardConsultationsRoute = DashboardConsultationsRouteImport.update({
+  id: '/consultations',
+  path: '/consultations',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardBillingRoute = DashboardBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardAdminRoute = DashboardAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe-webhook',
+  path: '/api/public/stripe-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
@@ -230,9 +230,9 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
-  id: '/api/public/stripe-webhook',
-  path: '/api/public/stripe-webhook',
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -504,123 +504,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ai-automation': {
-      id: '/ai-automation'
-      path: '/ai-automation'
-      fullPath: '/ai-automation'
-      preLoaderRoute: typeof AiAutomationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/billing-success': {
-      id: '/billing-success'
-      path: '/billing-success'
-      fullPath: '/billing-success'
-      preLoaderRoute: typeof BillingSuccessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/consultancy': {
-      id: '/consultancy'
-      path: '/consultancy'
-      fullPath: '/consultancy'
-      preLoaderRoute: typeof ConsultancyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cookies': {
-      id: '/cookies'
-      path: '/cookies'
-      fullPath: '/cookies'
-      preLoaderRoute: typeof CookiesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/digital-products': {
-      id: '/digital-products'
-      path: '/digital-products'
-      fullPath: '/digital-products'
-      preLoaderRoute: typeof DigitalProductsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/portfolio': {
-      id: '/portfolio'
-      path: '/portfolio'
-      fullPath: '/portfolio'
-      preLoaderRoute: typeof PortfolioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/scan': {
-      id: '/scan'
-      path: '/scan'
-      fullPath: '/scan'
-      preLoaderRoute: typeof ScanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/services': {
-      id: '/services'
-      path: '/services'
-      fullPath: '/services'
-      preLoaderRoute: typeof ServicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
+    '/websites': {
+      id: '/websites'
+      path: '/websites'
+      fullPath: '/websites'
+      preLoaderRoute: typeof WebsitesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/vortexpoint': {
@@ -630,25 +518,123 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VortexpointRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/websites': {
-      id: '/websites'
-      path: '/websites'
-      fullPath: '/websites'
-      preLoaderRoute: typeof WebsitesRouteImport
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.mcp/list-tools': {
-      id: '/.mcp/list-tools'
-      path: '/.mcp/list-tools'
-      fullPath: '/.mcp/list-tools'
-      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+    '/scan': {
+      id: '/scan'
+      path: '/scan'
+      fullPath: '/scan'
+      preLoaderRoute: typeof ScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portfolio': {
+      id: '/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/digital-products': {
+      id: '/digital-products'
+      path: '/digital-products'
+      fullPath: '/digital-products'
+      preLoaderRoute: typeof DigitalProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consultancy': {
+      id: '/consultancy'
+      path: '/consultancy'
+      fullPath: '/consultancy'
+      preLoaderRoute: typeof ConsultancyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/billing-success': {
+      id: '/billing-success'
+      path: '/billing-success'
+      fullPath: '/billing-success'
+      preLoaderRoute: typeof BillingSuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-automation': {
+      id: '/ai-automation'
+      path: '/ai-automation'
+      fullPath: '/ai-automation'
+      preLoaderRoute: typeof AiAutomationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -658,74 +644,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/admin': {
-      id: '/dashboard/admin'
-      path: '/admin'
-      fullPath: '/dashboard/admin'
-      preLoaderRoute: typeof DashboardAdminRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/billing': {
-      id: '/dashboard/billing'
-      path: '/billing'
-      fullPath: '/dashboard/billing'
-      preLoaderRoute: typeof DashboardBillingRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/consultations': {
-      id: '/dashboard/consultations'
-      path: '/consultations'
-      fullPath: '/dashboard/consultations'
-      preLoaderRoute: typeof DashboardConsultationsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/files': {
-      id: '/dashboard/files'
-      path: '/files'
-      fullPath: '/dashboard/files'
-      preLoaderRoute: typeof DashboardFilesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/messages': {
-      id: '/dashboard/messages'
-      path: '/messages'
-      fullPath: '/dashboard/messages'
-      preLoaderRoute: typeof DashboardMessagesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/new-request': {
-      id: '/dashboard/new-request'
-      path: '/new-request'
-      fullPath: '/dashboard/new-request'
-      preLoaderRoute: typeof DashboardNewRequestRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/projects': {
-      id: '/dashboard/projects'
-      path: '/projects'
-      fullPath: '/dashboard/projects'
-      preLoaderRoute: typeof DashboardProjectsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/research': {
-      id: '/dashboard/research'
-      path: '/research'
-      fullPath: '/dashboard/research'
-      preLoaderRoute: typeof DashboardResearchRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/settings': {
-      id: '/dashboard/settings'
-      path: '/settings'
-      fullPath: '/dashboard/settings'
-      preLoaderRoute: typeof DashboardSettingsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/scan_/deep': {
-      id: '/scan_/deep'
-      path: '/scan/deep'
-      fullPath: '/scan/deep'
-      preLoaderRoute: typeof ScanDeepRouteImport
+    '/vortexpoint_/terms': {
+      id: '/vortexpoint_/terms'
+      path: '/vortexpoint/terms'
+      fullPath: '/vortexpoint/terms'
+      preLoaderRoute: typeof VortexpointTermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/vortexpoint_/privacy': {
@@ -735,18 +658,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VortexpointPrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/vortexpoint_/terms': {
-      id: '/vortexpoint_/terms'
-      path: '/vortexpoint/terms'
-      fullPath: '/vortexpoint/terms'
-      preLoaderRoute: typeof VortexpointTermsRouteImport
+    '/scan_/deep': {
+      id: '/scan_/deep'
+      path: '/scan/deep'
+      fullPath: '/scan/deep'
+      preLoaderRoute: typeof ScanDeepRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.lovable/oauth/consent': {
-      id: '/.lovable/oauth/consent'
-      path: '/.lovable/oauth/consent'
-      fullPath: '/.lovable/oauth/consent'
-      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/research': {
+      id: '/dashboard/research'
+      path: '/research'
+      fullPath: '/dashboard/research'
+      preLoaderRoute: typeof DashboardResearchRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/projects': {
+      id: '/dashboard/projects'
+      path: '/projects'
+      fullPath: '/dashboard/projects'
+      preLoaderRoute: typeof DashboardProjectsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/new-request': {
+      id: '/dashboard/new-request'
+      path: '/new-request'
+      fullPath: '/dashboard/new-request'
+      preLoaderRoute: typeof DashboardNewRequestRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/messages': {
+      id: '/dashboard/messages'
+      path: '/messages'
+      fullPath: '/dashboard/messages'
+      preLoaderRoute: typeof DashboardMessagesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/files': {
+      id: '/dashboard/files'
+      path: '/files'
+      fullPath: '/dashboard/files'
+      preLoaderRoute: typeof DashboardFilesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/consultations': {
+      id: '/dashboard/consultations'
+      path: '/consultations'
+      fullPath: '/dashboard/consultations'
+      preLoaderRoute: typeof DashboardConsultationsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/billing': {
+      id: '/dashboard/billing'
+      path: '/billing'
+      fullPath: '/dashboard/billing'
+      preLoaderRoute: typeof DashboardBillingRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/admin': {
+      id: '/dashboard/admin'
+      path: '/admin'
+      fullPath: '/dashboard/admin'
+      preLoaderRoute: typeof DashboardAdminRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stripe-webhook': {
+      id: '/api/public/stripe-webhook'
+      path: '/api/public/stripe-webhook'
+      fullPath: '/api/public/stripe-webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/invoke-tool/$tool': {
@@ -756,11 +756,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/stripe-webhook': {
-      id: '/api/public/stripe-webhook'
-      path: '/api/public/stripe-webhook'
-      fullPath: '/api/public/stripe-webhook'
-      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
