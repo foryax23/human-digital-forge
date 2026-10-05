@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Download } from "lucide-react";
 
 import { SiteLayout } from "@/components/layout/SiteLayout";
@@ -73,8 +73,29 @@ function VortexPointPage() {
     {
       title: t("Now playing", "Muzica în notch"),
       description: t(
-        "The song playing in any app, browsers included, with previous, play/pause and next.",
-        "Piesa care se aude în orice aplicație, inclusiv în browser, cu înapoi, pauză și înainte.",
+        "The song playing in any app, browsers included, with previous, play/pause and next. The weather sits under the clock.",
+        "Piesa care se aude în orice aplicație, inclusiv în browser, cu înapoi, pauză și înainte. Vremea apare sub ceas.",
+      ),
+    },
+    {
+      title: t("Plan", "Plan"),
+      description: t(
+        "Your Apple Calendar on the left, your Reminders to-dos on the right. The Now tab shows what is next up.",
+        "Calendarul tău Apple în stânga, sarcinile din Reminders în dreapta. Fila Now îți arată ce urmează.",
+      ),
+    },
+    {
+      title: t("Voice to-dos", "Sarcini cu vocea"),
+      description: t(
+        "Hold ⌃⌥Space and talk, in Romanian or English. Claude turns it into events and to-dos with your own key. You see them first, with Save, Edit and Undo.",
+        "Ții apăsat ⌃⌥Space și vorbești, în română sau engleză. Claude transformă ce spui în evenimente și sarcini, cu cheia ta. Le vezi întâi, cu butoanele Save, Edit și Undo.",
+      ),
+    },
+    {
+      title: t("Quick tools", "Unelte rapide"),
+      description: t(
+        "Four buttons under the clock: screenshot, record an area, grab text from the screen and pick a colour. Use ⌃⌥4 to ⌃⌥7 from any app.",
+        "Patru butoane sub ceas: captură de ecran, înregistrarea unei zone, text luat de pe ecran și selector de culoare. Scurtăturile ⌃⌥4 până la ⌃⌥7 merg din orice aplicație.",
       ),
     },
     {
@@ -94,8 +115,15 @@ function VortexPointPage() {
     {
       title: t("AI agent (Beta)", "Agent AI (Beta)"),
       description: t(
-        "Tell it what you need and it does the work on your Mac, with your own Claude key.",
-        "Îi spui de ce ai nevoie și se ocupă el, direct pe Mac, cu cheia ta Claude.",
+        "Click the field and type what you need. It does the work on your Mac with your own Claude key, then shows its full answer.",
+        "Faci clic pe câmp și scrii de ce ai nevoie. Se ocupă el, direct pe Mac, cu cheia ta Claude, apoi îți arată răspunsul complet.",
+      ),
+    },
+    {
+      title: t("Skins", "Teme"),
+      description: t(
+        "Pixel Grid, a fine dot grid that ripples, is free for everyone. Pick it in Settings → Appearance. To open Settings, right-click the notch.",
+        "Pixel Grid, o grilă fină de puncte care se unduiește, e gratuită pentru toți. O alegi din Settings → Appearance. Ca să deschizi Settings, dă clic dreapta pe notch.",
       ),
     },
   ];
@@ -165,8 +193,8 @@ function VortexPointPage() {
     {
       label: t("Privacy", "Confidențialitate"),
       value: t(
-        "While the agent runs, screenshots of your screen go to Anthropic with your key. Nothing is sent otherwise.",
-        "Cât timp agentul lucrează, capturi ale ecranului ajung la Anthropic, cu cheia ta. În rest, nu se trimite nimic.",
+        "While the agent runs, screenshots of your screen and your request go to Anthropic with your key. A voice note sends only the text you said and the titles and times of your next 7 days of events. Audio is recognised on your Mac when it can be. We receive none of your data.",
+        "Cât timp agentul lucrează, capturi ale ecranului și cererea ta ajung la Anthropic, cu cheia ta. O notă vocală trimite doar textul spus și titlurile și orele evenimentelor din următoarele 7 zile. Sunetul este recunoscut pe Mac, când se poate. Noi nu primim datele tale.",
       ),
     },
     {
@@ -233,8 +261,8 @@ function VortexPointPage() {
             </div>
             <p className="type-lead mt-5 max-w-[60ch] text-pretty text-fg-2">
               {t(
-                "Hover the notch and it opens: your music, a shelf for files, Mac Health and an AI agent. Point, a small pixel pet, lives there too.",
-                "Treci cu mouse-ul peste notch și se deschide: muzica, un raft pentru fișiere, Mac Health și un agent AI. Tot acolo stă și Point, un mic personaj din pixeli.",
+                "Hover the notch and it opens: your music, calendar and to-dos, a shelf for files, Mac Health and an AI agent. Talk to it to add events. Point, a small pixel pet, lives there too.",
+                "Treci cu mouse-ul peste notch și se deschide: muzica, calendarul și sarcinile, un raft pentru fișiere, Mac Health și un agent AI. Îi vorbești ca să adaugi evenimente. Tot acolo stă și Point, un mic personaj din pixeli.",
               )}
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-3">
@@ -348,6 +376,21 @@ function VortexPointPage() {
               </p>
             </div>
           </SectionHeader>
+
+          <p className="type-body-sm mt-12 flex flex-wrap gap-x-5 gap-y-1.5 text-fg-3 md:mt-16">
+            <Link to="/vortexpoint/terms" className={TEXT_LINK}>
+              {t("Terms of Use", "Termeni de utilizare")}
+            </Link>
+            <Link to="/vortexpoint/privacy" className={TEXT_LINK}>
+              {t("Privacy Policy", "Politica de confidențialitate")}
+            </Link>
+            <span>
+              {t("Contact: ", "Contact: ")}
+              <a href="mailto:hello@vortexhub.dev" className={TEXT_LINK}>
+                hello@vortexhub.dev
+              </a>
+            </span>
+          </p>
         </div>
       </section>
     </SiteLayout>

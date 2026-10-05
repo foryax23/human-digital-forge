@@ -41,6 +41,8 @@ import { Route as DashboardProjectsRouteImport } from './routes/dashboard.projec
 import { Route as DashboardResearchRouteImport } from './routes/dashboard.research'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as ScanDeepRouteImport } from './routes/scan_.deep'
+import { Route as VortexpointPrivacyRouteImport } from './routes/vortexpoint_.privacy'
+import { Route as VortexpointTermsRouteImport } from './routes/vortexpoint_.terms'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
@@ -207,6 +209,16 @@ const ScanDeepRoute = ScanDeepRouteImport.update({
   path: '/scan/deep',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VortexpointPrivacyRoute = VortexpointPrivacyRouteImport.update({
+  id: '/vortexpoint_/privacy',
+  path: '/vortexpoint/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VortexpointTermsRoute = VortexpointTermsRouteImport.update({
+  id: '/vortexpoint_/terms',
+  path: '/vortexpoint/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
   path: '/.lovable/oauth/consent',
@@ -256,6 +268,8 @@ export interface FileRoutesByFullPath {
   '/dashboard/research': typeof DashboardResearchRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/scan/deep': typeof ScanDeepRoute
+  '/vortexpoint/privacy': typeof VortexpointPrivacyRoute
+  '/vortexpoint/terms': typeof VortexpointTermsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -292,6 +306,8 @@ export interface FileRoutesByTo {
   '/dashboard/research': typeof DashboardResearchRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/scan/deep': typeof ScanDeepRoute
+  '/vortexpoint/privacy': typeof VortexpointPrivacyRoute
+  '/vortexpoint/terms': typeof VortexpointTermsRoute
   '/dashboard': typeof DashboardIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -330,6 +346,8 @@ export interface FileRoutesById {
   '/dashboard/research': typeof DashboardResearchRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/scan_/deep': typeof ScanDeepRoute
+  '/vortexpoint_/privacy': typeof VortexpointPrivacyRoute
+  '/vortexpoint_/terms': typeof VortexpointTermsRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -369,6 +387,8 @@ export interface FileRouteTypes {
     | '/dashboard/research'
     | '/dashboard/settings'
     | '/scan/deep'
+    | '/vortexpoint/privacy'
+    | '/vortexpoint/terms'
     | '/dashboard/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -405,6 +425,8 @@ export interface FileRouteTypes {
     | '/dashboard/research'
     | '/dashboard/settings'
     | '/scan/deep'
+    | '/vortexpoint/privacy'
+    | '/vortexpoint/terms'
     | '/dashboard'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -442,6 +464,8 @@ export interface FileRouteTypes {
     | '/dashboard/research'
     | '/dashboard/settings'
     | '/scan_/deep'
+    | '/vortexpoint_/privacy'
+    | '/vortexpoint_/terms'
     | '/dashboard/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -471,6 +495,8 @@ export interface RootRouteChildren {
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ScanDeepRoute: typeof ScanDeepRoute
+  VortexpointPrivacyRoute: typeof VortexpointPrivacyRoute
+  VortexpointTermsRoute: typeof VortexpointTermsRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
@@ -702,6 +728,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScanDeepRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vortexpoint_/privacy': {
+      id: '/vortexpoint_/privacy'
+      path: '/vortexpoint/privacy'
+      fullPath: '/vortexpoint/privacy'
+      preLoaderRoute: typeof VortexpointPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vortexpoint_/terms': {
+      id: '/vortexpoint_/terms'
+      path: '/vortexpoint/terms'
+      fullPath: '/vortexpoint/terms'
+      preLoaderRoute: typeof VortexpointTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.lovable/oauth/consent': {
       id: '/.lovable/oauth/consent'
       path: '/.lovable/oauth/consent'
@@ -780,6 +820,8 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ScanDeepRoute: ScanDeepRoute,
+  VortexpointPrivacyRoute: VortexpointPrivacyRoute,
+  VortexpointTermsRoute: VortexpointTermsRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,

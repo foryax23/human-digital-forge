@@ -118,8 +118,28 @@ export const PAGE_SEO = {
       ro: "VortexPoint pentru Mac: notch-ul tău, viu | Vortex Hub",
     },
     description: {
-      en: "VortexPoint is a free app for your Mac's notch: music controls, a file shelf, Mac Health and an AI agent (Beta) that uses your own Claude key. macOS 26, Apple Silicon.",
-      ro: "VortexPoint e o aplicație gratuită pentru notch-ul Mac-ului: muzica, un raft pentru fișiere, Mac Health și un agent AI (Beta) care folosește cheia ta Claude. macOS 26, Apple Silicon.",
+      en: "VortexPoint is a free Mac notch app: calendar and to-dos, voice notes, quick capture tools, a file shelf, Mac Health and an AI agent (Beta). macOS 26.",
+      ro: "VortexPoint, aplicație gratuită pentru notch-ul Mac-ului: calendar, sarcini cu voce, capturi rapide, raft de fișiere, Mac Health și agent AI (Beta). macOS 26.",
+    },
+  },
+  "/vortexpoint/terms": {
+    title: {
+      en: "VortexPoint Terms of Use | Vortex Hub",
+      ro: "Termeni de utilizare VortexPoint | Vortex Hub",
+    },
+    description: {
+      en: "The terms for using VortexPoint, the free Mac notch app by Vortex Hub: the licence, VortexPoint Plus and the AI agent (Beta).",
+      ro: "Termenii de utilizare pentru VortexPoint, aplicația gratuită pentru notch-ul Mac-ului de la Vortex Hub: licența, VortexPoint Plus și agentul AI (Beta).",
+    },
+  },
+  "/vortexpoint/privacy": {
+    title: {
+      en: "VortexPoint Privacy Policy | Vortex Hub",
+      ro: "Politica de confidențialitate VortexPoint | Vortex Hub",
+    },
+    description: {
+      en: "What VortexPoint keeps on your Mac, what it sends and to whom, and the permissions it asks for. No accounts, no analytics, no tracking.",
+      ro: "Ce păstrează VortexPoint pe Mac, ce trimite și cui, și ce permisiuni cere. Fără conturi, fără analitice, fără urmărire.",
     },
   },
   "/scan": {
