@@ -8,6 +8,7 @@ import { LandingNav } from "@/components/landing/LandingNav";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { TechBand } from "@/components/landing/TechStack";
 import { ServicesSection } from "@/components/landing/ServicesSection";
+import { FilmsSection } from "@/components/landing/FilmsSection";
 import { ProcessSection } from "@/components/landing/ProcessSection";
 import { ConsultationSection } from "@/components/home/ConsultationSection";
 import { PricingSection } from "@/components/home/PricingSection";
@@ -43,6 +44,8 @@ function Index() {
             <HeroSection />
             <TechBand />
             <ServicesSection />
+            {/* The two silent Romanian promo films (Vortex Scan, Deep Research). */}
+            <FilmsSection />
             {/* No projects section: the work lives on /portfolio (hero proof, nav, footer). */}
             <ProcessSection />
             <ConsultationSection />

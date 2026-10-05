@@ -2,13 +2,16 @@
 # Rebuilds every Vortex brand media file in /public from the owner's asset folder.
 #
 #   scripts/brand/build-media.sh [path/to/VortexHub/Assets]
-#   ONLY=logos scripts/brand/build-media.sh      # groups: logos,icons,intro,signoff,swirl,ascii,stills,verify
+#   ONLY=logos scripts/brand/build-media.sh      # groups: logos,icons,intro,signoff,swirl,ascii,films,stills,verify
 #   ONLY=verify scripts/brand/build-media.sh     # checks only (a few seconds, no source folder needed)
 #
 # The asset folder can also come from BRAND_SRC; it defaults to
-# ~/Desktop/Assigments/Dandea Mihai/VortexHub/Assets.
+# ~/Desktop/Assigments/Dandea Mihai/VortexHub/Assets. The promo films (group "films") come from
+# FILMS_SRC, by default ~/Desktop/VortexHub-videos, else from FILMS_ALT, by default
+# ~/Desktop/Assigments/Dandea Mihai/VortexHub/Vids (VortexPromo1.mp4, VortexPromo2.mp4).
 #
-# Needs ffmpeg (libx264 + libvpx-vp9), cwebp and python3 with Pillow and numpy.
+# Needs ffmpeg (libx264 + libvpx-vp9, libaom-av1 for the film posters), cwebp and python3 with
+# Pillow and numpy.
 # Outputs (see src/components/landing/media.ts for how the site refers to them):
 #   public/media/brand/            logos (WebP + PNG), swirl icon, app icon, favicon-32, cover-art.jpg
 #   public/media/brand/intro/      assemble-{1080,720}.mp4, assemble.webm, assemble-poster.jpg,
@@ -18,6 +21,8 @@
 #   public/media/swirl-loop/       master.m3u8, 540p/, 1080p/ (HLS, 4 s segments), poster.jpg, swirl-720.mp4
 #                                  swirl-ascii-540.mp4 (group "ascii": the clip the hero's ASCII vortex
 #                                  samples, a 10 s half-speed loop that keeps every master frame)
+#   public/media/promo/            {scan,deep}-film-720.mp4, {scan,deep}-film-poster.{avif,webp}
+#                                  (group "films": the two silent Romanian promo films)
 #   public/favicon.png, public/apple-touch-icon.png, public/og-image.jpg
 #
 # Conventions for every video: muted (no audio track), H.264 High + yuv420p + faststart, VP9 WebM
@@ -410,6 +415,55 @@ if want ascii; then
 fi
 
 # --------------------------------------------------------------------------------------------
+# 5c. Promo films for the homepage (FilmsSection): Film 1 "Clientul așteaptă. Tu nu vezi."
+#     (Vortex Scan) and Film 2 "Din 100 de lei, cât îți rămâne?" (Deep Research), each 20.0 s,
+#     1080x1920, 30 fps, silent, plus their lossless frame-0 posters. 720x1280 is enough: the
+#     films show 240-340 CSS px wide, and even at 3x on a phone the 720 frames read as sharp as
+#     the 1080 ones. CRF 24 with aq-mode 3 (tuned 2026-10-05) leaves no banding in the swirl and
+#     no smear on the bold type or the small UI text, at about 2.8 MB (scan) and 3.6 MB (deep).
+#     No WebM: VP9 came out no smaller at the same quality. The poster is frame 0 (the opening
+#     hook), the film's own first frame, so the swap to playback shows no jump.
+# --------------------------------------------------------------------------------------------
+if want films; then
+  log "promo films"
+  # The renders (with their lossless posters) live in FILMS_SRC; the copies the owner delivered,
+  # byte-identical, in FILMS_ALT as VortexPromo1.mp4 (scan) and VortexPromo2.mp4 (deep). Without
+  # a poster PNG the poster is decoded from the film's frame 0, which is what the PNG shows.
+  FILMS_SRC="${FILMS_SRC:-$HOME/Desktop/VortexHub-videos}"
+  FILMS_ALT="${FILMS_ALT:-$HOME/Desktop/Assigments/Dandea Mihai/VortexHub/Vids}"
+  PROMO="$PUB/media/promo"
+  mkdir -p "$PROMO"
+  for key in scan deep; do
+    src="$FILMS_SRC/vortexhub_${key}_ro_20s_9x16_v01.mp4"
+    [[ -f $src ]] || src="$FILMS_ALT/VortexPromo$([[ $key == scan ]] && echo 1 || echo 2).mp4"
+    if [[ ! -f $src ]]; then
+      echo "  skipped $key: no film in $FILMS_SRC or $FILMS_ALT (set FILMS_SRC or FILMS_ALT)"
+      continue
+    fi
+    poster="$FILMS_SRC/vortexhub_${key}_ro_poster_9x16_v01.png"
+    if [[ ! -f $poster ]]; then
+      ffmpeg -nostdin -v error -y -i "$src" -frames:v 1 -pix_fmt rgb24 "$TMP/$key-poster-src.png"
+      poster="$TMP/$key-poster-src.png"
+    fi
+    echo "  $key: $src"
+    ffmpeg -nostdin -v error -y -threads 4 -i "$src" \
+      -an -vf "$(sc 720:1280),format=yuv420p" -r 30 \
+      -c:v libx264 -preset slow -profile:v high -level:v 4.0 -crf 24 -g 60 \
+      -x264-params aq-mode=3:threads=4 -pix_fmt yuv420p "${COLOR[@]}" \
+      -movflags +faststart "$PROMO/$key-film-720.mp4"
+    ffmpeg -nostdin -v error -y -i "$poster" \
+      -vf "$(sc 720:1280)" -pix_fmt rgb24 "$TMP/$key-film-poster.png"
+    cwebp -quiet -q 84 -m 6 -sharp_yuv "$TMP/$key-film-poster.png" -o "$PROMO/$key-film-poster.webp"
+    ffmpeg -nostdin -v error -y -threads 4 -i "$TMP/$key-film-poster.png" \
+      -vf "scale=out_color_matrix=bt709:out_range=full,format=yuv420p" \
+      -c:v libaom-av1 -still-picture 1 -crf 30 -cpu-used 4 \
+      -colorspace bt709 -color_primaries bt709 -color_trc iec61966-2-1 -color_range pc \
+      "$PROMO/$key-film-poster.avif"
+  done
+  ls -l "$PROMO"
+fi
+
+# --------------------------------------------------------------------------------------------
 # 6. Stills. OG image: the logo reveal at 2.2 s (wordmark lit, violet glow behind it), scaled to
 #    1200 wide and centre-cropped to 1200x630. PDF cover art: A4 portrait at 150 dpi
 #    (1240x1754), no wordmark: night base, violet + blue glows (the PDF theme's colours), the
@@ -504,8 +558,10 @@ fi
 
 # --------------------------------------------------------------------------------------------
 # 7. Verify: stream format of every video (H.264 High / VP9, yuv420p, no audio, faststart),
-#    true black in the corners of the first, middle and last frames (the site screen-blends
-#    these), the swirl loop seam, and the size of every output file.
+#    true black in the corners of the first, middle and last frames of the brand and swirl
+#    videos (the site screen-blends these; the promo films are opaque, so no corner rule:
+#    instead H.264, 20.0 s and at most 5 MB each), the swirl loop seam, and the size of every
+#    output file.
 # --------------------------------------------------------------------------------------------
 if want verify; then
   log "verify"
@@ -586,6 +642,33 @@ for v in videos:
     if vs.get("pix_fmt") != "yuv420p":
         problems.append(f"{v}: pix_fmt {vs.get('pix_fmt')}")
 
+# The promo films are not screen-blended (swirl reaches their corners on frame 0), so they skip
+# the true-black rule: silent, faststart, H.264 yuv420p, 20.0 s and at most 5 MB each.
+promo = sorted(glob.glob(f"{pub}/media/promo/*.mp4"))
+if not promo:
+    problems.append("media/promo: no films")
+for v in promo:
+    info = probe(v)
+    vs = [s for s in info["streams"] if s["codec_type"] == "video"][0]
+    audio = [s for s in info["streams"] if s["codec_type"] == "audio"]
+    head = open(v, "rb").read(4096)
+    dur = float(info["format"]["duration"])
+    size = os.path.getsize(v)
+    moov, mdat = head.find(b"moov"), head.find(b"mdat")
+    print(f"  {os.path.relpath(v, pub):52s} {vs['codec_name']:4s} {vs.get('profile', ''):9s} {vs.get('pix_fmt')} "
+          f"{vs['width']}x{vs['height']} {vs.get('avg_frame_rate'):>5s} fps {dur:5.2f}s audio={len(audio)} "
+          f"{size / 1048576:.2f} MB")
+    if audio:
+        problems.append(f"{v}: has audio")
+    if moov == -1 or (mdat != -1 and moov > mdat):
+        problems.append(f"{v}: moov atom after mdat")
+    if vs["codec_name"] != "h264" or vs.get("pix_fmt") != "yuv420p":
+        problems.append(f"{v}: {vs['codec_name']} {vs.get('pix_fmt')}, expected h264 yuv420p")
+    if abs(dur - 20.0) > 0.02:
+        problems.append(f"{v}: {dur:.3f} s, expected 20.0 s")
+    if size > 5 * 1024 * 1024:
+        problems.append(f"{v}: {size} bytes, over 5 MB")
+
 # Swirl loop seams (the 720p fallback and the ASCII sampling clip): last -> first frame must look
 # like any other consecutive pair.
 for mp4 in (f"{pub}/media/swirl-loop/swirl-720.mp4", f"{pub}/media/swirl-loop/swirl-ascii-540.mp4"):
@@ -604,6 +687,7 @@ for mp4 in (f"{pub}/media/swirl-loop/swirl-720.mp4", f"{pub}/media/swirl-loop/sw
 print("\n  sizes")
 outs = sorted(
     glob.glob(f"{pub}/media/brand/**/*", recursive=True) + glob.glob(f"{pub}/media/swirl-loop/**/*", recursive=True)
+    + glob.glob(f"{pub}/media/promo/*")
     + [f"{pub}/favicon.png", f"{pub}/apple-touch-icon.png", f"{pub}/og-image.jpg"]
 )
 for p in outs:

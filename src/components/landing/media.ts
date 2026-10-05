@@ -127,6 +127,54 @@ export const SIGNOFF_VIDEO = {
   },
 } as const;
 
+/**
+ * A homepage promo film (FilmsSection), encoded by scripts/brand/build-media.sh (group "films")
+ * from the renders in ~/Desktop/VortexHub-videos or, failing that, the byte-identical copies the
+ * owner delivered in ~/Desktop/Assigments/Dandea Mihai/VortexHub/Vids (VortexPromo1.mp4 = scan,
+ * VortexPromo2.mp4 = deep; the poster is then decoded from frame 0). Both films are
+ * 20.0 s, 9:16, 30 fps H.264 and SILENT (no audio track), with Romanian text on screen and the
+ * sample data labelled in the frame. The poster is frame 0 (the opening hook line), the film's
+ * own first frame: AVIF, with WebP as the fallback.
+ */
+export type PromoFilm = {
+  readonly mp4: string;
+  readonly poster: { readonly avif: string; readonly webp: string };
+  /** Intrinsic pixel size of the MP4 and the posters. */
+  readonly width: number;
+  readonly height: number;
+  readonly durationSec: number;
+};
+
+/**
+ * Film 1, "Clientul așteaptă. Tu nu vezi.": the free Vortex Scan, ending on "Vezi ce vede
+ * clientul tău. Gratuit, fără cont." Source vortexhub_scan_ro_20s_9x16_v01.mp4 (1080x1920).
+ */
+export const SCAN_FILM: PromoFilm = {
+  mp4: "/media/promo/scan-film-720.mp4",
+  poster: {
+    avif: "/media/promo/scan-film-poster.avif",
+    webp: "/media/promo/scan-film-poster.webp",
+  },
+  width: 720,
+  height: 1280,
+  durationSec: 20,
+};
+
+/**
+ * Film 2, "Din 100 de lei, cât îți rămâne?": Deep Research, ending on "Primul raport e gratuit."
+ * Source vortexhub_deep_ro_20s_9x16_v01.mp4 (1080x1920).
+ */
+export const DEEP_FILM: PromoFilm = {
+  mp4: "/media/promo/deep-film-720.mp4",
+  poster: {
+    avif: "/media/promo/deep-film-poster.avif",
+    webp: "/media/promo/deep-film-poster.webp",
+  },
+  width: 720,
+  height: 1280,
+  durationSec: 20,
+};
+
 /** 1200x630 social card (absolute URL in __root.tsx). */
 export const OG_IMAGE = "/og-image.jpg";
 
@@ -147,6 +195,8 @@ export const BRAND_MEDIA = {
   INTRO_VIDEO,
   PDF_GENERATING_VIDEO,
   SIGNOFF_VIDEO,
+  SCAN_FILM,
+  DEEP_FILM,
   OG_IMAGE,
   PDF_COVER_ART,
   PDF_COVER_ART_SIZE,
