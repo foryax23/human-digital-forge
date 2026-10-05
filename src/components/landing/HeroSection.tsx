@@ -10,14 +10,7 @@ import { ReticleMark } from "./hero/icons";
 import { HeroCosmos, VORTEX_CENTRE } from "./HeroCosmos";
 import { HeroProof } from "./HeroProof";
 import { HeroTelemetry } from "./HeroTelemetry";
-import { useIntroDone } from "./intro";
-import { HERO_REVEAL_ATTR } from "./intro-script";
 import { MotionPauseToggle, useMotionPause } from "./motion-pause";
-import { scrollToSection } from "./smooth-scroll";
-import { VortexSearch, type SearchFieldState } from "./VortexSearch";
-
-/** Spread on every element the head script keeps hidden until the entrance runs. */
-const reveal = { [HERO_REVEAL_ATTR]: "" };
 
 /** The submit transition before /scan opens: visual only, no progress is implied. */
 const SCAN_TRANSITION_MS = 800;
