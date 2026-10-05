@@ -7,13 +7,15 @@
 #
 # The asset folder can also come from BRAND_SRC; it defaults to
 # ~/Desktop/Assigments/Dandea Mihai/VortexHub/Assets. The promo films (group "films") come from
-# FILMS_SRC, by default ~/Desktop/VortexHub-videos (the v03 masters, without the small sample
-# labels), else from FILMS_ALT, by default ~/Desktop/Assigments/Dandea Mihai/VortexHub/Vids
+# FILMS_SRC, by default ~/Desktop/VortexHub-videos (scan and deep: the v03 masters, without the
+# small sample labels; whatsapp: the v01 master), scan and deep else from FILMS_ALT, by default ~/Desktop/Assigments/Dandea Mihai/VortexHub/Vids
 # (VortexPromo1.mp4, VortexPromo2.mp4: the v01 copies, which still carry those labels). Their
 # sound (music and sound effects) comes from FILMS_AUDIO, by default
 # ~/Desktop/VortexHub-videos/out-audio/mixes: the -18 LUFS mixes that
-# ~/Desktop/VortexHub-videos/audio-src/mix.sh makes ({scan,deep}_mix_novo_-18LUFS.wav). Set
-# FILMS_MIX=vo to take {scan,deep}_mix_vo_-18LUFS.wav (with the owner's voice-over) instead.
+# ~/Desktop/VortexHub-videos/audio-src/mix.sh makes ({scan,deep,whatsapp}_mix_novo_-18LUFS.wav).
+# Set FILMS_MIX=vo to take {scan,deep,whatsapp}_mix_vo_-18LUFS.wav (with the owner's voice-over)
+# instead. FILMS_KEYS picks the films to rebuild (default "scan deep whatsapp"), e.g.
+#   ONLY=films FILMS_KEYS=whatsapp scripts/brand/build-media.sh
 #
 # Needs ffmpeg (libx264 + libvpx-vp9, libaom-av1 for the film posters), cwebp and python3 with
 # Pillow and numpy.
@@ -26,8 +28,9 @@
 #   public/media/swirl-loop/       master.m3u8, 540p/, 1080p/ (HLS, 4 s segments), poster.jpg, swirl-720.mp4
 #                                  swirl-ascii-540.mp4 (group "ascii": the clip the hero's ASCII vortex
 #                                  samples, a 10 s half-speed loop that keeps every master frame)
-#   public/media/promo/            {scan,deep}-film-720.mp4, {scan,deep}-film-poster.{avif,webp}
-#                                  (group "films": the two Romanian promo films, with music and
+#   public/media/promo/            {scan,deep,whatsapp}-film-720.mp4,
+#                                  {scan,deep,whatsapp}-film-poster.{avif,webp}
+#                                  (group "films": the three Romanian promo films, with music and
 #                                  sound effects; the page plays them muted until a visitor turns
 #                                  the sound on)
 #   public/favicon.png, public/apple-touch-icon.png, public/og-image.jpg
@@ -424,7 +427,8 @@ fi
 
 # --------------------------------------------------------------------------------------------
 # 5c. Promo films for the homepage (FilmsSection): Film 1 "Clientul așteaptă. Tu nu vezi."
-#     (Vortex Scan) and Film 2 "Din 100 de lei, cât îți rămâne?" (Deep Research), each 20.0 s,
+#     (Vortex Scan), Film 2 "Din 100 de lei, cât îți rămâne?" (Deep Research) and Film 3
+#     "Cine răspunde la 21:47?" (the AI assistant on WhatsApp), each 20.0 s,
 #     1080x1920, 30 fps, silent masters, plus their lossless frame-0 posters. The sound is muxed
 #     in here: the film's music + sound effects mix at -18 LUFS (calmer than the -14 LUFS social
 #     cut when a visitor turns it on), AAC-LC 128 kb/s, 48 kHz stereo, about 0.3 MB per film. The
@@ -433,7 +437,8 @@ fi
 #     films show 240-340 CSS px wide, and even at 3x on a phone the 720 frames read as sharp as
 #     the 1080 ones. CRF 24 with aq-mode 3 (tuned 2026-10-05) leaves no banding in the swirl and
 #     no smear on the bold type or the small UI text, at about 2.8 MB (scan) and 3.6 MB (deep)
-#     of video; with the sound about 3.2 MB and 3.9 MB, under the 4 MB budget the verify step checks.
+#     of video; with the sound about 3.2 MB and 3.9 MB (whatsapp, film 3: 3.0 MB), under the 4 MB
+#     budget the verify step checks.
 #     No WebM: VP9 came out no smaller at the same quality. The poster is frame 0 (the opening
 #     hook), the film's own first frame, so the swap to playback shows no jump.
 # --------------------------------------------------------------------------------------------
@@ -443,19 +448,25 @@ if want films; then
   # labels ("Date de exemplu · secvențe scurtate", "Exemplu cu o firmă inventată", "Text redactat
   # cu AI"), the owner's call on 2026-10-05; every other frame and timing is v01's. FILMS_ALT holds
   # the v01 copies the owner delivered (VortexPromo1.mp4 scan, VortexPromo2.mp4 deep), labels
-  # included, as a fallback only. Without a poster PNG the poster is decoded from the film's
-  # frame 0, which is what the PNG shows.
+  # included, as a fallback only. Film 3 (whatsapp) has one render, v01, and no fallback. Without
+  # a poster PNG the poster is decoded from the film's frame 0, which is what the PNG shows.
   FILMS_SRC="${FILMS_SRC:-$HOME/Desktop/VortexHub-videos}"
   FILMS_ALT="${FILMS_ALT:-$HOME/Desktop/Assigments/Dandea Mihai/VortexHub/Vids}"
   FILMS_AUDIO="${FILMS_AUDIO:-$HOME/Desktop/VortexHub-videos/out-audio/mixes}"
   FILMS_MIX="${FILMS_MIX:-novo}"
   PROMO="$PUB/media/promo"
   mkdir -p "$PROMO"
-  for key in scan deep; do
-    src="$FILMS_SRC/vortexhub_${key}_ro_20s_9x16_v03.mp4"
-    [[ -f $src ]] || src="$FILMS_ALT/VortexPromo$([[ $key == scan ]] && echo 1 || echo 2).mp4"
+  for key in ${FILMS_KEYS:-scan deep whatsapp}; do
+    case $key in
+      scan) ver=v03 alt="$FILMS_ALT/VortexPromo1.mp4" ;;
+      deep) ver=v03 alt="$FILMS_ALT/VortexPromo2.mp4" ;;
+      whatsapp) ver=v01 alt="" ;;
+      *) echo "  unknown film $key (FILMS_KEYS takes scan, deep, whatsapp)" >&2; exit 1 ;;
+    esac
+    src="$FILMS_SRC/vortexhub_${key}_ro_20s_9x16_${ver}.mp4"
+    [[ -f $src || -z $alt ]] || src="$alt"
     if [[ ! -f $src ]]; then
-      echo "  skipped $key: no film in $FILMS_SRC or $FILMS_ALT (set FILMS_SRC or FILMS_ALT)"
+      echo "  skipped $key: no film in $FILMS_SRC${alt:+ or $FILMS_ALT} (set FILMS_SRC${alt:+ or FILMS_ALT})"
       continue
     fi
     audio="$FILMS_AUDIO/${key}_mix_${FILMS_MIX}_-18LUFS.wav"
@@ -463,7 +474,7 @@ if want films; then
       echo "  no sound for $key: $audio is missing (run ~/Desktop/VortexHub-videos/audio-src/mix.sh, or set FILMS_AUDIO)" >&2
       exit 1
     fi
-    poster="$FILMS_SRC/vortexhub_${key}_ro_poster_9x16_v03.png"
+    poster="$FILMS_SRC/vortexhub_${key}_ro_poster_9x16_${ver}.png"
     if [[ ! -f $poster ]]; then
       ffmpeg -nostdin -v error -y -i "$src" -frames:v 1 -pix_fmt rgb24 "$TMP/$key-poster-src.png"
       poster="$TMP/$key-poster-src.png"
@@ -670,8 +681,10 @@ for v in videos:
 # the true-black rule: faststart, H.264 yuv420p, exactly one audio track (AAC-LC, 48 kHz stereo:
 # the music + sound effects mix), 20.0 s and at most 4 MB each.
 promo = sorted(glob.glob(f"{pub}/media/promo/*.mp4"))
-if not promo:
-    problems.append("media/promo: no films")
+for key in ("scan", "deep", "whatsapp"):
+    for f in (f"{key}-film-720.mp4", f"{key}-film-poster.avif", f"{key}-film-poster.webp"):
+        if not os.path.isfile(f"{pub}/media/promo/{f}"):
+            problems.append(f"media/promo/{f} missing")
 for v in promo:
     info = probe(v)
     vs = [s for s in info["streams"] if s["codec_type"] == "video"][0]

@@ -2,30 +2,24 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 
 import { FREE_HOW, VALUE_ESTIMATE } from "@/components/deep/copy";
-import {
-  ButtonLink,
-  FOCUS_RING,
-  IconButton,
-  SectionHeader,
-  keepHyphens,
-} from "@/components/system";
+import { ButtonLink, IconButton, SectionHeader, keepHyphens } from "@/components/system";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { DEEP_FILM, SCAN_FILM, type PromoFilm } from "./media";
+import { DEEP_FILM, SCAN_FILM, WHATSAPP_FILM, type PromoFilm } from "./media";
 import { useMotionPause } from "./motion-pause";
 import { prefersReducedMotion } from "./motion-prefs";
 
 /*
- * The two promo films (#films): vertical, Romanian text on screen, with music and sound effects
+ * The three promo films (#films): vertical, Romanian text on screen, with music and sound effects
  * that stay muted until the visitor asks for them. Playback rules:
  * - Nothing is fetched until a film first plays: no `src` before that, only the lazy poster
  *   (frame 0, so the swap to the video shows no jump).
  * - One film plays at a time. It starts once at least half of it is on screen, pauses when it
- *   leaves or the tab is hidden, and hands over to the other film at its end when that one is
- *   on screen too (otherwise it starts again), so on desktop the two take turns.
+ *   leaves or the tab is hidden, and at its end hands over to the next film that is on screen too
+ *   (otherwise it starts again), so on desktop the three take turns.
  * - Reduced motion and the page-wide pause switch: no autoplay, the poster and a play button.
  * - Every film has its own pause / play button (WCAG 2.2.2). Pausing one stops autoplay for the
- *   section; pressing play starts that film and stops the other.
+ *   section; pressing play starts that film and stops the others.
  * - Every film autoplays muted and has its own sound toggle beside pause / play. Only one film has
  *   sound at a time. Turning it on unmutes that film only: one that was autoplaying starts again
  *   from 0 and keeps playing (as if its play button had been pressed); one that was paused starts
@@ -36,11 +30,11 @@ import { prefersReducedMotion } from "./motion-prefs";
  */
 
 type FilmCard = {
-  key: "scan" | "deep";
+  key: "scan" | "deep" | "whatsapp";
   film: PromoFilm;
   title: string;
   caption: string;
-  cta: { label: string; to: "/scan" | "/scan/deep"; note?: string };
+  cta: { label: string; to: "/scan" | "/scan/deep" | "/ai-automation"; note?: string };
 };
 
 type Mode = "auto" | "manual" | "stopped";
@@ -77,16 +71,30 @@ function useFilmCards(): FilmCard[] {
         note: `${FREE_HOW[lang]}. ${VALUE_ESTIMATE[lang]}`,
       },
     },
+    {
+      key: "whatsapp",
+      film: WHATSAPP_FILM,
+      title: t("AI assistant on WhatsApp", "Asistent AI pe WhatsApp"),
+      caption: t(
+        "Replies at once, after hours too, books the appointment, takes the calls and brings you in when you are needed.",
+        "Răspunde imediat, și după program, face programarea, preia apelurile și te cheamă când e nevoie de tine.",
+      ),
+      // The film's end card and /ai-automation both say the first call is free.
+      cta: {
+        label: t("See how it works", "Vezi cum funcționează"),
+        to: "/ai-automation",
+        note: t("The first call is free.", "Prima discuție e gratuită."),
+      },
+    },
   ];
 }
 
 /**
- * Films (#films), right after the services, in the split header layout of Services and
- * Consultation. lg+: the title, the lead and the two offers as hairline rows (caption, call to
- * action) in the 5/12 column; the two vertical films in the 7/12 column, each with its title and
- * on-screen text. Below lg the header stacks on top and each film carries
- * its own caption and call to action: side by side on md, one at a time in a horizontal
- * scroll-snap row on phones, the next one peeking in.
+ * Films (#films), right after the services, with the split header of Services (the title in the
+ * 5/12 column, the lead at the foot of the 7/12 column). Under it the three vertical films, each
+ * with its title, caption and call to action: lg+ three columns across the container (about
+ * 290 px wide at 1024, 370 px at 1280+, so the on-screen text reads); below lg a horizontal
+ * scroll-snap row, the next film peeking in.
  */
 export function FilmsSection() {
   const { t } = useI18n();
@@ -205,8 +213,10 @@ export function FilmsSection() {
         setMode("stopped");
         return;
       }
-      const other = (index + 1) % cards.length;
-      if (other !== index && prominent[other]) {
+      // The next film in order that is on screen too (desktop: all three; phones: none).
+      for (let step = 1; step < cards.length; step++) {
+        const other = (index + step) % cards.length;
+        if (!prominent[other]) continue;
         const next = videos.current[other];
         if (next) next.currentTime = 0;
         setCurrent(other);
@@ -230,81 +240,55 @@ export function FilmsSection() {
         <SectionHeader
           layout="split"
           headingId="films-heading"
-          // Below lg the offers are hidden but their slot keeps the header's 20 px gap, so 12 (md:
-          // 20) more gives the stacked header's 32 / 40 px to the films.
-          className="gap-3 md:gap-5 lg:gap-12"
+          className="mb-8 gap-3 md:mb-10 lg:gap-12"
           title={t(
-            "What your customer sees, and what you keep.",
-            "Ce vede clientul tău și cât îți rămâne.",
+            "What your customer sees, what you keep, and who answers.",
+            "Ce vede clientul tău, cât îți rămâne și cine îi răspunde.",
           )}
-          lead={t(
-            "Two 20-second films in Romanian, with music, muted until you turn the sound on. The first shows the free company check, the second the report that reads your filed accounts. The text of each film is under it, in English.",
-            "Două filme de 20 de secunde, cu muzică, fără sunet până îl pornești. Primul arată verificarea gratuită a firmei, al doilea raportul care îți citește bilanțurile.",
-          )}
-          actions={<OfferRows cards={cards} />}
         >
-          <ul
-            role="list"
-            className={cn(
-              // Phones: a scroll-snap row that bleeds to the screen edges (the container's gutter
-              // moves inside it), so the next film peeks in. md+: two columns, at most 704 px
-              // together; each card is a subgrid (five rows below lg, three on lg+), so titles,
-              // captions, buttons and texts line up.
-              "-mx-4 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto overscroll-x-contain px-4 pb-1 scroll-px-4 sm:-mx-6 sm:px-6 sm:scroll-px-6",
-              "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-              "md:mx-0 md:grid md:max-w-[44rem] md:grid-cols-2 md:gap-x-6 md:gap-y-0 md:overflow-visible md:px-0 md:pb-0",
-            )}
-          >
-            {cards.map((card, index) => (
-              <FilmItem
-                key={card.key}
-                card={card}
-                index={index}
-                playing={playingIndex === index}
-                sound={sound === index}
-                videoRef={(el) => {
-                  videos.current[index] = el;
-                }}
-                onView={setView}
-                onUserPlay={onUserPlay}
-                onUserPause={onUserPause}
-                onUserSound={onUserSound}
-                onEnded={onEnded}
-              />
-            ))}
-          </ul>
+          <div className="flex h-full flex-col justify-end">
+            <p className="type-lead max-w-[56ch] text-pretty text-fg-2">
+              {keepHyphens(
+                t(
+                  "Three 20-second films in Romanian, with music, muted until you turn the sound on: the free company check, the report that reads your filed accounts and the AI assistant that answers your customers.",
+                  "Trei filme de 20 de secunde, cu muzică, fără sunet până îl pornești: verificarea gratuită a firmei, raportul care îți citește bilanțurile și asistentul AI care le răspunde clienților tăi.",
+                ),
+              )}
+            </p>
+          </div>
         </SectionHeader>
+
+        <ul
+          role="list"
+          className={cn(
+            // Below lg: a scroll-snap row that bleeds to the screen edges (the container's gutter
+            // moves inside it), so the next film peeks in. lg+: three columns; each card is a
+            // subgrid of four rows, so the titles, captions and buttons line up.
+            "-mx-4 flex snap-x snap-mandatory items-start gap-4 overflow-x-auto overscroll-x-contain px-4 pb-1 scroll-px-4 sm:-mx-6 sm:px-6 sm:scroll-px-6",
+            "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            "lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-x-8 lg:gap-y-0 lg:overflow-visible lg:px-0 lg:pb-0",
+          )}
+        >
+          {cards.map((card, index) => (
+            <FilmItem
+              key={card.key}
+              card={card}
+              index={index}
+              playing={playingIndex === index}
+              sound={sound === index}
+              videoRef={(el) => {
+                videos.current[index] = el;
+              }}
+              onView={setView}
+              onUserPlay={onUserPlay}
+              onUserPause={onUserPause}
+              onUserSound={onUserSound}
+              onEnded={onEnded}
+            />
+          ))}
+        </ul>
       </div>
     </section>
-  );
-}
-
-/**
- * lg+: the two offers as hairline rows under the lead (the PricingSection band). Below lg each
- * film carries its own caption and call to action instead, so this list is hidden there.
- * The names are plain text, not headings: the h3 under each film already names it.
- */
-function OfferRows({ cards }: { cards: FilmCard[] }) {
-  return (
-    <ul
-      role="list"
-      className="hidden w-full divide-y divide-line-1 border-y border-line-1 lg:mt-3 lg:block"
-    >
-      {cards.map((card) => {
-        const nameId = `film-${card.key}-offer`;
-        return (
-          <li key={card.key} className="py-5">
-            <p id={nameId} className="type-h4 text-fg">
-              {card.title}
-            </p>
-            <p className="type-body-sm mt-1 max-w-[52ch] text-pretty text-fg-2">
-              {keepHyphens(card.caption)}
-            </p>
-            <FilmCta card={card} describedBy={nameId} />
-          </li>
-        );
-      })}
-    </ul>
   );
 }
 
@@ -444,7 +428,7 @@ function FilmItem({
     : t("Turn sound on", "Pornește sunetul");
 
   return (
-    <li className="w-[min(76vw,20rem)] shrink-0 snap-start md:row-span-5 md:grid md:w-auto md:grid-rows-subgrid md:gap-y-0 lg:row-span-3">
+    <li className="w-[min(76vw,20rem)] shrink-0 snap-start lg:row-span-4 lg:grid lg:w-auto lg:grid-rows-subgrid lg:gap-y-0">
       <div
         ref={frameRef}
         className="relative aspect-[9/16] overflow-hidden rounded-xl border border-line-2 bg-s1"
@@ -472,8 +456,8 @@ function FilmItem({
           preload="none"
           disablePictureInPicture
           aria-label={t(
-            `${card.title} film, 20 seconds, with music, muted until you turn the sound on, Romanian text on screen. Its text is below.`,
-            `Film ${card.title}, 20 de secunde, cu muzică, fără sunet până îl pornești, cu text pe ecran. Textul lui e mai jos.`,
+            `${card.title} film, 20 seconds, with music, muted until you turn the sound on, Romanian text on screen.`,
+            `Film ${card.title}, 20 de secunde, cu muzică, fără sunet până îl pornești, cu text pe ecran.`,
           )}
           onPlaying={() => {
             setStarted(true);
@@ -520,11 +504,8 @@ function FilmItem({
           {card.title}
         </h3>
       </div>
-      {/* lg+: the caption and the call to action sit in the offer rows beside the films. */}
-      <p className="type-body-sm mt-1 text-pretty text-fg-2 lg:hidden">
-        {keepHyphens(card.caption)}
-      </p>
-      <FilmCta card={card} describedBy={titleId} className="lg:hidden" />
+      <p className="type-body-sm mt-1 text-pretty text-fg-2">{keepHyphens(card.caption)}</p>
+      <FilmCta card={card} describedBy={titleId} />
     </li>
   );
 }

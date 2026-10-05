@@ -131,9 +131,9 @@ export const SIGNOFF_VIDEO = {
  * A homepage promo film (FilmsSection), encoded by scripts/brand/build-media.sh (group "films")
  * from the renders in ~/Desktop/VortexHub-videos or, failing that, the byte-identical copies the
  * owner delivered in ~/Desktop/Assigments/Dandea Mihai/VortexHub/Vids (VortexPromo1.mp4 = scan,
- * VortexPromo2.mp4 = deep; the poster is then decoded from frame 0). Both films are
- * 20.0 s, 9:16, 30 fps H.264 with Romanian text on screen and the sample data labelled in the
- * frame, and one AAC track (128 kb/s, 48 kHz stereo): music and sound effects, mixed to -18 LUFS
+ * VortexPromo2.mp4 = deep; the poster is then decoded from frame 0). Film 3 (whatsapp) has only
+ * its v01 render in ~/Desktop/VortexHub-videos. All three films are 20.0 s, 9:16, 30 fps H.264
+ * with Romanian text on screen, and one AAC track (128 kb/s, 48 kHz stereo): music and sound effects, mixed to -18 LUFS
  * by ~/Desktop/VortexHub-videos/audio-src/mix.sh (no voice-over yet). FilmsSection plays them
  * muted; a visitor turns the sound on per film. The licences allow the music and the sound
  * effects only inside the film's audio track: never add the raw tracks or SFX to /public. The
@@ -179,6 +179,23 @@ export const DEEP_FILM: PromoFilm = {
   durationSec: 20,
 };
 
+/**
+ * Film 3, "Cine răspunde la 21:47?": the AI assistant on WhatsApp (answers at once, books the
+ * appointment, hands questions to the owner, takes calls), ending on "Răspunzi tu. Sau
+ * asistentul." and "Prima discuție e gratuită." Source vortexhub_whatsapp_ro_20s_9x16_v01.mp4
+ * (1080x1920).
+ */
+export const WHATSAPP_FILM: PromoFilm = {
+  mp4: "/media/promo/whatsapp-film-720.mp4",
+  poster: {
+    avif: "/media/promo/whatsapp-film-poster.avif",
+    webp: "/media/promo/whatsapp-film-poster.webp",
+  },
+  width: 720,
+  height: 1280,
+  durationSec: 20,
+};
+
 /** 1200x630 social card (absolute URL in __root.tsx). */
 export const OG_IMAGE = "/og-image.jpg";
 
@@ -201,6 +218,7 @@ export const BRAND_MEDIA = {
   SIGNOFF_VIDEO,
   SCAN_FILM,
   DEEP_FILM,
+  WHATSAPP_FILM,
   OG_IMAGE,
   PDF_COVER_ART,
   PDF_COVER_ART_SIZE,
