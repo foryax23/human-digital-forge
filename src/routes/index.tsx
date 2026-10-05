@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { MotionPauseProvider } from "@/components/landing/motion-pause";
@@ -5,21 +6,21 @@ import { LandingNav } from "@/components/landing/LandingNav";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { TechBand } from "@/components/landing/TechStack";
 import { ServicesSection } from "@/components/landing/ServicesSection";
-import { FilmsSection } from "@/components/landing/FilmsSection";
 import { ProcessSection } from "@/components/landing/ProcessSection";
-import { ConsultationSection } from "@/components/home/ConsultationSection";
-import { PricingSection } from "@/components/home/PricingSection";
 import { ContactFooter } from "@/components/landing/ContactFooter";
 import { MAIN_ID } from "@/components/system/skip-link";
 import { languageFromMatches, pageMeta } from "@/i18n";
 import { canonicalLink, jsonLdScript, organizationJsonLd } from "@/i18n/seo";
 
+const FilmsSection = lazy(() => import("@/components/landing/FilmsSection").then((m) => ({ default: m.FilmsSection })));
+const ConsultationSection = lazy(() => import("@/components/home/ConsultationSection").then((m) => ({ default: m.ConsultationSection })));
+const PricingSection = lazy(() => import("@/components/home/PricingSection").then((m) => ({ default: m.PricingSection })));
 export const Route = createFileRoute("/")({
   head: ({ matches }) => ({
     meta: pageMeta(matches, "/"),
     links: [
       canonicalLink("/"),
-      { rel: "preload", as: "image", href: "/media/swirl-loop/poster.jpg" },
+      { rel: "preload", as: "image", href: "/media/swirl-loop/poster.webp", imageSrcSet: "/media/swirl-loop/poster-720.webp 720w, /media/swirl-loop/poster.webp 1280w", imageSizes: "100vw", fetchPriority: "high" } as never,
     ],
     scripts: [
       // The company, its service in Timișoara and the website (src/i18n/seo.ts).
@@ -39,11 +40,15 @@ function Index() {
           <TechBand />
           <ServicesSection />
           {/* The three Romanian promo films (Vortex Scan, Deep Research, AI assistant), with music, muted by default. */}
-          <FilmsSection />
+          <Suspense fallback={null}>
+            <FilmsSection />
+          </Suspense>
           {/* No projects section: the work lives on /portfolio (hero proof, nav, footer). */}
           <ProcessSection />
-          <ConsultationSection />
-          <PricingSection />
+          <Suspense fallback={null}>
+            <ConsultationSection />
+            <PricingSection />
+          </Suspense>
         </main>
         <ContactFooter />
       </MotionPauseProvider>

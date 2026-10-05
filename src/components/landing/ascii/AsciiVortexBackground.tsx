@@ -72,7 +72,15 @@ export function AsciiVortexBackground({
     const video = videoRef.current;
     const poster = posterRef.current;
     if (!layer || !ring || !host || !video || !poster) return;
-    const engine = createAsciiEngine({
+    // Phones: the poster ring paints first; the live glyph engine (video decode + WebGL)
+    // starts only once the page has loaded and the main thread is idle.
+    let engine: AsciiEngine | null = null;
+    let cancelled = false;
+    let idleId: number | undefined;
+    let timer: number | undefined;
+    const start = () => {
+      if (cancelled) return;
+    engine = createAsciiEngine({
       layer,
       ring,
       host,
@@ -94,8 +102,30 @@ export function AsciiVortexBackground({
     engine.setProgress(now.progress);
     engine.setPaused(now.paused);
     engineRef.current = engine;
+    };
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    const small = window.matchMedia("(max-width: 767px)").matches;
+    const schedule = () => {
+      timer = window.setTimeout(
+        () => {
+          if (w.requestIdleCallback) idleId = w.requestIdleCallback(start, { timeout: 2000 });
+          else start();
+        },
+        small ? 1200 : 300,
+      );
+    };
+    const onLoad = () => schedule();
+    if (document.readyState === "complete") schedule();
+    else window.addEventListener("load", onLoad, { once: true });
     return () => {
-      engine.destroy();
+      cancelled = true;
+      window.removeEventListener("load", onLoad);
+      window.clearTimeout(timer);
+      if (idleId !== undefined) w.cancelIdleCallback?.(idleId);
+      engine?.destroy();
       engineRef.current = null;
       setReady(false);
     };
@@ -128,7 +158,14 @@ export function AsciiVortexBackground({
           )}
         >
           {ascii ? (
-            <img ref={posterRef} src={SWIRL_VIDEO.poster} alt="" className={RING_MEDIA} />
+            <img
+              ref={posterRef}
+              src={SWIRL_VIDEO.poster}
+              srcSet="/media/swirl-loop/poster-720.webp 720w, /media/swirl-loop/poster.webp 1280w"
+              sizes="100vw"
+              fetchPriority="high"
+              decoding="async"
+              alt="" className={RING_MEDIA} />
           ) : (
             <HlsVideo
               src={SWIRL_VIDEO.hls}

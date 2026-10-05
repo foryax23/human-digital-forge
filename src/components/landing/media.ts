@@ -15,7 +15,7 @@
  */
 export const SWIRL_VIDEO = {
   hls: "/media/swirl-loop/master.m3u8",
-  poster: "/media/swirl-loop/poster.jpg",
+  poster: "/media/swirl-loop/poster.webp",
   mp4: "/media/swirl-loop/swirl-720.mp4",
   /**
    * Progressive copy the ASCII renderer samples (no hls.js needed): 540 px, a 10 s loop at half
