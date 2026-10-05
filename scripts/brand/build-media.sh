@@ -8,7 +8,11 @@
 # The asset folder can also come from BRAND_SRC; it defaults to
 # ~/Desktop/Assigments/Dandea Mihai/VortexHub/Assets. The promo films (group "films") come from
 # FILMS_SRC, by default ~/Desktop/VortexHub-videos, else from FILMS_ALT, by default
-# ~/Desktop/Assigments/Dandea Mihai/VortexHub/Vids (VortexPromo1.mp4, VortexPromo2.mp4).
+# ~/Desktop/Assigments/Dandea Mihai/VortexHub/Vids (VortexPromo1.mp4, VortexPromo2.mp4). Their
+# sound (music and sound effects) comes from FILMS_AUDIO, by default
+# ~/Desktop/VortexHub-videos/out-audio/mixes: the -18 LUFS mixes that
+# ~/Desktop/VortexHub-videos/audio-src/mix.sh makes ({scan,deep}_mix_novo_-18LUFS.wav). Set
+# FILMS_MIX=vo to take {scan,deep}_mix_vo_-18LUFS.wav (with the owner's voice-over) instead.
 #
 # Needs ffmpeg (libx264 + libvpx-vp9, libaom-av1 for the film posters), cwebp and python3 with
 # Pillow and numpy.
@@ -22,10 +26,13 @@
 #                                  swirl-ascii-540.mp4 (group "ascii": the clip the hero's ASCII vortex
 #                                  samples, a 10 s half-speed loop that keeps every master frame)
 #   public/media/promo/            {scan,deep}-film-720.mp4, {scan,deep}-film-poster.{avif,webp}
-#                                  (group "films": the two silent Romanian promo films)
+#                                  (group "films": the two Romanian promo films, with music and
+#                                  sound effects; the page plays them muted until a visitor turns
+#                                  the sound on)
 #   public/favicon.png, public/apple-touch-icon.png, public/og-image.jpg
 #
-# Conventions for every video: muted (no audio track), H.264 High + yuv420p + faststart, VP9 WebM
+# Conventions for every video: muted (no audio track; the promo films are the one exception, with
+# one AAC track), H.264 High + yuv420p + faststart, VP9 WebM
 # as the first <source>, BT.709 limited range tags. The sources are rendered on pure black and the
 # site drops that black with `mix-blend-mode: screen`, so the encodes must keep black at Y=16
 # (RGB 0); the "verify" step at the end checks it, the swirl loop seam, every file size and the
@@ -417,10 +424,15 @@ fi
 # --------------------------------------------------------------------------------------------
 # 5c. Promo films for the homepage (FilmsSection): Film 1 "Clientul așteaptă. Tu nu vezi."
 #     (Vortex Scan) and Film 2 "Din 100 de lei, cât îți rămâne?" (Deep Research), each 20.0 s,
-#     1080x1920, 30 fps, silent, plus their lossless frame-0 posters. 720x1280 is enough: the
+#     1080x1920, 30 fps, silent masters, plus their lossless frame-0 posters. The sound is muxed
+#     in here: the film's music + sound effects mix at -18 LUFS (calmer than the -14 LUFS social
+#     cut when a visitor turns it on), AAC-LC 128 kb/s, 48 kHz stereo, about 0.3 MB per film. The
+#     licences of the music and the sound effects allow them only inside the film's audio track,
+#     so no raw music or SFX file ever goes into /public. 720x1280 is enough: the
 #     films show 240-340 CSS px wide, and even at 3x on a phone the 720 frames read as sharp as
 #     the 1080 ones. CRF 24 with aq-mode 3 (tuned 2026-10-05) leaves no banding in the swirl and
-#     no smear on the bold type or the small UI text, at about 2.8 MB (scan) and 3.6 MB (deep).
+#     no smear on the bold type or the small UI text, at about 2.8 MB (scan) and 3.6 MB (deep)
+#     of video; with the sound about 3.2 MB and 3.9 MB, under the 4 MB budget the verify step checks.
 #     No WebM: VP9 came out no smaller at the same quality. The poster is frame 0 (the opening
 #     hook), the film's own first frame, so the swap to playback shows no jump.
 # --------------------------------------------------------------------------------------------
@@ -431,6 +443,8 @@ if want films; then
   # a poster PNG the poster is decoded from the film's frame 0, which is what the PNG shows.
   FILMS_SRC="${FILMS_SRC:-$HOME/Desktop/VortexHub-videos}"
   FILMS_ALT="${FILMS_ALT:-$HOME/Desktop/Assigments/Dandea Mihai/VortexHub/Vids}"
+  FILMS_AUDIO="${FILMS_AUDIO:-$HOME/Desktop/VortexHub-videos/out-audio/mixes}"
+  FILMS_MIX="${FILMS_MIX:-novo}"
   PROMO="$PUB/media/promo"
   mkdir -p "$PROMO"
   for key in scan deep; do
@@ -440,16 +454,22 @@ if want films; then
       echo "  skipped $key: no film in $FILMS_SRC or $FILMS_ALT (set FILMS_SRC or FILMS_ALT)"
       continue
     fi
+    audio="$FILMS_AUDIO/${key}_mix_${FILMS_MIX}_-18LUFS.wav"
+    if [[ ! -f $audio ]]; then
+      echo "  no sound for $key: $audio is missing (run ~/Desktop/VortexHub-videos/audio-src/mix.sh, or set FILMS_AUDIO)" >&2
+      exit 1
+    fi
     poster="$FILMS_SRC/vortexhub_${key}_ro_poster_9x16_v01.png"
     if [[ ! -f $poster ]]; then
       ffmpeg -nostdin -v error -y -i "$src" -frames:v 1 -pix_fmt rgb24 "$TMP/$key-poster-src.png"
       poster="$TMP/$key-poster-src.png"
     fi
-    echo "  $key: $src"
-    ffmpeg -nostdin -v error -y -threads 4 -i "$src" \
-      -an -vf "$(sc 720:1280),format=yuv420p" -r 30 \
+    echo "  $key: $src + $audio"
+    ffmpeg -nostdin -v error -y -threads 4 -i "$src" -i "$audio" \
+      -map 0:v:0 -map 1:a:0 -vf "$(sc 720:1280),format=yuv420p" -r 30 \
       -c:v libx264 -preset slow -profile:v high -level:v 4.0 -crf 24 -g 60 \
       -x264-params aq-mode=3:threads=4 -pix_fmt yuv420p "${COLOR[@]}" \
+      -c:a aac -b:a 128k -ar 48000 -ac 2 -metadata:s:a:0 language=ron -shortest \
       -movflags +faststart "$PROMO/$key-film-720.mp4"
     ffmpeg -nostdin -v error -y -i "$poster" \
       -vf "$(sc 720:1280)" -pix_fmt rgb24 "$TMP/$key-film-poster.png"
@@ -560,7 +580,7 @@ fi
 # 7. Verify: stream format of every video (H.264 High / VP9, yuv420p, no audio, faststart),
 #    true black in the corners of the first, middle and last frames of the brand and swirl
 #    videos (the site screen-blends these; the promo films are opaque, so no corner rule:
-#    instead H.264, 20.0 s and at most 5 MB each), the swirl loop seam, and the size of every
+#    instead H.264, one AAC track, 20.0 s and at most 4 MB each), the swirl loop seam, and the size of every
 #    output file.
 # --------------------------------------------------------------------------------------------
 if want verify; then
@@ -643,7 +663,8 @@ for v in videos:
         problems.append(f"{v}: pix_fmt {vs.get('pix_fmt')}")
 
 # The promo films are not screen-blended (swirl reaches their corners on frame 0), so they skip
-# the true-black rule: silent, faststart, H.264 yuv420p, 20.0 s and at most 5 MB each.
+# the true-black rule: faststart, H.264 yuv420p, exactly one audio track (AAC-LC, 48 kHz stereo:
+# the music + sound effects mix), 20.0 s and at most 4 MB each.
 promo = sorted(glob.glob(f"{pub}/media/promo/*.mp4"))
 if not promo:
     problems.append("media/promo: no films")
@@ -656,18 +677,23 @@ for v in promo:
     size = os.path.getsize(v)
     moov, mdat = head.find(b"moov"), head.find(b"mdat")
     print(f"  {os.path.relpath(v, pub):52s} {vs['codec_name']:4s} {vs.get('profile', ''):9s} {vs.get('pix_fmt')} "
-          f"{vs['width']}x{vs['height']} {vs.get('avg_frame_rate'):>5s} fps {dur:5.2f}s audio={len(audio)} "
-          f"{size / 1048576:.2f} MB")
-    if audio:
-        problems.append(f"{v}: has audio")
+          f"{vs['width']}x{vs['height']} {vs.get('avg_frame_rate'):>5s} fps {dur:5.2f}s audio={len(audio)}"
+          + (f" ({audio[0]['codec_name']} {audio[0].get('sample_rate')} Hz {audio[0].get('channels')} ch "
+             f"{int(audio[0].get('bit_rate', 0)) // 1000} kb/s)" if audio else "")
+          + f" {size / 1048576:.2f} MB")
+    if len(audio) != 1:
+        problems.append(f"{v}: {len(audio)} audio tracks, expected one AAC track")
+    elif audio[0]["codec_name"] != "aac" or audio[0].get("sample_rate") != "48000" or audio[0].get("channels") != 2:
+        problems.append(f"{v}: audio {audio[0]['codec_name']} {audio[0].get('sample_rate')} Hz "
+                        f"{audio[0].get('channels')} ch, expected AAC 48000 Hz stereo")
     if moov == -1 or (mdat != -1 and moov > mdat):
         problems.append(f"{v}: moov atom after mdat")
     if vs["codec_name"] != "h264" or vs.get("pix_fmt") != "yuv420p":
         problems.append(f"{v}: {vs['codec_name']} {vs.get('pix_fmt')}, expected h264 yuv420p")
     if abs(dur - 20.0) > 0.02:
         problems.append(f"{v}: {dur:.3f} s, expected 20.0 s")
-    if size > 5 * 1024 * 1024:
-        problems.append(f"{v}: {size} bytes, over 5 MB")
+    if size > 4 * 1024 * 1024:
+        problems.append(f"{v}: {size} bytes, over 4 MB")
 
 # Swirl loop seams (the 720p fallback and the ASCII sampling clip): last -> first frame must look
 # like any other consecutive pair.

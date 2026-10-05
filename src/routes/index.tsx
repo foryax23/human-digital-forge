@@ -44,7 +44,7 @@ function Index() {
             <HeroSection />
             <TechBand />
             <ServicesSection />
-            {/* The two silent Romanian promo films (Vortex Scan, Deep Research). */}
+            {/* The two Romanian promo films (Vortex Scan, Deep Research), with music, muted by default. */}
             <FilmsSection />
             {/* No projects section: the work lives on /portfolio (hero proof, nav, footer). */}
             <ProcessSection />

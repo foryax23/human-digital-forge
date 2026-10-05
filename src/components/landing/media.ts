@@ -132,9 +132,13 @@ export const SIGNOFF_VIDEO = {
  * from the renders in ~/Desktop/VortexHub-videos or, failing that, the byte-identical copies the
  * owner delivered in ~/Desktop/Assigments/Dandea Mihai/VortexHub/Vids (VortexPromo1.mp4 = scan,
  * VortexPromo2.mp4 = deep; the poster is then decoded from frame 0). Both films are
- * 20.0 s, 9:16, 30 fps H.264 and SILENT (no audio track), with Romanian text on screen and the
- * sample data labelled in the frame. The poster is frame 0 (the opening hook line), the film's
- * own first frame: AVIF, with WebP as the fallback.
+ * 20.0 s, 9:16, 30 fps H.264 with Romanian text on screen and the sample data labelled in the
+ * frame, and one AAC track (128 kb/s, 48 kHz stereo): music and sound effects, mixed to -18 LUFS
+ * by ~/Desktop/VortexHub-videos/audio-src/mix.sh (no voice-over yet). FilmsSection plays them
+ * muted; a visitor turns the sound on per film. The licences allow the music and the sound
+ * effects only inside the film's audio track: never add the raw tracks or SFX to /public. The
+ * poster is frame 0 (the opening hook line), the film's own first frame: AVIF, with WebP as the
+ * fallback.
  */
 export type PromoFilm = {
   readonly mp4: string;

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronDown, Pause, Play } from "lucide-react";
+import { ChevronDown, Pause, Play, Volume2, VolumeX } from "lucide-react";
 
 import { FREE_HOW, VALUE_ESTIMATE } from "@/components/deep/copy";
 import {
@@ -16,7 +16,8 @@ import { useMotionPause } from "./motion-pause";
 import { prefersReducedMotion } from "./motion-prefs";
 
 /*
- * The two promo films (#films): silent, vertical, Romanian text on screen. Playback rules:
+ * The two promo films (#films): vertical, Romanian text on screen, with music and sound effects
+ * that stay muted until the visitor asks for them. Playback rules:
  * - Nothing is fetched until a film first plays: no `src` before that, only the lazy poster
  *   (frame 0, so the swap to the video shows no jump).
  * - One film plays at a time. It starts once at least half of it is on screen, pauses when it
@@ -25,6 +26,13 @@ import { prefersReducedMotion } from "./motion-prefs";
  * - Reduced motion and the page-wide pause switch: no autoplay, the poster and a play button.
  * - Every film has its own pause / play button (WCAG 2.2.2). Pausing one stops autoplay for the
  *   section; pressing play starts that film and stops the other.
+ * - Every film autoplays muted and has its own sound toggle beside pause / play. Only one film has
+ *   sound at a time. Turning it on unmutes that film only: one that was autoplaying starts again
+ *   from 0 and keeps playing (as if its play button had been pressed); one that was paused starts
+ *   where it was; under reduced motion or the page pause nothing starts, the film plays with
+ *   sound once its play button is pressed. Sound goes off again when that film leaves the screen,
+ *   when the tab is hidden, when the page-wide pause is switched on and when the film reaches its
+ *   end (the section then goes back to its muted rotation).
  * - The text of each film sits under it in a closed <details> (screen readers, search engines).
  */
 
@@ -259,6 +267,8 @@ export function FilmsSection() {
   const [prominent, setProminent] = useState<boolean[]>(() => cards.map(() => false));
   const [current, setCurrent] = useState(0);
   const [mode, setMode] = useState<Mode>("auto");
+  // The one film with its sound on, or -1.
+  const [sound, setSound] = useState(-1);
 
   useEffect(() => {
     setReduced(prefersReducedMotion());
@@ -276,6 +286,12 @@ export function FilmsSection() {
   }, []);
 
   const autoAllowed = ready && !reduced && !pagePaused;
+
+  // Sound goes off when its film leaves the screen, the tab is hidden or the page-wide pause is
+  // switched on, so a film never starts again with sound the visitor did not just ask for.
+  useEffect(() => {
+    if (sound >= 0 && (!visible[sound] || !tabVisible || pagePaused)) setSound(-1);
+  }, [sound, visible, tabVisible, pagePaused]);
 
   // The page-wide pause also stops a film the visitor started.
   useEffect(() => {
@@ -315,8 +331,39 @@ export function FilmsSection() {
   }, []);
   const onUserPause = useCallback(() => setMode("stopped"), []);
 
+  /**
+   * The sound toggle (called inside the click, so the browser lets the film unmute and play).
+   * On: only this film is unmuted. If it was autoplaying it starts again from 0; if autoplay is
+   * allowed and it was not playing, it starts (stopping the other); under reduced motion or the
+   * page pause it waits for its play button. Returns true when the caller should start it.
+   */
+  const onUserSound = useCallback(
+    (index: number, on: boolean): boolean => {
+      if (!on) {
+        setSound((s) => (s === index ? -1 : s));
+        return false;
+      }
+      setSound(index);
+      const el = videos.current[index];
+      videos.current.forEach((other, i) => {
+        if (other && i !== index) other.muted = true;
+      });
+      if (!el) return false;
+      el.muted = false;
+      const isPlaying = !el.paused && !el.ended;
+      if (isPlaying && mode === "auto") el.currentTime = 0;
+      if (!isPlaying && !autoAllowed) return false;
+      setCurrent(index);
+      setMode("manual");
+      return !isPlaying;
+    },
+    [mode, autoAllowed],
+  );
+
   const onEnded = useCallback(
     (index: number) => {
+      // A film heard once to its end goes quiet again; the section returns to its muted rotation.
+      if (index === sound) setSound(-1);
       if (index !== current) return;
       // A film started by hand under reduced motion or the page pause holds its end card.
       if (mode === "manual" && !autoAllowed) {
@@ -339,7 +386,7 @@ export function FilmsSection() {
         });
       }
     },
-    [current, mode, autoAllowed, prominent, cards.length],
+    [current, mode, autoAllowed, prominent, cards.length, sound],
   );
 
   return (
@@ -356,8 +403,8 @@ export function FilmsSection() {
             "Ce vede clientul tău și cât îți rămâne.",
           )}
           lead={t(
-            "Two 20-second silent films, in Romanian. The first shows the free company check, the second the report that reads your filed accounts. The text of each film is under it, in English.",
-            "Două filme de 20 de secunde, fără sonor. Primul arată verificarea gratuită a firmei, al doilea raportul care îți citește bilanțurile.",
+            "Two 20-second films in Romanian, with music, muted until you turn the sound on. The first shows the free company check, the second the report that reads your filed accounts. The text of each film is under it, in English.",
+            "Două filme de 20 de secunde, cu muzică, fără sunet până îl pornești. Primul arată verificarea gratuită a firmei, al doilea raportul care îți citește bilanțurile.",
           )}
           actions={<OfferRows cards={cards} />}
         >
@@ -379,12 +426,14 @@ export function FilmsSection() {
                 card={card}
                 index={index}
                 playing={playingIndex === index}
+                sound={sound === index}
                 videoRef={(el) => {
                   videos.current[index] = el;
                 }}
                 onView={setView}
                 onUserPlay={onUserPlay}
                 onUserPause={onUserPause}
+                onUserSound={onUserSound}
                 onEnded={onEnded}
               />
             ))}
@@ -450,20 +499,25 @@ function FilmItem({
   card,
   index,
   playing,
+  sound,
   videoRef,
   onView,
   onUserPlay,
   onUserPause,
+  onUserSound,
   onEnded,
 }: {
   card: FilmCard;
   index: number;
   /** The section's decision: this film should be playing now. */
   playing: boolean;
+  /** This film is the one with its sound on. */
+  sound: boolean;
   videoRef: (el: HTMLVideoElement | null) => void;
   onView: (index: number, visible: boolean, prominent: boolean) => void;
   onUserPlay: (index: number) => void;
   onUserPause: () => void;
+  onUserSound: (index: number, on: boolean) => boolean;
   onEnded: (index: number) => void;
 }) {
   const { t } = useI18n();
@@ -512,6 +566,24 @@ function FilmItem({
     }
   }, [playing, load]);
 
+  // Muted unless this film is the one with sound (the toggle also sets it inside the click).
+  useEffect(() => {
+    const el = video.current;
+    if (el) el.muted = !sound;
+  }, [sound]);
+
+  const toggleSound = () => {
+    const el = video.current;
+    if (!el) return;
+    if (onUserSound(index, !sound)) {
+      load();
+      // Inside the click, so the browser accepts playback with sound.
+      el.play().catch(() => {
+        /* refused: the play button stays, and the sound is already on */
+      });
+    }
+  };
+
   const toggle = () => {
     const el = video.current;
     if (!el) return;
@@ -529,6 +601,12 @@ function FilmItem({
   const action = isPlaying
     ? t("Pause the film", "Pune filmul pe pauză")
     : t("Play the film", "Pornește filmul");
+  // A toggle keeps one name and says its state with aria-pressed (as the page's motion switch);
+  // the tooltip says what a click does next.
+  const soundName = t("Turn sound on", "Pornește sunetul");
+  const soundHint = sound
+    ? t("Turn sound off", "Oprește sunetul")
+    : t("Turn sound on", "Pornește sunetul");
 
   return (
     <li className="w-[min(76vw,20rem)] shrink-0 snap-start md:row-span-5 md:grid md:w-auto md:grid-rows-subgrid md:gap-y-0 lg:row-span-3">
@@ -559,8 +637,8 @@ function FilmItem({
           preload="none"
           disablePictureInPicture
           aria-label={t(
-            `${card.title} film, 20 seconds, no sound, Romanian text on screen. Its text is below.`,
-            `Film ${card.title}, 20 de secunde, fără sonor, cu text pe ecran. Textul lui e mai jos.`,
+            `${card.title} film, 20 seconds, with music, muted until you turn the sound on, Romanian text on screen. Its text is below.`,
+            `Film ${card.title}, 20 de secunde, cu muzică, fără sunet până îl pornești, cu text pe ecran. Textul lui e mai jos.`,
           )}
           onPlaying={() => {
             setStarted(true);
@@ -577,16 +655,29 @@ function FilmItem({
             started ? "opacity-100" : "opacity-0",
           )}
         />
-        <IconButton
-          size="md"
-          variant="secondary"
-          label={`${action}: ${card.title}`}
-          title={action}
-          onClick={toggle}
-          className="absolute bottom-3 right-3 bg-s1 hover:bg-s3"
-        >
-          {isPlaying ? <Pause aria-hidden /> : <Play aria-hidden />}
-        </IconButton>
+        <div className="absolute bottom-3 right-3 flex gap-2">
+          <IconButton
+            size="md"
+            variant="secondary"
+            aria-pressed={sound}
+            label={`${soundName}: ${card.title}`}
+            title={soundHint}
+            onClick={toggleSound}
+            className="bg-s1 hover:bg-s3"
+          >
+            {sound ? <Volume2 aria-hidden /> : <VolumeX aria-hidden />}
+          </IconButton>
+          <IconButton
+            size="md"
+            variant="secondary"
+            label={`${action}: ${card.title}`}
+            title={action}
+            onClick={toggle}
+            className="bg-s1 hover:bg-s3"
+          >
+            {isPlaying ? <Pause aria-hidden /> : <Play aria-hidden />}
+          </IconButton>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
