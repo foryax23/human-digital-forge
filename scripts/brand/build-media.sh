@@ -7,8 +7,9 @@
 #
 # The asset folder can also come from BRAND_SRC; it defaults to
 # ~/Desktop/Assigments/Dandea Mihai/VortexHub/Assets. The promo films (group "films") come from
-# FILMS_SRC, by default ~/Desktop/VortexHub-videos, else from FILMS_ALT, by default
-# ~/Desktop/Assigments/Dandea Mihai/VortexHub/Vids (VortexPromo1.mp4, VortexPromo2.mp4). Their
+# FILMS_SRC, by default ~/Desktop/VortexHub-videos (the v03 masters, without the small sample
+# labels), else from FILMS_ALT, by default ~/Desktop/Assigments/Dandea Mihai/VortexHub/Vids
+# (VortexPromo1.mp4, VortexPromo2.mp4: the v01 copies, which still carry those labels). Their
 # sound (music and sound effects) comes from FILMS_AUDIO, by default
 # ~/Desktop/VortexHub-videos/out-audio/mixes: the -18 LUFS mixes that
 # ~/Desktop/VortexHub-videos/audio-src/mix.sh makes ({scan,deep}_mix_novo_-18LUFS.wav). Set
@@ -438,9 +439,12 @@ fi
 # --------------------------------------------------------------------------------------------
 if want films; then
   log "promo films"
-  # The renders (with their lossless posters) live in FILMS_SRC; the copies the owner delivered,
-  # byte-identical, in FILMS_ALT as VortexPromo1.mp4 (scan) and VortexPromo2.mp4 (deep). Without
-  # a poster PNG the poster is decoded from the film's frame 0, which is what the PNG shows.
+  # The renders (with their lossless posters) live in FILMS_SRC: v03 = v01 without the small
+  # labels ("Date de exemplu · secvențe scurtate", "Exemplu cu o firmă inventată", "Text redactat
+  # cu AI"), the owner's call on 2026-10-05; every other frame and timing is v01's. FILMS_ALT holds
+  # the v01 copies the owner delivered (VortexPromo1.mp4 scan, VortexPromo2.mp4 deep), labels
+  # included, as a fallback only. Without a poster PNG the poster is decoded from the film's
+  # frame 0, which is what the PNG shows.
   FILMS_SRC="${FILMS_SRC:-$HOME/Desktop/VortexHub-videos}"
   FILMS_ALT="${FILMS_ALT:-$HOME/Desktop/Assigments/Dandea Mihai/VortexHub/Vids}"
   FILMS_AUDIO="${FILMS_AUDIO:-$HOME/Desktop/VortexHub-videos/out-audio/mixes}"
@@ -448,7 +452,7 @@ if want films; then
   PROMO="$PUB/media/promo"
   mkdir -p "$PROMO"
   for key in scan deep; do
-    src="$FILMS_SRC/vortexhub_${key}_ro_20s_9x16_v01.mp4"
+    src="$FILMS_SRC/vortexhub_${key}_ro_20s_9x16_v03.mp4"
     [[ -f $src ]] || src="$FILMS_ALT/VortexPromo$([[ $key == scan ]] && echo 1 || echo 2).mp4"
     if [[ ! -f $src ]]; then
       echo "  skipped $key: no film in $FILMS_SRC or $FILMS_ALT (set FILMS_SRC or FILMS_ALT)"
@@ -459,7 +463,7 @@ if want films; then
       echo "  no sound for $key: $audio is missing (run ~/Desktop/VortexHub-videos/audio-src/mix.sh, or set FILMS_AUDIO)" >&2
       exit 1
     fi
-    poster="$FILMS_SRC/vortexhub_${key}_ro_poster_9x16_v01.png"
+    poster="$FILMS_SRC/vortexhub_${key}_ro_poster_9x16_v03.png"
     if [[ ! -f $poster ]]; then
       ffmpeg -nostdin -v error -y -i "$src" -frames:v 1 -pix_fmt rgb24 "$TMP/$key-poster-src.png"
       poster="$TMP/$key-poster-src.png"

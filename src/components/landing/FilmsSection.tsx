@@ -49,13 +49,9 @@ type FilmCard = {
   key: "scan" | "deep";
   film: PromoFilm;
   title: string;
-  /** Beside the title: what the film's figures are (the site's "Date de exemplu" rule). */
-  meta: string;
   caption: string;
   cta: { label: string; to: "/scan" | "/scan/deep"; note?: string };
   beats: Beat[];
-  /** The labels the film shows on its sample data, quoted. */
-  labels: string;
 };
 
 type Mode = "auto" | "manual" | "stopped";
@@ -67,7 +63,6 @@ function useFilmCards(): FilmCard[] {
       key: "scan",
       film: SCAN_FILM,
       title: "Vortex Scan",
-      meta: t("Sample data", "Date de exemplu"),
       caption: t(
         "From public data: how long a customer waits, the site's score and what to fix.",
         "Din date publice: cât așteaptă clientul, scorul site-ului și ce e de făcut.",
@@ -148,16 +143,11 @@ function useFilmCards(): FilmCard[] {
           screen: "vortexhub.dev",
         },
       ],
-      labels: t(
-        "The film marks its figures “Date de exemplu · secvențe scurtate” (sample data, sequences shortened).",
-        "Pe ecran: „Date de exemplu · secvențe scurtate”.",
-      ),
     },
     {
       key: "deep",
       film: DEEP_FILM,
       title: "Deep Research",
-      meta: t("Invented company", "Firmă inventată"),
       caption: t(
         "Reads a company's filed accounts and shows how much of every 100 lei it keeps.",
         "Citește bilanțurile firmei și îți arată cât îți rămâne din fiecare 100 de lei încasați.",
@@ -237,10 +227,6 @@ function useFilmCards(): FilmCard[] {
           ),
         },
       ],
-      labels: t(
-        "The film marks its sample “Exemplu cu o firmă inventată” (an invented company) and the report “Text redactat cu AI” (written with AI).",
-        "Pe ecran: „Exemplu cu o firmă inventată” și „Text redactat cu AI”.",
-      ),
     },
   ];
 }
@@ -248,8 +234,8 @@ function useFilmCards(): FilmCard[] {
 /**
  * Films (#films), right after the services, in the split header layout of Services and
  * Consultation. lg+: the title, the lead and the two offers as hairline rows (caption, call to
- * action) in the 5/12 column; the two vertical films in the 7/12 column, each with its title,
- * sample-data label and on-screen text. Below lg the header stacks on top and each film carries
+ * action) in the 5/12 column; the two vertical films in the 7/12 column, each with its title and
+ * on-screen text. Below lg the header stacks on top and each film carries
  * its own caption and call to action: side by side on md, one at a time in a horizontal
  * scroll-snap row on phones, the next one peeking in.
  */
@@ -684,7 +670,6 @@ function FilmItem({
         <h3 id={titleId} className="type-h4 text-fg">
           {card.title}
         </h3>
-        <span className="type-label text-fg-3">{card.meta}</span>
       </div>
       {/* lg+: the caption and the call to action sit in the offer rows beside the films. */}
       <p className="type-body-sm mt-1 text-pretty text-fg-2 lg:hidden">
@@ -732,7 +717,6 @@ function FilmText({ card }: { card: FilmCard }) {
           </li>
         ))}
       </ol>
-      <p className="type-micro mt-2.5 text-fg-3">{card.labels}</p>
     </details>
   );
 }
