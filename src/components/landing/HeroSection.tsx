@@ -128,7 +128,6 @@ export function HeroSection() {
       <div className="pointer-events-none relative z-20 mx-auto flex w-full max-w-[1320px] flex-1 flex-col items-center justify-center px-6 pb-6 pt-24 md:px-10 lg:pb-[clamp(0.25rem,1.5vh,1.25rem)] lg:pt-[clamp(5.5rem,11vh,7rem)]">
         <div className="pointer-events-auto flex w-full max-w-[48rem] flex-col items-center text-center 2xl:max-w-[52rem]">
           <p
-            {...reveal}
             className="type-caps blur-in relative isolate mb-4 flex max-w-full items-center justify-center gap-2.5 text-[#c9c4ee]/90 lg:mb-[clamp(0.875rem,2.2vh,1.25rem)]"
           >
             {/* A dark plate keeps the small type legible where the vortex's bright arm crosses it. */}
@@ -141,7 +140,6 @@ export function HeroSection() {
           </p>
 
           <h1
-            {...reveal}
             id="hero-title"
             className="type-display name-reveal mb-5 text-balance text-white [text-shadow:0_2px_30px_rgb(0_2_15/0.6)] lg:mb-[clamp(1rem,2.6vh,1.5rem)]"
           >
@@ -155,7 +153,6 @@ export function HeroSection() {
           </h1>
 
           <p
-            {...reveal}
             className="type-lead blur-in mb-9 text-balance text-white/80 lg:mb-[clamp(1.75rem,5.2vh,3rem)]"
           >
             <span className="block">
@@ -171,7 +168,6 @@ export function HeroSection() {
 
           {/* z-10: the suggestions open over the examples, the pillars and the bottom bar. */}
           <div
-            {...reveal}
             className="blur-in relative z-10 w-full max-w-[42.5rem] 2xl:max-w-[50rem]"
           >
             <VortexSearch
@@ -200,7 +196,6 @@ export function HeroSection() {
 
       {/* Bottom bar: real proof · scroll cue · the pause switch. */}
       <div
-        {...reveal}
         className="blur-in pointer-events-none relative z-10 mx-auto grid w-full max-w-[1320px] grid-cols-[1fr_auto] items-center gap-4 px-6 pb-6 md:grid-cols-[1fr_auto_1fr] md:px-10 lg:px-12 lg:pb-7 [&>*]:pointer-events-auto"
       >
         <HeroProof className="justify-self-start" />
