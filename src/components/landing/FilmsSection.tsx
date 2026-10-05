@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronDown, Pause, Play, Volume2, VolumeX } from "lucide-react";
+import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 
 import { FREE_HOW, VALUE_ESTIMATE } from "@/components/deep/copy";
 import {
@@ -33,17 +33,7 @@ import { prefersReducedMotion } from "./motion-prefs";
  *   sound once its play button is pressed. Sound goes off again when that film leaves the screen,
  *   when the tab is hidden, when the page-wide pause is switched on and when the film reaches its
  *   end (the section then goes back to its muted rotation).
- * - The text of each film sits under it in a closed <details> (screen readers, search engines).
  */
-
-type Beat = {
-  /** Time code in the film (m:ss). */
-  at: string;
-  /** The big line of the film, as it is on screen. */
-  say?: string;
-  /** What the product screen shows, in one sentence. */
-  screen?: string;
-};
 
 type FilmCard = {
   key: "scan" | "deep";
@@ -51,7 +41,6 @@ type FilmCard = {
   title: string;
   caption: string;
   cta: { label: string; to: "/scan" | "/scan/deep"; note?: string };
-  beats: Beat[];
 };
 
 type Mode = "auto" | "manual" | "stopped";
@@ -72,77 +61,6 @@ function useFilmCards(): FilmCard[] {
         to: "/scan",
         note: t("No account needed.", "Fără cont."),
       },
-      beats: [
-        { at: "0:00", say: t("Spending money on ads?", "Dai bani pe reclame?") },
-        {
-          at: "0:01",
-          say: t("The customer clicks.", "Clientul dă clic."),
-          screen: t(
-            "A stopwatch starts; the page is still blank.",
-            "Pornește un cronometru; pagina e încă goală.",
-          ),
-        },
-        {
-          at: "0:02",
-          say: t("And waits.", "Și așteaptă."),
-          screen: t(
-            "The stopwatch passes the 2.5 s target.",
-            "Cronometrul trece de ținta de 2,5 s.",
-          ),
-        },
-        { at: "0:04", say: t("Would you still wait?", "Tu ai mai aștepta?") },
-        {
-          at: "0:06",
-          screen: t(
-            "Mobile speed: the first screen appears in 4.6 s. Poor, the target is under 2.5 s.",
-            "Viteza pe mobil: primul ecran apare în 4,6 s. Slab, ținta: sub 2,5 s.",
-          ),
-        },
-        {
-          at: "0:07",
-          say: t("The customer feels it. You don't see it.", "Clientul simte. Tu nu vezi."),
-        },
-        { at: "0:09", say: t("And at your company?", "Și la firma ta?") },
-        {
-          at: "0:10",
-          say: t("You type the company's name. That's all.", "Scrii numele firmei. Atât."),
-          screen: t(
-            "Search: Clinica Dentară Exemplu SRL, Timișoara, then Analyse.",
-            "În căutare: Clinica Dentară Exemplu SRL, Timișoara, apoi Analizează.",
-          ),
-        },
-        {
-          at: "0:12",
-          say: t(
-            "From public data: ANAF, ONRC, the company's website.",
-            "Din date publice: ANAF, ONRC, site-ul firmei.",
-          ),
-          screen: t("The analysis: 8 of 8 steps done.", "Analiza: 8 din 8 gata."),
-        },
-        {
-          at: "0:13",
-          screen: t(
-            "Site score: 56 out of 100, Fair.",
-            "Scorul site-ului: 56 din 100, Acceptabil.",
-          ),
-        },
-        {
-          at: "0:15",
-          say: t("Not just problems. What to do, too.", "Nu doar probleme. Și ce e de făcut."),
-          screen: t(
-            "Problem: the first screen loads slowly on mobile. What we do: shrink the main image and load what is visible first; the other scripts come after.",
-            "Problemă: primul ecran se încarcă greu pe mobil. Ce facem: micșorăm poza principală și încărcăm întâi ce se vede; restul scripturilor vin după.",
-          ),
-        },
-        {
-          at: "0:17",
-          say: t(
-            "See what your customer sees. Free, no account.",
-            "Vezi ce vede clientul tău. Gratuit, fără cont.",
-          ),
-          screen: "vortexhub.dev",
-        },
-      ],
     },
     {
       key: "deep",
@@ -158,75 +76,6 @@ function useFilmCards(): FilmCard[] {
         to: "/scan/deep",
         note: `${FREE_HOW[lang]}. ${VALUE_ESTIMATE[lang]}`,
       },
-      beats: [
-        {
-          at: "0:00",
-          say: t("Out of every 100 lei, how much do you keep?", "Din 100 de lei, cât îți rămâne?"),
-        },
-        { at: "0:01", say: t("What's your guess?", "Tu cât zici?") },
-        {
-          at: "0:02",
-          say: t(
-            "An example: sales have doubled since 2019.",
-            "Un exemplu: cifra de afaceri s-a dublat din 2019.",
-          ),
-          screen: t(
-            "From 2.1 to 4.62 million lei, 2019 to 2025, from the accounts filed with the Ministry of Finance.",
-            "De la 2,1 la 4,62 mil. lei, din 2019 până în 2025, din bilanțurile depuse la Ministerul Finanțelor.",
-          ),
-        },
-        { at: "0:04", say: t("But out of 100 lei?", "Dar din 100 de lei?") },
-        {
-          at: "0:06",
-          say: t(
-            "Out of 100 lei you keep 10, against 14 in 2019.",
-            "Din 100 de lei îți rămân 10, față de 14 în 2019.",
-          ),
-          screen: t(
-            "Year by year, 2019 to 2025: 14, 11, 15, 17, 10, 12, 10.",
-            "An cu an, din 2019 până în 2025: 14, 11, 15, 17, 10, 12, 10.",
-          ),
-        },
-        { at: "0:08", say: t("Your accounts know.", "Bilanțul tău știe.") },
-        { at: "0:09", say: t("Do you?", "Tu știi?") },
-        {
-          at: "0:10",
-          say: t(
-            "Deep Research reads them for you. In plain words, with sources.",
-            "Deep Research ți-l citește. Pe înțeles, cu surse.",
-          ),
-          screen: t(
-            "Researching Clinica Dentară Exemplu SRL: official registers, 7 years of money (7 of 7 years with accounts), the website, courts and tenders.",
-            "Cercetăm Clinica Dentară Exemplu SRL: registre oficiale, bani pe 7 ani (7 din 7 ani cu bilanț), site-ul firmei, instanțe și licitații.",
-          ),
-        },
-        {
-          at: "0:12",
-          screen: t(
-            "A page of the report: costs +69%, revenue +57% (2022–2025). Our estimate: about 500 lei of analysis.",
-            "O pagină din raport: cheltuielile +69%, veniturile +57% (2022–2025). Estimarea noastră: circa 500 de lei de analiză.",
-          ),
-        },
-        {
-          at: "0:14",
-          say: t(
-            "Your first Deep Research report is free.",
-            "Primul raport Deep Research e gratuit.",
-          ),
-          screen: t(
-            "One per account, when you sign in with Google. Under the page our estimate stays: about 500 lei of analysis.",
-            "Unul pe cont, când intri cu Google. Sub pagină rămâne estimarea noastră: circa 500 de lei de analiză.",
-          ),
-        },
-        {
-          at: "0:17",
-          say: t("Don't guess. Find out how much you keep.", "Nu ghici. Află cât îți rămâne."),
-          screen: t(
-            "The first report is free. Our estimate: about 500 lei of analysis. vortexhub.dev",
-            "Primul raport e gratuit. Estimarea noastră: circa 500 de lei de analiză. vortexhub.dev",
-          ),
-        },
-      ],
     },
   ];
 }
@@ -676,47 +525,6 @@ function FilmItem({
         {keepHyphens(card.caption)}
       </p>
       <FilmCta card={card} describedBy={titleId} className="lg:hidden" />
-      <FilmText card={card} />
     </li>
-  );
-}
-
-/** The film's on-screen lines with their time codes, closed by default. */
-function FilmText({ card }: { card: FilmCard }) {
-  const { t } = useI18n();
-  return (
-    <details className="group mt-3 border-t border-line-1 pt-2.5">
-      <summary
-        className={cn(
-          "type-label flex cursor-pointer list-none items-center gap-1.5 rounded-sm text-fg-2 hover:text-fg [&::-webkit-details-marker]:hidden",
-          FOCUS_RING,
-        )}
-      >
-        {t("The film's text, in English", "Textul din film")}
-        <ChevronDown
-          aria-hidden
-          className="size-3.5 text-fg-3 transition-transform duration-150 group-open:rotate-180 motion-reduce:transition-none"
-        />
-      </summary>
-      <ol className="mt-2.5 flex flex-col gap-2">
-        {card.beats.map((beat) => (
-          <li
-            key={beat.at + (beat.say ?? beat.screen)}
-            className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-x-2"
-          >
-            <span className="type-pnum text-[0.8125rem] leading-[1.5] text-fg-3">{beat.at}</span>
-            <div className="min-w-0">
-              {beat.say ? <p className="type-body-sm text-fg">{keepHyphens(beat.say)}</p> : null}
-              {beat.screen ? (
-                <p className="type-micro mt-0.5 text-pretty text-fg-3">
-                  <span className="sr-only">{t("On screen: ", "Pe ecran: ")}</span>
-                  {keepHyphens(beat.screen)}
-                </p>
-              ) : null}
-            </div>
-          </li>
-        ))}
-      </ol>
-    </details>
   );
 }
