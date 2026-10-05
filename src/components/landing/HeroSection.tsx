@@ -22,8 +22,7 @@ const SCAN_TRANSITION_MS = 800;
  * the vortex: eyebrow, a two-line title, a two-line pitch, the company /
  * website search with two example searches under it, and the four pillars
  * (analyse, automate, growth, strategy) that lead to the sections explaining
- * them. A line of real launched work runs along the bottom. The entrance
- * waits for the intro loader.
+ * them. A line of real launched work runs along the bottom.
  *
  * The vortex follows the search: idle → focus → typing (each keystroke pulses
  * it) → scanning, a short visual transition on submit before /scan opens
@@ -32,7 +31,6 @@ const SCAN_TRANSITION_MS = 800;
  */
 export function HeroSection() {
   const { t } = useI18n();
-  const introDone = useIntroDone();
   const { paused } = useMotionPause();
   const sectionRef = useRef<HTMLElement>(null);
   const [fieldState, setFieldState] = useState<SearchFieldState>("idle");
@@ -45,12 +43,11 @@ export function HeroSection() {
 
   useGsap(
     () => {
-      if (!introDone) return;
       if (prefersReducedMotion()) {
         gsap.set(".name-reveal, .blur-in", { opacity: 1, y: 0, filter: "none" });
         return;
       }
-      // fromTo with explicit end values: the head script holds these at opacity 0 in CSS.
+      // fromTo with explicit end values: elements start hidden only inside this tween.
       gsap
         .timeline({ defaults: { ease: "power3.out" } })
         .fromTo(".name-reveal", { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1.2 }, 0.1)
@@ -69,7 +66,6 @@ export function HeroSection() {
         );
     },
     sectionRef,
-    [introDone],
   );
 
   useEffect(
