@@ -28,7 +28,7 @@ function VortexPointPrivacyPage() {
   return (
     <LegalPage
       title={t("VortexPoint Privacy Policy", "Politica de confidențialitate VortexPoint")}
-      updated="Last updated: 5 October 2026."
+      updated="Last updated: 7 October 2026."
     >
       <LegalSection>
         <p>
@@ -55,7 +55,16 @@ function VortexPointPrivacyPage() {
             records what the agent did, but never the text it typed.
           </li>
           <li>
-            <B>Text grab (OCR) and the colour picker</B> run entirely on your Mac.
+            <B>Text grab (OCR)</B> runs entirely on your Mac.
+          </li>
+          <li>
+            <B>Clipboard history</B> stays on your Mac, in memory only. It is never saved or sent,
+            it is cleared when you quit, and it skips copies from password managers and any copy
+            holding a Claude API key.
+          </li>
+          <li>
+            <B>Notes.</B> VortexPoint writes to Apple Notes only when you ask, and reads nothing from
+            Notes.
           </li>
           <li>
             <B>Your calendar and to-dos</B> are read from Apple Calendar and Reminders on your Mac,
@@ -84,16 +93,32 @@ function VortexPointPrivacyPage() {
             ],
             [
               <>
-                You <B>talk to VortexPoint</B> to add events and to-dos
+                You <B>type or say a request</B> your Mac can't match by itself
               </>,
-              "The text of what you said, and the titles and times of your events in the next 7 days (to avoid clashes), sent with your own API key",
+              "The text of your request (and, after \"Ask a follow-up\", your previous request and its answer), with your time zone and language, sent with your own API key",
               <>
                 <B>Anthropic</B> (Claude)
               </>,
             ],
             [
+              <>
+                VortexPoint <B>reads something to answer</B> that request
+              </>,
+              "Only what it asks for: Mac status figures (memory, CPU, disk, battery, the Wi-Fi network name, uptime, macOS version), the names of the apps using the most memory, the titles and times of your events for the days asked, and your to-do titles with their due dates, sent with your own API key",
+              <>
+                <B>Anthropic</B> (Claude)
+              </>,
+            ],
+            [
+              <>
+                You <B>talk to VortexPoint</B>, with the mic in the prompt bar or by holding ⌃⌥Space
+              </>,
+              "Nothing extra: your Mac recognises the audio and turns it into text, which is then handled exactly like a typed request (the rows above)",
+              "No one: the audio stays on your Mac, except in the case below",
+            ],
+            [
               "You talk to VortexPoint in a language your Mac can't recognise on-device",
-              "The audio of what you say, for that note only (Settings → Plan says when this applies)",
+              "The audio of what you say, for that request only (Settings → General says when this applies)",
               <>
                 <B>Apple</B> (speech recognition)
               </>,
@@ -159,8 +184,8 @@ function VortexPointPrivacyPage() {
             <B>Accessibility:</B> so the AI agent can click and type for you.
           </li>
           <li>
-            <B>Automation:</B> to control Music and your browsers, and to open Calendar on a day,
-            only when you ask.
+            <B>Automation:</B> to control Music and your browsers, to open Calendar on a day, and to
+            add to Apple Notes, only when you ask.
           </li>
           <li>
             <B>Calendars and Reminders:</B> to show your events and to-dos in the Plan tab, and to
