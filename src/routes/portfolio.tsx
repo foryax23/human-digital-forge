@@ -123,21 +123,60 @@ function PortfolioPage() {
 function OwnApps() {
   const { t } = useI18n();
 
-  const features = [
-    t("Now playing, with music controls", "Muzica din orice aplicație, cu butoane"),
-    t("A shelf for the files you need at hand", "Un raft pentru fișierele de care ai nevoie"),
-    t(
-      "Mac Health: memory, CPU, heavy apps, caches",
-      "Mac Health: memorie, procesor, aplicații grele, cache",
-    ),
-    t("An AI agent (Beta) with your own Claude key", "Un agent AI (Beta) cu cheia ta Claude"),
-  ];
-  const facts = [
-    [t("Price", "Preț"), t("Free", "Gratuit")],
-    [
-      t("Requires", "Necesită"),
-      t("macOS 26 or later, Apple Silicon", "macOS 26 sau mai nou, Apple Silicon"),
-    ],
+  const apps = [
+    {
+      key: "vortexpoint",
+      name: "VortexPoint",
+      category: t("Mac app for the notch", "Aplicație de Mac pentru notch"),
+      tagline: t(
+        "Your notch, alive: hover it and it opens into a small home for your music, files and Mac.",
+        "Notch-ul tău, viu: treci cu mouse-ul peste el și se deschide un loc pentru muzică, fișiere și Mac.",
+      ),
+      features: [
+        t("Now playing, with music controls", "Muzica din orice aplicație, cu butoane"),
+        t("A shelf for the files you need at hand", "Un raft pentru fișierele de care ai nevoie"),
+        t(
+          "Mac Health: memory, CPU, heavy apps, caches",
+          "Mac Health: memorie, procesor, aplicații grele, cache",
+        ),
+        t("An AI agent (Beta) with your own Claude key", "Un agent AI (Beta) cu cheia ta Claude"),
+      ],
+      facts: [
+        [t("Price", "Preț"), t("Free", "Gratuit")],
+        [
+          t("Requires", "Necesită"),
+          t("macOS 26 or later, Apple Silicon", "macOS 26 sau mai nou, Apple Silicon"),
+        ],
+      ],
+      to: "/vortexpoint",
+      cta: t("See VortexPoint", "Vezi VortexPoint"),
+      icon: VORTEXPOINT_ICON.web,
+    },
+    {
+      key: "mouseplus",
+      name: "Mouse Plus",
+      category: t("Mac and iPhone app", "Aplicație de Mac și iPhone"),
+      tagline: t(
+        "Your iPhone is your Mac's trackpad: gestures, keyboard, media keys and a slide clicker, over your own Wi-Fi.",
+        "iPhone-ul este trackpad-ul Mac-ului tău: gesturi, tastatură, taste media și clicker pentru prezentări, prin Wi-Fi-ul tău.",
+      ),
+      features: [
+        t("Full trackpad gestures, up to 120 Hz", "Gesturi complete de trackpad, până la 120 Hz"),
+        t("Air mode: wave the phone to move the cursor", "Mod „în aer”: miști telefonul, se mișcă cursorul"),
+        t("Keyboard, shortcuts, media keys, app switcher", "Tastatură, scurtături, taste media, comutator de aplicații"),
+        t("No account, no cloud — one scan to pair", "Fără cont, fără cloud — o scanare pentru asociere"),
+      ],
+      facts: [
+        [t("Price", "Preț"), t("Free", "Gratuit")],
+        [
+          t("Requires", "Necesită"),
+          t("macOS 13 or later, iOS 17 or later", "macOS 13 sau mai nou, iOS 17 sau mai nou"),
+        ],
+      ],
+      to: "https://mouseplus-site.pages.dev",
+      cta: t("See Mouse Plus", "Vezi Mouse Plus"),
+      icon: null,
+    },
   ];
 
   return (
@@ -151,65 +190,106 @@ function OwnApps() {
           "Pe lângă proiectele pentru clienți, facem și publicăm aplicații proprii.",
         )}
       />
-      <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-12">
-        {/* The frame repeats the link below for pointers; keyboards and screen readers get
-            the one named link. */}
-        <Link
-          to="/vortexpoint"
-          tabIndex={-1}
-          aria-hidden
-          className="group block min-w-0 md:col-span-6"
-        >
-          <span className="relative flex aspect-[16/10] w-full items-center justify-center overflow-hidden rounded-xl border border-line-2 bg-s1">
-            <img
-              src={VORTEXPOINT_ICON.web}
-              alt=""
-              width={256}
-              height={256}
-              loading="lazy"
-              decoding="async"
-              className="size-28 transition-[filter] duration-200 group-hover:brightness-[1.06] md:size-36"
-            />
-          </span>
-        </Link>
-        <div className="flex min-w-0 flex-col md:col-span-6 md:pt-1">
-          <p className="text-[0.8125rem] leading-[1.35] text-fg-3">
-            {t("Mac app for the notch", "Aplicație de Mac pentru notch")}
-          </p>
-          <h3 className="type-h3 mt-1 text-fg">VortexPoint</h3>
-          <p className="mt-1.5 text-pretty text-[0.9375rem] leading-[1.5] text-fg-2">
-            {t(
-              "Your notch, alive: hover it and it opens into a small home for your music, files and Mac.",
-              "Notch-ul tău, viu: treci cu mouse-ul peste el și se deschide un loc pentru muzică, fișiere și Mac.",
-            )}
-          </p>
-          <ul className="mt-4 space-y-1.5">
-            {features.map((item) => (
-              <li key={item} className="type-body-sm flex gap-2 text-fg-2">
-                <span aria-hidden className="text-fg-3">
-                  –
-                </span>
-                {item}
-              </li>
-            ))}
-          </ul>
-          <dl className="mt-4 border-t border-line-1 text-[0.8125rem] leading-[1.35]">
-            {facts.map(([label, value]) => (
-              <div
-                key={label}
-                className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 border-b border-line-1 py-2.5"
-              >
-                <dt className="text-fg-3">{label}</dt>
-                <dd className="text-pretty text-fg-2">{value}</dd>
+      <div className="space-y-12 md:space-y-16">
+        {apps.map((app) => {
+          const external = app.to.startsWith("http");
+          const frame = (
+            <span className="relative flex aspect-[16/10] w-full items-center justify-center overflow-hidden rounded-xl border border-line-2 bg-s1">
+              {app.icon ? (
+                <img
+                  src={app.icon}
+                  alt=""
+                  width={256}
+                  height={256}
+                  loading="lazy"
+                  decoding="async"
+                  className="size-28 transition-[filter] duration-200 group-hover:brightness-[1.06] md:size-36"
+                />
+              ) : (
+                <img
+                  src="/media/work/mouseplus/hero.webp"
+                  alt=""
+                  width={1280}
+                  height={800}
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 h-full w-full object-cover transition-[filter] duration-200 group-hover:brightness-[1.06]"
+                />
+              )}
+            </span>
+          );
+          return (
+            <div key={app.key} className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-12">
+              {/* The frame repeats the link below for pointers; keyboards and screen readers get
+                  the one named link. */}
+              {external ? (
+                <a
+                  href={app.to}
+                  target="_blank"
+                  rel="noreferrer"
+                  tabIndex={-1}
+                  aria-hidden
+                  className="group block min-w-0 md:col-span-6"
+                >
+                  {frame}
+                </a>
+              ) : (
+                <Link
+                  to={app.to}
+                  tabIndex={-1}
+                  aria-hidden
+                  className="group block min-w-0 md:col-span-6"
+                >
+                  {frame}
+                </Link>
+              )}
+              <div className="flex min-w-0 flex-col md:col-span-6 md:pt-1">
+                <p className="text-[0.8125rem] leading-[1.35] text-fg-3">{app.category}</p>
+                <h3 className="type-h3 mt-1 text-fg">{app.name}</h3>
+                <p className="mt-1.5 text-pretty text-[0.9375rem] leading-[1.5] text-fg-2">
+                  {app.tagline}
+                </p>
+                <ul className="mt-4 space-y-1.5">
+                  {app.features.map((item) => (
+                    <li key={item} className="type-body-sm flex gap-2 text-fg-2">
+                      <span aria-hidden className="text-fg-3">
+                        –
+                      </span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <dl className="mt-4 border-t border-line-1 text-[0.8125rem] leading-[1.35]">
+                  {app.facts.map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 border-b border-line-1 py-2.5"
+                    >
+                      <dt className="text-fg-3">{label}</dt>
+                      <dd className="text-pretty text-fg-2">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <div className="mt-5">
+                  {external ? (
+                    <a
+                      href={app.to}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="type-button inline-flex items-center gap-2 rounded-full border border-line-2 bg-s2 px-6 py-2.5 text-fg no-underline transition-colors hover:bg-s3"
+                    >
+                      {app.cta}
+                    </a>
+                  ) : (
+                    <ButtonLink to={app.to} variant="secondary">
+                      {app.cta}
+                    </ButtonLink>
+                  )}
+                </div>
               </div>
-            ))}
-          </dl>
-          <div className="mt-5">
-            <ButtonLink to="/vortexpoint" variant="secondary">
-              {t("See VortexPoint", "Vezi VortexPoint")}
-            </ButtonLink>
-          </div>
-        </div>
+            </div>
+          );
+        })}
       </div>
     </>
   );
