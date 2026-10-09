@@ -338,7 +338,7 @@ export const PROJECTS: Project[] = [
     },
     summary: {
       en: "Mouse Plus turns an iPhone into a full trackpad for the Mac: cursor movement, clicks, scrolling, drag, three-finger Spaces gestures, media keys, shortcuts, a slide clicker and an app switcher. An air mode reads the gyroscope so waving the phone moves the cursor. One free app on each device talks over the local Wi-Fi — no account, no cloud in between — and pairing is a single scan. The landing page walks through every gesture with live demos and an engineering section on the 120 Hz updates on ProMotion iPhones.",
-      ro: "Mouse Plus transformă iPhone-ul într-un trackpad complet pentru Mac: mișcarea cursorului, clickuri, derulare, tragere, gesturi cu trei degete pentru Spaces, taste media, scurtături, clicker pentru prezentări și comutator de aplicații. Un mod „în aer" citește giroscopul, așa că mișcarea telefonului mișcă cursorul. Câte o aplicație gratuită pe fiecare dispozitiv comunică prin Wi-Fi-ul local — fără cont, fără cloud intermediar — iar asocierea se face cu o singură scanare. Pagina principală demonstrează fiecare gest live și include o secțiune de inginerie despre actualizările la 120 Hz pe iPhone-urile ProMotion.",
+      ro: "Mouse Plus transformă iPhone-ul într-un trackpad complet pentru Mac: mișcarea cursorului, clickuri, derulare, tragere, gesturi cu trei degete pentru Spaces, taste media, scurtături, clicker pentru prezentări și comutator de aplicații. Un mod „în aer” citește giroscopul, așa că mișcarea telefonului mișcă cursorul. Câte o aplicație gratuită pe fiecare dispozitiv comunică prin Wi-Fi-ul local — fără cont, fără cloud intermediar — iar asocierea se face cu o singură scanare. Pagina principală demonstrează fiecare gest live și include o secțiune de inginerie despre actualizările la 120 Hz pe iPhone-urile ProMotion.",
     },
     built: {
       en: [
@@ -349,7 +349,7 @@ export const PROJECTS: Project[] = [
       ],
       ro: [
         "Pagină de prezentare cu demonstrații live pentru fiecare gest",
-        "Mod „în aer" bazat pe giroscopul iPhone-ului",
+        "Mod „în aer” bazat pe giroscopul iPhone-ului",
         "Asociere prin Wi-Fi local cu o scanare, fără cont",
         "Secțiune de inginerie despre cursorul la 120 Hz",
       ],
