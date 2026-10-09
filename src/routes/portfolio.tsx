@@ -148,7 +148,7 @@ function OwnApps() {
           t("macOS 26 or later, Apple Silicon", "macOS 26 sau mai nou, Apple Silicon"),
         ],
       ],
-      to: "/vortexpoint",
+      to: "https://vortexpoint-site.pages.dev/",
       cta: t("See VortexPoint", "Vezi VortexPoint"),
       icon: VORTEXPOINT_ICON.web,
     },
