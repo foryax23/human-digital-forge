@@ -326,6 +326,264 @@ export const PROJECTS: Project[] = [
     heroPosition: "center center",
     fullHeight: 600,
   },
+  {
+    slug: "mouseplus",
+    name: "Mouse Plus",
+    url: "https://mouseplus-site.pages.dev",
+    domain: "mouseplus-site.pages.dev",
+    category: { en: "Mac and iPhone app", ro: "Aplicație de Mac și iPhone" },
+    tagline: {
+      en: "Your iPhone becomes your Mac's trackpad, over your own Wi-Fi",
+      ro: "iPhone-ul devine trackpad-ul Mac-ului tău, prin Wi-Fi-ul tău",
+    },
+    summary: {
+      en: "Mouse Plus turns an iPhone into a full trackpad for the Mac: cursor movement, clicks, scrolling, drag, three-finger Spaces gestures, media keys, shortcuts, a slide clicker and an app switcher. An air mode reads the gyroscope so waving the phone moves the cursor. One free app on each device talks over the local Wi-Fi — no account, no cloud in between — and pairing is a single scan. The landing page walks through every gesture with live demos and an engineering section on the 120 Hz updates on ProMotion iPhones.",
+      ro: "Mouse Plus transformă iPhone-ul într-un trackpad complet pentru Mac: mișcarea cursorului, clickuri, derulare, tragere, gesturi cu trei degete pentru Spaces, taste media, scurtături, clicker pentru prezentări și comutator de aplicații. Un mod „în aer” citește giroscopul, așa că mișcarea telefonului mișcă cursorul. Câte o aplicație gratuită pe fiecare dispozitiv comunică prin Wi-Fi-ul local — fără cont, fără cloud intermediar — iar asocierea se face cu o singură scanare. Pagina principală demonstrează fiecare gest live și include o secțiune de inginerie despre actualizările la 120 Hz pe iPhone-urile ProMotion.",
+    },
+    built: {
+      en: [
+        "Gesture-by-gesture landing page with live demos",
+        "Air mode using the iPhone gyroscope",
+        "Local Wi-Fi pairing with one scan, no account",
+        "Engineering section on 120 Hz cursor updates",
+      ],
+      ro: [
+        "Pagină de prezentare cu demonstrații live pentru fiecare gest",
+        "Mod „în aer” bazat pe giroscopul iPhone-ului",
+        "Asociere prin Wi-Fi local cu o scanare, fără cont",
+        "Secțiune de inginerie despre cursorul la 120 Hz",
+      ],
+    },
+    highlights: {
+      en: ["Free on both devices", "No account, no cloud", "120 Hz on ProMotion"],
+      ro: ["Gratuit pe ambele dispozitive", "Fără cont, fără cloud", "120 Hz pe ProMotion"],
+    },
+    languages: ["EN"],
+    access: "public",
+    accent: "#FF7A1A",
+    heroPosition: "center top",
+    fullHeight: 15994,
+  },
+  {
+    slug: "limitsdb",
+    name: "LimitsDB",
+    url: "https://limitsdb.vortexhub.dev",
+    domain: "limitsdb.vortexhub.dev",
+    category: { en: "Developer-limits database", ro: "Bază de date cu limite pentru dezvoltatori" },
+    tagline: {
+      en: "Every service limit, quota and price, with its receipt",
+      ro: "Fiecare limită, cotă și preț de serviciu, cu dovada ei",
+    },
+    summary: {
+      en: "LimitsDB is a machine-readable record of service limits, quotas, pricing and capabilities across 32 providers — from OpenAI, Anthropic and Google AI to Cloudflare, Stripe and Vercel. Each value is normalised for comparison, kept next to the vendor's original wording, and stamped with its source and the moment it was last checked. Visitors search 240 facts by key, filter by provider or verification status, compare providers side by side, and pull the same data through an API or an llms.txt file.",
+      ro: "LimitsDB este o evidență citibilă automat a limitelor, cotelor, prețurilor și capabilităților a 32 de furnizori — de la OpenAI, Anthropic și Google AI la Cloudflare, Stripe și Vercel. Fiecare valoare este normalizată pentru comparație, păstrată alături de formularea originală a furnizorului și însoțită de sursa ei și momentul ultimei verificări. Vizitatorii caută în cele 240 de fapte după cheie, filtrează după furnizor sau stare de verificare, compară furnizorii și preiau aceleași date prin API sau printr-un fișier llms.txt.",
+    },
+    built: {
+      en: [
+        "Searchable table of 240 normalised facts across 32 providers",
+        "Source link and last-checked date on every value",
+        "Provider comparison and change log",
+        "Public API and llms.txt for machine reading",
+      ],
+      ro: [
+        "Tabel cu 240 de fapte normalizate de la 32 de furnizori",
+        "Link către sursă și data verificării pentru fiecare valoare",
+        "Comparație între furnizori și jurnal de modificări",
+        "API public și llms.txt pentru citire automată",
+      ],
+    },
+    highlights: {
+      en: ["240 sourced facts", "32 providers", "Public API"],
+      ro: ["240 de fapte cu sursă", "32 de furnizori", "API public"],
+    },
+    languages: ["EN"],
+    access: "public",
+    accent: "#0E9F6E",
+    heroPosition: "left top",
+    fullHeight: 16383,
+  },
+  {
+    slug: "stuonto",
+    name: "StuOnto",
+    url: "https://stuonto.vercel.app",
+    domain: "stuonto.vercel.app",
+    category: { en: "Student-data explorer", ro: "Explorator de date studențești" },
+    tagline: {
+      en: "Ten thousand students in one living 3D graph you steer with your hands",
+      ro: "Zece mii de studenți într-un graf 3D viu, controlat cu mâinile",
+    },
+    summary: {
+      en: "StuOnto puts universities, faculties, programmes and every student into one living graph. Visitors fly through it in 3D, re-sort all 10,000 students with three keystrokes — universe, status galaxies, university clusters — and open any record without leaving the sky. Hand control steers the view with gestures. A live demo lets anyone in as a guest with read-only access, no sign-up.",
+      ro: "StuOnto reunește universități, facultăți, programe și fiecare student într-un singur graf viu. Vizitatorii zboară prin el în 3D, reordonează toți cei 10.000 de studenți cu trei taste — univers, galaxii de statusuri, clustere de universități — și deschid orice fișă fără să părăsească cerul. Controlul cu mâinile ghidează vederea prin gesturi. O demonstrație live lasă pe oricine să intre ca oaspete, cu acces doar de citire, fără cont.",
+    },
+    built: {
+      en: [
+        "3D graph of 10,000 students, 10 universities, 149 programmes",
+        "Three keystroke re-sorting modes with live transitions",
+        "Hand-gesture camera control",
+        "Guest demo with read-only access",
+      ],
+      ro: [
+        "Graf 3D cu 10.000 de studenți, 10 universități, 149 de programe",
+        "Trei moduri de reordonare din taste, cu tranziții live",
+        "Control al camerei prin gesturi",
+        "Demo pentru oaspeți, cu acces doar de citire",
+      ],
+    },
+    highlights: {
+      en: ["Living 3D graph", "Hand control", "Guest demo"],
+      ro: ["Graf 3D viu", "Control cu mâinile", "Demo pentru oaspeți"],
+    },
+    languages: ["EN"],
+    access: "public",
+    accent: "#5B8CFF",
+    heroPosition: "center top",
+    fullHeight: 800,
+  },
+  {
+    slug: "cowork",
+    name: "CO-MM",
+    url: "https://cowork.vortexhub.dev",
+    domain: "cowork.vortexhub.dev",
+    category: { en: "Shared desktop app", ro: "Aplicație de birou partajat" },
+    tagline: {
+      en: "A shared desktop for two people working side by side",
+      ro: "Un birou partajat pentru doi oameni care lucrează alături",
+    },
+    summary: {
+      en: "CO-MM is a shared desktop for two. The entry screen asks each person to pick their own desktop — Mihai or Mursel — and everything beyond that choice is private to the pair.",
+      ro: "CO-MM este un birou partajat pentru doi. Ecranul de intrare îi cere fiecărei persoane să-și aleagă propriul birou — Mihai sau Mursel — iar tot ce urmează după această alegere este privat pentru cei doi.",
+    },
+    built: {
+      en: [
+        "Per-person desktop picker on a calm gradient canvas",
+        "Private workspace behind the entry screen",
+      ],
+      ro: [
+        "Alegere a biroului pentru fiecare persoană, pe un fundal calm",
+        "Spațiu de lucru privat după ecranul de intrare",
+      ],
+    },
+    highlights: {
+      en: ["Two-person workspace", "Private access"],
+      ro: ["Spațiu pentru două persoane", "Acces privat"],
+    },
+    languages: ["EN"],
+    access: "private",
+    accent: "#7FB3A3",
+    heroPosition: "center center",
+    fullHeight: 800,
+  },
+  {
+    slug: "mgtasks",
+    name: "MG Task Hub",
+    url: "https://mgtasks.vortexhub.dev",
+    domain: "mgtasks.vortexhub.dev",
+    category: { en: "Team task app", ro: "Aplicație de sarcini pentru echipă" },
+    tagline: {
+      en: "Private task hub for a team's daily work",
+      ro: "Hub privat de sarcini pentru munca zilnică a echipei",
+    },
+    summary: {
+      en: "MG Task Hub is a private task-management app. Its public entry point is a branded sign-in screen with email and password; everything beyond it is reserved for the team.",
+      ro: "MG Task Hub este o aplicație privată de gestionare a sarcinilor. Accesul public se oprește la un ecran de autentificare cu e-mail și parolă; restul aplicației este rezervat echipei.",
+    },
+    built: {
+      en: [
+        "Branded email-and-password sign-in",
+        "Dark gradient theme with a centered access card",
+      ],
+      ro: [
+        "Autentificare cu e-mail și parolă, cu sigla aplicației",
+        "Temă întunecată cu card de acces centrat",
+      ],
+    },
+    highlights: {
+      en: ["Private access", "Team accounts"],
+      ro: ["Acces privat", "Conturi de echipă"],
+    },
+    languages: ["EN"],
+    access: "private",
+    accent: "#8B5CF6",
+    heroPosition: "center center",
+    fullHeight: 800,
+  },
+  {
+    slug: "dinamo-unleashed",
+    name: "Dinamo Unleashed",
+    url: "https://dinamounleashed.lovable.app",
+    domain: "dinamounleashed.com",
+    category: { en: "Fan media site", ro: "Site media de suporteri" },
+    tagline: {
+      en: "Independent media by Dinamo București fans — passion, history, truths told plainly",
+      ro: "Media independentă a fanilor lui Dinamo București — pasiune, istorie, adevăruri spuse pe șleau",
+    },
+    summary: {
+      en: "Dinamo Unleashed is an independent fan-media site about Dinamo București, in Romanian. It publishes news, match coverage, league standings, transfer stories, squad pages, history and legends, with long-form analysis pieces — like a data look at how rarely Dinamo trails in matches — and a newsletter for supporters.",
+      ro: "Dinamo Unleashed este un site media independent de suporteri, despre Dinamo București, în limba română. Publică știri, cronici de meci, clasament, transferuri, pagini ale lotului, istorie și legende, cu analize ample — precum o privire pe date despre cât de rar e Dinamo condusă în meciuri — și un newsletter pentru suporteri.",
+    },
+    built: {
+      en: [
+        "News, matches, standings, transfers, squad, history and legends sections",
+        "Long-form data analysis articles",
+        "Newsletter sign-up for supporters",
+        "Cookie consent with essential-only refusal",
+      ],
+      ro: [
+        "Secțiuni de știri, meciuri, clasament, transferuri, lot, istorie și legende",
+        "Articole de analiză pe date, în format amplu",
+        "Înscriere la newsletter pentru suporteri",
+        "Consimțământ pentru cookie-uri, cu refuz al celor neesențiale",
+      ],
+    },
+    highlights: {
+      en: ["Independent fan media", "Data analysis", "Newsletter"],
+      ro: ["Media independentă de suporteri", "Analiză pe date", "Newsletter"],
+    },
+    languages: ["RO"],
+    access: "public",
+    accent: "#D61F2C",
+    heroPosition: "left top",
+    fullHeight: 4431,
+  },
+  {
+    slug: "guardex",
+    name: "GuarDEX",
+    url: "https://guardex.tech",
+    domain: "guardex.tech",
+    category: { en: "Crypto analytics terminal", ro: "Terminal de analiză crypto" },
+    tagline: {
+      en: "Real-time DEX analytics for Solana: movers, pairs, bubble maps and trading bots",
+      ro: "Analiză DEX în timp real pentru Solana: mișcări, perechi, hărți cu bule și boți de tranzacționare",
+    },
+    summary: {
+      en: "GuarDEX is a real-time DEX analytics terminal for Solana. A dashboard tracks top gainers, losers and most-traded pairs, with 1h/6h/24h volume and liquidity charts and a market bubble map. Sections cover hot pairs, smart wallets, new listings, a token screener, a meme board, a token creator, trading bots and long/short tools, with wallet connection and pair search throughout.",
+      ro: "GuarDEX este un terminal de analiză DEX în timp real pentru Solana. Tabloul de bord urmărește cele mai mari creșteri, scăderi și cele mai tranzacționate perechi, cu grafice de volum și lichiditate pe 1h/6h/24h și o hartă cu bule a pieței. Secțiunile cuprind perechi fierbinți, portofele inteligente, listări noi, un screener de tokenuri, un panou de meme-uri, un creator de tokenuri, boți de tranzacționare și instrumente long/short, cu conectare de portofel și căutare de perechi peste tot.",
+    },
+    built: {
+      en: [
+        "Live movers dashboard with 1h/6h/24h activity charts",
+        "Market bubble map and token screener",
+        "Hot pairs, smart wallets and new listings trackers",
+        "Token creator, trading bots and long/short tools",
+      ],
+      ro: [
+        "Tablou de bord live cu grafice de activitate pe 1h/6h/24h",
+        "Hartă cu bule a pieței și screener de tokenuri",
+        "Urmărire de perechi fierbinți, portofele inteligente și listări noi",
+        "Creator de tokenuri, boți de tranzacționare și instrumente long/short",
+      ],
+    },
+    highlights: {
+      en: ["Real-time DEX data", "Bubble map", "Trading bots"],
+      ro: ["Date DEX în timp real", "Hartă cu bule", "Boți de tranzacționare"],
+    },
+    languages: ["EN"],
+    access: "public",
+    accent: "#22C55E",
+    heroPosition: "center top",
+    fullHeight: 1659,
+  },
 ];
 
 /** Shown in the homepage bento, in this order. */
