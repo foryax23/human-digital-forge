@@ -79,8 +79,8 @@ function PortfolioPage() {
         kicker={t("Projects", "Proiecte")}
         title={t("Projects we've built and launched.", "Proiecte construite și lansate de noi.")}
         description={t(
-          "Seven live products, from student-recruitment platforms and corporate sites to private dashboards. Open any project for a quick look, or visit it live.",
-          "Șapte produse online, de la platforme de recrutare a studenților și site-uri de firmă la aplicații private. Deschide oricare pentru o privire rapidă sau vizitează-l.",
+          "Fourteen live products, from student-recruitment platforms and corporate sites to analytics terminals and private dashboards. Open any project for a quick look, or visit it live.",
+          "Paisprezece produse online, de la platforme de recrutare a studenților și site-uri de firmă la terminale de analiză și aplicații private. Deschide oricare pentru o privire rapidă sau vizitează-l.",
         )}
       />
       <section aria-label={t("Projects", "Proiecte")} className="section-y">
