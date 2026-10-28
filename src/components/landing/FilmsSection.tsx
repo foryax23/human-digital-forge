@@ -40,7 +40,7 @@ type FilmCard = {
 type Mode = "auto" | "manual" | "stopped";
 
 function useFilmCards(): FilmCard[] {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   return [
     {
       key: "scan",

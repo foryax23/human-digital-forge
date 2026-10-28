@@ -79,7 +79,7 @@ export function DeepEntry({
   preview?: boolean;
   className?: string;
 }) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const access = useEntryAccess();
   const cui = cuiProp ?? blueprint?.company?.cui;
   const site = siteProp ?? verifiedSite(blueprint);
