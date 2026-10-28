@@ -34,7 +34,7 @@ const RECOMMENDED: PlanId = "growth";
  */
 export function PricingSection() {
   const { t, lang } = useI18n();
-  const extra = leiText(EXTRA_HOUR_LEI)[lang];
+  const extra = leiText(EXTRA_HOUR_LEI, market)[lang];
 
   const terms: { label: string; value: string }[] = [
     {

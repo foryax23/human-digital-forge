@@ -40,12 +40,12 @@ function AiAutomationPage() {
   const { t, lang } = useI18n();
   const automation = fixedProject("automation");
   const assistant = fixedProject("assistant");
-  const automationPrice = projectPriceText(automation)[lang];
-  const assistantPrice = projectPriceText(assistant)[lang];
+  const automationPrice = projectPriceText(automation, market)[lang];
+  const assistantPrice = projectPriceText(assistant, market)[lang];
   const growth = PLAN_CATALOG.growth;
   const pro = PLAN_CATALOG.pro;
-  const growthFee = monthlyText(growth.priceLei)[lang];
-  const proFee = monthlyText(pro.priceLei)[lang];
+  const growthFee = monthlyText(growth.priceLei, market)[lang];
+  const proFee = monthlyText(pro.priceLei, market)[lang];
 
   // Keep in step with the automation and assistant lines in src/lib/pricing.ts and the
   // service row ("Analiză, implementare, instruirea echipei").

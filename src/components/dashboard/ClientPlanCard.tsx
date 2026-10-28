@@ -58,7 +58,7 @@ function PlanPanel({ data, className }: { data: ActivePlan; className?: string }
   const spec = CLIENT_PLANS[plan.id];
   const entry = PLAN_CATALOG[plan.id];
   // The list price (src/lib/pricing.ts); the contract carries the same fee.
-  const fee = monthlyText(entry.priceLei)[lang];
+  const fee = monthlyText(entry.priceLei, market)[lang];
   const scheduled = plan.state === "scheduled";
   const hoursUnit = hoursPerMonthLabel(plan.hoursPerMonth, lang).replace(/^\d+\s/, "");
 

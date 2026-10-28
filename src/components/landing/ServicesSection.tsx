@@ -53,8 +53,8 @@ function ServiceIcon({ slug }: { slug: Service["slug"] }) {
 export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3" }) {
   const { t, lang } = useI18n();
   const Heading = headingLevel;
-  const automationPrice = projectPriceText(fixedProject("automation"))[lang];
-  const hourPrice = leiText(CONSULTANCY_HOUR_LEI)[lang];
+  const automationPrice = projectPriceText(fixedProject("automation"), market)[lang];
+  const hourPrice = leiText(CONSULTANCY_HOUR_LEI, market)[lang];
 
   const services: Service[] = [
     {
@@ -66,7 +66,7 @@ export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3
         "Site-uri de prezentare, pagini de destinație și portofolii, noi sau refăcute.",
       ),
       deliverables: t("Design, build, launch", "Design, dezvoltare, lansare"),
-      price: capitalize(projectPriceText(fixedProject("site"))[lang]),
+      price: capitalize(projectPriceText(fixedProject("site"), market)[lang]),
     },
     {
       slug: "digital-products",

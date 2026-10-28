@@ -242,7 +242,7 @@ export function ContactForm({
               <SelectContent className={menuClass}>
                 {PLAN_ORDER.map((id) => (
                   <SelectItem key={id} value={`plan-${id}`}>
-                    {`${PLAN_CATALOG[id].name}, ${monthlyText(PLAN_CATALOG[id].priceLei)[lang]}`}
+                    {`${PLAN_CATALOG[id].name}, ${monthlyText(PLAN_CATALOG[id].priceLei, market)[lang]}`}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -41,7 +41,7 @@ const TEXT_LINK = cn(
 function ConsultancyPage() {
   const { t, lang } = useI18n();
   const consultancy = fixedProject("consultancy");
-  const hourPrice = projectPriceText(consultancy)[lang];
+  const hourPrice = projectPriceText(consultancy, market)[lang];
   const { growth, pro } = PLAN_CATALOG;
 
   const included = [

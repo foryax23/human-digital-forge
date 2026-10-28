@@ -157,7 +157,7 @@ export function DeepGate({
               <li key={id} className="flex flex-wrap gap-x-2 text-fg">
                 <span className="font-medium">{PLAN_CATALOG[id].name}</span>
                 <span className="text-fg-2">
-                  {`${monthlyText(PLAN_CATALOG[id].priceLei)[lang]}: ${reportsText(id)[lang]}`}
+                  {`${monthlyText(PLAN_CATALOG[id].priceLei, market)[lang]}: ${reportsText(id)[lang]}`}
                 </span>
               </li>
             ))}

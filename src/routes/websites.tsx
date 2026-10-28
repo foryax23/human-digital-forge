@@ -50,10 +50,10 @@ const NUMBER = "type-pnum text-[0.8125rem] text-fg-3";
 function WebsitesPage() {
   const { t, lang } = useI18n();
   const site = fixedProject("site");
-  const price = projectPriceText(site)[lang];
+  const price = projectPriceText(site, market)[lang];
   const priceFirst = price.charAt(0).toUpperCase() + price.slice(1);
   const starter = PLAN_CATALOG.starter;
-  const starterFee = monthlyText(starter.priceLei)[lang];
+  const starterFee = monthlyText(starter.priceLei, market)[lang];
   const starterHours = hoursText(starter.hoursPerMonth)[lang];
 
   // Keep in step with the site project's line in src/lib/pricing.ts (FIXED_PROJECTS).

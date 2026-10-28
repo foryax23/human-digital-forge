@@ -40,8 +40,8 @@ function DigitalProductsPage() {
   const { t, lang } = useI18n();
   const growth = PLAN_CATALOG.growth;
   const pro = PLAN_CATALOG.pro;
-  const growthFee = monthlyText(growth.priceLei)[lang];
-  const proFee = monthlyText(pro.priceLei)[lang];
+  const growthFee = monthlyText(growth.priceLei, market)[lang];
+  const proFee = monthlyText(pro.priceLei, market)[lang];
 
   // Only what Vortex Hub builds today (see /portfolio): web apps that run in the browser.
   const items = [
