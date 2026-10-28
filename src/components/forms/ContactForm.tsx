@@ -18,17 +18,17 @@ import type { PlanId } from "@/lib/plans";
 import { monthlyText, PLAN_CATALOG, PLAN_ORDER } from "@/lib/pricing";
 
 /** The first line of a contract request: "Aș vrea contractul pentru abonamentul Growth (…)." */
-function planSentence(id: PlanId, lang: Language): string {
+function planSentence(id: PlanId, lang: Language, market: "ro" | "uk" = "ro"): string {
   const { name, priceLei } = PLAN_CATALOG[id];
-  const fee = monthlyText(priceLei);
+  const fee = monthlyText(priceLei, market);
   return lang === "ro"
     ? `Aș vrea contractul pentru abonamentul ${name} (${fee.ro}).`
     : `I would like the contract for the ${name} plan (${fee.en}).`;
 }
 
 /** The contract request's starting text: the plan, then what the contract needs. */
-function planPrefill(id: PlanId, lang: Language): string {
-  return `${planSentence(id, lang)}\n${
+function planPrefill(id: PlanId, lang: Language, market: "ro" | "uk" = "ro"): string {
+  return `${planSentence(id, lang, market)}\n${
     lang === "ro" ? "Firma și CUI: \nTelefon: " : "Company and tax ID (CUI): \nPhone: "
   }`;
 }
@@ -67,14 +67,14 @@ export function ContactForm({
   plan?: PlanId;
   onPlanChange?: (plan: PlanId) => void;
 } = {}) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const turnstile = useRef<TurnstileHandle>(null);
   const [chosen, setChosen] = useState(plan);
   const [description, setDescription] = useState(
-    () => prefill ?? (plan ? planPrefill(plan, lang) : ""),
+    () => prefill ?? (plan ? planPrefill(plan, lang, market) : ""),
   );
   // The page changed the plan (back/forward, a link): follow it.
   const [seenPlan, setSeenPlan] = useState(plan);
@@ -89,8 +89,8 @@ export function ContactForm({
     if (!previous || previous === next) return;
     setDescription((current) => {
       for (const l of ["ro", "en"] as const) {
-        const old = planSentence(previous, l);
-        if (current.startsWith(old)) return planSentence(next, lang) + current.slice(old.length);
+        const old = planSentence(previous, l, market);
+        if (current.startsWith(old)) return planSentence(next, lang, market) + current.slice(old.length);
       }
       return current;
     });
@@ -242,7 +242,7 @@ export function ContactForm({
               <SelectContent className={menuClass}>
                 {PLAN_ORDER.map((id) => (
                   <SelectItem key={id} value={`plan-${id}`}>
-                    {`${PLAN_CATALOG[id].name}, ${monthlyText(PLAN_CATALOG[id].priceLei)[lang]}`}
+                    {`${PLAN_CATALOG[id].name}, ${monthlyText(PLAN_CATALOG[id].priceLei, market)[lang]}`}
                   </SelectItem>
                 ))}
               </SelectContent>

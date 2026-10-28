@@ -24,7 +24,7 @@ import {
   pick,
   seoMeta,
 } from "@/i18n";
-import { getRequestLanguage } from "@/i18n/request-language";
+import { getRequestLanguage, getRequestMarket } from "@/i18n/request-language";
 import { Toaster } from "@/components/ui/sonner";
 import { CookieConsent } from "@/components/cookies/CookieConsent";
 import { MAIN_ID, SkipLink } from "@/components/system/skip-link";
@@ -117,7 +117,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   // Romanian first: the visitor's saved choice (cookie), else Romanian. The server renders in
   // that language and the value reaches the browser with the SSR payload, so hydration matches.
-  loader: () => ({ lang: getRequestLanguage() }),
+  loader: () => ({ lang: getRequestLanguage(), market: getRequestMarket() }),
   head: ({ loaderData }) => ({
     meta: [
       { charSet: "utf-8" },
@@ -184,11 +184,11 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const { lang } = Route.useLoaderData();
+  const { lang, market } = Route.useLoaderData();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider initialLang={lang}>
+      <LanguageProvider initialLang={lang} initialMarket={market}>
         <AuthProvider>
           {/* The first Tab stop, then the cookie choice (fixed at the bottom, but first in
               the Tab order while it is open), then the page. */}

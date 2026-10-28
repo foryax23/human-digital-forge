@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 
 import { SectionHeader } from "@/components/system";
 import { useI18n } from "@/i18n";
-import { groupedNumber, NBSP, type FixedProject } from "@/lib/pricing";
+import { gbpText,
+  groupedNumber, NBSP, type FixedProject } from "@/lib/pricing";
 
 /**
  * What a service page sells, in the site's hairline language (no cards, no badges): "Ce
@@ -86,25 +87,26 @@ export function ServiceOffer({
  * around it small ("de la 4.500 lei", "1.500–3.500 lei", "300 lei pe oră").
  */
 export function ProjectPriceValue({ project }: { project: FixedProject }) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const { low, high, perHour } = project.priceLei;
-  const unit = lang === "ro" ? "lei" : "RON";
-  const n = (value: number) => groupedNumber(value, lang);
+  const uk = market === "uk";
+  const unit = uk ? "" : lang === "ro" ? `${NBSP}lei` : `${NBSP}RON`;
+  const n = (value: number) => (uk ? gbpText(value) : groupedNumber(value, lang));
   const amount = (value: string) => <span className="type-price text-fg">{value}</span>;
 
   return (
     <span className="flex flex-wrap items-baseline gap-x-1.5">
       {high ? (
-        amount(`${n(low)}–${n(high)}${NBSP}${unit}`)
+        amount(`${n(low)}–${n(high)}${unit}`)
       ) : perHour ? (
         <>
-          {amount(`${n(low)}${NBSP}${unit}`)}
+          {amount(`${n(low)}${unit}`)}
           <span className="text-fg-3">{t("an hour", "pe oră")}</span>
         </>
       ) : (
         <>
           <span className="text-fg-3">{t("from", "de la")}</span>
-          {amount(`${n(low)}${NBSP}${unit}`)}
+          {amount(`${n(low)}${unit}`)}
         </>
       )}
     </span>

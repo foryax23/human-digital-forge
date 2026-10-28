@@ -26,7 +26,7 @@ import {
   planStartsLaterCopy,
   REASON_COPY,
   REPORT_CONTENTS,
-  VALUE_ESTIMATE,
+  VALUE_ESTIMATE, VALUE_ESTIMATE_UK,
   type AccessExtras,
   type GateCopy,
 } from "./copy";
@@ -78,7 +78,7 @@ export function DeepGate({
   /** The access answer behind the refusal: the account's deep checks (absent when unknown). */
   access?: DeepAccess | null;
 }) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const pathname = useLocation({ select: (l) => l.pathname });
   const extras = access as AccessExtras | null | undefined;
   const credits = extras?.credits;
@@ -157,7 +157,7 @@ export function DeepGate({
               <li key={id} className="flex flex-wrap gap-x-2 text-fg">
                 <span className="font-medium">{PLAN_CATALOG[id].name}</span>
                 <span className="text-fg-2">
-                  {`${monthlyText(PLAN_CATALOG[id].priceLei)[lang]}: ${reportsText(id)[lang]}`}
+                  {`${monthlyText(PLAN_CATALOG[id].priceLei, market)[lang]}: ${reportsText(id)[lang]}`}
                 </span>
               </li>
             ))}
@@ -240,7 +240,7 @@ export function DeepGate({
  * in ("Intră cu Google sau cu e-mail"), and that the plans by contract add more reports.
  */
 function LoginOffer() {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   return (
     <>
       <ul
@@ -256,7 +256,7 @@ function LoginOffer() {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-[0.875rem] text-fg-3">{VALUE_ESTIMATE[lang]}</p>
+      <p className="mt-3 text-[0.875rem] text-fg-3">{(market === "uk" ? VALUE_ESTIMATE_UK : VALUE_ESTIMATE)[lang]}</p>
       <div className="mt-5">
         <GoogleLink />
       </div>

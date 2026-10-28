@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-import { FREE_FIRST, FREE_SUMMARY, VALUE_ESTIMATE } from "@/components/deep/copy";
+import { FREE_FIRST, FREE_SUMMARY, VALUE_ESTIMATE, VALUE_ESTIMATE_UK } from "@/components/deep/copy";
 import { ButtonLink, RECOMMENDED_RULE, SectionHeader } from "@/components/system";
 import { useI18n } from "@/i18n";
 import type { PlanId } from "@/lib/plans";
@@ -9,6 +9,7 @@ import {
   deepReportsText,
   EXTRA_HOUR_LEI,
   FIXED_PROJECTS,
+  gbpText,
   groupedNumber,
   includedHoursText,
   leiText,
@@ -33,8 +34,8 @@ const RECOMMENDED: PlanId = "growth";
  * "Cere contractul" opens /contact with the plan chosen (no card checkout here).
  */
 export function PricingSection() {
-  const { t, lang } = useI18n();
-  const extra = leiText(EXTRA_HOUR_LEI)[lang];
+  const { t, lang, market } = useI18n();
+  const extra = leiText(EXTRA_HOUR_LEI, market)[lang];
 
   const terms: { label: string; value: string }[] = [
     {
@@ -112,7 +113,7 @@ export function PricingSection() {
               </p>
               {/* The owner's value estimate: always labelled as ours, never a price or a discount. */}
               <p className="mt-1.5 text-[0.8125rem] leading-[1.45] text-fg-3">
-                {VALUE_ESTIMATE[lang]}
+                {(market === "uk" ? VALUE_ESTIMATE_UK : VALUE_ESTIMATE)[lang]}
               </p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-2">
@@ -163,13 +164,17 @@ function PlanColumn({
   recommended: boolean;
   className?: string;
 }) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const [open, setOpen] = useState(false);
   const listId = useId();
   const pick = (text: PriceText) => text[lang];
   const features = [...entry.features, deepReportsText(entry.id), termText(entry.id)].map(pick);
   const price =
-    lang === "ro" ? `${groupedNumber(entry.priceLei, "ro")}${NBSP}lei` : leiText(entry.priceLei).en;
+    market === "uk"
+      ? leiText(entry.priceLei, "uk").en
+      : lang === "ro"
+        ? `${groupedNumber(entry.priceLei, "ro")}${NBSP}lei`
+        : leiText(entry.priceLei).en;
 
   return (
     <div className={cn("min-w-0 border-line-1 lg:px-6", className)}>
@@ -246,7 +251,7 @@ function PlanColumn({
 
 /** "Proiecte și consultanță": the one-off prices next to the plans, on one ruled row. */
 function FixedProjects() {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const headingId = useId();
 
   return (
@@ -295,25 +300,26 @@ function FixedProjects() {
 
 /** "de la 4.500 lei" with the amount set large, the words around it small. */
 function ProjectPrice({ project }: { project: FixedProject }) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const { low, high, perHour } = project.priceLei;
   const amount = (value: string) => <span className="type-price text-fg">{value}</span>;
-  const unit = lang === "ro" ? "lei" : "RON";
-  const n = (value: number) => groupedNumber(value, lang);
+  const uk = market === "uk";
+  const unit = uk ? "" : lang === "ro" ? `${NBSP}lei` : `${NBSP}RON`;
+  const n = (value: number) => (uk ? gbpText(value) : groupedNumber(value, lang));
 
   return (
     <p className="mt-2 flex flex-wrap items-baseline gap-x-1.5">
       {high ? (
-        amount(`${n(low)}–${n(high)}${NBSP}${unit}`)
+        amount(`${n(low)}–${n(high)}${unit}`)
       ) : perHour ? (
         <>
-          {amount(`${n(low)}${NBSP}${unit}`)}
+          {amount(`${n(low)}${unit}`)}
           <span className="type-body-sm text-fg-3">{t("an hour", "pe oră")}</span>
         </>
       ) : (
         <>
           <span className="type-body-sm text-fg-3">{t("from", "de la")}</span>
-          {amount(`${n(low)}${NBSP}${unit}`)}
+          {amount(`${n(low)}${unit}`)}
         </>
       )}
     </p>

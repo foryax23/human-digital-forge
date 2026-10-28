@@ -5,6 +5,7 @@ import { PageHero } from "@/components/shared/PageHero";
 import { CompanyDetails } from "@/components/shared/CompanyDetails";
 import { Button } from "@/components/system";
 import { pageMeta, useI18n } from "@/i18n";
+import { UkLegalNotice } from "@/components/legal/UkLegalNotice";
 import { openCookieSettings } from "@/components/cookies/cookie-consent";
 
 export const Route = createFileRoute("/cookies")({
@@ -42,6 +43,7 @@ function CookiesPage() {
       />
       <section className="container-vx section-y">
         <div className="max-w-3xl space-y-10">
+          <UkLegalNotice page="cookies" />
           <CompanyDetails />
 
           <Section heading={t("What are cookies?", "Ce sunt cookie-urile?")}>

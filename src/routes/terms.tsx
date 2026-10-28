@@ -4,6 +4,7 @@ import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { CompanyDetails } from "@/components/shared/CompanyDetails";
 import { pageMeta, useI18n } from "@/i18n";
+import { UkLegalNotice } from "@/components/legal/UkLegalNotice";
 import { DEEP_TERMS, DEEP_TERMS_VERSION } from "@/lib/scan/legal/lead-notice";
 
 export const Route = createFileRoute("/terms")({
@@ -50,6 +51,7 @@ function TermsPage() {
       />
       <section className="container-vx section-y">
         <div className="max-w-3xl space-y-10">
+          <UkLegalNotice page="terms" />
           <Section heading={t("1. Provider", "1. Furnizorul")}>
             <p>
               {t(

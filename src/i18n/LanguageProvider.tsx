@@ -15,7 +15,11 @@ import {
   languageFromCookieHeader,
   parseLanguage,
   rememberChosenLanguage,
+  marketCookieString,
+  marketFromCookieHeader,
+  rememberChosenMarket,
   type Language,
+  type Market,
 } from "./lang";
 
 export type { Language } from "./lang";
@@ -25,6 +29,10 @@ type I18nContextValue = {
   setLang: (lang: Language) => void;
   /** Returns the Romanian string when active, otherwise the English source. */
   t: (en: string, ro: string) => string;
+  /** Where the visitor buys: "ro" (lei) or "uk" (pounds, English, UK legal wording). */
+  market: Market;
+  /** Switches market; "uk" also switches the language to English. */
+  setMarket: (market: Market) => void;
 };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -51,12 +59,15 @@ function saveChoice(lang: Language) {
 export function LanguageProvider({
   children,
   initialLang,
+  initialMarket,
 }: {
   children: ReactNode;
   initialLang?: Language;
+  initialMarket?: Market;
 }) {
   const router = useRouter({ warn: false });
   const [lang, setLangState] = useState<Language>(initialLang ?? "en");
+  const [market, setMarketState] = useState<Market>(initialMarket ?? "ro");
 
   const setLang = useCallback(
     (next: Language) => {
@@ -68,6 +79,35 @@ export function LanguageProvider({
     },
     [router],
   );
+
+  const setMarket = useCallback(
+    (next: Market) => {
+      setMarketState(next);
+      rememberChosenMarket(next);
+      try {
+        document.cookie = marketCookieString(next, window.location.protocol === "https:");
+      } catch {
+        /* ignore */
+      }
+      if (next === "uk") setLang("en");
+      else void router?.invalidate({ filter: (match) => match.routeId === "__root__" });
+    },
+    [router, setLang],
+  );
+
+  // First visit from a UK browser (en-GB) with no saved choice: open the UK version once.
+  useEffect(() => {
+    try {
+      if (marketFromCookieHeader(document.cookie) || languageFromCookieHeader(document.cookie))
+        return;
+      if ((navigator.languages ?? [navigator.language]).some((l) => /^en-GB$/i.test(l))) {
+        setMarket("uk");
+      }
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // A choice saved before the cookie existed (localStorage only) moves to the cookie once.
   useEffect(() => {
@@ -89,7 +129,8 @@ export function LanguageProvider({
 
   const t = useCallback((en: string, ro: string) => (lang === "ro" ? ro : en), [lang]);
 
-  const value = useMemo<I18nContextValue>(() => ({ lang, setLang, t }), [lang, setLang, t]);
+  const value = useMemo<I18nContextValue>(() => ({ lang, setLang, t, market, setMarket }),
+    [lang, setLang, t, market, setMarket],);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

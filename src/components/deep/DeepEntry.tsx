@@ -8,7 +8,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-import { entryOfferLine, OUTCOME, VALUE_ESTIMATE } from "./copy";
+import { entryOfferLine, OUTCOME, VALUE_ESTIMATE, VALUE_ESTIMATE_UK } from "./copy";
 import { browserStorage, clearJournal, hasAnyJournal } from "./journal";
 import { DEEP_PATH } from "./safe-next";
 import { fetchAccess } from "./transport";
@@ -79,7 +79,7 @@ export function DeepEntry({
   preview?: boolean;
   className?: string;
 }) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const access = useEntryAccess();
   const cui = cuiProp ?? blueprint?.company?.cui;
   const site = siteProp ?? verifiedSite(blueprint);
@@ -130,7 +130,7 @@ export function DeepEntry({
           {offer ? (
             <p className="mt-2 text-[0.875rem] text-fg-3">
               <span className="font-medium text-fg">{offer.line[lang]}</span>
-              {offer.free ? ` ${VALUE_ESTIMATE[lang]}` : null}
+              {offer.free ? ` ${(market === "uk" ? VALUE_ESTIMATE_UK : VALUE_ESTIMATE)[lang]}` : null}
             </p>
           ) : null}
         </div>

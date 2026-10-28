@@ -52,13 +52,13 @@ export function ClientPlanCard({
 }
 
 function PlanPanel({ data, className }: { data: ActivePlan; className?: string }) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const titleId = useId();
   const { plan, research } = data;
   const spec = CLIENT_PLANS[plan.id];
   const entry = PLAN_CATALOG[plan.id];
   // The list price (src/lib/pricing.ts); the contract carries the same fee.
-  const fee = monthlyText(entry.priceLei)[lang];
+  const fee = monthlyText(entry.priceLei, market)[lang];
   const scheduled = plan.state === "scheduled";
   const hoursUnit = hoursPerMonthLabel(plan.hoursPerMonth, lang).replace(/^\d+\s/, "");
 

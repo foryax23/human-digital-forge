@@ -231,14 +231,52 @@ export function groupedNumber(value: number, lang: "en" | "ro"): string {
   return String(Math.round(value)).replace(/\B(?=(\d{3})+(?!\d))/g, lang === "ro" ? "." : ",");
 }
 
+/**
+ * UK prices (owner decision, 2026-10-28): each lei amount converted at about 5.8 RON to the
+ * pound and rounded to a clean figure. Explicit numbers, not a live exchange rate, so a UK
+ * price changes only when someone changes it here.
+ */
+export const GBP_FROM_LEI: Record<number, number> = {
+  200: 35,
+  290: 49,
+  300: 52,
+  500: 86,
+  790: 135,
+  1500: 259,
+  1990: 339,
+  3000: 519,
+  3500: 605,
+  4500: 775,
+  6000: 1035,
+};
+
+export type PriceMarket = "ro" | "uk";
+
+/** The pound price for a lei amount: the table above, else the same 5.8 conversion. */
+export function gbpFromLei(lei: number): number {
+  return GBP_FROM_LEI[lei] ?? Math.round(lei / 5.8);
+}
+
+/** "£1,035". */
+export function gbpText(lei: number): string {
+  return `£${groupedNumber(gbpFromLei(lei), "en")}`;
+}
+
+/** The unit-wrapped amount for a market: "1.990 lei" / "1,990 RON" / "£339". */
+export function moneyText(value: number, market: PriceMarket = "ro"): PriceText {
+  if (market === "uk") return t(gbpText(value), gbpText(value));
+  return leiText(value);
+}
+
 /** "1.990 lei" / "1,990 RON". */
-export function leiText(value: number): PriceText {
+export function leiText(value: number, market: PriceMarket = "ro"): PriceText {
+  if (market === "uk") return t(gbpText(value), gbpText(value));
   return t(`${groupedNumber(value, "en")}${NBSP}RON`, `${groupedNumber(value, "ro")}${NBSP}lei`);
 }
 
 /** "790 lei pe lună" / "790 RON a month". */
-export function monthlyText(value: number): PriceText {
-  const amount = leiText(value);
+export function monthlyText(value: number, market: PriceMarket = "ro"): PriceText {
+  const amount = leiText(value, market);
   return t(`${amount.en} a month`, `${amount.ro} pe lună`);
 }
 
@@ -299,8 +337,12 @@ export function deepPlansText(): PriceText {
 export const DEEP_REPORT_VALUE = { lei: 500, decided: "2026-10-04" };
 
 /** "Estimarea noastră: circa 500 de lei de analiză într-un raport." */
-export function deepValueText(): PriceText {
+export function deepValueText(market: PriceMarket = "ro"): PriceText {
   const lei = DEEP_REPORT_VALUE.lei;
+  if (market === "uk") {
+    const en = `Our estimate: about ${gbpText(lei)} of analysis in one report.`;
+    return t(en, en);
+  }
   // Romanian takes "de" from 20 up ("500 de lei"), as in hoursText.
   const de = lei % 100 === 0 || lei % 100 >= 20 ? "de " : "";
   return t(
@@ -318,11 +360,15 @@ export function termText(plan: PlanId): PriceText {
 }
 
 /** "de la 4.500 lei" / "1.500–3.500 lei" / "300 lei pe oră". */
-export function projectPriceText(project: FixedProject): PriceText {
+export function projectPriceText(project: FixedProject, market: PriceMarket = "ro"): PriceText {
   const { low, high, perHour } = project.priceLei;
   if (perHour) {
-    const amount = leiText(low);
+    const amount = leiText(low, market);
     return t(`${amount.en} an hour`, `${amount.ro} pe oră`);
+  }
+  if (high && market === "uk") {
+    const range = `${gbpText(low)}–${gbpText(high)}`;
+    return t(range, range);
   }
   if (high) {
     return t(
@@ -330,7 +376,7 @@ export function projectPriceText(project: FixedProject): PriceText {
       `${groupedNumber(low, "ro")}–${groupedNumber(high, "ro")}${NBSP}lei`,
     );
   }
-  const amount = leiText(low);
+  const amount = leiText(low, market);
   return t(`from ${amount.en}`, `de la ${amount.ro}`);
 }
 

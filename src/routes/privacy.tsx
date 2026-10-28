@@ -4,6 +4,7 @@ import { SiteLayout } from "@/components/layout/SiteLayout";
 import { PageHero } from "@/components/shared/PageHero";
 import { CompanyDetails } from "@/components/shared/CompanyDetails";
 import { pageMeta, useI18n } from "@/i18n";
+import { UkLegalNotice } from "@/components/legal/UkLegalNotice";
 import {
   DEEP_FEEDBACK_RETENTION_MONTHS,
   DEEP_RETENTION_DAYS,
@@ -101,6 +102,7 @@ function PrivacyPage() {
       />
       <section className="container-vx section-y">
         <div className="max-w-3xl space-y-10">
+          <UkLegalNotice page="privacy" />
           <Section heading={t("1. Data controller", "1. Operatorul de date")}>
             <p>
               {t(

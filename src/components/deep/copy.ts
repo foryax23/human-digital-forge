@@ -53,6 +53,8 @@ export const REPORT_CONTENTS: Bilingual[] = [
 /** "Estimarea noastră: circa 500 de lei de analiză într-un raport." */
 export const VALUE_ESTIMATE: Bilingual = deepValueText();
 
+export const VALUE_ESTIMATE_UK: Bilingual = deepValueText("uk");
+
 const PLANS_LINE = deepPlansText();
 
 /** "Abonamentele prin contract includ mai multe rapoarte: Starter include 1 raport pe trimestru, …". */
