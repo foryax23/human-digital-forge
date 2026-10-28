@@ -1,3 +1,4 @@
+// @ts-ignore -- bun provides this module at test time
 import { describe, expect, it } from "bun:test";
 import { parseUkCompanyNumber } from "./uk-company";
 
