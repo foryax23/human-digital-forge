@@ -160,8 +160,8 @@ export function HeroSection() {
             </span>
             <span className="block">
               {t(
-                "We build websites and automations for businesses in Romania.",
-                "Facem site-uri și automatizări pentru firme din România.",
+                "We build websites and automations for businesses in Romania and the UK.",
+                "Facem site-uri și automatizări pentru firme din România și UK.",
               )}
             </span>
           </p>
