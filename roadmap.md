@@ -12,3 +12,8 @@
 - [x] Stage 4: contacts and presence (followers, reviews, Meta ads — needs Meta token, job ads)
 - [ ] Stage 5: longer staged runs, Atlas in PDF
 - [ ] Later: strategy built on the atlas
+## UK market
+- [x] RO / EN / UK switch (UK = English + pounds, auto for en-GB browsers)
+- [x] Prices in pounds everywhere on the site
+- [x] UK wording on privacy, cookies and terms (lawyer review pending)
+- [ ] Deep research for UK companies (Companies House) — waiting on the Companies House API key
