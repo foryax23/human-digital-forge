@@ -75,3 +75,52 @@ export function rememberChosenLanguage(lang: Language): void {
 export function chosenLanguageInThisTab(): Language | null {
   return chosenInThisTab;
 }
+
+// ---- Market (where the visitor buys: Romania in lei, the UK in pounds) ------------------
+
+/** "ro": prices in lei, Romanian legal wording. "uk": English, prices in pounds, UK wording. */
+export type Market = "ro" | "uk";
+
+export const DEFAULT_MARKET: Market = "ro";
+
+export const MARKET_COOKIE = "vortex-market";
+
+export function parseMarket(value: unknown): Market | null {
+  return value === "ro" || value === "uk" ? value : null;
+}
+
+export function marketFromCookieHeader(header: string | null | undefined): Market | null {
+  if (!header) return null;
+  for (const part of header.split(";")) {
+    const eq = part.indexOf("=");
+    if (eq < 0) continue;
+    if (part.slice(0, eq).trim() !== MARKET_COOKIE) continue;
+    return parseMarket(part.slice(eq + 1).trim());
+  }
+  return null;
+}
+
+export function marketCookieString(market: Market, secure: boolean): string {
+  return `${MARKET_COOKIE}=${market}; Path=/; Max-Age=${ONE_YEAR_SECONDS}; SameSite=Lax${
+    secure ? "; Secure" : ""
+  }`;
+}
+
+let marketInThisTab: Market | null = null;
+
+export function rememberChosenMarket(market: Market): void {
+  marketInThisTab = market;
+}
+
+export function chosenMarketInThisTab(): Market | null {
+  return marketInThisTab;
+}
+
+/** The market the root route loaded, read from route matches (head functions). */
+export function marketFromMatches(
+  matches: ReadonlyArray<{ routeId?: string; loaderData?: unknown }> | undefined,
+): Market {
+  const root = matches?.find((m) => m.routeId === "__root__");
+  const market = (root?.loaderData as { market?: unknown } | undefined)?.market;
+  return parseMarket(market) ?? DEFAULT_MARKET;
+}

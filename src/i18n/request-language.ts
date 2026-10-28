@@ -8,6 +8,12 @@ import {
   languageFromCookieHeader,
   parseLanguage,
   type Language,
+  DEFAULT_MARKET,
+  MARKET_COOKIE,
+  chosenMarketInThisTab,
+  marketFromCookieHeader,
+  parseMarket,
+  type Market,
 } from "./lang";
 
 /**
@@ -28,4 +34,18 @@ export const getRequestLanguage = createIsomorphicFn()
   .client(
     (): Language =>
       chosenLanguageInThisTab() ?? languageFromCookieHeader(document.cookie) ?? DEFAULT_LANGUAGE,
+  );
+
+/** The market to render (cookie), else Romania. Same server/browser split as the language. */
+export const getRequestMarket = createIsomorphicFn()
+  .server((): Market => {
+    try {
+      return parseMarket(getCookie(MARKET_COOKIE)) ?? DEFAULT_MARKET;
+    } catch {
+      return DEFAULT_MARKET;
+    }
+  })
+  .client(
+    (): Market =>
+      chosenMarketInThisTab() ?? marketFromCookieHeader(document.cookie) ?? DEFAULT_MARKET,
   );
