@@ -78,7 +78,7 @@ export function DeepGate({
   /** The access answer behind the refusal: the account's deep checks (absent when unknown). */
   access?: DeepAccess | null;
 }) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const pathname = useLocation({ select: (l) => l.pathname });
   const extras = access as AccessExtras | null | undefined;
   const credits = extras?.credits;
@@ -240,7 +240,7 @@ export function DeepGate({
  * in ("Intră cu Google sau cu e-mail"), and that the plans by contract add more reports.
  */
 function LoginOffer() {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   return (
     <>
       <ul

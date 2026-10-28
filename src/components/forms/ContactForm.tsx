@@ -18,9 +18,9 @@ import type { PlanId } from "@/lib/plans";
 import { monthlyText, PLAN_CATALOG, PLAN_ORDER } from "@/lib/pricing";
 
 /** The first line of a contract request: "Aș vrea contractul pentru abonamentul Growth (…)." */
-function planSentence(id: PlanId, lang: Language): string {
+function planSentence(id: PlanId, lang: Language, market: "ro" | "uk" = "ro"): string {
   const { name, priceLei } = PLAN_CATALOG[id];
-  const fee = monthlyText(priceLei);
+  const fee = monthlyText(priceLei, market);
   return lang === "ro"
     ? `Aș vrea contractul pentru abonamentul ${name} (${fee.ro}).`
     : `I would like the contract for the ${name} plan (${fee.en}).`;
@@ -67,7 +67,7 @@ export function ContactForm({
   plan?: PlanId;
   onPlanChange?: (plan: PlanId) => void;
 } = {}) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);

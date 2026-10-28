@@ -9,6 +9,7 @@ import {
   deepReportsText,
   EXTRA_HOUR_LEI,
   FIXED_PROJECTS,
+  gbpText,
   groupedNumber,
   includedHoursText,
   leiText,
@@ -33,7 +34,7 @@ const RECOMMENDED: PlanId = "growth";
  * "Cere contractul" opens /contact with the plan chosen (no card checkout here).
  */
 export function PricingSection() {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const extra = leiText(EXTRA_HOUR_LEI, market)[lang];
 
   const terms: { label: string; value: string }[] = [
@@ -163,13 +164,17 @@ function PlanColumn({
   recommended: boolean;
   className?: string;
 }) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const [open, setOpen] = useState(false);
   const listId = useId();
   const pick = (text: PriceText) => text[lang];
   const features = [...entry.features, deepReportsText(entry.id), termText(entry.id)].map(pick);
   const price =
-    lang === "ro" ? `${groupedNumber(entry.priceLei, "ro")}${NBSP}lei` : leiText(entry.priceLei).en;
+    market === "uk"
+      ? leiText(entry.priceLei, "uk").en
+      : lang === "ro"
+        ? `${groupedNumber(entry.priceLei, "ro")}${NBSP}lei`
+        : leiText(entry.priceLei).en;
 
   return (
     <div className={cn("min-w-0 border-line-1 lg:px-6", className)}>
@@ -246,7 +251,7 @@ function PlanColumn({
 
 /** "Proiecte și consultanță": the one-off prices next to the plans, on one ruled row. */
 function FixedProjects() {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const headingId = useId();
 
   return (
@@ -295,25 +300,26 @@ function FixedProjects() {
 
 /** "de la 4.500 lei" with the amount set large, the words around it small. */
 function ProjectPrice({ project }: { project: FixedProject }) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const { low, high, perHour } = project.priceLei;
   const amount = (value: string) => <span className="type-price text-fg">{value}</span>;
-  const unit = lang === "ro" ? "lei" : "RON";
-  const n = (value: number) => groupedNumber(value, lang);
+  const uk = market === "uk";
+  const unit = uk ? "" : lang === "ro" ? `${NBSP}lei` : `${NBSP}RON`;
+  const n = (value: number) => (uk ? gbpText(value) : groupedNumber(value, lang));
 
   return (
     <p className="mt-2 flex flex-wrap items-baseline gap-x-1.5">
       {high ? (
-        amount(`${n(low)}–${n(high)}${NBSP}${unit}`)
+        amount(`${n(low)}–${n(high)}${unit}`)
       ) : perHour ? (
         <>
-          {amount(`${n(low)}${NBSP}${unit}`)}
+          {amount(`${n(low)}${unit}`)}
           <span className="type-body-sm text-fg-3">{t("an hour", "pe oră")}</span>
         </>
       ) : (
         <>
           <span className="type-body-sm text-fg-3">{t("from", "de la")}</span>
-          {amount(`${n(low)}${NBSP}${unit}`)}
+          {amount(`${n(low)}${unit}`)}
         </>
       )}
     </p>

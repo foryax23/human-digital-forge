@@ -52,7 +52,7 @@ export function ClientPlanCard({
 }
 
 function PlanPanel({ data, className }: { data: ActivePlan; className?: string }) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const titleId = useId();
   const { plan, research } = data;
   const spec = CLIENT_PLANS[plan.id];

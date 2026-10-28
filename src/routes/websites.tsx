@@ -48,7 +48,7 @@ const ROW =
 const NUMBER = "type-pnum text-[0.8125rem] text-fg-3";
 
 function WebsitesPage() {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const site = fixedProject("site");
   const price = projectPriceText(site, market)[lang];
   const priceFirst = price.charAt(0).toUpperCase() + price.slice(1);

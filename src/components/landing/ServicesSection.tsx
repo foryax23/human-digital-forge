@@ -51,7 +51,7 @@ function ServiceIcon({ slug }: { slug: Service["slug"] }) {
  * icon sits beside the title and the description runs the full width under both.
  */
 export function ServiceRows({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3" }) {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const Heading = headingLevel;
   const automationPrice = projectPriceText(fixedProject("automation"), market)[lang];
   const hourPrice = leiText(CONSULTANCY_HOUR_LEI, market)[lang];

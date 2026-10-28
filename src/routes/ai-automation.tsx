@@ -37,7 +37,7 @@ const TEXT_LINK = cn(
 );
 
 function AiAutomationPage() {
-  const { t, lang } = useI18n();
+  const { t, lang, market } = useI18n();
   const automation = fixedProject("automation");
   const assistant = fixedProject("assistant");
   const automationPrice = projectPriceText(automation, market)[lang];
