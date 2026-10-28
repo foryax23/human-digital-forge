@@ -18,6 +18,7 @@ import { Kbd, Status } from "@/components/system/marker";
 import type { Tone } from "@/components/system/tone";
 import { useI18n } from "@/i18n";
 import { parseSearchIntent, searchCompanies } from "@/lib/scan/company-search";
+import { parseUkCompanyNumber, type SearchCountry } from "@/lib/scan/uk-company";
 import { withCommaBelow } from "@/lib/scan/localize";
 import type { CompanyStatus, CompanySuggestion, SearchIntent } from "@/lib/scan/types";
 import { cn } from "@/lib/utils";
@@ -42,7 +43,7 @@ const SEGMENT_MIN = 44;
  * The /scan route's search params for one choice. The CUI travels as a number,
  * so the address reads /scan?cui=54747928 (a string would be JSON-quoted).
  */
-type ScanParams = { cui: number } | { url: string } | { q: string };
+type ScanParams = ({ cui: number } | { url: string } | { q: string }) & { country?: "uk" };
 
 const byCui = (cui: string): ScanParams => ({ cui: Number(cui) });
 
@@ -193,7 +194,10 @@ export function VortexSearch({
   onOpenChange?: (open: boolean) => void;
   onBeforeNavigate?: (proceed: () => Promise<void>) => void;
 }) {
-  const { t } = useI18n();
+  const { t, market } = useI18n();
+  const [country, setCountry] = useState<SearchCountry>(market);
+  useEffect(() => setCountry(market), [market]);
+  const uk = country === "uk";
   const navigate = useNavigate();
   const baseId = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const inputId = `${baseId}-input`;
@@ -244,8 +248,15 @@ export function VortexSearch({
     };
   }, [query]);
 
-  const intent = useMemo(() => parseSearchIntent(query), [query]);
-  const term = companyTerm(intent);
+  const intent = useMemo<SearchIntent>(() => {
+    const base = parseSearchIntent(query);
+    // The UK register has no CUI: digits are a company number, searched by name.
+    if (uk && base.kind === "cui") return { kind: "name", query: query.trim() };
+    return base;
+  }, [query, uk]);
+  const ukNumber = uk ? parseUkCompanyNumber(query) : null;
+  // The live company index covers Romania only.
+  const term = uk ? "" : companyTerm(intent);
 
   // Debounced, cancellable lookup in the company index.
   useEffect(() => {
@@ -272,6 +283,13 @@ export function VortexSearch({
   const failed = !loading && found?.term === term && found.status === "error";
 
   const options = useMemo<Option[]>(() => {
+    if (intent.kind === "empty" && uk) {
+      return [
+        { id: "example-name", kind: "example" as const, value: "Tesco", code: false, hint: HINT.name },
+        { id: "example-number", kind: "example" as const, value: "00445790", code: true, hint: HINT.name },
+        { id: "example-website", kind: "example" as const, value: "vortexhub.dev", code: true, hint: HINT.site },
+      ];
+    }
     if (intent.kind === "empty") {
       return EXAMPLES.map(({ id, value, code, hint }) => ({
         id,
@@ -290,10 +308,10 @@ export function VortexSearch({
       list.push({ id: `company-${company.cui}`, kind: "company", company });
     }
     if (intent.kind === "name") {
-      list.push({ id: "by-name", kind: "by-name", query: intent.query.trim() });
+      list.push({ id: "by-name", kind: "by-name", query: ukNumber ?? intent.query.trim() });
     }
     return list;
-  }, [intent, results, t]);
+  }, [intent, results, t, uk, ukNumber]);
 
   const groups = useMemo<Group[]>(() => {
     const byKey = new Map<string, Group>();
@@ -351,12 +369,13 @@ export function VortexSearch({
       setSubmitting(true);
       inputRef.current?.blur();
       // Reset when the router settles, for pages that keep the search mounted (/scan).
-      const proceed = () => navigate({ to: "/scan", search }).finally(() => setSubmitting(false));
+      const target = uk ? { ...search, country: "uk" as const } : search;
+      const proceed = () => navigate({ to: "/scan", search: target }).finally(() => setSubmitting(false));
       const before = onBeforeNavigateRef.current;
       if (before) before(proceed);
       else void proceed();
     },
-    [navigate],
+    [navigate, uk],
   );
 
   const pulseTyping = () => {
@@ -414,6 +433,7 @@ export function VortexSearch({
     }
     if (intent.kind === "website") return go({ url: intent.url });
     if (intent.kind === "cui") return go(byCui(intent.cui));
+    if (uk) return go({ q: ukNumber ?? intent.query.trim() });
 
     // Free text: the first suggestion, or the scan page's own search.
     if (!loading && results[0]) return go(byCui(results[0].cui));
@@ -557,6 +577,11 @@ export function VortexSearch({
   // name isn't found. Nothing for a website, whose row says it all.
   const footer = (() => {
     if (intent.kind === "website") return null;
+    if (uk)
+      return t(
+        "UK companies via Companies House. Name search is coming soon; a company number or website works now.",
+        "Firme din UK prin Companies House. Căutarea după nume vine curând; numărul firmei sau site-ul merg acum.",
+      );
     const source = t(
       "Companies from ONRC and ANAF open data",
       "Firme din datele deschise ONRC și ANAF",
@@ -597,6 +622,19 @@ export function VortexSearch({
             submitting && styles.starting,
           )}
         >
+          <button
+            type="button"
+            onClick={() => setCountry(uk ? "ro" : "uk")}
+            aria-label={t(
+              uk ? "Searching UK companies. Switch to Romania" : "Searching Romanian companies. Switch to the UK",
+              uk ? "Cauți firme din UK. Treci la România" : "Cauți firme din România. Treci la UK",
+            )}
+            title={uk ? "United Kingdom" : "România"}
+            className="flex shrink-0 items-center gap-1.5 rounded-full border border-border/60 bg-background/40 px-2 py-1 text-xs font-medium text-foreground transition-colors hover:bg-background/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <span aria-hidden className="text-base leading-none">{uk ? "🇬🇧" : "🇷🇴"}</span>
+            <span aria-hidden>{uk ? "UK" : "RO"}</span>
+          </button>
           <SparkMark className={cn(styles.spark, "size-[18px]")} />
           <label htmlFor={inputId} className="sr-only">
             {t("Search a company, CUI or website", "Caută o firmă, un CUI sau un site")}
@@ -616,10 +654,12 @@ export function VortexSearch({
                 className="type-body pointer-events-none absolute inset-0 flex items-center truncate text-white/70"
               >
                 <span className="sm:hidden">
-                  {t("Company, CUI or website", "Firmă, CUI sau site")}
+                  {uk ? t("UK company or website", "Firmă UK sau site") : t("Company, CUI or website", "Firmă, CUI sau site")}
                 </span>
                 <span className="hidden sm:inline">
-                  {t("Company name, CUI or website", "Numele firmei, CUI sau site")}
+                  {uk
+                    ? t("UK company name, number or website", "Firmă UK, număr sau site")
+                    : t("Company name, CUI or website", "Numele firmei, CUI sau site")}
                 </span>
               </span>
             )}

@@ -53,7 +53,9 @@ const demoParam = z
   )
   .catch(undefined);
 
-const searchSchema = z.object({ cui: cuiParam, url: param, q: param, demo: demoParam });
+const searchSchema = z.object({
+  country: z.enum(["ro", "uk"]).optional().catch(undefined),
+  cui: cuiParam, url: param, q: param, demo: demoParam });
 type ScanSearch = z.infer<typeof searchSchema>;
 
 export const Route = createFileRoute("/scan")({
