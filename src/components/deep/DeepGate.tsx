@@ -26,7 +26,7 @@ import {
   planStartsLaterCopy,
   REASON_COPY,
   REPORT_CONTENTS,
-  VALUE_ESTIMATE,
+  VALUE_ESTIMATE, VALUE_ESTIMATE_UK,
   type AccessExtras,
   type GateCopy,
 } from "./copy";
@@ -256,7 +256,7 @@ function LoginOffer() {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-[0.875rem] text-fg-3">{VALUE_ESTIMATE[lang]}</p>
+      <p className="mt-3 text-[0.875rem] text-fg-3">{(market === "uk" ? VALUE_ESTIMATE_UK : VALUE_ESTIMATE)[lang]}</p>
       <div className="mt-5">
         <GoogleLink />
       </div>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 
-import { FREE_HOW, VALUE_ESTIMATE } from "@/components/deep/copy";
+import { FREE_HOW, VALUE_ESTIMATE, VALUE_ESTIMATE_UK } from "@/components/deep/copy";
 import { ButtonLink, IconButton, SectionHeader, keepHyphens } from "@/components/system";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -68,7 +68,7 @@ function useFilmCards(): FilmCard[] {
       cta: {
         label: t("Get your first report free", "Cere primul raport gratuit"),
         to: "/scan/deep",
-        note: `${FREE_HOW[lang]}. ${VALUE_ESTIMATE[lang]}`,
+        note: `${FREE_HOW[lang]}. ${(market === "uk" ? VALUE_ESTIMATE_UK : VALUE_ESTIMATE)[lang]}`,
       },
     },
     {

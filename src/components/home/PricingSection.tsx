@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-import { FREE_FIRST, FREE_SUMMARY, VALUE_ESTIMATE } from "@/components/deep/copy";
+import { FREE_FIRST, FREE_SUMMARY, VALUE_ESTIMATE, VALUE_ESTIMATE_UK } from "@/components/deep/copy";
 import { ButtonLink, RECOMMENDED_RULE, SectionHeader } from "@/components/system";
 import { useI18n } from "@/i18n";
 import type { PlanId } from "@/lib/plans";
@@ -113,7 +113,7 @@ export function PricingSection() {
               </p>
               {/* The owner's value estimate: always labelled as ours, never a price or a discount. */}
               <p className="mt-1.5 text-[0.8125rem] leading-[1.45] text-fg-3">
-                {VALUE_ESTIMATE[lang]}
+                {(market === "uk" ? VALUE_ESTIMATE_UK : VALUE_ESTIMATE)[lang]}
               </p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-2">
